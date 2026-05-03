@@ -230,9 +230,7 @@ def look(request, collectionStr):
             print(f"Collection: {collection_key}")  
         except (json.JSONDecodeError, TypeError):
             data = {}
-<<<<<<< HEAD
-    
-=======
+
 
     user = data.get('username')
     userID = data.get('userID')
@@ -243,7 +241,7 @@ def look(request, collectionStr):
     collection_key = bodyCollectionStr or collectionStr
     print(f"Collection: {collection_key}")
 
->>>>>>> refs/remotes/origin/main
+
     if collection_key is not None:
         try:
             collectionUser = Collection.objects.get(collectionUniqueID=collection_key)
@@ -271,37 +269,7 @@ def look(request, collectionStr):
             serialized['visitorName'] = visitor.visitorName
             serialized['visitorID'] = visitor.visitorID
         return serialized
-<<<<<<< HEAD
-    try:
-        if not user or not userID:
-            serializedData = collectionUser.serialize()
-            return HttpResponse(json.dumps(serializedData), content_type="application/json")
 
-        if collectionUser.collectionIsCollected == True:
-            collectionUser.tobecollected = True
-            serializedData = serialize_collection_with_visitor(collectionUser, visitorUser)
-            return HttpResponse(json.dumps(serializedData), content_type="application/json")
-        if user != 'guestuser' or userID != 'guestuser':
-            try:
-                print('[lookPlace] Marking collection as collected for visitor:', visitorUser)
-                collectionUser.collectionCollector = visitorUser
-                collectionUser.collectionIsCollected = True
-                collectionUser.save()
-                visitorUser.visitorCollections.add(collectionUser)
-            except:
-                print('[lookPlace] Error marking collection as collected or updating visitor collections.')
-        else:
-            print('Guest user accessed collection without collecting.')
-        serializedData = serialize_collection_with_visitor(collectionUser, visitorUser)
-        return HttpResponse(json.dumps(serializedData), content_type="application/json")
-    except:
-        print('[lookPlace] Error during collection processing, returning basic serialized collection.')
-        pass
-
-
-
-
-=======
 
     if not user or not userID:
         serializedData = collectionUser.serialize()
@@ -321,7 +289,7 @@ def look(request, collectionStr):
         print('Guest user accessed collection without collecting.')
     serializedData = serialize_collection_with_visitor(collectionUser, visitorUser)
     return HttpResponse(json.dumps(serializedData), content_type="application/json")
->>>>>>> refs/remotes/origin/main
+
 
 
 def collect_and_cleanup_collection(collectionUser, visitorUser):
