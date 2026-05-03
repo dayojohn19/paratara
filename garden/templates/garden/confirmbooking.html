@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+<style>
+body {
+  font-family: "Poppins", sans-serif;
+  background: #f5f6fa;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* Confirm Button */
+#bookBtn {
+  background-color: #007bff;
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+/* Modal Overlay */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  justify-content: center;
+  align-items: center;
+}
+
+/* Modal Card */
+.modal-content {
+  background: white;
+  padding: 24px;
+  border-radius: 16px;
+  text-align: center;
+  width: 320px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  animation: pop 0.3s ease;
+}
+@keyframes pop {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* Receipt Styles */
+.receipt {
+  background: #f9f9f9;
+  border: 1px dashed #ccc;
+  padding: 12px;
+  margin: 10px 0;
+  border-radius: 8px;
+  text-align: left;
+  font-size: 14px;
+}
+
+button.confirm, button.cancel {
+  margin: 10px 5px 0;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.confirm { background-color: #28a745; color: white; }
+.cancel { background-color: #dc3545; color: white; }
+
+/* Confirmation Receipt Popup */
+#receiptModal .modal-content {
+  width: 340px;
+}
+</style>
+
+<!-- Main Button -->
+<button id="bookBtn">Confirm Booking</button>
+
+<!-- Confirm Dialog -->
+<div class="modal" id="confirmModal">
+  <div class="modal-content">
+    <h3>Confirm Booking</h3>
+    <div class="receipt">
+      <p><strong>Name:</strong> John Doe</p>
+      <p><strong>Date:</strong> November 10, 2025</p>
+      <p><strong>Room:</strong> Deluxe Suite</p>
+      <p><strong>Price:</strong> ₱6,500</p>
+    </div>
+    <button class="confirm" id="confirmYes">Confirm</button>
+    <button class="cancel" id="confirmNo">Cancel</button>
+  </div>
+</div>
+
+<!-- Receipt Modal -->
+<div class="modal" id="receiptModal">
+  <div class="modal-content">
+    <h2>✅ Booking Confirmed</h2>
+    <div class="receipt" id="receiptDetails"></div>
+    <p>Thank you for booking with us!</p>
+    <button class="confirm" id="closeReceipt">Close</button>
+  </div>
+</div>
+
+<script>
+const bookBtn = document.getElementById("bookBtn");
+const confirmModal = document.getElementById("confirmModal");
+const receiptModal = document.getElementById("receiptModal");
+const confirmYes = document.getElementById("confirmYes");
+const confirmNo = document.getElementById("confirmNo");
+const closeReceipt = document.getElementById("closeReceipt");
+const receiptDetails = document.getElementById("receiptDetails");
+
+// Booking details (can be dynamic)
+const bookingInfo = {
+  name: "John Doe",
+  date: "November 10, 2025",
+  room: "Deluxe Suite",
+  price: "₱6,500",
+  bookingID: "BK-" + Math.floor(Math.random() * 1000000)
+};
+
+// Open confirm modal
+bookBtn.onclick = () => confirmModal.style.display = "flex";
+
+// Cancel button
+confirmNo.onclick = () => confirmModal.style.display = "none";
+
+// Confirm booking
+confirmYes.onclick = () => {
+  confirmModal.style.display = "none";
+  receiptModal.style.display = "flex";
+
+  // Generate receipt dynamically
+  receiptDetails.innerHTML = `
+    <p><strong>Booking ID:</strong> ${bookingInfo.bookingID}</p>
+    <p><strong>Name:</strong> ${bookingInfo.name}</p>
+    <p><strong>Date:</strong> ${bookingInfo.date}</p>
+    <p><strong>Room:</strong> ${bookingInfo.room}</p>
+    <p><strong>Price:</strong> ${bookingInfo.price}</p>
+  `;
+};
+
+// Close receipt modal
+closeReceipt.onclick = () => receiptModal.style.display = "none";
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>
+
+

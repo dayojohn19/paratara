@@ -1,0 +1,67 @@
+.modal-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.form-toggle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+}
+
+/* Group for toggle buttons */
+.toggle-group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 6px 10px;
+  background: #f9f9f9;
+  border-radius: 999px;
+}
+
+/* Toggle buttons */
+.toggle-option input {
+  display: none;
+}
+
+.toggle-option span {
+  display: inline-block;
+  padding: 8px 18px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid #e5e5e5;
+  color: #444;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+/* Selected */
+.toggle-option input:checked + span {
+  background: #a8e6cf; /* pastel mint */
+  border-color: #81d8b4;
+  color: #000;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* Separator */
+.toggle-separator {
+  color: #aaa;
+  font-size: 0.9rem;
+  padding: 0 6px;
+}
+
+/* Title under group */
+.form-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #222;
+  letter-spacing: 0.4px;
+  margin-top: 6px;
+}

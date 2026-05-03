@@ -1,0 +1,76 @@
+{% load static %}
+<style>
+
+</style>
+
+<script src="{% static 'home/navbar.js' %}" defer></script>
+
+<link rel="stylesheet" href="{% static 'home/navbar.css' %}" />
+<link rel="stylesheet" href="{% static 'bootstrap/css/master.css' %}" />
+<script src="{% static 'bootstrap/js/bootstrap.js' %}"></script>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-light" aria-label="Eighth navbar example">
+  <div class="container">
+    <!-- <a class="navbar-brand" href="{% url 'home:carpool' %}">
+      <span style="color: blue">D</span>
+      <span style="color: orange">e</span>
+      <span style="color: blue">s</span>
+      <span style="color: green">t</span>
+      <span style="color: red">i</span>
+      <span style="color: red">n</span>
+      <span style="color: blue">a</span>
+      <span style="color: orange">t</span>
+      <span style="color: green">i</span>
+      <span style="color: red">o</span>
+      <span style="color: blue">n</span>
+    </a> -->
+    <!-- <a href="{% url 'home:autopopulate' %}">AUTO POPULATE</a>
+    <a href="{% url 'resorts:autopopulateResort' %}">AUTO Resort</a>
+    <a href="{% url 'home:htmltest' %}">htmltest</a> -->
+    <!-- <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarsExample07" aria-controls="navbarsExample07" aria-expanded="false" aria-label="Toggle navigation">
+      <svg xmlns="" width="16" height="16" fill="currentColor" class="bi bi-justify" viewBox="0 0 16 16">
+      <path fill-rule="evenodd" d="M2 12.5a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5m0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5m0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5m0-3a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5"/>
+      </svg>
+
+    </button> -->
+    <div class="navbar-collapse collapse show" id="navbarsExample07">
+      {% if user.is_authenticated %}
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <div class="flex-shrink-0">
+            
+            <a style="text-decoration: none; color: inherit;" href="{% url 'userProfile:profileOf' csrf_token request.user.id %}" class="" aria-expanded="true">
+              {{request.user.username}}
+              <!-- {% if request.user.photoLink %}
+              <img src="{{request.user.photoLink}}" alt="{{request.user.username}}" width="32" height="32" class="rounded-circle" />
+              {% else %}
+              <img src="https://st3.depositphotos.com/3581215/18899/v/600/depositphotos_188994514-stock-illustration-vector-illustration-male-silhouette-profile.jpg" alt="{{request.user.username}}" width="32" height="32" class="rounded-circle" />
+              {% endif %} -->
+            </a>
+          </div>
+        </li>
+      </ul>
+      {% endif %}
+
+    </div>
+  </div>
+</nav>
+
+<!-- 
+  <template id="rideTemplate">
+  <div id="div-RideContainer">
+    <div class="radio-options-custom flexBox-for-SVG">
+      <span class="flexBox-for-Title">I'm</span>
+      <span>
+        <div class="flexBox-option1">
+          <input value="Driver" name="scheduleTypeAndMode" type="radio" id="Driver">
+          <label for="Driver">Driver</label>
+        </div>
+        <div class="flexBox-option1">
+          <input value="Passenger" name="scheduleTypeAndMode" type="radio" id="Passenger">
+          <label for="Passenger">Passenger</label>
+        </div>
+      </span>
+    </div>
+  </div>
+</template> -->

@@ -1,0 +1,183 @@
+{% extends "home/layout.html" %}
+
+{% block body %}
+<div style="max-width: 1100px; margin: 0 auto; padding: 24px 16px;">
+  <h2 style="margin: 0 0 8px 0;">RequestPageSummary Dashboard</h2>
+  <p style="margin: 0 0 20px 0; opacity: 0.8;">Top {{ top_n }} IPs + requests by country</p>
+
+  {{ ip_labels|json_script:"ip-labels" }}
+  {{ ip_total_requests|json_script:"ip-total" }}
+  {{ ip_unique_pages|json_script:"ip-unique" }}
+  {{ earliest_labels|json_script:"ip-earliest" }}
+  {{ latest_labels|json_script:"ip-latest" }}
+  {{ active_window_hours|json_script:"ip-window-hours" }}
+  {{ country_labels|json_script:"country-labels" }}
+  {{ country_requests|json_script:"country-requests" }}
+  {{ timezone_labels|json_script:"timezone-labels" }}
+  {{ timezone_requests|json_script:"timezone-requests" }}
+  {{ month_labels|json_script:"month-labels" }}
+  {{ month_counts|json_script:"month-counts" }}
+
+  <div style="display: grid; grid-template-columns: 1fr; gap: 24px;">
+    <div>
+      <h3 style="margin: 0 0 8px 0;">Top IPs by Total Requests</h3>
+      <canvas id="barTotalRequests" height="120"></canvas>
+    </div>
+
+    <div>
+      <h3 style="margin: 0 0 8px 0;">Top IPs by Unique Pages</h3>
+      <canvas id="barUniquePages" height="120"></canvas>
+    </div>
+
+    <div>
+      <h3 style="margin: 0 0 8px 0;">Requests by Country</h3>
+      <canvas id="pieByCountry" height="140"></canvas>
+    </div>
+
+    <div>
+      <h3 style="margin: 0 0 8px 0;">Requests by Time Zone</h3>
+      <canvas id="pieByTimeZone" height="140"></canvas>
+    </div>
+
+    <div>
+      <h3 style="margin: 0 0 8px 0;">Requests by Month</h3>
+      <canvas id="pieByMonth" height="140"></canvas>
+    </div>
+
+    <div>
+      <h3 style="margin: 0 0 8px 0;">Earliest → Latest (Hours Active)</h3>
+      <canvas id="barActiveWindow" height="120"></canvas>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+  const ipLabels = JSON.parse(document.getElementById('ip-labels').textContent);
+  const ipTotal = JSON.parse(document.getElementById('ip-total').textContent);
+  const ipUnique = JSON.parse(document.getElementById('ip-unique').textContent);
+  const ipEarliest = JSON.parse(document.getElementById('ip-earliest').textContent);
+  const ipLatest = JSON.parse(document.getElementById('ip-latest').textContent);
+  const ipWindowHours = JSON.parse(document.getElementById('ip-window-hours').textContent);
+  const countryLabels = JSON.parse(document.getElementById('country-labels').textContent);
+  const countryRequests = JSON.parse(document.getElementById('country-requests').textContent);
+  const timeZoneLabels = JSON.parse(document.getElementById('timezone-labels').textContent);
+  const timeZoneRequests = JSON.parse(document.getElementById('timezone-requests').textContent);
+  const monthLabels = JSON.parse(document.getElementById('month-labels').textContent);
+  const monthCounts = JSON.parse(document.getElementById('month-counts').textContent);
+
+  const baseOptions = {
+    responsive: true,
+    plugins: {
+      legend: { display: true },
+      tooltip: { enabled: true },
+    },
+  };
+
+  new Chart(document.getElementById('barTotalRequests'), {
+    type: 'bar',
+    data: {
+      labels: ipLabels,
+      datasets: [{
+        label: 'Total Requests',
+        data: ipTotal,
+      }],
+    },
+    options: {
+      ...baseOptions,
+      plugins: { ...baseOptions.plugins, legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { precision: 0 } },
+      },
+    },
+  });
+
+  new Chart(document.getElementById('barUniquePages'), {
+    type: 'bar',
+    data: {
+      labels: ipLabels,
+      datasets: [{
+        label: 'Unique Pages',
+        data: ipUnique,
+      }],
+    },
+    options: {
+      ...baseOptions,
+      plugins: { ...baseOptions.plugins, legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { precision: 0 } },
+      },
+    },
+  });
+
+  new Chart(document.getElementById('pieByCountry'), {
+    type: 'pie',
+    data: {
+      labels: countryLabels,
+      datasets: [{
+        label: 'Requests',
+        data: countryRequests,
+      }],
+    },
+    options: baseOptions,
+  });
+
+  new Chart(document.getElementById('pieByTimeZone'), {
+    type: 'pie',
+    data: {
+      labels: timeZoneLabels,
+      datasets: [{
+        label: 'Requests',
+        data: timeZoneRequests,
+      }],
+    },
+    options: baseOptions,
+  });
+
+  new Chart(document.getElementById('pieByMonth'), {
+    type: 'pie',
+    data: {
+      labels: monthLabels,
+      datasets: [{
+        label: 'Requests',
+        data: monthCounts,
+      }],
+    },
+    options: baseOptions,
+  });
+
+  new Chart(document.getElementById('barActiveWindow'), {
+    type: 'bar',
+    data: {
+      labels: ipLabels,
+      datasets: [{
+        label: 'Hours Active',
+        data: ipWindowHours,
+      }],
+    },
+    options: {
+      ...baseOptions,
+      plugins: {
+        ...baseOptions.plugins,
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const i = context.dataIndex;
+              const hours = context.raw;
+              return [
+                `Hours active: ${hours}`,
+                `Earliest: ${ipEarliest[i]}`,
+                `Latest: ${ipLatest[i]}`,
+              ];
+            }
+          }
+        }
+      },
+      scales: {
+        y: { beginAtZero: true, ticks: { precision: 0 } },
+      },
+    },
+  });
+</script>
+{% endblock %}

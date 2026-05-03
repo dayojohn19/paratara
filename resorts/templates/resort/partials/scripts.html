@@ -1,0 +1,808 @@
+<!-- ============================================================ -->
+<!-- JAVASCRIPT SECTION -->
+<!-- ============================================================ -->
+
+<!-- ========== Generic Edit Package Item Script ========== -->
+{% include 'resort/partials/edit_package_item_script.html' %}
+
+<!-- ========== SCRIPT 1: Fancybox Initialization ========== -->
+<script>
+  // Menu toggle functions
+  function toggleMenu() {
+    const hamburger = document.getElementById('hamburger');
+    const toolbarInner = document.getElementById('toolbarInner');
+    hamburger.classList.toggle('active');
+    toolbarInner.classList.toggle('active');
+  }
+
+  function closeMenu() {
+    const hamburger = document.getElementById('hamburger');
+    const toolbarInner = document.getElementById('toolbarInner');
+    hamburger.classList.remove('active');
+    toolbarInner.classList.remove('active');
+  }
+
+  // Initialize Fancybox for all lightbox galleries and modals
+  Fancybox.bind('[data-fancybox]', {
+    on: {
+      reveal: (fancybox, slide) => {
+        // Show container and loader when Check Availability modal opens
+        if (slide.src && slide.src.includes('#dialog-content-')) {
+          const modalId = slide.src.replace('#', '');
+          const modal = document.getElementById(modalId);
+          if (modal) {
+            modal.style.display = 'block';
+            const loader = modal.querySelector('.iframe-loader');
+            if (loader) loader.style.display = 'block';
+          }
+        }
+      }
+    }
+  });
+</script>
+
+<!-- ========== SCRIPT 2: Booking Inquiry Helper Functions ========== -->
+<script>
+  /**
+   * Opens contact form and pre-fills booking details
+   * @param {string} toBook - The item being booked (title and price)
+   */
+  function bookNow(toBook) {
+    // Get current month from calendar
+    const monthName = (document.querySelectorAll('.month')[1] || document.querySelector('.month'))?.textContent || '';
+    
+    // Open contact form dialog
+    const dom = document.querySelector('[data-fancybox][data-src="#contact-form-dialog"]');
+    if (dom) dom.click();
+    
+    // Pre-fill booking inquiry field
+    const bookContainer = document.querySelector('#guest_book');
+    if (bookContainer) {
+      bookContainer.value = monthName + '\n' + toBook + '\n';
+      bookContainer.style.display = 'block';
+    }
+  }
+
+  /**
+   * Toggles date selection in booking calendar
+   * Adds/removes dates from the booking inquiry
+   */
+  function addAndRemoveTag() {
+    const targetMonth = event.target.closest('.month').textContent.split(' ')[0];
+    const clickedDate = event.target.textContent + ',';
+    const MessageOfGuest = document.querySelector('#guest_book');
+    
+    if (!MessageOfGuest) return;
+    
+    // Toggle date selection (green highlight)
+    if (event.target.style.backgroundColor == 'rgba(138, 255, 138, 0.59)') {
+      // Remove date
+      event.target.style.backgroundColor = '';
+      if (MessageOfGuest.value.search(clickedDate) >= 0) {
+        MessageOfGuest.value = MessageOfGuest.value.replace(clickedDate, '');
+      }
+    } else {
+      // Add date
+      MessageOfGuest.value = MessageOfGuest.value.replace(MessageOfGuest.value.split(' ')[0], targetMonth);
+      event.target.style.backgroundColor = 'rgba(138, 255, 138, 0.59)';
+      const addOnMessageOfGuest = event.target.textContent;
+      MessageOfGuest.value = MessageOfGuest.value + addOnMessageOfGuest + ',';
+    }
+  }
+</script>
+
+<!-- ========== SCRIPT 3: DOM Ready - Page Initialization ========== -->
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Enable lazy loading for all images and iframes
+    document.querySelectorAll('img').forEach(img => img.setAttribute('loading', 'lazy'));
+    document.querySelectorAll('iframe').forEach(frame => frame.setAttribute('loading', 'lazy'));
+
+    // Add click handlers to all calendar cells for date selection
+    const tdList = document.querySelectorAll('td');
+    for (let i = 0; i < tdList.length; i++) {
+      tdList[i].addEventListener('click', function() { addAndRemoveTag(); });
+    }
+    
+    // Show current month calendar if exists
+    const monthNode = document.querySelector(`#calendar_object_month-{{currentMonth}}`);
+    if (monthNode) monthNode.style.display = 'block';
+
+    // Iframe loading indicators
+    document.querySelectorAll('.iframe-container').forEach(container => {
+      const iframe = container.querySelector('.calendar-frame');
+      const loader = container.querySelector('.iframe-loader');
+      if (iframe) {
+        iframe.addEventListener('load', () => {
+          if (loader) loader.style.display = 'none';
+          iframe.style.display = 'block';
+        });
+      }
+    });
+  });
+</script>
+
+<!-- ========== SCRIPT 4: EmailJS Contact Form Handler ========== -->
+<script>
+  window.onload = function() {
+    const form = document.getElementById('contact-form');
+    if (!form) return;
+    
+    form.addEventListener('submit', function(event) {
+      event.preventDefault();
+      
+      // Compile full message with booking details
+      const originalMessage = this.message.value;
+      const booking_inquiry = this.booking_inquiry.value;
+      const sender_contact = this.sender_contact.value;
+      const sender_name = this.from_name.value;
+      const fullMessage = `\n${originalMessage} \n \n Booking Inquiry ${booking_inquiry} \n\n contact me:\n${sender_name}\n \n  ${sender_contact}`;
+      this.message.value = fullMessage;
+      
+      // Initialize EmailJS
+      (function() { emailjs.init({ publicKey: 'kPR5fCmH0j3E0NSyr' }); })();
+      
+      // Close modal and send email
+      Fancybox.close([{ src: '#contact-form-dialog' }]);
+      alert('Sending Message');
+      
+      emailjs.sendForm('service_jv335d7', 'template_hzlk188', this)
+        .then(() => { 
+          alert('Message Sent!'); 
+          this.reset(); 
+        }, (error) => { 
+          alert('Message Not Sent!'); 
+          console.log('FAILED...', error); 
+        });
+    });
+  };
+</script>
+
+<!-- ========== SCRIPT 5: jQuery for AJAX Image Uploads ========== -->
+<script defer src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    
+    // Handle promotion form submissions with file uploads
+    document.querySelectorAll('.promotion-form').forEach(form => {
+      const statusDiv = form.querySelector('.upload-status');
+      
+      form.addEventListener('submit', function(e) {
+        const fileInput = form.querySelector('.promotion-image-input');
+        
+        // Show uploading status
+        if (fileInput && fileInput.files.length > 0) {
+          statusDiv.textContent = '📤 Uploading image...';
+          statusDiv.style.color = 'var(--muted)';
+        }
+      });
+    });
+
+    // AJAX handler for image upload forms
+    $(document).on('submit', '.image-upload-form', function(e) {
+      const hasFile = $(this).find('input[type="file"]').length > 0;
+      if (!hasFile) return; // Let non-file forms submit normally
+      
+      e.preventDefault();
+      const form = $(this)[0];
+      const formData = new FormData(form);
+      const $form = $(this);
+      const subID = $form.find('input[name="subID"]').val();
+      const resultBox = $(subID ? '#upload-result-' + subID : '<div/>');
+      
+      $.ajax({
+        url: $form.attr('action'),
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        headers: { 'X-CSRFToken': $form.find('input[name="csrfmiddlewaretoken"]').val() },
+        beforeSend: function() { 
+          if (resultBox.length) resultBox.html('<p>Uploading...</p>'); 
+        },
+        success: function(response) {
+          if (resultBox.length) resultBox.html("<p style='color:green;'>✅ Uploaded successfully!</p>");
+          form.querySelector('input[type="file"]').value = '';
+        },
+        error: function(xhr, status, error) {
+          if (resultBox.length) resultBox.html("<p style='color:red;'>❌ Upload failed</p>");
+          console.error('Error:', error, xhr.responseText);
+        }
+      });
+    });
+
+    // Gallery multiple image upload handler
+    document.querySelector('.gallery-upload-btn')?.addEventListener('click', async function() {
+      const fileInput = document.querySelector('.gallery-file-input');
+      const statusDiv = document.querySelector('.gallery-upload-status');
+      const form = document.querySelector('.gallery-upload-form');
+      
+      if (!fileInput || !fileInput.files.length) {
+        statusDiv.innerHTML = '<p style="color:var(--warn);">Please select at least one image</p>';
+        return;
+      }
+      
+      const files = Array.from(fileInput.files);
+      const totalFiles = files.length;
+      let successCount = 0;
+      let failCount = 0;
+      
+      statusDiv.innerHTML = `<p style="color:var(--primary);">Uploading ${totalFiles} image(s)...</p>`;
+      this.disabled = true;
+      
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', form.querySelector('input[name="csrfmiddlewaretoken"]').value);
+        formData.append('image', file);
+        
+        try {
+          const response = await fetch(form.action, {
+            method: 'POST',
+            body: formData
+          });
+          
+          if (response.ok) {
+            successCount++;
+            statusDiv.innerHTML = `<p style="color:var(--success);">✅ Uploaded ${successCount}/${totalFiles} - Current: ${file.name}</p>`;
+          } else {
+            failCount++;
+            statusDiv.innerHTML = `<p style="color:var(--warn);">⚠️ Uploaded ${successCount}/${totalFiles} (${failCount} failed) - Failed: ${file.name}</p>`;
+          }
+        } catch (error) {
+          failCount++;
+          statusDiv.innerHTML = `<p style="color:var(--warn);">⚠️ Uploaded ${successCount}/${totalFiles} (${failCount} failed) - Error: ${file.name}</p>`;
+        }
+      }
+      
+      statusDiv.innerHTML = `<p style="color:var(--success);">✅ Complete! ${successCount} uploaded successfully${failCount > 0 ? ', ' + failCount + ' failed' : ''}</p>`;
+      this.disabled = false;
+      fileInput.value = '';
+      
+      // Reload page after 2 seconds to show new images
+      setTimeout(() => window.location.reload(), 2000);
+    });
+
+    // Background image upload handler
+    document.getElementById('upload-btn')?.addEventListener('click', async () => {
+      const fileInput = document.getElementById('image');
+      const status = document.getElementById('status');
+      const image_url = document.getElementById('url_status');
+      
+      if (!fileInput || !fileInput.files.length) { 
+        status.textContent = 'Please choose a file first.'; 
+        return; 
+      }
+      
+      const formData = new FormData();
+      formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+      formData.append('image', fileInput.files[0]);
+      status.textContent = 'Uploading...';
+      
+      try {
+        const response = await fetch("{% url 'resort_management:ajax_upload' %}", { 
+          method: 'POST', 
+          body: formData 
+        });
+        const data = await response.json();
+        
+        if (data.success) { 
+          status.textContent = 'Upload successful!'; 
+          image_url.value = data.url; 
+          document.querySelector('#thismatter2')?.setAttribute('value', data.url); 
+        } else { 
+          status.textContent = 'Upload failed: ' + (data.error || 'Check file.'); 
+        }
+      } catch (err) { 
+        status.textContent = 'Error: ' + err.message; 
+      }
+    });
+
+    // Handle amenities checkboxes for accommodation forms
+    document.querySelectorAll('form').forEach(form => {
+      // Check if this form has amenity checkboxes
+      const hasAmenities = form.querySelector('input[name="amenities"]');
+      if (!hasAmenities) return; // Skip forms without amenities
+      
+      form.addEventListener('submit', function(e) {
+        const amenitiesCheckboxes = this.querySelectorAll('input[name="amenities"]:checked');
+        const informationField = this.querySelector('input[name="information"]');
+        
+        console.log('Form submitting with amenities:', amenitiesCheckboxes.length);
+        
+        if (informationField) {
+          const additionalNotes = informationField.value.trim();
+          
+          if (amenitiesCheckboxes.length > 0) {
+            const amenitiesList = Array.from(amenitiesCheckboxes).map(cb => cb.value);
+            console.log('Selected amenities:', amenitiesList);
+            
+            const amenitiesString = amenitiesList.join(', ');
+            
+            // Combine amenities with additional notes
+            if (additionalNotes) {
+              informationField.value = amenitiesString + ', ' + additionalNotes;
+            } else {
+              informationField.value = amenitiesString;
+            }
+            
+            console.log('Final information field value:', informationField.value);
+          } else if (additionalNotes) {
+            // No amenities checked, keep additional notes
+            informationField.value = additionalNotes;
+          }
+        }
+      }, true); // Use capture phase to ensure this runs first
+    });
+  });
+</script>
+
+<!-- ========== SCRIPT 4: OCR Menu Upload Functionality ========== -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@2.1.5/dist/tesseract.min.js"></script>
+<script>
+        function getCookie(name) {
+          const value = `; ${document.cookie}`;
+          const parts = value.split(`; ${name}=`);
+          if (parts.length === 2) return parts.pop().split(';').shift();
+          return '';
+        }  
+  // OCR Upload functionality
+  (function() {
+    const ocrInput = document.getElementById('ocrFileInput');
+    const ocrFileList = document.getElementById('ocrFileList');
+    const ocrProcessAllBtn = document.getElementById('ocrProcessAll');
+    const ocrClearAllBtn = document.getElementById('ocrClearAll');
+    const ocrPackageTitleInput = document.getElementById('ocrPackageTitle');
+
+    if (!ocrInput) return; // Exit if OCR section doesn't exist (not a manager)
+
+    let ocrEntries = [];
+    const resortId = parseInt(document.getElementById('ocrResortId')?.value || '0');
+
+    function humanBytes(n){
+      if(n<1024) return n+' B';
+      if(n<1024*1024) return (n/1024).toFixed(1)+' KB';
+      return (n/(1024*1024)).toFixed(1)+' MB';
+    }
+
+    ocrInput.addEventListener('change', (ev)=>{
+      const files = Array.from(ev.target.files || []);
+      ocrEntries = files.map(f=>({file:f, text:'', status:'idle', progress:0}));
+      renderOcrList();
+    });
+
+    ocrClearAllBtn.addEventListener('click', ()=>{
+      ocrEntries = [];
+      ocrInput.value = '';
+      renderOcrList();
+    });
+
+    ocrProcessAllBtn.addEventListener('click', async ()=>{
+      for(const e of ocrEntries){
+        if(e.status === 'done' || e.status === 'sent' || e.status === 'saved') continue;
+        await processOcrEntry(e);
+      }
+    });
+
+    function renderOcrList(){
+      ocrFileList.innerHTML = '';
+      if(ocrEntries.length===0){
+        ocrFileList.innerHTML = '<p style="color:var(--muted);">No images selected.</p>';
+        return;
+      }
+      
+      ocrEntries.forEach((e, idx)=>{
+        const div = document.createElement('div');
+        div.style.cssText = 'border:1px solid #ddd;padding:12px;margin-bottom:12px;border-radius:8px;';
+        
+        const info = document.createElement('div');
+        info.innerHTML = `<strong>${e.file.name}</strong> &nbsp; <small>${humanBytes(e.file.size)}</small>`;
+        
+        const img = document.createElement('img');
+        img.style.cssText = 'max-width:320px;max-height:240px;display:block;margin:8px 0;';
+        img.src = URL.createObjectURL(e.file);
+        img.onload = ()=> URL.revokeObjectURL(img.src);
+
+        const prog = document.createElement('progress');
+        prog.max = 1; prog.value = e.progress || 0;
+        prog.style.width = '100%';
+
+        const controls = document.createElement('div');
+        controls.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px;';
+        
+        const processBtn = document.createElement('button');
+        processBtn.textContent = 'Auto Read Details';
+        processBtn.className = 'btn';
+        processBtn.onclick = ()=> processOcrEntry(e);
+        
+        const manualBtn = document.createElement('button');
+        manualBtn.textContent = 'Enter Details Manually';
+        manualBtn.className = 'btn';
+        manualBtn.onclick = ()=> {
+          if(!e.openaiResult){
+            e.openaiResult = {items: [], offers: [], notes: 'Manual entry'};
+          }
+          e.status = 'manual';
+          e.skipOpenAI = true;
+          renderOcrList();
+        };
+        
+        const status = document.createElement('span');
+        status.style.marginLeft='8px';
+        status.textContent = e.status;
+
+        controls.appendChild(processBtn);
+        controls.appendChild(manualBtn);
+        controls.appendChild(status);
+
+        div.appendChild(info);
+        div.appendChild(img);
+        div.appendChild(prog);
+        div.appendChild(controls);
+        
+        // Show input form if ready
+        if((e.status === 'done' || e.status === 'sent' || e.status === 'manual' || e.status === 'error') && !e.openaiResult){
+          e.openaiResult = {items: [], offers: [], notes: 'Manual entry'};
+        }
+        
+        if(e.openaiResult && e.openaiResult.items){
+          const menuContainer = document.createElement('div');
+          menuContainer.style.cssText = 'background:#eef;padding:12px;border-radius:6px;margin-top:8px;';
+          
+          if(e.openaiResult.items.length === 0){
+            const noItemsMsg = document.createElement('p');
+            noItemsMsg.textContent = 'No items detected. Click "+ Add Item Manually" to add items.';
+            noItemsMsg.style.cssText = 'color:#666;font-style:italic;margin-bottom:12px;';
+            menuContainer.appendChild(noItemsMsg);
+          }
+          
+          e.openaiResult.items.forEach((item, itemIdx) => {
+            const itemDiv = document.createElement('div');
+            itemDiv.style.cssText = 'background:white;padding:10px;margin-bottom:8px;border-radius:4px;border:1px solid #ddd;';
+            
+            const itemHeader = document.createElement('div');
+            itemHeader.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;';
+            
+            const itemTitle = document.createElement('strong');
+            itemTitle.textContent = `Item ${itemIdx + 1}`;
+            
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'btn';
+            removeBtn.textContent = 'Remove';
+            removeBtn.style.cssText = 'background:#ff4444;color:white;border:none;padding:4px 8px;font-size:11px;';
+            removeBtn.onclick = () => {
+              e.openaiResult.items.splice(itemIdx, 1);
+              renderOcrList();
+            };
+            
+            itemHeader.appendChild(itemTitle);
+            itemHeader.appendChild(removeBtn);
+            itemDiv.appendChild(itemHeader);
+            
+            // Name field
+            const nameLabel = document.createElement('label');
+            nameLabel.textContent = 'Name:';
+            nameLabel.style.cssText = 'display:block;font-size:11px;color:#666;margin-bottom:2px;font-weight:bold;';
+            const nameInput = document.createElement('input');
+            nameInput.type = 'text';
+            nameInput.value = item.name || '';
+            nameInput.style.cssText = 'width:100%;padding:6px;border:1px solid #ddd;border-radius:4px;margin-bottom:6px;';
+            nameInput.onchange = (ev) => { item.name = ev.target.value; };
+            itemDiv.appendChild(nameLabel);
+            itemDiv.appendChild(nameInput);
+            
+            // Description field
+            const descLabel = document.createElement('label');
+            descLabel.textContent = 'Description:';
+            descLabel.style.cssText = 'display:block;font-size:11px;color:#666;margin-bottom:2px;font-weight:bold;';
+            const descInput = document.createElement('input');
+            descInput.type = 'text';
+            descInput.value = item.description || '';
+            descInput.style.cssText = 'width:100%;padding:6px;border:1px solid #ddd;border-radius:4px;margin-bottom:6px;';
+            descInput.onchange = (ev) => { item.description = ev.target.value; };
+            itemDiv.appendChild(descLabel);
+            itemDiv.appendChild(descInput);
+            
+            // Price field
+            const priceLabel = document.createElement('label');
+            priceLabel.textContent = 'Price (₱):';
+            priceLabel.style.cssText = 'display:block;font-size:11px;color:#666;margin-bottom:2px;font-weight:bold;';
+            const priceInput = document.createElement('input');
+            priceInput.type = 'number';
+            priceInput.value = item.price || 0;
+            priceInput.style.cssText = 'width:120px;padding:6px;border:1px solid #ddd;border-radius:4px;margin-bottom:6px;';
+            priceInput.onchange = (ev) => { item.price = parseInt(ev.target.value) || 0; };
+            itemDiv.appendChild(priceLabel);
+            itemDiv.appendChild(priceInput);
+            
+            menuContainer.appendChild(itemDiv);
+          });
+          
+          const addItemBtn = document.createElement('button');
+          addItemBtn.textContent = '+ Add Item Manually';
+          addItemBtn.className = 'btn';
+          addItemBtn.style.marginTop = '8px';
+          addItemBtn.style.marginRight = '8px';
+          addItemBtn.onclick = ()=> {
+            e.openaiResult.items.push({name: '', description: '', price: 0});
+            renderOcrList();
+          };
+          
+          const confirmBtn = document.createElement('button');
+          confirmBtn.className = 'btn primary';
+          confirmBtn.textContent = 'Confirm & Save All Items';
+          confirmBtn.style.marginTop = '8px';
+          confirmBtn.onclick = async () => {
+            if (confirmBtn.disabled || confirmBtn.dataset.busy === '1') return;
+            confirmBtn.dataset.busy = '1';
+            confirmBtn.disabled = true;
+
+            const originalText = confirmBtn.textContent;
+            confirmBtn.textContent = 'Saving...';
+
+            try {
+              const ok = await confirmOcrResult(e);
+              if (!ok) {
+                confirmBtn.disabled = false;
+                confirmBtn.dataset.busy = '0';
+                confirmBtn.textContent = originalText;
+              }
+            } catch (err) {
+              confirmBtn.disabled = false;
+              confirmBtn.dataset.busy = '0';
+              confirmBtn.textContent = originalText;
+              alert('❌ Error: ' + (err?.message || err));
+            }
+          };
+          
+          menuContainer.appendChild(addItemBtn);
+          menuContainer.appendChild(confirmBtn);
+          div.appendChild(menuContainer);
+        }
+        
+        ocrFileList.appendChild(div);
+      });
+    }
+
+    async function processOcrEntry(entry){
+      entry.status = 'loading'; entry.progress = 0; renderOcrList();
+      const { createWorker } = Tesseract;
+      const worker = createWorker({
+        logger: m => {
+          if(m.status === 'recognizing text' && m.progress) {
+            entry.progress = m.progress; renderOcrList();
+          }
+        }
+      });
+      try{
+        await worker.load();
+        await worker.loadLanguage('eng');
+        await worker.initialize('eng');
+        entry.status = 'recognizing'; renderOcrList();
+        const { data: { text } } = await worker.recognize(entry.file);
+        entry.text = text.trim();
+        entry.status = 'done'; entry.progress = 1; renderOcrList();
+        if(!entry.skipOpenAI){
+          try{ await sendToOpenAI(entry); }catch(e){}
+        }
+      }catch(err){
+        entry.text = 'Error: '+ (err.message || err);
+        entry.status = 'error'; renderOcrList();
+      }finally{
+        try{ await worker.terminate(); }catch(e){}
+      }
+    }
+
+    async function sendToOpenAI(entry){
+      if(!entry.text) return;
+      entry.status = 'sending'; renderOcrList();
+      try{
+
+        const csrftoken = getCookie('csrftoken');
+        const res = await fetch('/resorts/ocr-process-openai/', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: {
+            'Content-Type':'application/json',
+            'X-CSRFToken': csrftoken
+          },
+          body: JSON.stringify({text: entry.text, filename: entry.file.name})
+        });
+        const json = await res.json();
+        if(json.success && json.data){
+          entry.openaiResult = json.data;
+        } else if(json.error){
+          entry.openaiResult = {items: [], offers: [], notes: 'Error: ' + json.error};
+        }
+        entry.status = 'sent';
+        renderOcrList();
+      }catch(err){
+        entry.status = 'error';
+        renderOcrList();
+      }
+    }
+
+    async function confirmOcrResult(entry){
+      if(!entry.openaiResult || !entry.openaiResult.items){
+        alert('No menu items found!');
+        return false;
+      }
+      
+      const items = entry.openaiResult.items;
+      const packageTitle = ocrPackageTitleInput.value.trim();
+      
+      if(!packageTitle){
+        alert('Please enter a package title (e.g., Food Menu)');
+        return false;
+      }
+      
+      if(items.length === 0){
+        alert('No items to save!');
+        return false;
+      }
+      
+      return await saveOcrMenuToDatabase(resortId, packageTitle, items, entry);
+    }
+    
+    async function saveOcrMenuToDatabase(resortId, packageTitle, items, entry){
+      try{
+        // Use FormData to support file uploads
+        const formData = new FormData();
+        formData.append('resort_id', parseInt(resortId));
+        formData.append('package_title', packageTitle);
+        
+        // Add each item and attach the original menu image to all items
+        items.forEach((item, index) => {
+          formData.append(`items[${index}][name]`, item.name || '');
+          formData.append(`items[${index}][description]`, item.description || '');
+          formData.append(`items[${index}][price]`, item.price || 0);
+          // Automatically use the original menu image for all items
+          if(entry.file) {
+            formData.append(`items[${index}][image]`, entry.file);
+          }
+        });
+        
+        const res = await fetch('/resorts/ocr-save-menu/', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+          },
+          body: formData
+        });
+        
+        const json = await res.json();
+        
+        if(json.success){
+          const itemsList = json.items.map(item => `  • ${item.title} - ₱${item.price}`).join('\n');
+          const packageInfo = json.package_existed 
+            ? `Added to existing package "${json.package_title}"` 
+            : `Created new package "${json.package_title}"`;
+            
+          alert(`✅ Success!\n\n${packageInfo}\n\nCreated ${json.items.length} menu items:\n\n${itemsList}`);
+          document.querySelector('#ocrClearAll').click();
+          entry.openaiResult = null;
+          entry.status = 'saved';
+          renderOcrList();
+          
+          // Scroll to existing menu items section to see the changes
+          document.querySelector('#ocr-menu-upload')?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+          return true;
+        } else if(json.error){
+          alert('❌ Error: ' + json.error);
+          return false;
+        }
+      }catch(err){
+        alert('❌ Network error while saving: ' + err.message);
+        return false;
+      }
+    }
+  })();
+</script>
+
+<!-- ========== SCRIPT: AJAX Delete Functionality ========== -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Handle package delete buttons (remove entire package cards)
+  document.querySelectorAll('.delete-package-btn').forEach(btn => {
+    btn.addEventListener('click', async function(e) {
+      e.preventDefault();
+      
+      const url = this.dataset.url;
+      const confirmMessage = this.dataset.confirm;
+      const targetSelector = this.dataset.target;
+      
+      if (!confirm(confirmMessage)) return;
+      
+      try {
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+          }
+        });
+        
+        if (response.ok) {
+          // Find the closest package card and remove it
+          const packageCard = this.closest('.package-card');
+          if (packageCard) {
+            packageCard.remove();
+          }
+        } else {
+          alert('❌ Error deleting package');
+        }
+      } catch (err) {
+        alert('❌ Network error: ' + err.message);
+      }
+    });
+  });
+
+  // Handle item delete buttons (remove individual items)
+  document.querySelectorAll('.delete-item-btn').forEach(btn => {
+    btn.addEventListener('click', async function(e) {
+      e.preventDefault();
+      
+      const url = this.dataset.url;
+      const confirmMessage = this.dataset.confirm;
+      const targetTag = this.dataset.target;
+      
+      if (!confirm(confirmMessage)) return;
+      
+      try {
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+          }
+        });
+        
+        if (response.ok) {
+          // Remove the target element (article for accommodations/activities/promotions, div for food items)
+          const targetElement = this.closest(targetTag);
+          if (targetElement) {
+            targetElement.remove();
+          }
+        } else {
+          alert('❌ Error deleting item');
+        }
+      } catch (err) {
+        alert('❌ Network error: ' + err.message);
+      }
+    });
+  });
+
+  // Handle gallery image delete buttons
+  document.querySelectorAll('.delete-gallery-btn').forEach(btn => {
+    btn.addEventListener('click', async function(e) {
+      e.preventDefault();
+      
+      const url = this.dataset.url;
+      const confirmMessage = this.dataset.confirm;
+      const targetSelector = this.dataset.target;
+      
+      if (!confirm(confirmMessage)) return;
+      
+      try {
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+          }
+        });
+        
+        if (response.ok) {
+          // Remove the gallery card
+          const galleryCard = this.closest(targetSelector);
+          if (galleryCard) {
+            galleryCard.remove();
+          }
+        } else {
+          alert('❌ Error deleting image');
+        }
+      } catch (err) {
+        alert('❌ Network error: ' + err.message);
+      }
+    });
+  });
+});
+</script>

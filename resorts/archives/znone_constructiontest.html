@@ -1,0 +1,98 @@
+<!-- TEST Accomodation Test-->
+<div id="carousel-acc-{{sub.id}}" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-inner">
+      {% for images in sub.images %}
+      <div class="carousel-item">
+        <img src="/resorts/static/resorts/pictureclip/picturetest.png" class="d-block w-100" alt="..." id="{{images.id}}}}-{{acc.id}}-{{sub.id}}-Slides" onclick="PutToBlockContainer(id)" />
+      </div>
+      {% endfor %}
+      <div class="carousel-item active">
+        <img src="/resorts/static/resorts/pictureclip/picturetest.png" class="d-block w-100" alt="..." id="{{sub.images.id}}-{{acc.id}}-{{sub.id}}-Slides" onclick="PutToBlockContainer(id)" />
+      </div>
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#carousel-acc-{{sub.id}}" data-bs-slide="prev">
+      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#carousel-acc-{{sub.id}}" data-bs-slide="next">
+      <span class="carousel-control-next-icon" aria-hidden="true"></span>
+      <span class="visually-hidden">Next</span>
+    </button>
+  </div>
+  <!-- TEST Accomodation Test-->
+
+  <!-- ARROW -->
+  <svg fill="none" height="16px" width="16px" viewBox="0 0 24 24" class="sc-16r8icm-0 coGWQa">
+    <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
+  </svg>
+  <!-- UP -->
+
+
+
+
+
+
+
+
+
+
+
+
+  <aside class="aside aside-1">
+    <!-- TEST Accomodation Test start-->
+    <div class="room-summary">
+      <h3 class="column-sub-title">Experience our</h3>
+      <div style="padding-left: 30%; padding-right: 30%">
+        <hr style="margin: 0; padding: 0" />
+      </div>
+      <h2 class="column-title">Accomodations</h2>
+      <!-- Accomodation 1  From Here Create a JavaScript-->
+      <details>
+        <summary>
+          Accomodation 1
+        </summary>
+        <details class="package-summary" open>
+          <summary class="sub-package-summary badge">
+            <span class=""> {{acc.PackageTitle}}</span>
+          </summary>
+          <div class="room-item red-red-white">
+            <details open>
+              <summary id="{{acc.id}}-{{sub.id}}" >
+                {{sub.title}}
+              </summary>
+              <p>{{sub.description}}</p>
+              <li class="sub-information">{{sub.information}}</li>
+              <div style="text-align: right">
+                <button class="button-book" onclick="bookNow('{{sub.title}}\n₱{{sub.price|intcomma}} per night')">Book</button>
+              </div>
+              <hr>
+            </details>
+          </div>
+        </details>
+      </details>
+      
+      <div id="{{sub.images.id}}-{{act.id}}-{{sub.id}}-Slides" class="carousel slide" data-bs-ride="true">
+      <div class="carousel-inner">
+        <div class="carousel-item active">
+          <img src="/resorts/static/resorts/pictureclip/picturetest.png" class="d-block w-100" alt="..." id="{{sub.images.id}}-{{act.id}}-{{sub.id}}-Slides" onclick="PutToBlockContainer(id)" />
+        </div>
+        <div class="carousel-item">
+          <img src="/resorts/static/resorts/pictureclip/picturetest.png" class="d-block w-100" alt="..." id="{{sub.images.id}}-{{act.id}}-{{sub.id}}-Slides" onclick="PutToBlockContainer(id)" />
+        </div>
+        <div class="carousel-item">
+          <img src="/resorts/static/resorts/pictureclip/picturetest.png" class="d-block w-100" alt="..." id="{{sub.images.id}}-{{act.id}}-{{sub.id}}-Slides" onclick="PutToBlockContainer(id)" />
+        </div>
+      </div>
+      <button class="carousel-control-prev" type="button" data-bs-target="{{sub.images.id}}-{{act.id}}-{{sub.id}}-Slides" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+      </button>
+      <button class="carousel-control-next" type="button" data-bs-target="{{sub.images.id}}-{{act.id}}-{{sub.id}}-Slides" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+      </button>
+     </div>
+     <!-- Accomodation 2 -->
+    </div>
+    <!-- TEST Accomodation Test end-->
+</aside>

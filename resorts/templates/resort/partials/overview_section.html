@@ -1,0 +1,702 @@
+{% if managerUser or resortObject.description or resortObject.contactNumber or resortObject.contactEmail or resortObject.open_hours or resortObject.websiteURL or resortObject.whatsappNumber %}
+<section class="section">
+  <div class="section-head">
+    <div>
+      <div class="section-title">Establishment Overview</div>
+      <div class="section-sub">Direct lines: {{resortObject.contactNumber}} • {{resortObject.contactEmail}}{% if resortObject.open_hours %} • Open: {{ resortObject.open_hours }}{% endif %}</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <div class="meta-grid">
+        <div class="meta-panel">
+          <div class="meta-title">About Us</div>
+          <p class="meta-text">{{ resortObject.description|default:"Details coming soon." }}</p>
+          <div class="meta-tags">
+            <!-- <span class="meta-tag">Latitude {{resortObject.latitude}}</span>
+            <span class="meta-tag">Longitude {{resortObject.longitude}}</span> -->
+          </div>
+        </div>
+        <div class="meta-panel">
+          <div class="meta-title">
+            Contacts & Links
+            {% if managerUser %}
+            <button class="btn-edit-contacts" id="editContactsBtn" onclick="toggleEditContacts()">✏️ Edit</button>
+            {% endif %}
+          </div>
+          <div class="meta-rows" id="contactsDisplay">
+            <div class="meta-row">☎️ <a href="tel:{{resortObject.contactNumber}}">{{resortObject.contactNumber}}</a></div>
+            <div class="meta-row">✉️ <a href="mailto:{{resortObject.contactEmail}}">{{resortObject.contactEmail}}</a></div>
+            {% if resortObject.open_hours %}
+            <div class="meta-row">🕒 <span>{{resortObject.open_hours}}</span></div>
+            {% endif %}
+            {% if resortObject.whatsappNumber %}
+            <div class="meta-row">📱 <a href="https://wa.me/{{resortObject.whatsappNumber}}" target="_blank">{{resortObject.whatsappNumber}}</a></div>
+            {% endif %}
+            {% if resortObject.websiteURL %}
+            <div class="meta-row">🌐 <a href="{{resortObject.websiteURL}}" target="_blank" rel="noopener">{{resortObject.websiteURL}}</a></div>
+            {% endif %}
+            <div class="meta-actions">
+              <a class="btn" data-fancybox data-type="iframe" href="https://maps.google.com/maps?q={{resortObject.latitude}},{{resortObject.longitude}}&t=&z=13&ie=UTF8&iwloc=&output=embed">Preview on Maps</a>
+              <a class="btn" href="#manager-tools">Jump to Toolkit</a>
+            </div>
+          </div>
+          {% if managerUser %}
+          <div class="contacts-edit-form" id="contactsEditForm" style="display: none;">
+            <div class="edit-field">
+              <label>☎️ Contact Number:</label>
+              <input type="tel" id="editContactNumber" class="form-control-inline" value="{{resortObject.contactNumber}}">
+            </div>
+            <div class="edit-field">
+              <label>✉️ Email:</label>
+              <input type="email" id="editContactEmail" class="form-control-inline" value="{{resortObject.contactEmail}}">
+            </div>
+            <div class="edit-field">
+              <label>📱 WhatsApp:</label>
+              <input type="tel" id="editWhatsappNumber" class="form-control-inline" value="{{resortObject.whatsappNumber}}">
+            </div>
+            <div class="edit-field">
+              <label>🕒 Open Hours:</label>
+              <input type="text" id="editOpenHours" class="form-control-inline" value="{{resortObject.open_hours}}" placeholder="Mon–Sun 8:00 AM – 9:00 PM">
+              <small class="form-text" style="color:#64748b; margin-top: 0.35rem; display:block;">Tip: “Open 24/7” or “Mon–Fri 9–5”.</small>
+            </div>
+            <div class="edit-field">
+              <label>🌐 Website URL:</label>
+              <input type="url" id="editWebsiteURL" class="form-control-inline" value="{{resortObject.websiteURL}}">
+            </div>
+            <div class="edit-actions">
+              <button class="btn-save" onclick="saveContacts()">💾 Save</button>
+              <button class="btn-cancel" onclick="cancelEditContacts()">✖️ Cancel</button>
+            </div>
+            <div id="contactsSaveStatus" style="margin-top: 0.75rem; padding: 0.75rem; border-radius: 8px; display: none;"></div>
+          </div>
+          {% endif %}
+        </div>
+        <!-- <div class="meta-panel">
+          <div class="meta-title">Manager Quick Notes</div>
+          <ul class="meta-bullets">
+            <li>✅ Keep galleries refreshed for upcoming guests.</li>
+            <li>✅ Use Menu OCR to digitize new offerings.</li>
+            <li>✅ Update 360° tour links after renovations.</li>
+          </ul>
+          {% if managerUser %}
+          <div class="meta-hint">You’re viewing the manager workspace. Guests see a simplified layout.</div>
+          {% endif %}
+        </div> -->
+      </div>
+
+      {% if managerUser %}
+      <div class="card-body" style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid #f0f0f0;">
+        <div class="meta-title" style="margin-bottom: 1.5rem; font-size: 1.2rem;">🏖️ Establishment Amenities & Features</div>
+        <div class="amenities-toggle-grid" id="amenitiesGrid">
+          <div class="amenity-toggle-item">
+            <label class="toggle-switch">
+              <input type="checkbox" data-amenity="has_wifi" {% if resortObject.has_wifi %}checked{% endif %}>
+              <span class="toggle-slider"></span>
+            </label>
+            <div class="amenity-label">
+              <span class="amenity-icon">📶</span>
+              <span>WiFi</span>
+            </div>
+          </div>
+          <div class="amenity-toggle-item">
+            <label class="toggle-switch">
+              <input type="checkbox" data-amenity="has_pool" {% if resortObject.has_pool %}checked{% endif %}>
+              <span class="toggle-slider"></span>
+            </label>
+            <div class="amenity-label">
+              <span class="amenity-icon">🏊</span>
+              <span>Swimming Pool</span>
+            </div>
+          </div>
+          <div class="amenity-toggle-item">
+            <label class="toggle-switch">
+              <input type="checkbox" data-amenity="has_bidet" {% if resortObject.has_bidet %}checked{% endif %}>
+              <span class="toggle-slider"></span>
+            </label>
+            <div class="amenity-label">
+              <span class="amenity-icon">🚿</span>
+              <span>Bidet</span>
+            </div>
+          </div>
+          <div class="amenity-toggle-item">
+            <label class="toggle-switch">
+              <input type="checkbox" data-amenity="has_parking" {% if resortObject.has_parking %}checked{% endif %}>
+              <span class="toggle-slider"></span>
+            </label>
+            <div class="amenity-label">
+              <span class="amenity-icon">🅿️</span>
+              <span>Parking</span>
+            </div>
+          </div>
+          <div class="amenity-toggle-item">
+            <label class="toggle-switch">
+              <input type="checkbox" data-amenity="has_restaurant" {% if resortObject.has_restaurant %}checked{% endif %}>
+              <span class="toggle-slider"></span>
+            </label>
+            <div class="amenity-label">
+              <span class="amenity-icon">🍽️</span>
+              <span>Restaurant</span>
+            </div>
+          </div>
+          <div class="amenity-toggle-item">
+            <label class="toggle-switch">
+              <input type="checkbox" data-amenity="has_bar" {% if resortObject.has_bar %}checked{% endif %}>
+              <span class="toggle-slider"></span>
+            </label>
+            <div class="amenity-label">
+              <span class="amenity-icon">🍹</span>
+              <span>Bar/Lounge</span>
+            </div>
+          </div>
+          <div class="amenity-toggle-item">
+            <label class="toggle-switch">
+              <input type="checkbox" data-amenity="has_spa" {% if resortObject.has_spa %}checked{% endif %}>
+              <span class="toggle-slider"></span>
+            </label>
+            <div class="amenity-label">
+              <span class="amenity-icon">💆</span>
+              <span>Spa</span>
+            </div>
+          </div>
+          <div class="amenity-toggle-item">
+            <label class="toggle-switch">
+              <input type="checkbox" data-amenity="has_gym" {% if resortObject.has_gym %}checked{% endif %}>
+              <span class="toggle-slider"></span>
+            </label>
+            <div class="amenity-label">
+              <span class="amenity-icon">🏋️</span>
+              <span>Gym/Fitness</span>
+            </div>
+          </div>
+          <div class="amenity-toggle-item">
+            <label class="toggle-switch">
+              <input type="checkbox" data-amenity="has_beach_access" {% if resortObject.has_beach_access %}checked{% endif %}>
+              <span class="toggle-slider"></span>
+            </label>
+            <div class="amenity-label">
+              <span class="amenity-icon">🏖️</span>
+              <span>Beach Access</span>
+            </div>
+          </div>
+          <div class="amenity-toggle-item">
+            <label class="toggle-switch">
+              <input type="checkbox" data-amenity="has_air_conditioning" {% if resortObject.has_air_conditioning %}checked{% endif %}>
+              <span class="toggle-slider"></span>
+            </label>
+            <div class="amenity-label">
+              <span class="amenity-icon">❄️</span>
+              <span>Air Conditioning</span>
+            </div>
+          </div>
+          <div class="amenity-toggle-item">
+            <label class="toggle-switch">
+              <input type="checkbox" data-amenity="has_hot_water" {% if resortObject.has_hot_water %}checked{% endif %}>
+              <span class="toggle-slider"></span>
+            </label>
+            <div class="amenity-label">
+              <span class="amenity-icon">♨️</span>
+              <span>Hot Water</span>
+            </div>
+          </div>
+          <div class="amenity-toggle-item">
+            <label class="toggle-switch">
+              <input type="checkbox" data-amenity="has_breakfast" {% if resortObject.has_breakfast %}checked{% endif %}>
+              <span class="toggle-slider"></span>
+            </label>
+            <div class="amenity-label">
+              <span class="amenity-icon">🍳</span>
+              <span>Breakfast</span>
+            </div>
+          </div>
+          <div class="amenity-toggle-item">
+            <label class="toggle-switch">
+              <input type="checkbox" data-amenity="has_laundry" {% if resortObject.has_laundry %}checked{% endif %}>
+              <span class="toggle-slider"></span>
+            </label>
+            <div class="amenity-label">
+              <span class="amenity-icon">🧺</span>
+              <span>Laundry Service</span>
+            </div>
+          </div>
+          <div class="amenity-toggle-item">
+            <label class="toggle-switch">
+              <input type="checkbox" data-amenity="pet_friendly" {% if resortObject.pet_friendly %}checked{% endif %}>
+              <span class="toggle-slider"></span>
+            </label>
+            <div class="amenity-label">
+              <span class="amenity-icon">🐾</span>
+              <span>Pet Friendly</span>
+            </div>
+          </div>
+          <div class="amenity-toggle-item">
+            <label class="toggle-switch">
+              <input type="checkbox" data-amenity="family_friendly" {% if resortObject.family_friendly %}checked{% endif %}>
+              <span class="toggle-slider"></span>
+            </label>
+            <div class="amenity-label">
+              <span class="amenity-icon">👨‍👩‍👧‍👦</span>
+              <span>Family Friendly</span>
+            </div>
+          </div>
+          <div class="amenity-toggle-item">
+            <label class="toggle-switch">
+              <input type="checkbox" data-amenity="has_generator" {% if resortObject.has_generator %}checked{% endif %}>
+              <span class="toggle-slider"></span>
+            </label>
+            <div class="amenity-label">
+              <span class="amenity-icon">⚡</span>
+              <span>Generator</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="meta-title" style="margin-top: 2rem; margin-bottom: 1.5rem; font-size: 1.2rem;">💳 Payment Methods</div>
+        <div class="amenities-toggle-grid" id="paymentMethodsGrid">
+          <div class="amenity-toggle-item">
+            <label class="toggle-switch">
+              <input type="checkbox" data-amenity="accepts_gcash" {% if resortObject.accepts_gcash %}checked{% endif %}>
+              <span class="toggle-slider"></span>
+            </label>
+            <div class="amenity-label">
+              <span class="amenity-icon">📱</span>
+              <span>GCash</span>
+            </div>
+          </div>
+          <div class="amenity-toggle-item">
+            <label class="toggle-switch">
+              <input type="checkbox" data-amenity="accepts_cash" {% if resortObject.accepts_cash %}checked{% endif %}>
+              <span class="toggle-slider"></span>
+            </label>
+            <div class="amenity-label">
+              <span class="amenity-icon">💵</span>
+              <span>Cash</span>
+            </div>
+          </div>
+          <div class="amenity-toggle-item">
+            <label class="toggle-switch">
+              <input type="checkbox" data-amenity="accepts_debit_card" {% if resortObject.accepts_debit_card %}checked{% endif %}>
+              <span class="toggle-slider"></span>
+            </label>
+            <div class="amenity-label">
+              <span class="amenity-icon">💳</span>
+              <span>Debit Card</span>
+            </div>
+          </div>
+          <div class="amenity-toggle-item">
+            <label class="toggle-switch">
+              <input type="checkbox" data-amenity="accepts_credit_card" {% if resortObject.accepts_credit_card %}checked{% endif %}>
+              <span class="toggle-slider"></span>
+            </label>
+            <div class="amenity-label">
+              <span class="amenity-icon">💳</span>
+              <span>Credit Card</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="amenitySaveStatus" style="margin-top: 1rem; padding: 0.75rem; border-radius: 8px; display: none;"></div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</section>
+
+<style>
+.meta-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.btn-edit-contacts {
+  padding: 0.4rem 0.8rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-edit-contacts:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.contacts-edit-form {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.edit-field {
+  margin-bottom: 1rem;
+}
+
+.edit-field label {
+  display: block;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 0.4rem;
+  font-size: 0.95rem;
+}
+
+.form-control-inline {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+}
+
+.form-control-inline:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.edit-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.btn-save, .btn-cancel {
+  padding: 0.6rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-save {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  flex: 1;
+}
+
+.btn-save:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.3);
+}
+
+.btn-save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-cancel {
+  background: #e2e8f0;
+  color: #4a5568;
+}
+
+.btn-cancel:hover {
+  background: #cbd5e0;
+}
+
+.amenities-toggle-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  /* gap: 1rem; */
+}
+
+.amenity-toggle-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.amenity-toggle-item:hover {
+  background: #e9ecef;
+  transform: translateY(-2px);
+}
+
+.amenity-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  color: #2d3748;
+}
+
+.amenity-icon {
+  font-size: 1.25rem;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 26px;
+  margin: 0;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
+  border-radius: 26px;
+  min-width: 50px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background-color: #667eea;
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+  transform: translateX(24px);
+}
+
+.toggle-switch input:disabled + .toggle-slider {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .amenities-toggle-grid {
+    /* grid-template-columns: 1fr; */
+  }
+}
+</style>
+
+<script>
+// Contacts Edit Functions
+function toggleEditContacts() {
+  document.getElementById('contactsDisplay').style.display = 'none';
+  document.getElementById('contactsEditForm').style.display = 'block';
+  document.getElementById('editContactsBtn').style.display = 'none';
+}
+
+function cancelEditContacts() {
+  document.getElementById('contactsDisplay').style.display = 'block';
+  document.getElementById('contactsEditForm').style.display = 'none';
+  document.getElementById('editContactsBtn').style.display = 'inline-block';
+  // Reset form values
+  document.getElementById('editContactNumber').value = "{{resortObject.contactNumber}}";
+  document.getElementById('editContactEmail').value = "{{resortObject.contactEmail}}";
+  document.getElementById('editWhatsappNumber').value = "{{resortObject.whatsappNumber}}";
+  document.getElementById('editOpenHours').value = "{{resortObject.open_hours}}";
+  document.getElementById('editWebsiteURL').value = "{{resortObject.websiteURL}}";
+  document.getElementById('contactsSaveStatus').style.display = 'none';
+}
+
+function saveContacts() {
+  const resortId = {{ resortObject.id }};
+  const contactNumber = document.getElementById('editContactNumber').value.trim();
+  const contactEmail = document.getElementById('editContactEmail').value.trim();
+  const whatsappNumber = document.getElementById('editWhatsappNumber').value.trim();
+  const openHours = document.getElementById('editOpenHours').value.trim();
+  const websiteURL = document.getElementById('editWebsiteURL').value.trim();
+  
+  // Basic validation
+  if (!contactNumber || !contactEmail) {
+    showContactStatus('✗ Contact number and email are required', 'error');
+    return;
+  }
+  
+  // Disable save button
+  const saveBtn = event.target;
+  saveBtn.disabled = true;
+  saveBtn.textContent = '💾 Saving...';
+  
+  const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                    document.querySelector('meta[name="csrf-token"]')?.content || 
+                    getCookie('csrftoken');
+  
+  fetch(`/resorts/update-contacts/${resortId}/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': csrfToken
+    },
+    body: JSON.stringify({
+      contactNumber: contactNumber,
+      contactEmail: contactEmail,
+      whatsappNumber: whatsappNumber,
+      open_hours: openHours,
+      websiteURL: websiteURL
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    saveBtn.disabled = false;
+    saveBtn.textContent = '💾 Save';
+    
+    if (data.success) {
+      showContactStatus('✓ Saved successfully! Reloading...', 'success');
+      // Reload page after 1 second to show updated values
+      setTimeout(() => {
+        location.reload();
+      }, 1000);
+    } else {
+      showContactStatus('✗ Error: ' + (data.error || 'Failed to save'), 'error');
+    }
+  })
+  .catch(error => {
+    saveBtn.disabled = false;
+    saveBtn.textContent = '💾 Save';
+    showContactStatus('✗ Network error. Please try again.', 'error');
+  });
+}
+
+function showContactStatus(message, type) {
+  const statusDiv = document.getElementById('contactsSaveStatus');
+  statusDiv.textContent = message;
+  statusDiv.style.display = 'block';
+  
+  if (type === 'success') {
+    statusDiv.style.background = '#d4edda';
+    statusDiv.style.color = '#155724';
+    statusDiv.style.border = '1px solid #c3e6cb';
+  } else if (type === 'error') {
+    statusDiv.style.background = '#f8d7da';
+    statusDiv.style.color = '#721c24';
+    statusDiv.style.border = '1px solid #f5c6cb';
+  } else {
+    statusDiv.style.background = '#d1ecf1';
+    statusDiv.style.color = '#0c5460';
+    statusDiv.style.border = '1px solid #bee5eb';
+  }
+}
+
+// Amenities Toggle Functions
+document.addEventListener('DOMContentLoaded', function() {
+  const amenityToggles = document.querySelectorAll('.amenities-toggle-grid input[type="checkbox"]');
+  const statusDiv = document.getElementById('amenitySaveStatus');
+  let saveTimeout;
+
+  amenityToggles.forEach(toggle => {
+    toggle.addEventListener('change', function() {
+      const amenityName = this.dataset.amenity;
+      const isChecked = this.checked;
+      
+      // Disable toggle while saving
+      this.disabled = true;
+      
+      // Clear previous timeout
+      clearTimeout(saveTimeout);
+      
+      // Show saving status
+      showStatus('Saving...', 'info');
+      
+      // Save to server
+      saveAmenity(amenityName, isChecked, this);
+    });
+  });
+
+  function saveAmenity(amenityName, value, toggleElement) {
+    const resortId = {{ resortObject.id }};
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                      document.querySelector('meta[name="csrf-token"]')?.content || 
+                      getCookie('csrftoken');
+    
+    fetch(`/resorts/update-amenity/${resortId}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrfToken
+      },
+      body: JSON.stringify({
+        amenity: amenityName,
+        value: value
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      toggleElement.disabled = false;
+      if (data.success) {
+        showStatus('✓ Saved successfully!', 'success');
+      } else {
+        showStatus('✗ Error: ' + (data.error || 'Failed to save'), 'error');
+        toggleElement.checked = !value; // Revert on error
+      }
+    })
+    .catch(error => {
+      toggleElement.disabled = false;
+      showStatus('✗ Network error. Please try again.', 'error');
+      toggleElement.checked = !value; // Revert on error
+    });
+  }
+
+  function showStatus(message, type) {
+    statusDiv.textContent = message;
+    statusDiv.style.display = 'block';
+    
+    // Style based on type
+    if (type === 'success') {
+      statusDiv.style.background = '#d4edda';
+      statusDiv.style.color = '#155724';
+      statusDiv.style.border = '1px solid #c3e6cb';
+    } else if (type === 'error') {
+      statusDiv.style.background = '#f8d7da';
+      statusDiv.style.color = '#721c24';
+      statusDiv.style.border = '1px solid #f5c6cb';
+    } else {
+      statusDiv.style.background = '#d1ecf1';
+      statusDiv.style.color = '#0c5460';
+      statusDiv.style.border = '1px solid #bee5eb';
+    }
+    
+    // Auto-hide after 3 seconds
+    saveTimeout = setTimeout(() => {
+      statusDiv.style.display = 'none';
+    }, 3000);
+  }
+
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+});
+</script>
+
+{% endif %}

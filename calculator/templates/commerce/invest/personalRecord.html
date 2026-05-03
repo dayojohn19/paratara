@@ -1,0 +1,101 @@
+{% extends "commerce/invest/layout.html" %}
+{% load humanize %}
+{% load static %}
+{% block body %}
+<style>
+    * {
+        font-family: sans-serif;
+        font-weight: 300;
+    }
+</style>
+<div>
+    <div style="text-align: center;">
+        <h2>Personal Record</h2>
+        <h1>{{message}}</h1>
+    </div>
+</div>
+<div>
+    <div style="padding: 15px;border: 2px white solid; margin: 20px; border-radius: 5px;">
+
+
+        <div>
+            <span id="Invest_profit">
+                <script>
+                    function profit() {
+                        value = `{{investor_profile.invested_value}}`
+                        amount = `{{investor_profile.invested_amount}}`
+
+                        return `${parseInt(value) - parseInt(amount)}`
+                    }
+                    document.querySelector("#Invest_profit").innerHTML = profit()
+                </script>
+            </span>
+            <span>Investment Profit</span>
+            <span>TODO PUT IT IN MODEL</span>
+        </div>
+        <div>
+            Todo Make Contract
+        </div>
+        <div style="border: 1px white solid; padding: 4px; margin: 3px; margin-top: 8px;">
+            <div>
+                <span>{{investor_profile.timestamp}}</span>
+                <span><small>Investment Date</small></span>
+            </div>
+            <div>
+                <span>{{investor_profile.reinvested}}</span>
+                <span><small>Last Update</small></span>
+            </div>
+        </div>
+        <div>
+            <span>{{investor_profile.invested_amount | intcomma}}</span>
+            <span>
+                Investment Total
+            </span>
+        </div>
+        <div>
+            <span>
+                {{investor_profile.invested_value | intcomma}}
+            </span>
+            <span>
+                Investment Value
+            </span>
+        </div>
+        <div>
+            <span>
+                {{investor_profile.invested_percentage}} %
+            </span>
+            <span>
+                Current Investment Percentage
+            </span>
+        </div>
+
+    </div>
+</div>
+<hr>
+<hr>
+<div style="padding: 18px;">
+    {% for record in my_record %}
+    <div>
+        <hr>
+        <div>
+            <div>
+                Precentage {{record.investedPercentageBefore}} %
+            </div>
+            <div>
+                iClub Value: {{record.CurrentiClubValue | intcomma}}
+            </div>
+            <div>
+                Investment Value {{record.invest_valueBefore | intcomma}}
+            </div>
+        </div>
+        <div>
+            Invested Amount: {{record.invest_amount |intcomma}}
+        </div>
+        <div>
+            <small>{{record.timestamp}}</small>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

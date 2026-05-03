@@ -1,0 +1,40 @@
+env
+.git
+env2
+ID_Credentials
+
+# Environments
+.env
+env/
+env2/
+env3/
+venv/
+venv11/
+speechenv/
+
+# Python
+__pycache__/
+*.pyc
+
+# Media & generated
+staticfiles/
+geoip/
+imageuploads/
+storyvideo/
+image_bank_uploaded/
+storyimages/
+image_cards/
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+
+
+
+oldv_db.sqlite3
+4db.sqlite3
+olddb.sqlite3
+db.sqlite3
+proj2db_backup.dump

@@ -1,0 +1,112 @@
+/* ========== Discussion Viewer ========== */
+.discussion-section {
+  text-align: center;
+  margin: 2rem auto;
+  max-width: 600px;
+  font-size: 0.95rem;
+  font-family: system-ui, sans-serif;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+/* Discussion header button */
+.discussionViewer-btn {
+  background-color: #007bff;
+  border: none;
+  color: white;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.discussionViewer-btn:hover {
+  background-color: #0056b3;
+  transform: translateY(-1px);
+}
+
+/* Discussion container (scrollable area) */
+.calendar-container-schedules {
+  position: relative;
+  text-align: left;
+  display: block;
+  max-height: 380px;
+  overflow-y: auto;
+  padding: 1rem;
+  scroll-behavior: smooth;
+}
+
+.calendar-container-schedules::-webkit-scrollbar {
+  width: 6px;
+}
+
+.calendar-container-schedules::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 5px;
+}
+
+/* Each message */
+#allDiscussion > div {
+  background: #f9fafb;
+  border: 1px solid #e4e4e4;
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  margin-bottom: 0.6rem;
+}
+
+#allDiscussion span {
+  font-weight: 600;
+  color: #333;
+}
+
+#allDiscussion article {
+  display: inline-block;
+  margin-left: 4px;
+  white-space: pre-line;
+  color: #444;
+}
+
+#allDiscussion small {
+  display: block;
+  color: #888;
+  font-size: 0.8rem;
+  margin-top: 0.2rem;
+}
+
+/* Sticky bottom input area */
+.discussion-input-area {
+  position: sticky;
+  bottom: 0;
+  background: white;
+  padding: 0.8rem;
+  border-top: 1px solid #eee;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.03);
+}
+
+#discuss-message {
+  width: 100%;
+  min-height: 60px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 0.5rem;
+  font-size: 0.9rem;
+  resize: vertical;
+  outline: none;
+  transition: border 0.2s ease;
+}
+
+#discuss-message:focus {
+  border-color: #007bff;
+}
+
+#discuss-button {
+  width: 100%;
+  margin-top: 0.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.4rem;
+}

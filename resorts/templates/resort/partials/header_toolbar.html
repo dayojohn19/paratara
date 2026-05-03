@@ -1,0 +1,113 @@
+{% load humanize %}
+<header class="header" style="background-image:url('{{resortObject.headerImage}}');">
+  <div class="header-wrap">
+    <div>
+      <div class="header-sub">
+        <span class="badge">📍 {{resortObject.address}}</span>
+        <a class="badge" data-fancybox data-type="iframe" href="https://maps.google.com/maps?q={{resortObject.latitude}},{{resortObject.longitude}}&t=&z=13&ie=UTF8&iwloc=&output=embed">Open Map</a>
+        <a class="badge" href="#manager-tools">Manager toolkit</a>
+        {% if managerUser %}
+        <span class="badge">👤 Manager Mode</span>
+        {% endif %}
+      </div>
+      <h1 class="header-title">{{resortObject.RealName}}</h1>
+      {% if resortObject.description %}
+      <p class="header-lead">{{resortObject.description|striptags }}</p>
+      {% endif %}
+      <div class="hero-actions">
+        <!-- <button class="btn primary" data-fancybox data-src="#contact-form-dialog">Send inquiry</button> -->
+        <button style="color: white;" class="btn" data-fancybox data-src="#qr-code-viewer">View QR code</button>
+        <h2>Subscribe via</h2>
+        <script src="https://www.paypal.com/sdk/js?client-id=AREL4vTRiJV97jXqNzJkFn2dwjMsUhdmsFRORX5yv8WnqErFYPh7gi1Qy8UVm3KY1TS_DmZCRSzougyu&vault=true&intent=subscription"></script>
+<div id="paypal-button-{{ resortObject.id }}"></div>
+
+<script>
+paypal.Buttons({
+    createSubscription: function () {
+        return fetch("/subscriptions/create/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: JSON.stringify({
+              // TODO: replace with your plan ID
+                plan_id: "P-XXXXXXXX",
+                resort_id: "{{ resortObject.id }}"
+            })
+        })
+        .then(res => res.json())
+        .then(data => data.id);
+    }
+}).render("#paypal-button-{{ resortObject.id }}");
+</script>
+
+        <!-- <a class="btn" href="{% url 'resort_management:getguesstlists' resortObject.id %}">Check-in log</a> -->
+      </div>
+    </div>
+    <!-- <div class="summary-ribbon">
+      <div class="summary-card">
+        <span>Accommodation types</span>
+        <strong>{{ resortObject.AccomodationsList|length|default:"0" }}</strong>
+        <small>Active room and villa categories</small>
+      </div>
+      <div class="summary-card">
+        <span>Experiences & activities</span>
+        <strong>{{ resortObject.ActivitiesList|length|default:"0" }}</strong>
+        <small>Curated on-site and island experiences</small>
+      </div>
+      <div class="summary-card">
+        <span>Promotions & tours</span>
+        <strong>{{ resortObject.TourList|length|default:"0" }}</strong>
+        <small>Special offers currently visible</small>
+      </div>
+      <div class="summary-card">
+        <span>Menu items</span>
+        <strong>{{ resortObject.resortFood.all|length|default:"0" }}</strong>
+        <small>Saved dishes across all packages</small>
+      </div>
+    </div> -->
+  </div>
+</header>
+
+<nav class="toolbar">
+  <div class="toolbar-header">
+    <span style="font-weight:600; color:var(--ink-500); letter-spacing:0.04em; text-transform:uppercase; font-size:0.75rem;">Create </span>
+    <button class="hamburger" id="hamburger" onclick="toggleMenu()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </div>
+  <div class="toolbar-inner" id="toolbarInner">
+    <!-- <a class="tool" data-fancybox data-src="#contact-form-dialog" onclick="closeMenu()">💬 Customer inquiries</a> -->
+    <!-- <a class="tool" href="{% url 'resort_management:getguesstlists' resortObject.id %}" onclick="closeMenu()">🧾 Guest check-ins</a> -->
+    <a class="tool" href="{% url 'resorts:view_accommodation_guestlist' resortObject.id %}" onclick="closeMenu()">🧾 Guest check-ins</a>
+
+    {% if managerUser %}
+    <a class="tool" data-fancybox data-src="#modal-add-accommodation" onclick="closeMenu()">🛏️ Accommodations</a>
+    {% else %}
+    <a class="tool" href="#accommodations" onclick="closeMenu()">🛏️ Accommodations</a>
+    {% endif %}
+
+    {% if managerUser %}
+    <a class="tool" data-fancybox data-src="#modal-add-activity" onclick="closeMenu()">🎯 Activity & Service</a>
+    {% else %}
+    <a class="tool" href="#activities" onclick="closeMenu()">🎯 Activity & Service</a>
+    {% endif %}
+
+    {% if managerUser %}
+    <a class="tool" data-fancybox data-src="#modal-add-promotion" onclick="closeMenu()">🎉 Events & promos</a>
+    {% else %}
+    <a class="tool" href="#promotions" onclick="closeMenu()">🎉 Events & promos</a>
+    {% endif %}
+
+    <a class="tool" href="#ocr-menu-upload" onclick="closeMenu()">📸 Food Menu</a>
+
+    {% if managerUser %}
+    <a class="tool" data-fancybox data-src="#modal-gallery-uploader" onclick="closeMenu()">🖼️ Media library</a>
+    {% else %}
+    <a class="tool" href="#resort-gallery" onclick="closeMenu()">🖼️ Media library</a>
+    {% endif %}
+  </div>
+</nav>

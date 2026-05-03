@@ -1,0 +1,212 @@
+{% extends "home/layout.html" %}
+{% load static %}
+{% block body %}
+<!-- MODAL -->
+<link rel="stylesheet" href="{% static 'home/place.css' %}">
+
+
+
+<!-- MODAL FOR ADDITIONAL DETAILS -->
+<div class="additionalDetailsModal modal">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+            <span onclick="closeThisModal(id)" class="close">&times;</span>
+            <h2 id="AdditionalDetailsHeader">Additional Details</h2>
+        </div>
+        <div class="modal-body" id="AdditionalDetailsContainer">
+            <p>This is modal-body put ID on this modal</p>
+        </div>
+        <div class="modal-footer" id="AdditionalDetailsFooter"></div>
+    </div>
+</div>
+<!-- END FOR SCHEDULE FORM -->
+
+
+
+
+
+
+<div class="main-center-body">
+    <span style="float: right;">
+        <span style="float: none;padding: 5px; font-size:0.7rem" class="button-standAlone green new badge"
+            id="newScheduleButton" onclick="createViaje()" data-badge-caption="Create Schedule">New
+            SCHEDULE</span>
+    </span>
+
+    <div
+        style="background-color: white; padding: 5px; width: fit-content; margin-top: 45px; height: fit-content; margin-bottom: 18px;">
+        <h1 style="color: black; width: fit-content;margin:0 ;padding-left: 25px; padding-right: 25px; ">
+            {{place.placename}}
+        </h1>
+    </div>
+
+
+    <div class="row">
+        <div id="calendar-container" class="col s12 m6">
+
+            {{calendar|safe}}
+            <div class="calendar-container-schedules">
+                <div style=" text-align: center;">
+                    <button onclick="discussionViewer(`{{place.id}}`,'POST')">
+                        Discussions</button>
+                    <div class="calendar-container-schedules " id="container-placeDiscussion"
+                        style="text-align:right; position: relative; max-height: 50vh; display: none;">
+                        <div style="text-align: left;" id="allDiscussion"></div>
+                        <div
+                            style="text-align: left; display: flex;justify-content: center;position:sticky;bottom: 0px; background-color: aliceblue; padding-top:10px ;padding-bottom: 10px;">
+                            <textarea id="discuss-message" placeholder="Discuss...."></textarea>
+                            <button onclick="discussionFetcher(`{{place.id}}`,'POST')">Send </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="calendar-objects-list">
+
+                    <div class="loading-symbol"></div>
+                    <!-- WHERE THE OBJECT APPEARS AFTER CLICKING ON THE CALENDAR -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // schedDates = []
+        allDates = [];
+        allTD = document.querySelectorAll('.wed,.mon,.tue,.thu,.fri,.sat,.sun');
+        allTD.forEach(element => {
+            if (element.innerHTML != '&nbsp') {
+                allDates.push(element)
+            }
+        });
+    </script>
+
+
+
+
+
+
+</div>
+<style>
+    .user-author-image {
+        background-image: url("{% static 'home/images/me.jpg' %}");
+
+    }
+</style>
+
+<script src="{% static 'home/place.js' %}"></script>
+
+<script>
+    // ALL CALENDAR
+    MonthContainer = document.querySelector('#calendar-container > table > tbody > tr:nth-child(1) > th')
+    addNext = document.createElement('div')
+    addNext.innerHTML = `
+            <a href="{% url 'home:place' id=place.id currentMonth=nextMonth currentYear=currentYear%}"><span
+                    style="list-style-type: none;" class="next">&#10095;</span></a>
+    `
+    addPrev = document.createElement('div')
+    addPrev.innerHTML = `
+                           <a href="{% url 'home:place' id=place.id currentMonth=previousMonth currentYear=currentYear%}"><span
+                    style="list-style-type: none;" class="prev">&#10094;</span></a>
+                `
+    MonthContainer.appendChild(addPrev)
+    MonthContainer.appendChild(addNext)
+    // 
+    function getPlan(whatPlan) {
+        todaysMonth = parseInt(`{{currentMonth}}`)
+        console.log('Fetching...')
+        // PUT HERE THE LOADING
+        fetch(whatPlan, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
+            // MAKE WHILE LOADING / FETCHING
+        }).then(response => response.json()).then(data => {
+            ii = 0
+            for (d in data) {
+                if (data[d].fields.monthN == todaysMonth) {
+                    new dateObjects(data[d].fields).createObject(data[d].fields)
+                    ii += 1
+                }
+            }
+        }).then(() => {
+            setTimeout(() => {
+                showObjectListDIv()
+            }, 500);
+        })
+        // ON load show objects
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+        thisPlan = `{% url 'home:placeCalendarJSON' place.id %}`
+        getPlan(thisPlan)
+    })
+</script>
+<script>
+    function discussionViewer(placeID, method) {
+        discussionNode = document.querySelector("#allDiscussion")
+
+        //
+        element = document.querySelector("#container-placeDiscussion")
+        if (element.style.display == 'none') {
+            element.style.display = 'block'
+            // discussionFetcher(placeID, method)
+            // 
+            if (!discussionNode.hasChildNodes()) {
+                fetch(`/discuss/${placeID}`, {
+                    method: method,
+                    body: JSON.stringify({
+                        message: ''
+                    })
+                }).then((response) => response.json()).then((data) => {
+                    for (d in data.response) {
+                        discussionBuilder(data.response[d])
+                    }
+
+                })
+
+            } else {
+                console.log('ALREADY')
+            }
+
+        } else {
+            element.style.display = 'none'
+        }
+    }
+    function discussionFetcher(placeID, method) {
+        message = document.querySelector("#discuss-message").value;
+        if (message == '') {
+            return
+        }
+        document.querySelector("#discuss-message").value = '';
+        fetch(`/discuss/${placeID}`, {
+            method: method,
+            body: JSON.stringify({
+                message: message
+            })
+        }).then((response) => response.json()).then((data) => {
+            discussionBuilder(data.response[0])
+
+        })
+
+    }
+
+    function discussionBuilder(element) {
+        console.log('ELEMENT: ', element)
+        discussContainer = document.createElement('div')
+        discusser = document.createElement('span')
+        newDate = new Date(element.timestamp)
+        discusser.innerHTML = element.discusserName + ': ' + `<small style="color:grey"> ${newDate}</small>`
+        discuss = document.createElement('article')
+
+        discuss.innerHTML = element.discuss + '<hr>'
+        discussContainer.appendChild(discusser)
+        discussContainer.appendChild(discuss)
+        document.querySelector("#allDiscussion").appendChild(discussContainer)
+
+    }
+</script>
+
+
+{% endblock %}

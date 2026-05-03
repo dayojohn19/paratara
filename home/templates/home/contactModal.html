@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contact Modal</title>
+    <script src="https://smtpjs.com/v3/smtp.js"></script>
+    <script>
+      //  <script src="https://smtpjs.com/v3/smtp.js">
+      function sendEmail() {
+        Email.send({
+          Host: "smtp.elasticemail.com",
+          Username: "repapaka20@gmail.com",
+          Password: "20B28409FAB2EC360F970DEBC62ACB854E4B",
+          To: "dayo_john16@yahoo.com",
+          From: "repapaka20@gmail.com",
+          Subject: "iClub Message Investment",
+          Body: "And this is the body",
+        }).then((message) => alert("Please Check You Spam", message));
+      }
+      function closeModal() {
+        dom = document.querySelector(".modal-container-main");
+        dom.style.display = "none";
+      }
+      // TODO CHANGE
+      DATA_BASE_URL = "http://127.0.0.1:8000/resortDB/1";
+      function SendGuestMessage(webID) {
+        guestContact = document.querySelector("#guest_contact").value;
+        if (guestContact == "") {
+          return alert("Please Provide Contact");
+        }
+        guestMessage = document.querySelector("#guest_message").value;
+        if (guestMessage == "") {
+          return alert("What is your Message");
+        }
+        fetch(DATA_BASE_URL, {
+          method: "POST",
+          body: JSON.stringify({
+            guestContact: guestContact,
+            guestMessage: guestMessage,
+            webID: webID,
+          }),
+        }).then((response) => {
+          alert("Message Sent");
+        });
+      }
+      function GetDataBase() {
+        fetch(DATA_BASE_URL)
+          .then((response) => response.json())
+          .then((data) => {
+            for (d in data.messages) {
+              ListHTML(data.messages[d]);
+            }
+          });
+      }
+      function ListHTML(HTML_objects) {
+        // TODO CHANGE
+        // divID = '#DivID'
+        // ListContainer = document.querySelector(divID)
+        // nodeContainer = document.createElement('div')
+        // nodeContainer.innerHTML = HTML_objects[i]
+        // ListContainer.appendChild(nodeContainer)
+
+        console.log("LOG: ", HTML_objects);
+        return;
+      }
+    </script>
+  </head>
+  <style>
+    .button-close {
+      position: absolute;
+      right: 1px !important;
+      /* ON PARALLEL TO MARGIN TOP FROM MODAL-item-head which is 50px */
+      margin-right: 15px;
+      margin-top: 5px;
+      font-size: x-large;
+      color: grey;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      font-family: Raleway, sans-serif;
+    }
+
+    .button-close:hover {
+      color: #000;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .modal-container-main {
+      /* DISPLAYING CREATE VIAJE FORM */
+      /* display: none; */
+      position: fixed;
+      z-index: 3;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.4);
+      animation-name: slideIn;
+      animation-duration: 0.4s;
+      font-family: Poppins, sans-serif;
+    }
+
+
+    .modal-item-head {
+      border-radius: 8px 8px 0 0;
+      padding: 4px;
+      /* padding-left: 0;
+        padding-right: 0; */
+      background-color: rgb(221, 213, 203);
+      padding-bottom: 0;
+      font-family: poppins-semibold, poppins, sans-serif;
+      font-weight: 200;
+      letter-spacing: calc(0.2vh + 0.2vw);
+      text-align: center;
+    }
+
+    .custom-field {
+      font-size: calc(3vh + 1vw);
+
+      /* min-height: 76px; */
+      border: none;
+      border-radius: 4px;
+      padding: 9px;
+      box-shadow: 0 0 5px grey;
+    }
+
+    .button-send {
+      font-size: calc(1.8vh + 0.3vw);
+
+      padding: calc(1vh + 0.5vw);
+
+      border-radius: 7px;
+      border: none;
+      background-color: rgb(243, 209, 165);
+      text-shadow: white 0 0 2px;
+      box-shadow: #9e9e9e 2.1px 2.3px 2px;
+      margin: calc(0.5vh + 0.5vw);
+      bottom: 1px !important;
+    }
+
+    button:hover {
+      box-shadow: 0 0 4.5px grey;
+    }
+  </style>
+
+  <body>
+    <div class="modal-container-main">
+      <div class="modal-container-sub">
+        <span class="button-close" onclick="closeModal()" class="close">&times;</span>
+        <div class="modal-item-head">
+          <button onclick="GetDataBase()">Get Request</button>
+          <button id="1" onclick="SendGuestMessage(id)" class="button-send">
+            <h1 style="padding: 0; margin: 0">Send</h1>
+          </button>
+          <hr />
+          <input id="guest_contact" placeholder="Your Contact" class="custom-field" />
+          <hr />
+          <textarea id="guest_message" style="min-height: 40vh" placeholder="Your Message" class="custom-field"></textarea>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

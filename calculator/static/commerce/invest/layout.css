@@ -1,0 +1,84 @@
+#tabs {
+  /* background-color: yellow; */
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  
+  /* background-color: rgb(255, 255, 255); */
+          background: linear-gradient(270deg,
+                rgba(10, 11, 9, 1) 0%,
+                rgba(66, 66, 66, 1) 71%,
+                rgba(66, 66, 66, 1) 73%,
+                rgba(67, 67, 67, 1) 76%,
+                rgba(70, 70, 70, 1) 79%,
+                rgba(72, 72, 72, 1) 80%,
+                rgba(75, 75, 75, 1) 83%,
+                rgba(78, 78, 78, 1) 88%,
+                rgba(83, 83, 83, 1) 92%,
+                rgba(86, 86, 86, 1) 97%,
+                rgba(92, 92, 92, 1) 100%,
+                rgba(98, 98, 98, 1) 100%,
+                rgba(108, 108, 108, 1) 100%,
+                rgba(114, 114, 114, 1) 100%,
+                rgba(176, 176, 176, 1) 100%,
+                rgba(212, 212, 212, 1) 100%,
+                rgba(255, 255, 255, 1) 100%);
+  box-shadow: 0 10px 10px rgba(0, 0, 0, 0.741);
+}
+
+#tabs_links {
+  display: flex;
+  justify-content: space-between;
+  /* background-color: yellowgreen; */
+  /* width: 25%; */
+  flex-wrap: wrap;
+  
+}
+
+
+#tabs a {
+  /* background-color: tomato; */
+  text-decoration: none;
+  padding: 0.4rem;
+  text-shadow: rgb(0, 0, 0) 0 0 5px;
+  color: rgb(255, 255, 255);
+  font-size: large;
+}
+
+#tab_container {
+  /* position: fixed; */
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  /* font-family: arial, sans-serif; */
+  font-family: -apple-system,BlinkMacSystemFont,segoe ui,Roboto,Helvetica,Arial,sans-serif,apple color emoji,segoe ui emoji,segoe ui symbol;
+  /* background-color: rgba(242, 236, 236, 0.405); */
+  padding: 0;
+  margin: 0;
+/* }
+   body { */
+        background: linear-gradient(130deg,
+                rgba(10, 11, 9, 1) 0%,
+                rgba(66, 66, 66, 1) 71%,
+                rgba(66, 66, 66, 1) 73%,
+                rgba(67, 67, 67, 1) 76%,
+                rgba(70, 70, 70, 1) 79%,
+                rgba(72, 72, 72, 1) 80%,
+                rgba(75, 75, 75, 1) 83%,
+                rgba(78, 78, 78, 1) 88%,
+                rgba(83, 83, 83, 1) 92%,
+                rgba(86, 86, 86, 1) 97%,
+                rgba(92, 92, 92, 1) 100%,
+                rgba(98, 98, 98, 1) 100%,
+                rgba(108, 108, 108, 1) 100%,
+                rgba(114, 114, 114, 1) 100%,
+                rgba(176, 176, 176, 1) 100%,
+                rgba(212, 212, 212, 1) 100%,
+                rgba(255, 255, 255, 1) 100%);
+        color: white;
+    }

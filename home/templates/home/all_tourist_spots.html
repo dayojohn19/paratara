@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Tourist Spots</title>
+</head>
+<body>
+    <h1>All Tourist Spots</h1>
+    {% csrf_token %}
+    {% for data in spot_data %}
+    <div class="spot" data-spot-id="{{ data.spot.id }}" data-place-slug="{{ data.spot.place.slug }}" data-spot-slug="{{ data.spot.slug }}">
+        <h2>{{ data.spot.name }}</h2>
+        <p><strong>Place:</strong> {{ data.spot.place.placename }}</p>
+        <p><strong>Description:</strong> {{ data.spot.desc }}</p>
+        {% if data.spot.img %}
+        <img src="{{ data.spot.img }}" alt="{{ data.spot.name }}">
+        {% endif %}
+        <p><strong>Visit Count:</strong> <span class="visit-count">{{ data.visit_count }}</span></p>
+        {% if data.spot.url %}
+        <p><a href="{{ data.spot.url }}" target="_blank">Read More</a></p>
+        {% endif %}
+        <a href="{% url 'home:visit_spot' data.spot.place.slug data.spot.slug %}">Visit This Spot</a>
+        <p>VIsit link: {% url 'home:visit_spot' data.spot.place.slug data.spot.slug %}</p>
+        {% if user.is_authenticated %}
+        {% if data.visited_today %}
+        <button class="record-visit-btn" disabled>Visited Today</button>
+        <button class="remove-visit-btn" data-spot-id="{{ data.spot.id }}" data-place-slug="{{ data.spot.place.slug }}" data-spot-slug="{{ data.spot.slug }}">Remove Visit</button>
+        {% else %}
+        <button class="record-visit-btn" data-spot-id="{{ data.spot.id }}" data-place-slug="{{ data.spot.place.slug }}" data-spot-slug="{{ data.spot.slug }}">Record Visit</button>
+        {% endif %}
+        {% else %}
+        <a href="{% url 'home:visit_spot' data.spot.place.slug data.spot.slug %}" class="record-visit-btn">Record Visit (Register First)</a>
+        {% endif %}
+        <a href="{% url 'home:visitor_stats' data.spot.id %}">View Detailed Stats (JSON)</a>
+        <div class="notification" id="notification-{{ data.spot.id }}"></div>
+    </div>
+    {% empty %}
+    <p>No tourist spots available.</p>
+    {% endfor %}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Record visit buttons
+            const recordButtons = document.querySelectorAll('.record-visit-btn:not([disabled]):not(a)');
+            recordButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const placeSlug = this.getAttribute('data-place-slug');
+                    const spotSlug = this.getAttribute('data-spot-slug');
+                    const spotDiv = this.closest('.spot');
+                    const notification = document.getElementById('notification-' + spotDiv.getAttribute('data-spot-id'));
+                    const visitCountSpan = spotDiv.querySelector('.visit-count');
+
+                    // Get CSRF token
+                    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+                    fetch(`/record_visit/${placeSlug}/${spotSlug}/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-CSRFToken': csrftoken
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'visit recorded') {
+                            notification.textContent = 'Visit recorded successfully!';
+                            notification.className = 'notification success';
+                            notification.style.display = 'block';
+                            // Update visit count
+                            const currentCount = parseInt(visitCountSpan.textContent);
+                            visitCountSpan.textContent = currentCount + 1;
+                            // Disable the button and show remove button
+                            button.disabled = true;
+                            button.textContent = 'Visited Today';
+                            const removeBtn = spotDiv.querySelector('.remove-visit-btn');
+                            if (removeBtn) {
+                                removeBtn.style.display = 'inline-block';
+                            }
+                            setTimeout(() => {
+                                notification.style.display = 'none';
+                            }, 3000);
+                        } else {
+                            notification.textContent = data.error || 'Error recording visit.';
+                            notification.className = 'notification error';
+                            notification.style.display = 'block';
+                        }
+                    })
+                    .catch(error => {
+                        notification.textContent = 'Network error. Please try again.';
+                        notification.className = 'notification error';
+                        notification.style.display = 'block';
+                    });
+                });
+            });
+
+            // Remove visit buttons
+            const removeButtons = document.querySelectorAll('.remove-visit-btn');
+            removeButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const placeSlug = this.getAttribute('data-place-slug');
+                    const spotSlug = this.getAttribute('data-spot-slug');
+                    const spotDiv = this.closest('.spot');
+                    const notification = document.getElementById('notification-' + spotDiv.getAttribute('data-spot-id'));
+                    const visitCountSpan = spotDiv.querySelector('.visit-count');
+
+                    // Get CSRF token
+                    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+                    fetch(`/remove_visit/${placeSlug}/${spotSlug}/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-CSRFToken': csrftoken
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'visit removed') {
+                            notification.textContent = 'Visit removed successfully!';
+                            notification.className = 'notification success';
+                            notification.style.display = 'block';
+                            // Update visit count
+                            const currentCount = parseInt(visitCountSpan.textContent);
+                            visitCountSpan.textContent = Math.max(0, currentCount - 1);
+                            // Re-enable the record button and hide remove button
+                            const recordBtn = spotDiv.querySelector('.record-visit-btn');
+                            if (recordBtn) {
+                                recordBtn.disabled = false;
+                                recordBtn.textContent = 'Record Visit';
+                            }
+                            button.style.display = 'none';
+                            setTimeout(() => {
+                                notification.style.display = 'none';
+                            }, 3000);
+                        } else {
+                            notification.textContent = data.error || 'Error removing visit.';
+                            notification.className = 'notification error';
+                            notification.style.display = 'block';
+                        }
+                    })
+                    .catch(error => {
+                        notification.textContent = 'Network error. Please try again.';
+                        notification.className = 'notification error';
+                        notification.style.display = 'block';
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>

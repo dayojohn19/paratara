@@ -1,0 +1,136 @@
+<div class="modal fade" id="exampleModalLong" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLongTitle">Modal title</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-floating mb-3">
+          <input type="email" class="form-control custom-field text-contact-input" id="guest_contact" placeholder="name@example.com" />
+          <label for="guest_contact">Your Contact</label>
+        </div>
+        <div class="custom-field">
+          <textarea placeholder="Your Message" id="guest_message" aria-label="With textarea" class="text-contact-input" style="height: 150px"></textarea>
+          {% for eachCalendarObject in calendarValues %}
+          <div id="calendar_object_month-{{eachCalendarObject.id}}" style="display: none">{{eachCalendarObject.calendar_html | safe}}</div>
+          {% endfor %}
+          <!-- <div id="calendar_object_month-{{currentMonth}}">{{calendarObject | safe}}</div> -->
+          <div>
+            <button onclick="next_calendar_button('previous')" class="button_previous_month btn btn-primary">Previous Month</button>
+            <button onclick="next_calendar_button('next')" class="button_next_month btn btn-primary">Next Month</button>
+          </div>
+          <div class="single_calendar_main_container"> </div>
+          <textarea readonly id="guest_book" class="custom-field text-contact-input" style="display: none; margin: 0 auto; padding-bottom: 1.5rem !important; height: 150px; margin-top: 50px"> </textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button onclick="SendGuestMessage()" class="button-send">
+            <svg viewBox="0 0 16 16" width="50%" style="fill: #2196f3">
+              <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!--  -->
+<!--  -->
+<!--  -->
+<!--  -->
+<div class="modal-container-sub">
+  <span class="button-close" onclick="closeModal()" class="close">&times;</span>
+  <div class="modal-item-head">
+    <!--  -->
+    <div class="form-floating mb-3">
+      <input type="email" class="form-control custom-field text-contact-input" id="guest_contact" placeholder="name@example.com" />
+      <label for="guest_contact">Your Contact</label>
+    </div>
+    <!--  -->
+    <!-- <input id="guest_contact" placeholder="Your Contact" class="custom-field"> -->
+    <hr />
+    <!-- <textarea  style="min-height: 40vh; display: block; margin: 0 auto;" class="custom-field"></textarea> -->
+    <!--  -->
+    <div class="input-group" style="padding-bottom: 1rem">
+      <div class="custom-field">
+        <textarea placeholder="Your Message" id="guest_message" aria-label="With textarea" class="text-contact-input" style="height: 150px"></textarea>
+        {% for eachCalendarObject in calendarValues %}
+        <div id="calendar_object_month-{{eachCalendarObject.id}}" style="display: none">{{eachCalendarObject.calendar_html | safe}}</div>
+        {% endfor %}
+        <!-- <div id="calendar_object_month-{{currentMonth}}">{{calendarObject | safe}}</div> -->
+        <div>
+          <button onclick="next_calendar_button('previous')" class="button_previous_month btn btn-primary">Previous Month</button>
+          <button onclick="next_calendar_button('next')" class="button_next_month btn btn-primary">Next Month</button>
+        </div>
+        <div class="single_calendar_main_container"> </div>
+      </div>
+    </div>
+    <span class="" style="width: 100px">
+      <button onclick="SendGuestMessage()" class="button-send">
+        <svg viewBox="0 0 16 16" width="50%" style="fill: #2196f3">
+          <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z"></path>
+        </svg>
+      </button>
+    </span>
+    <!--  -->
+    <textarea readonly id="guest_book" class="custom-field text-contact-input" style="display: none; margin: 0 auto; padding-bottom: 1.5rem !important; height: 150px; margin-top: 50px"></textarea>
+
+    <!-- <h1 style="padding: 0; margin: 0;">Send</h1> -->
+    <!-- <i class="footer-notes-icon"> -->
+
+    <!-- </i> -->
+    <!-- </i> -->
+  </div>
+</div>
+
+<!--  check where modal-container-main  -->
+<div class="modal-container-main" style="display: none">
+  <div class="modal-container-sub">
+    <span class="button-close" onclick="closeModal()" class="close">&times;</span>
+    <div class="modal-item-head">
+      <!--  -->
+      <div class="form-floating mb-3">
+        <input type="email" class="form-control custom-field text-contact-input" id="guest_contact" placeholder="name@example.com" />
+        <label for="guest_contact">Your Contact</label>
+      </div>
+      <!--  -->
+      <!-- <input id="guest_contact" placeholder="Your Contact" class="custom-field"> -->
+      <hr />
+      <!-- <textarea  style="min-height: 40vh; display: block; margin: 0 auto;" class="custom-field"></textarea> -->
+      <!--  -->
+      <div class="input-group" style="padding-bottom: 1rem">
+        <div class="custom-field">
+          <textarea placeholder="Your Message" id="guest_message" aria-label="With textarea" class="text-contact-input" style="height: 150px"></textarea>
+          {% for eachCalendarObject in calendarValues %}
+          <div id="calendar_object_month-{{eachCalendarObject.id}}" style="display: none">{{eachCalendarObject.calendar_html | safe}}</div>
+          {% endfor %}
+          <!-- <div id="calendar_object_month-{{currentMonth}}">{{calendarObject | safe}}</div> -->
+          <div>
+            <button onclick="next_calendar_button('previous')" class="button_previous_month btn btn-primary">Previous Month</button>
+            <button onclick="next_calendar_button('next')" class="button_next_month btn btn-primary">Next Month</button>
+          </div>
+          <div class="single_calendar_main_container"> </div>
+        </div>
+      </div>
+      <span class="" style="width: 100px">
+        <button onclick="SendGuestMessage()" class="button-send">
+          <svg viewBox="0 0 16 16" width="50%" style="fill: #2196f3">
+            <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z"></path>
+          </svg>
+        </button>
+      </span>
+      <!--  -->
+      <textarea readonly id="guest_book" class="custom-field text-contact-input" style="display: none; margin: 0 auto; padding-bottom: 1.5rem !important; height: 150px; margin-top: 50px"></textarea>
+
+      <!-- <h1 style="padding: 0; margin: 0;">Send</h1> -->
+      <!-- <i class="footer-notes-icon"> -->
+
+      <!-- </i> -->
+      <!-- </i> -->
+    </div>
+  </div>
+</div>

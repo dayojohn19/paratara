@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Security-Policy" content="frame-ancestors 'self' http://localhost:*">
+
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Siargao — Animated Interactive Map</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+      .image-desc {
+          max-width:200px;
+          max-height:200px;
+      }
+      .leaflet-popup-content {
+          text-align: center;
+          overflow: hidden;
+      }
+    html,body {height:100%;margin:0}
+    #map {height:100vh; width:100%;}
+    .sidebar {
+      position: absolute; bottom: 80px; left: 40px; z-index: 999; background: rgba(255,255,255,0.95); padding:10px; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.2); max-width:260px; font-family: sans-serif;
+      transition: transform 0.3s ease-in-out;
+    }
+    .sidebar.closed {
+      transform: translateX(-480px);
+        z-index: 9999;
+    }
+    .toggle-btn {
+      position:absolute; bottom:40px; left:30px; z-index:500; background:#007bff; color:#fff; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-family:sans-serif;
+      transition: background 0.2s;
+    }
+    .toggle-btn:hover{background:#0056b3}
+    .place {cursor:pointer;padding:6px 8px;border-radius:6px;margin-bottom:6px}
+    .place:hover{background:#f0f0f0}
+
+    /* Pulsing marker */
+    .pulse {
+      width:18px; height:18px; border-radius:9px; background: #ff5a5f; position:relative; box-shadow:0 0 6px rgba(255,90,95,0.8);
+    }
+    .pulse::after {
+      content:""; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:18px; height:18px; border-radius:50%;
+      animation: pulse 1.6s ease-out infinite; background: rgba(255,90,95,0.35);
+    }
+    #places {
+        max-height: 300px;
+        overflow: scroll;
+        background-color: #e9e9e9;
+    }
+    @keyframes pulse {0% {transform:translate(-50%,-50%) scale(.6); opacity:1} 100% {transform:translate(-50%,-50%) scale(3.4); opacity:0}}
+
+    .controls {display:flex; gap:6px; margin-top:6px}
+    .btn{border:0;padding:8px 10px;border-radius:6px;cursor:pointer;background:#6c757d;color:white}
+    .btn.secondary{background:#6c757d}
+
+    .attribution {font-size:11px;opacity:0.8;margin-top:6px}
+  </style>
+</head>
+<body>
+    <button id="toggleSidebar" class="toggle-btn">☰ Menu</button>
+    <div class="sidebar" id="sidebar">
+    <h2><strong>Destinations places</strong></h2>
+    <div id="places">
+    </div>
+
+    <div class="controls">
+      <button id="flyAll" class="btn">View to All</button>
+      <!-- <a id="carpool-btn" href="https://paratara.com" class="btn">Carpool</a> -->
+      <!-- <button id="toggleAnim" class="btn secondary">Pause Boat</button> -->
+    </div>
+
+    
+  </div>
+
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    function closeQuickPlaces(){
+      toggleBtn = document.getElementById('toggleSidebar');
+      sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('closed');
+      toggleBtn.textContent = sidebar.classList.contains('closed') ? '☰ Open' : '✖ Close';
+    }
+
+
+    toggleBtn = document.getElementById('toggleSidebar');
+    toggleBtn.addEventListener('click', ()=>{
+      closeQuickPlaces()
+    });
+
+    const siargaoCenter = [9.756545906356644, 126.11749390487918];
+    const map = L.map('map', {zoomControl:true}).setView(siargaoCenter, 11);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'© OpenStreetMap'}).addTo(map);
+
+    const surfing_spots = [
+      {
+    name: 'Cloud 9 – General Luna, Siargao Island',
+    coords: [9.814122537439955, 126.16603815940445], // iconic reef break area near Catangnan Beach (Cloud 9) :contentReference[oaicite:0]{index=0}
+},
+{
+    name: 'Jacking Horse – Siargao Island',
+    coords: [9.815861013100585, 126.16420448695715], // beginner-friendly break near Cloud 9 area :contentReference[oaicite:1]{index=1}
+},
+{
+    name: 'Quicksilver Surf Spot',
+    coords: [9.814681639305713, 126.16626794390966], // right-hand reef break just off the Cloud 9 boardwalk area (approximate) :contentReference[oaicite:2]{index=2}
+},
+{
+    name: 'Cemetery – Siargao Island',
+    coords: [9.785416942356362, 126.17769394935351], // surf area off General Luna near the local cemetery (approx) :contentReference[oaicite:3]{index=3}
+},
+{
+    name: 'Pacifico – North Siargao Island',
+    coords: [9.944458687195885, 126.10536970025947], // left-hand beach/reef break area in Pacifico village (approx) :contentReference[oaicite:4]{index=4}
+},
+{
+    name: 'Tuason Point – Siargao Island',
+    coords: [9.810123595825537, 126.17051188883079], // point reef just south of the Cloud 9 area (approx near Tuason Point) :contentReference[oaicite:5]{index=5}
+},
+{
+    name: 'Stimpy’s – Siargao Island',
+    coords: [9.844260240666923, 126.15810900583924], // classic left-hander break requiring boat access (approx) :contentReference[oaicite:6]{index=6}
+},
+{
+    name: 'Rock Island – Siargao Island',
+    coords: [9.839009532277313, 126.16111978482675], // advanced reef break off Rock Island (approx) :contentReference[oaicite:7]{index=7}
+},
+{
+    name: 'Giwan / Union / Secret Spot – North of General Luna',
+    coords: [9.749345393476315, 126.09221407253548], // group of closely-located beginner/intermediate breaks (approx) :contentReference[oaicite:8]{index=8}
+},
+
+    ]
+    const places = [
+                    {
+                        url: 'https://paratara.com/pages/blog/siargao/taktak-falls',
+                        id: 'TakTak-Falls-on-Siargao-Island',
+                        name: 'TakTak Falls on Siargao Island',
+                        desc: 'TakTak Falls is the only waterfall on the whole of Siargao Island that is easily accessible.',
+                        coords: [10.035551992776584, 126.04694818365452],
+                        img:'https://themanduls.com/wp-content/uploads/2024/04/TakTak-falls-2.jpg'
+                    },
+
+
+                    {
+                        url: 'https://paratara.com/pages/blog/siargao/coconut-trees-view-deck-in-siargao/',
+                        id: 'Coconut-Plantation-View-Point',
+                        name: 'Coconut Plantation View Point',
+                        desc: 'Coconut Trees View Deck is one of the best places on the island to get a great view of them.',
+                        coords: [9.812513684189296, 126.05997121171264],
+                        img:'https://lh3.googleusercontent.com/gps-cs-s/AG0ilSwvX9bqSkn9RNCHOXrl78M4t6-JueB6s01kD-ItfJK57mbGxOixY1u99eP2AsHbUXMcghTogxXzHEVPMtPRKj10M5Akw-8GWVTJuJKxk_e8AYYh-_7wjAte4zhg6dEoS-2T8ZyzBQ=w270-h312-n-k-no'
+                    },
+
+
+                    {
+                        url: 'https://paratara.com/pages/blog/siargao/magpupungko-rock-pools/',
+                        id: 'Magpopongko-Rock-Pools-and-Flats',
+                        name: 'Magpopongko Rock Pools and Flats',
+                        desc: 'Clear water rock pools overlooking the sea for low-tide cliff diving & swimming.',
+                        coords: [9.876660547521288, 126.1207226235227],
+                        img:'https://journeyofanomadicfamily.com/wp-content/uploads/uploads/2023/07/DSC_6835.jpg'
+                    },
+
+
+                    {
+                        url: 'https://paratara.com/pages/blog/siargao/sugba-lagoon/',
+                        id: 'Sugba-lagoon',
+                        name: 'Sugba Lagoon',
+                        desc: 'a turquoise lagoon surrounded by limestone cliffs. Here’s how to get there easily and what to expect.',
+                        coords: [9.907328099973842, 125.90044074275268],
+                        img:'https://mediaim.expedia.com/localexpert/48309367/13e0abc4-1160-4354-bb67-4f0796ce5e51.jpg?impolicy=resizecrop&rw=1005&rh=565'
+                    },
+                    
+        {
+            
+            id:'Catangnan-Cabitoonan',
+            name:'Catangnan to Cabitoonan Bridge (social bridge)',
+            coords:[9.812102067950036, 126.15308812133712],
+            desc:'Usually people come late afternoon there are food stalls, sunset view.',
+            img:'https://i.ytimg.com/vi/5mIMjHPlC_Y/maxresdefault.jpg',
+            url:'https://paratara.com/pages/blog/siargao/backpacker-travel-guide-siargao-island-philippines/'},
+                    {
+                        url:'https://paratara.com/pages/blog/siargao/cloud9/',
+                        id:'general-luna', name:'General Luna (Cloud 9 area)',
+            coords:[9.813778780544228, 126.16623493810323], desc:'Main surf & tourist hub. Cloud 9 boardwalk here.', img: 'https://gttp.images.tshiftcdn.com/198646/x/0/shutterstock-1122028376.jpg'
+                    },
+      {
+          url:'https://paratara.com/pages/blog/siargao/bucas-grande-island-jellyfish-sanctuary/',
+          id:'sogod',
+          name:'JellyFish Sanctuary', coords:[9.593969260042629, 125.91658461163723],
+          desc:'Lagoons, jellyfish sanctuary (boat trip).',
+          img:'https://screamymetravels.wordpress.com/wp-content/uploads/2018/03/img_20180308_135113-01.jpeg'},
+                    {
+                        id:'sec-beach',
+                        name:'Secret Beach (Beach Secret)',
+                        coords:[9.756434101697765, 126.11689408843883], desc:'Magpupungko rock pools and tidal attractions.',
+                        url:'https://paratara.com/pages/blog/siargao/bucas-grande-island-jellyfish-sanctuary/',
+                        img:'https://www.jonnymelon.com/wp-content/uploads/2018/11/secret-beach-siargao-14.jpg' // or full URL
+                    }
+
+    ];
+
+    const markers = {};
+    places.forEach(p => {
+      let [lat, lng] = p.coords;
+      const icon = L.divIcon({className:'', html:`<div class="pulse"></div>`, iconSize:[18,18], iconAnchor:[9,9]});
+      const m = L.marker(p.coords, {icon}).addTo(map).bindPopup(`<strong>${p.name}</strong><br>${p.desc}
+      <div><a style="text-decoration:none" href="${p.url}" target="_blank" >Read Here</a> </div>
+      
+
+      <img class="image-desc" src="${p.img}" alt="${p.name}">
+      
+      <div><a style="text-decoration:none" href="https://www.google.com/maps/dir/?api=1&origin=Current+Location&destination=${lat},${lng}" target="_blank">📍 Get Directions</a></div>
+      `);
+      markers[p.id] = m;
+    });
+
+    const placesDiv = document.getElementById('places');
+    places.forEach(p => {
+      const el = document.createElement('div'); el.className='place'; el.textContent = p.name;
+      el.onclick = () => { map.flyTo(p.coords, 14, {duration:1.2}); markers[p.id].openPopup(); document.getElementById("toggleSidebar").click(); };
+      placesDiv.appendChild(el);
+    });
+
+    document.getElementById('flyAll').onclick = ()=>{const group=L.featureGroup(Object.values(markers)); map.fitBounds(group.getBounds().pad(0.3));closeQuickPlaces()}
+    const coordDiv=L.control({position:'bottomleft'});
+    coordDiv.onAdd=function(){const d=L.DomUtil.create('div','');d.style.padding='6px 10px';d.style.background='rgba(255,255,255,0.9)';d.style.borderRadius='6px';d.style.fontSize='12px';d.innerHTML='Lat: — , Lng: —';return d}
+    coordDiv.addTo(map);
+    map.on('mousemove',function(e){coordDiv.getContainer().innerHTML=`Lat: ${e.latlng.lat.toFixed(4)}, Lng: ${e.latlng.lng.toFixed(4)}`});
+
+
+
+
+
+    const surfing_items = {}
+    surfing_spots.forEach(spot => {
+      let [lat, lng] = spot.coords;
+      const icon = L.divIcon({className:'', html:`<div class="pulse" style="background:#1e90ff; box-shadow:0 0 6px rgba(30,144,255,0.8)"></div>`, iconSize:[18,18], iconAnchor:[9,9]});
+      const m = L.marker(spot.coords, {icon}).addTo(map).bindPopup(`<strong>${spot.name}</strong>
+      
+      <div><a style="text-decoration:none" href="https://www.google.com/maps/dir/?api=1&origin=Current+Location&destination=${lat},${lng}" target="_blank">📍 Get Directions</a></div>
+      `);
+      surfing_items[spot.name] = m;
+    });
+
+
+  </script>
+</body>
+</html>

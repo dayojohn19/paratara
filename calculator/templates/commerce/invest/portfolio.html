@@ -1,0 +1,518 @@
+{% extends "commerce/invest/layout.html" %}
+{% load humanize %}
+
+{% load static %}
+{% block body %}
+
+<style>
+    .content-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-evenly;
+    }
+
+    .portfolio-container {
+        min-height: 400px;
+        text-align: center;
+        width: fit-content;
+        /* background-color: red; */
+    }
+
+
+
+    #form {
+        background-color: rgb(170, 170, 170);
+        width: fit-content;
+        padding: 0.45rem;
+        margin: 0.4rem;
+        border-radius: 8px;
+        margin: auto auto;
+        text-shadow: rgb(255, 255, 255) 0 0 10px;
+    }
+</style>
+<script>
+    function getForm(id) {
+        form = document.querySelector(`.form-${id}`)
+        if (form.style.display == 'block') {
+            form.style.display = 'none'
+        } else {
+            form.style.display = 'block';
+
+        }
+    }
+</script>
+<script>
+    function makeCalculationFor(stockName, stockQuantity, stockBuyPrice) {
+        console.log(stockName)
+        console.log(stockQuantity)
+        console.log(stockBuyPrice)
+        document.querySelector("#stockName").value = stockName;
+        document.querySelector("#stockName2").value = stockName;
+
+        document.querySelector("#stockQTYBuy").value = stockQuantity;
+        document.querySelector("#stockQTYSell").value = stockQuantity;
+        document.querySelector("#BuyStockPrice").value = stockBuyPrice;
+        MakeOrder('buy')
+        // alert(stockName, stockQuantity, stockBuyPrice)
+    }
+</script>
+<br><br>
+<div class="content-container">
+
+    <div class="portfolio-container">
+        <table>
+            <tr>
+                <th colspan="3">Investments</th>
+            </tr>
+            <tr>
+                <th>Stock</th>
+                <th>Quantity</th>
+                <th>AVG. Price</th>
+            </tr>
+            {% for stock in stocksInHand %}
+            <tr
+                onclick="makeCalculationFor(`{{stock.stockName}}`, `{{stock.stockQuantity}}`,`{{stock.stockBuyPrice}}`)">
+                <td>{{stock.stockName}}</td>
+                <td>{{stock.stockQuantity}}</td>
+                <td>{{stock.stockBuyPrice |intcomma}}</td>
+            </tr>
+            {% endfor %}
+
+        </table>
+        <hr>
+    </div>
+
+
+
+
+
+    <!-- 
+********************************************************************************
+************* COMPUTATION SECTION BELOW ****************************************
+********************************************************************************
+********************************************************************************
+ -->
+
+
+    <div class="body-computation">
+        <div class="sub-body-computation">
+            <h3>Computation</h3>
+            <hr>
+        </div>
+        <div>
+
+            <form method="POST" action="{% url 'invest:HandinStock' %}">
+                {% csrf_token %}
+                <div class="item-Container-comutation">
+                    <input class="input-computation" name="stockName" id="stockName" placeholder="Stock Name" required>
+                    <span>
+                        Stock Name:
+                    </span>
+                </div>
+                <br>
+                <div class="item-Container-comutation">
+                    <input class="input-computation" name="stockQuantity" id="stockQTYBuy" placeholder="Quantity"
+                        type="number" onchange="MakeOrder('buy')" style="color: yellow;">
+                    <span>QTY:</span>
+                </div>
+                <div class="item-Container-comutation">
+                    <input class="input-computation" name="stockBuyPrice" onchange="MakeOrder('buy')" id="BuyStockPrice"
+                        placeholder="Buy Price" type="float" style="color: greenyellow;">
+                    <span>BUY Price:</span>
+                </div>
+
+                <div class="item-Container-comutation">
+                    <input hidden class="input-computation" name="totalBuyCostAfterTax" onchange="MakeOrder('buy')"
+                        id="totalBuyCost2" placeholder="totalBuyCost2" type="float">
+                </div>
+                <button>BUY</button>
+            </form>
+            <!--  -->
+            <form method="POST" action="{% url 'invest:HandoutStock' %}">
+                {% csrf_token %}
+                <div class="item-Container-comutation">
+                    <input hidden class="input-computation" name="stockName" id="stockName2" placeholder="Stock Name"
+                        required>
+                </div>
+                <div class="item-Container-comutation">
+                    <!-- total SELL Cost -->
+                    <input hidden class="input-computation" readonly name="totalSellCost2" id="totalSellCost2"
+                        placeholder="Earn after Tax">
+                </div>
+                <div class="item-Container-comutation">
+                    <input onchange="MakeOrder('sell')" class="input-computation" name="stockQuantitySell"
+                        id="stockQTYSell" placeholder="Quantity" type="number" style="color:yellow">
+                    <span>QTY:</span>
+
+                </div>
+
+
+                <div class="item-Container-comutation">
+                    <input class="input-computation" onchange="MakeOrder('sell')" id="SellStockPrice"
+                        name="SellStockPrice" placeholder="Sell Price" type="float"
+                        style="color: rgb(255, 114, 114); text-shadow: none;">
+                    <span>SELL Price:</span>
+                </div>
+                <div class="item-Container-comutation">
+                    <input class="input-computation" type="float" id="profitPercent" value="1"
+                        onchange="MakeOrder('buy')">
+                    <span>Profit percentage </span>
+                </div>
+                <button>SELL</button>
+            </form>
+
+
+            <hr>
+
+
+
+            <div class="item-Container-comutation">
+                <input class="input-computation" placeholder="Buy COST" type="number"
+                    onchange="calculateBuyCostAfterTax(value)" id="buyCost">
+                <span>Buy Cost:</span>
+            </div>
+            <div class="item-Container-comutation">
+                <input class="input-computation" placeholder="Sell COST" type="number"
+                    onchange="calculateSellCostAfterTax(value)" id="sellCost">
+                <span>Sell Cost:</span>
+            </div>
+            <hr>
+            <!-- TO re Check the FEES of buying and selling -->
+            <!-- calculateBuyFees(val) -->
+            <!-- 
+            <input placeholder="commission" type="number" id="commission">
+            <input placeholder="VAT" type="number" id="vat">
+            <input placeholder="SCCP fees" type="number" id="sccpfees">
+            <input placeholder="sales Tax" type="number" id="salestax">
+             -->
+
+            <div class="item-Container-comutation small-notTooImportant">
+                <!-- total BUY Cost: -->
+                <input class="input-computation small-notTooImportant" readonly id="totalBuyCost"
+                    placeholder="Cost after Tax">
+                <span>Cost after Tax</span>
+            </div>
+            <div class="item-Container-comutation small-notTooImportant">
+                <!-- total SELL Cost -->
+                <input class="input-computation small-notTooImportant" readonly id="totalSellCost"
+                    placeholder="Earn after Tax">
+                <span class="small-notTooImportant">Earn after Tax:</span>
+            </div>
+            <hr>
+            <div class="item-Container-comutation">
+                <input class="input-computation " readonly id="profitValue" placeholder="Profit"
+                    style="color: rgb(255, 206, 115);">
+                <span class="small-notTooImportant">Profit:</span>
+            </div>
+
+
+        </div>
+    </div>
+</div>
+
+<script>
+    function MakeOrder(orderOf) {
+        // TODO JS ROUND TO 2 decimals 
+
+        if (orderOf == 'buy') {
+            // putting it on div calculating to sell in 1.1% profit
+            stockQTY = parseFloat(document.querySelector('#stockQTYBuy').value)
+            BuyStockPrice = parseFloat(document.querySelector('#BuyStockPrice').value)
+            orderCost = parseFloat(stockQTY * BuyStockPrice)
+
+            toSellAmount = calculateBuyCostAfterTax(orderCost)
+            console.log('Order Cost: ', orderCost)
+            document.querySelector("#SellStockPrice").value = parseFloat(toSellAmount[1] / stockQTY).toFixed(3)
+            document.querySelector('#buyCost').value = parseFloat(toSellAmount[0] / stockQTY).toFixed(3)
+            return
+        }
+        if (orderOf == 'sell') {
+            stockQTY = parseFloat(document.querySelector('#stockQTYSell').value)
+            SellStockPrice = parseFloat(document.querySelector('#SellStockPrice').value)
+            orderCost = parseFloat(stockQTY * SellStockPrice)
+            // toBuyAmount = calculateBuyCostAfterTax(orderCost)
+            toSellAmount = calculateSellCostAfterTax(orderCost)
+
+
+            profitPercentage = parseFloat(document.querySelector('#profitValue').value) / parseFloat(document.querySelector('#totalBuyCost').value)
+            document.querySelector("#profitPercent").value = (profitPercentage * 100).toFixed(2)
+        }
+    }
+
+
+
+    // BUYING VALUE
+    // vat = 0.00029989868287740625
+    vat = 0.0003
+    commission = 0.0025
+    // sccpfees = 0.00010030395136778115
+    sccpfees = 0.0001
+    sale = 0.006
+    // TODO MAKE ROUND decimal to 2 two
+    // 
+    function calculateBuyFees(val) {
+        cost = parseFloat(val)
+        commission = parseFloat(document.querySelector('#commission').value)
+        vat = parseFloat(document.querySelector('#vat').value)
+        sccpfees = parseFloat(document.querySelector('#sccpfees').value);
+        salestax = parseFloat(document.querySelector("#salestax").value)
+
+        commissionPercent = parseFloat(commission / cost)
+        vatPercent = parseFloat(vat / cost)
+        sccpfees = parseFloat(sccpfees / cost)
+        salePercent = parseFloat(salestax / cost)
+        // 
+        console.log("commissionPercent: ", commissionPercent)
+        console.log("vatPercent: ", vatPercent)
+        console.log("sccpfees: ", sccpfees)
+        console.log("salePercent: ", salePercent)
+        totalCost = commissionPercent + vatPercent + sccpfees + cost
+        console.log("TOTAL COST: ", totalCost)
+
+    }
+    function calculateBuyCostAfterTax(val) {
+        val = parseFloat(val)
+        vatVal = parseFloat(val * vat)
+        console.log('Vat: ', vatVal)
+
+        comVal = parseFloat(val * commission)
+        console.log('Com: ', comVal)
+
+        sccVal = parseFloat(val * sccpfees)
+        console.log('SCC: ', sccVal)
+
+        BuyCost = parseFloat(val + vatVal)
+        BuyCost += parseFloat(comVal)
+        BuyCost += parseFloat(sccVal)
+        console.log('VAL: ', val)
+        console.log('Buying Cost: ', parseInt(BuyCost))
+        document.querySelector("#totalBuyCost").value = parseInt(BuyCost)
+        document.querySelector("#totalBuyCost2").value = parseInt(BuyCost)
+        // For Profit 1.1%
+        profitPercent = parseFloat(document.querySelector("#profitPercent").value) / 100
+        profitPercent = profitPercent + 1
+        profitAmount = parseFloat(parseInt(BuyCost) * profitPercent)
+        document.querySelector('#totalSellCost').value = parseInt(profitAmount)
+        document.querySelector('#totalSellCost2').value = parseInt(profitAmount)
+
+
+        saleVal = parseFloat(val * sale)
+        SellCost = parseFloat(profitAmount + vatVal)
+        SellCost += parseFloat(comVal)
+        SellCost += parseFloat(sccVal)
+        SellCost += parseFloat(saleVal)
+        // PROFIT VALUE
+        document.querySelector("#profitValue").value = parseInt(parseInt(profitAmount) - parseInt(BuyCost))
+        console.log('To sell Cost')
+        return [parseInt(BuyCost), parseInt(SellCost)]//TODO round to two decimals
+
+
+    }
+    function calculateSellCostAfterTax(val) {
+        val = parseFloat(val)
+        comVal = parseFloat((val * commission))
+        console.log('Com: ', comVal)
+
+        vatVal = parseFloat(val * vat)
+        console.log('Vat: ', vatVal)
+
+        saleVal = parseFloat(val * sale)
+        console.log('Sale: ', saleVal)
+
+        sccVal = parseFloat(val * sccpfees)
+        console.log('SCC: ', sccVal)
+
+
+
+        SellCost = parseFloat(val + vatVal)
+        SellCost -= parseFloat(comVal)
+        SellCost -= parseFloat(sccVal)
+        SellCost -= parseFloat(saleVal)
+        // BuyCost = BuyCost
+        // + comVal + sccVal
+        console.log('VAL: ', val)
+        console.log('Sell Cost: ', parseInt(SellCost))
+        document.querySelector("#totalSellCost").value = parseInt(SellCost)
+        document.querySelector("#totalSellCost2").value = parseInt(SellCost)
+        document.querySelector("#profitValue").value = parseInt(SellCost) - parseInt(document.querySelector("#totalBuyCost").value)
+        // 
+        // document.querySelector('#totalSellCost').value = parseInt(profitAmount)
+        // document.querySelector('#totalSellCost2').value = parseInt(profitAmount)
+
+
+    }
+    // sale = 0.006
+</script>
+
+
+<style>
+    .input-computation {
+        background-color: #dddddd19;
+        font-size: large;
+        padding: 4px;
+        color: white;
+        text-shadow: 0 0 4px black;
+        max-width: 40vw;
+        border: none;
+        margin: 3px;
+        border-radius: 5px
+    }
+
+
+
+    .item-Container-comutation {
+        align-items: center;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        width: 100%;
+
+    }
+
+    .small-notTooImportant {
+        font-size: smaller;
+    }
+
+    /* TABLE SECTION */
+    .amount-table {
+        width: 300px;
+    }
+
+
+    table {
+        font-family: arial, sans-serif;
+        border-collapse: collapse;
+        max-width: 95% !important;
+        /* width: 100px !important; */
+        display: block;
+        /* font-size: x-small; */
+        overflow: auto;
+        /* background-color: rgba(231, 220, 201, 0.731); */
+        margin: auto auto;
+        width: fit-content;
+        border-radius: 8.5px;
+        border: solid 3px rgba(231, 220, 201, 0.731);
+    }
+
+    td,
+    th {
+        /* border: 2px solid rgb(249, 223, 178); */
+        text-align: left;
+        padding: 13px;
+        text-align: center;
+    }
+
+    tr:nth-child(even) {
+        background-color: #1d1d1d60;
+    }
+
+    /* END TABLE */
+</style>
+
+
+
+
+
+
+
+<!-- 
+********************************************************************************
+************* COMPUTATION SECTION ABOVE ****************************************
+********************************************************************************
+********************************************************************************
+ -->
+
+
+<hr>
+TotalSold: {{TotalSold | intcomma}}<br>
+TotalBought: {{TotalBought | intcomma}}<br>
+
+<hr>
+<table>
+    <tr>
+        <th colspan="3">Investments</th>
+    </tr>
+    <tr>
+        <th>iClub Value
+            {% if request.user.is_superuser %}
+            <br><button id="investment_money" onclick="getForm(id)">Add Value</button><br>
+            <a href="{% url 'invest:RecordTheDividend' %}"><button>Give Dividends</button></a>
+            <form method="post" action="{% url 'invest:InvestAmount' csrf_token %}" style="display: none;"
+                class="form-investment_money">
+                {% csrf_token %}
+                <input type="number" placeholder="Amount to Change" name="InvestAmount" required>
+                <input type="submit">
+            </form>
+            {% endif %}
+        </th>
+
+        <th>Profit</th>
+        <th>Gain</th>
+    </tr>
+    <tr>
+        <td>{{TotalInvestment.amount | intcomma}}</td>
+        <td>{{TotalProfit.ProfitComputation | intcomma}}</td>
+        <td>{{TotalProfit.InterestComputation}} %</td>
+    </tr>
+</table>
+
+<br><br>
+<hr>
+<hr>
+
+
+
+
+<table>
+    <tr>
+        <th>ID</th>
+        <th>Share Holder</th>
+        <th>Contact</th>
+        <th>Share Percentage</th>
+        <th>Share Amount</th>
+        <th>Share Value</th>
+        <th>Contract</th>
+        <th>Date Invested</th>
+        <th>iClub Value at Invested Time </th>
+        <th>Date ReInvested</th>
+    </tr>
+    {% for investor in investors %}
+    <tr>
+        <td>{{investor.id}}</td>
+        <td>{{investor.investor_name}}
+            <div>
+                <a href="{% url 'invest:checkMyRecord' investor.id %}"><button>My Record</button></a>
+            </div>
+
+        </td>
+        <td>{{investor.investor_contact}}</td>
+        <td>{{investor.invested_percentage}} %</td>
+        <td class="amount-table">{{investor.invested_amount | intcomma}}
+            {% if request.user.is_superuser %}
+            <button id="{{investor.id}}" onclick="getForm(id)">Change</button>
+            <form method="post" action="{% url 'invest:reinvest' csrf_token %}" style="display: none;"
+                class="form-{{investor.id}}">
+                {% csrf_token %}
+                <input type="number" placeholder="Amount to Change" name="amount" required>
+                <input hidden readonly value="{{investor.id}}" name="investor_id" required>
+                <input type="submit">
+            </form>
+            {% endif %}
+        </td>
+        <td>{{investor.invested_value | intcomma}}</td>
+        <td>{{investor.interestType}} {{investor.interest}}</td>
+        <td>{{investor.timestamp}}</td>
+        <td>putHere TotalInvestedTIme</td>
+        <td>{{investor.reinvested}}</td>
+    </tr>
+
+    {% endfor %}
+
+</table>
+
+<!-- get this to records -->
+
+
+
+
+{% endblock %}

@@ -1,0 +1,2536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  <title>Garden Home — Smart Postcards</title>
+
+  <!-- Fancybox -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@6.1/dist/fancybox/fancybox.css"/>
+
+  <style>
+    :root {
+      --color-canvas-default: #ffffff;
+      --color-canvas-subtle: #f4f7fb;
+      --color-surface-raised: rgba(255, 255, 255, 0.92);
+      --color-elevated: #0b152b;
+      --color-border-default: #d1d9e6;
+      --color-border-muted: #e3e9f3;
+      --color-fg-default: #0c1424;
+      --color-fg-muted: #4b5870;
+      --color-fg-subtle: #6e7781;
+      --color-accent-fg: #0b6bff;
+      --color-accent-soft: rgba(11, 107, 255, 0.14);
+      --color-success-emphasis: #1a7f37;
+      --color-attention-emphasis: #b05c00;
+      --color-danger-emphasis: #cf222e;
+      --shadow-sm: 0 4px 16px rgba(12, 20, 36, 0.08);
+      --shadow-md: 0 18px 32px rgba(12, 20, 36, 0.12);
+      --shadow-lg: 0 28px 48px rgba(12, 20, 36, 0.16);
+      --shadow-xl: 0 40px 72px rgba(12, 20, 36, 0.24);
+      --border-radius: 16px;
+      --border-radius-sm: 10px;
+      --section-spacing: clamp(64px, 8vw, 96px);
+      --transition: all 0.22s cubic-bezier(0.33, 1, 0.68, 1);
+      --max-width: 1180px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+      background: radial-gradient(circle at top, rgba(11, 107, 255, 0.08), transparent 55%), var(--color-canvas-subtle);
+      color: var(--color-fg-default);
+      line-height: 1.6;
+      min-height: 100vh;
+      font-size: 15px;
+      padding-bottom: 120px;
+    }
+
+    h1, h2, h3 {
+      font-weight: 600;
+      line-height: 1.25;
+      color: var(--color-fg-default);
+    }
+
+    p {
+      color: var(--color-fg-muted);
+    }
+
+    a {
+      color: var(--color-accent-fg);
+      text-decoration: none;
+      transition: var(--transition);
+    }
+
+    a:hover {
+      opacity: 0.85;
+    }
+
+    .container {
+      width: min(var(--max-width), 100%);
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Top navigation */
+    .top-nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(18px);
+      background: rgba(250, 252, 255, 0.9);
+      border-bottom: 1px solid rgba(209, 217, 230, 0.6);
+      box-shadow: 0 12px 24px rgba(12, 20, 36, 0.08);
+    }
+
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 18px;
+      gap: 24px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      padding-left: 1em;
+      color: var(--color-fg-default);
+    }
+
+    .brand:hover {
+      opacity: 0.7;
+    }
+
+    .logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      background: linear-gradient(145deg, #0b6bff, #004cbe);
+      color: white;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 18px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .brand h1 {
+      font-size: 18px;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-subtitle {
+      font-size: 13px;
+      color: var(--color-fg-muted);
+      font-weight: 500;
+      margin-top: 2px;
+    }
+
+    .nav-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .nav-btn {
+      padding: 10px 20px;
+      border-radius: 10px 10px 0px 0px;
+      border: 1px solid var(--color-border-default);
+      background: white;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--color-fg-default);
+      cursor: pointer;
+      transition: var(--transition);
+      box-shadow: 0 1px 2px rgba(12, 20, 36, 0.1);
+    }
+
+    .nav-btn:hover {
+      border-color: var(--color-accent-fg);
+      box-shadow: 0 8px 18px rgba(11, 107, 255, 0.18);
+    }
+
+    .nav-btn.primary {
+      background: linear-gradient(135deg, #0b6bff, #004cbe);
+      border: none;
+      color: white;
+    }
+
+    .nav-btn.primary:hover {
+      transform: translateY(-1px);
+    }
+
+    /* Hero */
+    .hero {
+      padding: var(--section-spacing) 0;
+      padding-top: clamp(80px, 10vw, 120px);
+    }
+
+    .hero-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 360px;
+      gap: clamp(32px, 6vw, 56px);
+      align-items: start;
+    }
+
+    .hero-copy {
+      position: relative;
+      background: var(--color-surface-raised);
+      border-radius: var(--border-radius);
+      padding: clamp(28px, 4vw, 48px);
+      box-shadow: var(--shadow-md);
+      border: 1px solid rgba(209, 217, 230, 0.6);
+      backdrop-filter: blur(22px);
+    }
+
+    .hero-overline {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: #0b6bff;
+      background: rgba(11, 107, 255, 0.12);
+      padding: 8px 14px;
+      border-radius: 999px;
+      margin-bottom: 18px;
+    }
+
+    .hero-title {
+      font-size: clamp(34px, 5vw, 48px);
+      letter-spacing: -0.03em;
+      margin-bottom: 16px;
+    }
+
+    .hero-lead {
+      font-size: clamp(18px, 2.4vw, 20px);
+      line-height: 1.5;
+      margin-bottom: clamp(28px, 4vw, 32px);
+    }
+
+    .hero-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero-point {
+      display: grid;
+      grid-template-columns: 42px 1fr;
+      gap: 18px;
+      padding: 18px;
+      border-radius: var(--border-radius-sm);
+      border: 1px solid rgba(11, 107, 255, 0.14);
+      background: rgba(11, 107, 255, 0.06);
+    }
+
+    .hero-point strong {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      background: white;
+      box-shadow: var(--shadow-sm);
+      font-size: 16px;
+      color: #0b6bff;
+    }
+
+    .hero-point h3 {
+      margin-bottom: 6px;
+      font-size: 17px;
+    }
+
+    .hero-footnote {
+      margin-top: 26px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--color-fg-muted);
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: 1px dashed rgba(11, 107, 255, 0.3);
+      background: rgba(255, 255, 255, 0.65);
+    }
+
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid rgba(11, 107, 255, 0.24);
+      border-top-color: #0b6bff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 20px auto 0;
+      display: none;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .auth-card {
+      background: linear-gradient(159deg, #ffffff 0%, rgba(255, 255, 255, 0.92) 70%);
+      border-radius: var(--border-radius);
+      padding: clamp(22px, 3vw, 30px);
+      border: 1px solid rgba(209, 217, 230, 0.7);
+      box-shadow: var(--shadow-md);
+      position: sticky;
+      top: 96px;
+      min-width: 0;
+    }
+
+    .auth-card h3 {
+      font-size: 18px;
+      margin-bottom: 18px;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--color-fg-default);
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--color-border-default);
+      font-size: 15px;
+      background: rgba(255, 255, 255, 0.9);
+      transition: var(--transition);
+      font-family: inherit;
+      color: var(--color-fg-default);
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: rgba(11, 107, 255, 0.7);
+      box-shadow: 0 0 0 4px rgba(11, 107, 255, 0.12);
+    }
+
+    .form-group input::placeholder {
+      color: rgba(76, 88, 112, 0.7);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn-submit,
+    .btn-browse {
+      flex: 1;
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: var(--transition);
+      border: none;
+    }
+
+    .btn-submit {
+      background: linear-gradient(135deg, #1a7f37, #0c5121);
+      color: white;
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 24px rgba(26, 127, 55, 0.25);
+    }
+
+    .btn-browse {
+      background: rgba(11, 107, 255, 0.08);
+      color: #0b6bff;
+    }
+
+    .btn-browse:hover {
+      background: rgba(11, 107, 255, 0.16);
+    }
+
+    .auth-footer {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(209, 217, 230, 0.6);
+      font-size: 12px;
+      text-align: center;
+      color: var(--color-fg-subtle);
+    }
+
+    /* Informational section */
+    .section {
+      padding: var(--section-spacing) 0;
+    }
+
+    .section-intro {
+      max-width: 620px;
+      margin: 0 auto 40px;
+      text-align: center;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 24px;
+    }
+
+    .info-card {
+      background: var(--color-surface-raised);
+      border-radius: var(--border-radius);
+      padding: 28px;
+      border: 1px solid rgba(209, 217, 230, 0.6);
+      box-shadow: var(--shadow-sm);
+      text-align: left;
+    }
+
+    .info-card h3 {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+
+    .info-card p {
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* Scanned collection */
+    #scanned-collection {
+      padding: var(--section-spacing) 0;
+      padding-top: 0;
+    }
+
+    #scanned-collection .section-header {
+      max-width: var(--max-width);
+      margin: 0 auto 28px;
+      padding: 0 24px 20px;
+      border-bottom: 1px solid rgba(209, 217, 230, 0.6);
+    }
+
+    .scanned-collection-card {
+      width: min(var(--max-width), 100%);
+      margin: 0 auto;
+      background: var(--color-surface-raised);
+      border-radius: var(--border-radius);
+      border: 1px solid rgba(209, 217, 230, 0.6);
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
+      gap: 0;
+      box-shadow: var(--shadow-md);
+    }
+
+    .scanned-collection-card > div:first-child {
+      background: radial-gradient(circle at 20% 20%, rgba(11, 107, 255, 0.12), transparent 60%);
+      max-height: 35vh;
+    }
+
+    .scanned-collection-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: var(--transition);
+    }
+
+    .scanned-collection-card img:hover {
+      transform: scale(1.03);
+    }
+
+    .scanned-collection-content {
+      padding: clamp(28px, 5vw, 40px);
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .collection-title {
+      font-size: clamp(22px, 3vw, 28px);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .status-indicator {
+      width: 10px;
+      height: 10px;
+      background: var(--color-attention-emphasis);
+      border-radius: 50%;
+      box-shadow: 0 0 0 6px rgba(177, 90, 0, 0.12);
+    }
+
+    .collection-description {
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    .scanned-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .ask-box {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex: 1;
+      min-width: 300px;
+      width: 100%;
+    }
+
+    .ask-input {
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--color-border-default);
+      font-size: 15px;
+      transition: var(--transition);
+      font-family: inherit;
+      color: var(--color-fg-default);
+      background: rgba(255, 255, 255, 0.9);
+      flex: 1;
+      width: 100%;
+    }
+
+    .ask-input:focus {
+      outline: none;
+      border-color: rgba(11, 107, 255, 0.7);
+      box-shadow: 0 0 0 4px rgba(11, 107, 255, 0.12);
+    }
+
+    .ask-input::placeholder {
+      color: rgba(76, 88, 112, 0.7);
+    }
+
+    .ask-send-btn {
+      padding: 10px 16px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, #0b6bff, #004cbe);
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+      font-weight: 600;
+    }
+
+    .ask-send-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 24px rgba(11, 107, 255, 0.25);
+    }
+
+    .ask-send-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .scanned-actions .nav-btn {
+      border-radius: 12px;
+    }
+.open-map-btn {
+  padding: 10px 20px;
+  border-radius: 25px;
+  font-weight: 700;
+  font-size: 1.1em;
+  border: none;
+  background: linear-gradient(135deg, #ffb347 0%, #b05c00 100%);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  transition: transform 0.18s cubic-bezier(0.33, 1, 0.68, 1), box-shadow 0.18s;
+  outline: none;
+  
+}
+
+.open-map-btn svg {
+  width: 24px;
+  height: 24px;
+  margin-right: 10px;
+  vertical-align: middle;
+  opacity: 0.98;
+  flex-shrink: 0;
+}  
+
+    .open-map-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 24px rgba(176, 92, 0, 0.28);
+    }
+
+    .collection-meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      padding: 20px;
+      border-radius: 14px;
+      background: rgba(11, 107, 255, 0.06);
+      border: 1px dashed rgba(11, 107, 255, 0.2);
+    }
+
+    .meta-label {
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(76, 88, 112, 0.7);
+      margin-bottom: 6px;
+    }
+
+    .meta-value {
+      font-size: 15px;
+      color: var(--color-fg-default);
+    }
+
+    .meta-value a {
+      color: var(--color-accent-fg);
+      text-decoration: none;
+      transition: var(--transition);
+      cursor: pointer;
+      border-bottom: 1px solid rgba(11, 107, 255, 0.3);
+    }
+
+    .meta-value a:hover {
+      text-decoration: underline;
+      background-color: rgba(11, 107, 255, 0.1);
+      border-radius: 4px;
+      padding: 2px 4px;
+      margin: -2px -4px;
+    }
+
+    /* Collection grid */
+    #collection-grid-section {
+      padding: var(--section-spacing) 0;
+    }
+
+    #collection-grid-section > .section-header {
+      width: min(var(--max-width), 100%);
+      margin: 0 auto;
+      padding: 0 24px 20px;
+      border-bottom: 1px solid rgba(209, 217, 230, 0.6);
+    }
+
+    .collection-cards {
+      width: min(var(--max-width), 100%);
+      margin: 28px auto 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(272px, 1fr));
+      gap: 24px;
+      padding: 0 24px;
+    }
+
+    .collection-card {
+      display: flex;
+      flex-direction: column;
+      border-radius: var(--border-radius);
+      overflow: hidden;
+      border: 1px solid rgba(209, 217, 230, 0.6);
+      background: var(--color-surface-raised);
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition);
+    }
+
+    .collection-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+      border-color: rgba(11, 107, 255, 0.4);
+    }
+
+    .collection-img {
+      height: 220px;
+      background: linear-gradient(145deg, rgba(11, 107, 255, 0.08), rgba(11, 107, 255, 0));
+      overflow: hidden;
+      position: relative;
+    }
+
+    .collection-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: var(--transition);
+    }
+
+    .collection-card:hover .collection-img img {
+      transform: scale(1.04);
+    }
+
+    .collection-info {
+      padding: 24px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .collection-info .desc {
+      font-size: 14px;
+    }
+
+    .collection-info p {
+      font-size: 13px;
+      color: var(--color-fg-muted);
+    }
+
+    .collection-info strong {
+      color: var(--color-fg-default);
+    }
+
+    /* Auth modal */
+    .auth-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(6, 12, 24, 0.8);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1600;
+      padding: 24px;
+    }
+
+    .auth-modal > div {
+      max-width: 400px;
+      width: 100%;
+    }
+
+    #mapModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(6, 12, 24, 0.8);
+      backdrop-filter: blur(8px);
+      align-items: center;
+      justify-content: center;
+      z-index: 1600;
+    }
+
+    #mapModal > div {
+      /* width: min(1120px, 96%);
+      height: min(78vh, 900px); */
+      width: 100%;
+      height: 100%;
+      background: var(--color-canvas-default);
+      border-radius: 18px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: var(--shadow-xl);
+      border: 1px solid rgba(209, 217, 230, 0.7);
+      animation: modalSlideIn 0.24s ease-out;
+    }
+
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(18px) scale(0.97);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    #closeMapBtn {
+      position: absolute;
+      right: 18px;
+      top: 18px;
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      border: 1px solid rgba(209, 217, 230, 0.7);
+      background: rgba(255, 255, 255, 0.92);
+      color: #4b5870;
+      font-size: 22px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+      box-shadow: var(--shadow-sm);
+      line-height: 1;
+    }
+
+    #closeMapBtn:hover {
+      background: white;
+      color: var(--color-fg-default);
+      transform: translateY(-1px);
+    }
+
+    #map-modal {
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    /* Bottom navigation */
+    /* .bottom-nav {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: inline-flex;
+      gap: 8px;
+      background: rgba(12, 20, 36, 0.88);
+      padding: 10px 12px;
+      border-radius: 999px;
+      box-shadow: 0 18px 36px rgba(12, 20, 36, 0.35);
+      z-index: 900;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .bottom-nav a {
+      color: rgba(255, 255, 255, 0.82);
+      padding: 10px 18px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 14px;
+      transition: var(--transition);
+    }
+
+    .bottom-nav a:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .bottom-nav a.primary {
+      color: #0b152b;
+      background: linear-gradient(135deg, #ffffff, #d9e5ff);
+      box-shadow: 0 12px 24px rgba(255, 255, 255, 0.24);
+    } */
+
+    #mobileChatBtn {
+      display: none;
+    }
+
+    #mobileChatBtn:hover {
+      transform: scale(1.1);
+    }
+
+    /* Discussion/Chat Box */
+    .discussion-box {
+      position: fixed;
+      bottom: 100px;
+      right: 20px;
+      width: 380px;
+      max-height: 500px;
+      background: var(--color-canvas-default);
+      border-radius: 16px;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid rgba(209, 217, 230, 0.6);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 950;
+      animation: slideUp 0.3s ease-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .discussion-header {
+      padding: 16px;
+      background: linear-gradient(135deg, #0b6bff, #004cbe);
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+    }
+
+    .discussion-close {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 18px;
+      transition: var(--transition);
+    }
+
+    .discussion-close:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .discussion-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .message {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .message.user {
+      align-items: flex-end;
+    }
+
+    .message.bot {
+      align-items: flex-start;
+    }
+
+    .message-content {
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.4;
+      max-width: 85%;
+      word-wrap: break-word;
+    }
+
+    .message.user .message-content {
+      background: linear-gradient(135deg, #0b6bff, #004cbe);
+      color: white;
+    }
+
+    .message.bot .message-content {
+      background: rgba(11, 107, 255, 0.08);
+      color: var(--color-fg-default);
+      border: 1px solid rgba(11, 107, 255, 0.2);
+    }
+
+    .message-time {
+      font-size: 11px;
+      color: var(--color-fg-muted);
+      padding: 0 4px;
+    }
+
+    .discussion-input-area {
+      padding: 12px;
+      border-top: 1px solid rgba(209, 217, 230, 0.6);
+      display: flex;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.95);
+    }
+
+    .discussion-input {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid var(--color-border-default);
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      transition: var(--transition);
+    }
+
+    .discussion-input:focus {
+      outline: none;
+      border-color: #0b6bff;
+      box-shadow: 0 0 0 3px rgba(11, 107, 255, 0.1);
+    }
+
+    .discussion-send {
+      padding: 8px 12px;
+      background: #0b6bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .discussion-send:hover {
+      background: #004cbe;
+    }
+
+    .discussion-send:active {
+      transform: scale(0.95);
+    }
+
+    .discussion-box.hidden {
+      display: none;
+    }
+
+    /* Responsive discussion box */
+    @media (max-width: 640px) {
+      .discussion-box {
+        width: calc(100% - 40px);
+        max-height: calc(85vh - 100px);
+        bottom: 90px;
+        right: 20px;
+        left: 20px;
+      }
+
+      .message-content {
+        max-width: 100%;
+      }
+    }
+
+    /* Onboarding Tour Styles */
+    .tour-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(6, 12, 24, 0.85);
+      backdrop-filter: blur(6px);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      opacity: 0;
+      animation: fadeIn 0.5s ease-out forwards;
+    }
+
+    .tour-overlay.hidden {
+      display: none;
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+
+    .tour-card {
+      background: linear-gradient(159deg, #ffffff 0%, rgba(255, 255, 255, 0.96) 70%);
+      border-radius: 24px;
+      padding: 48px;
+      max-width: 600px;
+      width: 100%;
+      box-shadow: var(--shadow-xl);
+      border: 1px solid rgba(209, 217, 230, 0.7);
+      position: relative;
+      transform: scale(0.9) translateY(20px);
+      opacity: 0;
+      animation: slideUpFade 0.6s ease-out 0.3s forwards;
+    }
+
+    @keyframes slideUpFade {
+      to {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .tour-step-indicator {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 32px;
+    }
+
+    .tour-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(11, 107, 255, 0.2);
+      transition: all 0.3s ease;
+    }
+
+    .tour-dot.active {
+      width: 32px;
+      border-radius: 5px;
+      background: linear-gradient(135deg, #0b6bff, #004cbe);
+    }
+
+    .tour-content {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .tour-icon {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 24px;
+      background: linear-gradient(145deg, rgba(11, 107, 255, 0.12), rgba(11, 107, 255, 0.06));
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      animation: bounce 2s ease-in-out infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .tour-content h2 {
+      font-size: 28px;
+      margin-bottom: 16px;
+      color: var(--color-fg-default);
+    }
+
+    .tour-content p {
+      font-size: 17px;
+      line-height: 1.6;
+      color: var(--color-fg-muted);
+    }
+
+    .tour-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .tour-btn {
+      padding: 14px 28px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      transition: var(--transition);
+      border: none;
+      font-family: inherit;
+    }
+
+    .tour-btn-primary {
+      background: linear-gradient(135deg, #0b6bff, #004cbe);
+      color: white;
+      flex: 1;
+    }
+
+    .tour-btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(11, 107, 255, 0.35);
+    }
+
+    .tour-btn-secondary {
+      background: rgba(11, 107, 255, 0.08);
+      color: #0b6bff;
+      padding: 14px 20px;
+    }
+
+    .tour-btn-secondary:hover {
+      background: rgba(11, 107, 255, 0.14);
+    }
+
+    @media (max-width: 640px) {
+      .tour-card {
+        padding: 32px 24px;
+      }
+
+      .tour-content h2 {
+        font-size: 24px;
+      }
+
+      .tour-content p {
+        font-size: 15px;
+      }
+
+      .tour-actions {
+        flex-direction: column;
+      }
+    }
+
+    /* Footer */
+    footer {
+      background: var(--color-elevated);
+      color: rgba(255, 255, 255, 0.78);
+      padding: 48px 0 64px;
+      margin-top: var(--section-spacing);
+    }
+
+    footer a {
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    footer a:hover {
+      opacity: 1;
+    }
+
+    footer ul {
+      list-style: none;
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    footer p {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.65);
+      line-height: 1.6;
+    }
+
+    /* Responsive */
+    @media (max-width: 1040px) {
+      .hero-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .auth-card {
+        position: static;
+        order: -1;
+      }
+
+      .hero-copy {
+        padding: 32px;
+      }
+    }
+
+    @media (max-width: 820px) {
+      body {
+        font-size: 14px;
+      }
+
+      .nav-inner {
+        flex-wrap: wrap;
+      }
+
+      .nav-actions {
+        width: 100%;
+        justify-content: flex-end;
+      }
+
+      /* .bottom-nav {
+        bottom: 16px;
+        padding: 8px 10px;
+      } */
+    }
+
+    @media (max-width: 640px) {
+      .container {
+        padding: 0 18px;
+      }
+
+      .hero-copy {
+        padding: 26px;
+      }
+
+      .hero-point {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-point strong {
+        width: 48px;
+        height: 48px;
+        margin-bottom: 6px;
+      }
+
+      .btn-group {
+        flex-direction: column;
+      }
+
+      .scanned-collection-card {
+        grid-template-columns: 1fr;
+      }
+
+      .collection-meta {
+        grid-template-columns: 1fr;
+      }
+
+      .collection-cards {
+        grid-template-columns: 1fr;
+        padding: 0 12px;
+      }
+
+      .scanned-actions {
+        /* width: 100%; */
+        justify-content: flex-start;
+        /* flex-direction: column; */
+      }
+
+      .ask-box {
+        width: 100%;
+        margin-bottom: 12px;
+        flex-direction: column;
+        min-width: auto;
+      }
+
+      .ask-input {
+        min-width: auto;
+      }
+
+      #mobileChatBtn {
+        display: flex;
+      }
+
+      /* .bottom-nav {
+        transform: translate(-50%, 0);
+        left: 50%;
+      } */
+    }
+  </style>
+                  <style>
+                  .multi-upload-section {
+                    background: var(--color-canvas-default);
+                    border-radius: 18px;
+                    box-shadow: var(--shadow-xl);
+                    padding: 22px;
+                    position: relative;
+                    border: 1px solid rgba(209, 217, 230, 0.7);
+                    max-width: 520px;
+                    margin: 2em auto;
+                  }
+                  .multi-upload-section label {
+                    font-weight: 600;
+                    color: #333;
+                    margin-bottom: 0.5em;
+                    display: block;
+                  }
+                  .multi-upload-section input[type="file"] {
+                    display: block;
+                    margin-bottom: 1em;
+                    border: 1px solid #ccc;
+                    border-radius: 6px;
+                    padding: 0.5em;
+                    background: #fff;
+                  }
+                  .multi-upload-section input[type="text"] {
+                    width: 100%;
+                    min-height: 3em;
+                    padding: 0.5em;
+                    border: 1px solid #ccc;
+                    border-radius: 6px;
+                    margin-bottom: 1em;
+                    background: #fff;
+                  }
+                  .multi-upload-section .btn-primary {
+                    background: #007bff;
+                    color: #fff;
+                    border: none;
+                    border-radius: 6px;
+                    padding: 0.7em 1.5em;
+                    font-size: 1em;
+                    font-weight: 600;
+                    cursor: pointer;
+                    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+                    transition: background 0.2s;
+                  }
+                  .multi-upload-section .btn-primary:hover {
+                    background: #0056b3;
+                  }
+                  /* Upload preview styles (scoped inside modal) */
+                  .multi-upload-section .upload-preview {
+                    display: flex;
+                    gap: 8px;
+                    flex-wrap: wrap;
+                    margin-top: 12px;
+                  }
+                  .multi-upload-section .upload-thumb {
+                    width: 120px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 6px;
+                    font-size: 12px;
+                    color: var(--color-fg-muted);
+                    align-items: center;
+                  }
+                  .multi-upload-section .upload-thumb img {
+                    width: 120px;
+                    height: 80px;
+                    object-fit: cover;
+                    border-radius: 8px;
+                    box-shadow: var(--shadow-sm);
+                  }
+                  .multi-upload-section .remove-thumb {
+                    position: absolute;
+                    right: 6px;
+                    top: 6px;
+                    background: rgba(0,0,0,0.6);
+                    color: #fff;
+                    border: none;
+                    border-radius: 6px;
+                    padding: 4px 6px;
+                    cursor: pointer;
+                  }
+                  /* Modal-specific controls */
+                  .multi-upload-section #closeUploadBtn {
+                    position: absolute;
+                    right: 16px;
+                    top: 14px;
+                    width: 38px;
+                    height: 38px;
+                    border-radius: 12px;
+                    border: 1px solid rgba(209,217,230,0.7);
+                    background: rgba(255,255,255,0.92);
+                    color: #4b5870;
+                    font-size: 22px;
+                    cursor: pointer;
+                    transition: var(--transition);
+                  }
+                  .multi-upload-section h3 { margin-top:4px; margin-bottom:12px; }
+                  .multi-upload-section #uploadProgress { display: none; width:100%; height:10px; border-radius:6px; }
+                  .multi-upload-section .upload-actions { display:flex; gap:12px; justify-content:flex-end; margin-top:12px; }
+
+                  .upload-modal-inner { max-width:520px; width:100%; margin:0 auto; }
+                </style>
+</head>
+<body>
+
+  <!-- Top navigation -->
+  <nav class="top-nav" role="navigation" aria-label="Main navigation">
+    <div class="container nav-inner">
+      <a href="/" class="brand" aria-label="Garden Home">
+        <div class="logo">G</div>
+        <div>
+          <h1>Garden Home</h1>
+          <div class="brand-subtitle">Luxury Postcards</div>
+        </div>
+
+      </a>
+
+      <div class="nav-actions">
+        <button class="nav-btn primary" id="openCollectionsBtn">Collections</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Page content -->
+  <main class="page" role="main">
+    <section class="hero" aria-labelledby="hero-title">
+          <!-- Scanned Collection Section -->
+    <section id="scanned-collection" aria-live="polite">
+      <div id="spinner" class="spinner" aria-hidden="true"></div>
+    </section>
+
+      <div class="container hero-layout">
+        <div class="hero-copy">
+          <span class="hero-overline">Connected storytelling</span>
+          <h1 class="hero-title" id="hero-title">Smart Interactive Postcards</h1>
+          <p class="hero-lead">Discover current surfing spots, save your favorite postcards, explore nearby attractions with interactive maps, and send it to your love ones</p>
+
+
+          <div id="spinner" class="spinner" aria-hidden="true"></div>
+
+          <div class="hero-grid" role="list">
+            <article class="hero-point" role="listitem">
+              <strong>01</strong>
+              <div>
+                <h3>Click Open Map</h3>
+                <p>Check current weather and recommended surfing spot. and Destination that meet the your Vibe</p>
+              </div>
+            </article>
+            <article class="hero-point" role="listitem">
+              <strong>02</strong>
+              <div>
+                <h3>Check the Place</h3>
+                <p>Know about the news, events, schedules, rentals and services.</p>
+              </div>
+            </article>
+            <article class="hero-point" role="listitem">
+              <strong>03</strong>
+              <div>
+                <h3>Personal collection </h3>
+                <p>Scan a postcard, store the story, and revisit your saved destinations anytime.</p>
+              </div>
+            </article>
+          </div>
+
+          <div class="hero-footnote">
+            Ready to go live—scan to reveal your active collection instantly.
+          </div>
+        </div>
+
+        <div id="authModal" class="auth-modal" style="display: flex;">
+          <div>
+            <aside class="auth-card" aria-label="Get started">
+              <h3>Get Started</h3>
+              
+              <div class="form-group">
+                <label for="username">Username</label>
+                <input id="username" type="text" placeholder="Enter your username" oninput="this.value = this.value.toLowerCase();" />
+              </div>
+
+              <div class="form-group">
+                <label for="userID">Passcode</label>
+                <input id="userID" type="password" placeholder="Enter Any passcode" oninput="this.value = this.value.toLowerCase();" />
+              </div>
+
+              <div class="btn-group">
+                <button id="loginButton" class="btn-submit" onclick="takeTour()">Create Account</button>
+                <!-- <button id="guestLoadBtn" class="btn-browse" onclick="loadCollections()" title="Browse collections">Browse</button> -->
+              </div>
+
+              <div class="auth-footer">
+                Your Digital Guide and Collections.
+              </div>
+            </aside>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" aria-label="How Garden Home works">
+      <div class="container">
+        <div class="section-intro">
+          <h2>Plan With Clarity</h2>
+          <p>Understand what happens after you scan a postcard so you can guide guests or fellow travelers effortlessly.</p>
+        </div>
+        <div class="info-grid">
+          <article class="info-card">
+            <h3>Scan and identify</h3>
+            <p>Use any Garden Home postcard to pull in its unique collection details without typing anything manually.</p>
+          </article>
+          <article class="info-card">
+            <h3>Review the highlights</h3>
+            <p>Collections summarize must-see spots, logistics, and tips so everyone on the trip stays aligned.</p>
+          </article>
+          <article class="info-card">
+            <h3>Share and revisit</h3>
+            <p>Save the collection for later or share it with companions and guests in a couple of taps.</p>
+            <p style="margin-top:8px;color:var(--color-fg-muted);">You can also upload your own picture memories to attach to a scanned collection.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- Collections Grid Section -->
+    <section class="collection-grid" id="collection-grid-section">
+      <div class="section-header">
+        <h2>Featured Collections</h2>
+        <p>Explore handpicked destination collections from around the world</p>
+      </div>
+      <div id="collection-grid" class="collection-cards" aria-label="Collections"></div>
+    </section>
+  </main>
+
+  <!-- Map modal -->
+  <div id="mapModal" class="hidden">
+    <div>
+      <button id="closeMapBtn" aria-label="Close map">×</button>
+      <iframe id="map-modal" src=""></iframe>
+    </div>
+  </div>
+
+  <!-- Upload modal -->
+  <div id="uploadModal" class="auth-modal hidden" style="display:none;">
+    <div>
+      <div class="upload-modal-inner">
+        <div class="multi-upload-section">
+          <button id="closeUploadBtn" aria-label="Close upload">×</button>
+          <h3>Upload Pictures</h3>
+
+          <form id="uploadForm" action="/garden/upload_images/" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="username" id="uploadFormUsername" value="">
+            <input type="hidden" name="userID" id="uploadFormUserID" value="">
+            <input type="hidden" name="collectionUniqueID" id="uploadFormCollectionUniqueID" value="">
+            <label for="multiImageUpload">Upload a picture Memory:</label>
+            <input type="file" id="modalMultiImageUpload" name="images" accept="image/*" multiple required>
+
+            <div id="uploadPreview" class="upload-preview"></div>
+
+            <br>
+            <input type="text" id="modalImageField" name="imageField" placeholder="Enter image description or tag">
+            <br><br>
+            <progress id="uploadProgress" value="0" max="100"></progress>
+            <div class="upload-actions">
+              <button type="button" id="cancelUploadBtn" class="btn-browse">Cancel</button>
+              <button type="submit" class="btn-submit">Upload Images</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <!-- <nav class="bottom-nav" role="navigation" aria-label="Bottom navigation">
+    <a href="#collection-grid-section" class="primary">Explore</a>
+    <a href="#scanned-collection">Scanned</a>
+    <a href="/carpool">Find Carpool</a>
+  </nav> -->
+
+  <!-- Footer -->
+  <footer>
+    <div style="max-width:var(--max-width);margin:0 auto;padding:0 16px;">
+      <ul>
+        <li><a href="#">Explore Destination Collections</a></li>
+        <!-- <li><a href="https://paratara.com">Find Carpool</a></li> -->
+        <!-- <li><a href="https://paratara.com">Place to Stay</a></li> -->
+      </ul>
+      <p>© 2022 Resort Group Network — All Rights Reserved.<br>
+        <a href="/userProfile/privacypolicy">Privacy Policy</a> | <a href="/userProfile/termsandconditions">Terms</a>
+      </p>
+    </div>
+  </footer>
+
+  <!-- Discussion/Chat Box -->
+  <div id="discussionBox" class="discussion-box hidden">
+    <div class="discussion-header">
+      <span>Quick Ask</span>
+      <button class="discussion-close" id="closeDiscussionBtn" aria-label="Close discussion">×</button>
+    </div>
+    <div class="discussion-messages" id="discussionMessages"></div>
+    <div class="discussion-input-area">
+      <input type="text" id="discussionInput" class="discussion-input" placeholder="Ask something..." />
+      <button id="discussionSendBtn" class="discussion-send" aria-label="Send message">
+        <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor">
+          <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Onboarding Tour -->
+  <div id="tourOverlay" class="tour-overlay hidden">
+    <div class="tour-card">
+      <div class="tour-step-indicator" id="tourIndicator"></div>
+      <div class="tour-content" id="tourContent"></div>
+      <div class="tour-actions" id="tourActions"></div>
+    </div>
+  </div>
+
+  <!-- Mobile Chat Button -->
+  <div id="mobileChatBtn" style="position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: #0b6bff; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--shadow-md); z-index: 1000; transition: transform var(--transition);">
+    <svg viewBox="0 0 16 16" style="width: 24px; height: 24px; fill: white;">
+      <path d="M14 1a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4.414A2 2 0 0 0 3 11.586l-2 2V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12.793a.5.5 0 0 0 .854.353l2.853-2.853A1 1 0 0 1 4.414 12H14a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/>
+      <path d="M3 3.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zM3 6a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9A.5.5 0 0 1 3 6zm0 2.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5z"/>
+    </svg>
+  </div>
+
+  <!-- Fancybox + helpers -->
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@6.1/dist/fancybox/fancybox.umd.js"></script>
+
+  <script>
+    /* -------------------------
+       Utility & DOM safety
+    --------------------------*/
+    function el(id){ return document.getElementById(id); }
+    function showSpinner(){ const s = el('spinner'); if(s) s.style.display = 'block'; }
+    function hideSpinner(){ const s = el('spinner'); if(s) s.style.display = 'none'; }
+
+    /* -------------------------
+       Onboarding Tour
+    --------------------------*/
+    const tourSteps = [
+      {
+        icon: '🎉',
+        title: 'Welcome to Garden Home!',
+        description: 'Your Digital Guide to this Island.'
+      },
+      {
+        icon: '📸',
+        title: 'Scan Your Postcards',
+        description: 'Simply scan any Garden Home postcard to instantly unlock its complete collection of destinations, attractions, and local insights and Events. just tap "Check Place" '
+      },
+      {
+        icon: '🗺️',
+        title: 'Explore Interactive Maps',
+        description: 'Tap "Open Map" on any collection to view nearby routes, Current Best Surfing Spot with regard to current weather, attractions, and services.'
+      },
+      {
+        icon: '💬',
+        title: 'Ask Anything',
+        description: 'Have questions about food, activities, or events? Use the Quick Ask feature to get instant answers from local experts.'
+      },
+      {
+        icon: '⭐',
+        title: 'Save Your Favorites',
+        description: 'Browse featured collections below and save your favorite destinations. Your collections are always accessible in your account.'
+      }
+    ];
+
+    let currentTourStep = 0;
+
+    function showTour() {
+      const tourOverlay = el('tourOverlay');
+      if(!tourOverlay) return;
+      
+      // Check if user has seen the tour before
+      if(localStorage.getItem('tourCompleted')) return;
+      
+      tourOverlay.classList.remove('hidden');
+      renderTourStep();
+    }
+
+    function renderTourStep() {
+      const step = tourSteps[currentTourStep];
+      const tourContent = el('tourContent');
+      const tourActions = el('tourActions');
+      const tourIndicator = el('tourIndicator');
+      
+      if(!tourContent || !tourActions || !tourIndicator) return;
+
+      // Update indicators
+      tourIndicator.innerHTML = tourSteps.map((_, i) => 
+        `<div class="tour-dot ${i === currentTourStep ? 'active' : ''}"></div>`
+      ).join('');
+
+      // Update content
+      tourContent.innerHTML = `
+        <div class="tour-icon">${step.icon}</div>
+        <h2>${step.title}</h2>
+        <p>${step.description}</p>
+      `;
+
+      // Update actions
+      const isLastStep = currentTourStep === tourSteps.length - 1;
+      tourActions.innerHTML = `
+        ${currentTourStep > 0 ? '<button class="tour-btn tour-btn-secondary" onclick="previousTourStep()">Back</button>' : ''}
+        <button class="tour-btn tour-btn-primary" onclick="${isLastStep ? 'completeTour()' : 'nextTourStep()'}">
+          ${isLastStep ? 'Get Started' : 'Next'}
+        </button>
+        ${!isLastStep ? '<button class="tour-btn tour-btn-secondary" onclick="skipTour()">Skip</button>' : ''}
+      `;
+    }
+
+    function nextTourStep() {
+      if(currentTourStep < tourSteps.length - 1) {
+        currentTourStep++;
+        renderTourStep();
+      }
+    }
+
+    function previousTourStep() {
+      if(currentTourStep > 0) {
+        currentTourStep--;
+        renderTourStep();
+      }
+    }
+
+    function skipTour() {
+      completeTour();
+    }
+
+    function completeTour() {
+      console.log('Tour completed');
+      const tourOverlay = el('tourOverlay');
+      if(tourOverlay) {
+        tourOverlay.style.opacity = '0';
+        tourOverlay.style.transition = 'opacity 0.4s ease-out';
+        setTimeout(() => {
+          tourOverlay.classList.add('hidden');
+          tourOverlay.style.opacity = '';
+        }, 400);
+      }
+      localStorage.setItem('tourCompleted', 'true');
+      
+      
+      // Scroll to collections
+      // const collectionsSection = el('collection-grid-section');
+      // if(collectionsSection) {
+      //   setTimeout(() => {
+      //     window.scrollTo({ 
+      //       top: collectionsSection.offsetTop - 80, 
+      //       behavior: 'smooth' 
+      //     });
+      //   }, 500);
+      // }
+    
+    }
+
+
+    // format options for dates
+    const options = {
+      year: 'numeric', month: 'short', day: 'numeric',
+      hour: 'numeric', minute: '2-digit', hour12: true
+    };
+
+    // graceful get csrf
+    function getCSRFToken(){
+      try{
+        return document.querySelector('meta[name="csrf-token"]').getAttribute('content') || '';
+      }catch(e){ return ''; }
+    }
+
+    /* -------------------------
+       Renderers (cleaner)
+    --------------------------*/
+    function scanned_collection(data){
+      if(!data) return;
+      const container = el('scanned-collection');
+      if(!container) return;
+      const image = data.collectionPicture || '';
+      const name = data.collectionName || 'Untitled Collection';
+      const description = data.collectionDescription || 'No description available.';
+      const placeID = data.collectionPlaceID || null; // Store collectionPlaceDirect ID
+      // expose current collection unique id for upload modal
+      window.currentCollectionUniqueID = data.collectionUniqueID || '';
+      const todayMonthYear = new Date()
+          xx = "/garden/map/"
+          y = `${data.collectionPlace.toLowerCase().replace(/\s+/g, "-")}`
+          
+          c = xx+y
+      document.querySelector("#map-modal").src = c
+      currentCollector = document.querySelector("#current-collector")?.innerHTML || '';
+      
+      // Store placeID in window for access in discussion functions
+      window.currentPlaceID = placeID;
+      
+      const headerHTML = `
+        <div class="section-header">
+          <h2>Your Scanned Collection</h2>
+          <p>Recently scanned postcard collection</p>
+        </div>
+      `;
+        
+      if (currentCollector == data.collectionCollector ){
+        container.innerHTML = headerHTML + `
+          <article class="scanned-collection-card" role="article" data-place-id="${placeID}">
+            <div>
+              <a href="${image}" data-fancybox="gallery-scanned">
+                <img loading="lazy" src="${image}" alt="${name}">
+              </a>
+            </div>
+            <div class="scanned-collection-content">
+              <div class="collection-title">
+                ${name}
+                <span class="status-indicator"></span>
+              </div>
+              <div class="scanned-actions">
+                <div style="text-align:center; margin: 1em 0;">
+                  <a class="upload-open-btn nav-btn open-map-btn" href="/placeslug/${data.collectionPlace.toLowerCase().replace(/\s+/g, "-")}/">${data.collectionPlace} Updates</a>
+                </div>
+                
+                <!-- Join WhatsApp Group Button -->
+                <div style="margin: 20px 0; text-align: center;">
+                  
+                  <a href="https://chat.whatsapp.com/ElZZcOJ6eM02bTB4qg7YRJ" target="_blank" style="display: inline-flex; align-items: center; background-color: #25D366; color: white; padding: 10px 20px; border-radius: 25px; text-decoration: none; font-weight: bold; font-size: 1.1em; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 32 32" fill="white" style="margin-right: 10px;"><path d="M16.002 2.998c-7.168 0-13 5.832-13 13 0 2.301.627 4.541 1.818 6.5l-1.922 7.021 7.201-1.892c1.898 1.045 4.045 1.6 6.104 1.6h.001c7.168 0 13-5.832 13-13s-5.832-13-13-13zm6.987 18.487c-.293.822-1.713 1.604-2.354 1.707-.602.09-1.377.127-2.221-.141-.512-.162-1.17-.381-2.021-.747-3.563-1.537-5.891-5.127-6.073-5.37-.18-.242-1.45-1.93-1.45-3.684 0-1.754.92-2.617 1.246-2.98.326-.363.713-.454.95-.454.238 0 .475.002.68.012.217.01.51-.082.799.613.293.703.998 2.426 1.086 2.604.09.18.148.395.027.637-.121.242-.182.395-.357.604-.18.217-.381.484-.541.652-.18.18-.369.375-.158.74.217.363.963 1.594 2.07 2.582 1.422 1.266 2.617 1.66 2.98 1.848.363.18.574.152.787-.09.217-.242.902-1.055 1.145-1.418.238-.363.475-.297.799-.18.326.121 2.07.977 2.426 1.152.355.18.592.27.68.418.09.148.09.852-.203 1.674z"/></svg>
+                    ${data.collectionPlace} WhatsApp Group
+                  </a>
+
+                </div>                
+              <div style="text-align:center; margin: 1em 0;">
+                
+                <button id="openMapBtn" class="open-map-btn"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" style="width:24px;height:24px;margin-right:10px;vertical-align:middle;fill:currentColor;"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>${data.collectionPlace} Digital Guides</button>
+              </div>  
+              <!-- Upload Button (opens modal) -->
+              <div style="text-align:center; margin: 1em 0;">
+                <button class="upload-open-btn nav-btn open-map-btn" type="button" id="openUploadModalBtn">Upload Memories</button>
+              </div>
+                
+              </div>              
+              <p class="collection-description">${description}</p>
+              <div class="ask-box">
+                <input type="text" placeholder="Ask us anything food, activity, event, rentals" class="ask-input">
+                <button class="ask-send-btn" type="button">
+                  <svg viewBox="0 0 16 16" fill="white" width="16" height="16">
+                    <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z"></path>
+                  </svg>
+                </button>
+              </div>
+
+  
+              <div class="collection-meta">
+                <div class="meta-item">
+                  <div class="meta-label">Location</div>
+                  <a href="travel/${data.collectionPlace.toLowerCase().replace(/\s+/g, "-")}/place/${data.collectionPlaceID}/${todayMonthYear.getMonth()+1}/${todayMonthYear.getFullYear()}" target="_blank" class="meta-value">${data.collectionPlace || '-'}, ${data.collectionProvince || '-'}</a>
+                </div>
+                <div class="meta-item">
+                  <div class="meta-label">Collector</div>
+                  <div class="meta-value">${data.collectionCollector || '—'}</div>
+                </div>
+                <div class="meta-item">
+                  <div class="meta-label">Collected</div>
+                  <div class="meta-value">${ data.collectionCollected ? new Date(data.collectionCollected).toLocaleString('en-US', options) : '—' }</div>
+                </div>
+              </div>
+            </div>
+          </article>
+        `;
+      } else {
+        container.innerHTML = headerHTML + `
+          <article class="scanned-collection-card" role="article" data-place-id="${placeID}">
+            <div>
+              <a href="${image}" data-fancybox="gallery-scanned">
+                <img loading="lazy" src="${image}" alt="${name}">
+              </a>
+            </div>
+            <div class="scanned-collection-content">
+              <div class="collection-title">
+                ${name}
+                <span class="status-indicator"></span>
+              </div> 
+              <p class="collection-description">${description}</p>
+              <div class="scanned-actions">
+              </div>
+              <div class="ask-box">
+                <input type="text" placeholder="Ask us anything food, activity, event anything at all" class="ask-input">
+                <button class="ask-send-btn" type="button">
+                  <svg viewBox="0 0 16 16" fill="white" width="16" height="16">
+                    <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z"></path>
+                  </svg>
+                </button>
+              </div>
+
+
+              <div class="collection-meta">
+                <div class="meta-item">
+                  <div class="meta-label">Location</div>
+                  <a href="/placeslug/${data.collectionPlace.toLowerCase().replace(/\s+/g, "-")}/" target="_blank" class="meta-value">${data.collectionPlace || '-'}, ${data.collectionProvince || '-'}</a>
+                </div>
+                <div class="meta-item">
+                  <div class="meta-label">Collector</div>
+                  <div class="meta-value">${data.collectionCollector || '—'}</div>
+                </div>
+                <div class="meta-item">
+                  <div class="meta-label">Collected</div>
+                  <div class="meta-value">${ data.collectionCollected ? new Date(data.collectionCollected).toLocaleString('en-US', options) : '—' }</div>
+                </div>
+              </div>
+            </div>
+          </article>
+        `;
+      }
+
+      // attach open map action
+      const openBtn = el('openMapBtn');
+      const modal = el('mapModal');
+      if(openBtn && modal){
+        openBtn.addEventListener('click', ()=> { modal.style.display='flex'; modal.setAttribute('aria-hidden', 'false'); });
+      }
+
+      // Upload modal handlers (attach after content inserted into DOM)
+      const openUploadBtn = el('openUploadModalBtn');
+      if(openUploadBtn) openUploadBtn.addEventListener('click', ()=> { 
+        const m = el('uploadModal'); 
+        // populate hidden fields with saved username/userID
+        const u = el('uploadFormUsername');
+        const p = el('uploadFormUserID');
+        const c = el('uploadFormCollectionUniqueID');
+        // prefer the signed-in display name if available
+        const displayNameEl = document.querySelector('#current-collector');
+        const userVal = displayNameEl ? (displayNameEl.innerText || '') : (localStorage.getItem('username') || '');
+        const idVal = localStorage.getItem('userID') || '';
+        if(u) u.value = userVal;
+        if(p) p.value = idVal;
+        if(c) c.value = window.currentCollectionUniqueID || '';
+        if(m){ m.style.display = 'flex'; m.setAttribute('aria-hidden', 'false'); } 
+      });
+      const closeUploadBtn = el('closeUploadBtn');
+      if(closeUploadBtn) closeUploadBtn.addEventListener('click', ()=> { const m = el('uploadModal'); if(m) m.style.display = 'none'; });
+      const cancelUploadBtn = el('cancelUploadBtn');
+      if(cancelUploadBtn) cancelUploadBtn.addEventListener('click', ()=> { const m = el('uploadModal'); if(m) m.style.display = 'none'; });
+      const uploadModalEl = el('uploadModal');
+      if(uploadModalEl) uploadModalEl.addEventListener('click', (e) => { if(e.target === uploadModalEl) uploadModalEl.style.display = 'none'; });
+
+      // Scroll to the scanned collection after rendering
+      window.scrollTo({ top: container.offsetTop - 120, behavior: 'smooth' });
+
+    }
+        // Smooth fade out of auth modal
+        function takeTour(){
+          console.log('Starting tour after auth modal hide');
+          isUser= document.querySelector("#username").value.trim();
+          passcode= document.querySelector("#userID").value.trim();
+          if (!isUser || !passcode){
+            alert("Please enter both username and passcode to create an account.");
+            return;
+          }
+          
+          // showTour();
+          const authModal = el('authModal');
+          if(authModal) {
+            authModal.style.transition = 'opacity 0.5s ease-out';
+            authModal.style.opacity = '0';
+            createOrFetchVisitor()
+            setTimeout(() => {
+              authModal.style.display = 'none';
+              authModal.style.opacity = '';
+              // Show tour after auth modal is hidden
+              setTimeout(() => showTour(), 300);
+            }, 500);
+          }
+        }
+        
+
+    function list_collection(collections){
+      if(!Array.isArray(collections)) return;
+      const grid = el('collection-grid');
+      if(!grid) return;
+      grid.innerHTML = '';
+      collections.forEach(col => {
+        const card = document.createElement('article');
+        card.className = 'collection-card';
+        const pic = col.collectionPicture || 'https://images.unsplash.com/photo-1501117716987-c8e74d82d27e?auto=format&fit=crop&w=1200&q=60';
+        const name = col.collectionName || 'Untitled';
+        const desc = col.collectionDescription || 'No description available.';
+        const place = (col.collectionPlace || '-') + (col.collectionProvince ? (', ' + col.collectionProvince) : '');
+
+        card.innerHTML = `
+          <div class="collection-img">
+            <a href="${pic}" data-fancybox="gallery">
+              <img loading="lazy" src="${pic}" alt="${name}" />
+            </a>
+          </div>
+          <div class="collection-info">
+            <h2>${name}</h2>
+            <p class="desc">${desc}</p>
+            <p><strong>Location:</strong> ${place}</p>
+            <p><strong>Collector:</strong> ${col.collectionCollector || '<em>Uncollected</em>'}</p>
+            <p><strong>Collected:</strong> ${ col.collectionCollected ? new Date(col.collectionCollected).toLocaleString('en-US', options) : '—' }</p>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    /* -------------------------
+       API / Fetch functions
+    --------------------------*/
+    async function createOrFetchVisitor(username = null, userID = null){
+      console.log('Creating/fetching visitor', username, userID);
+      // read values if not provided
+      username = username ?? (el('username') ? el('username').value.trim() : '');
+      userID = userID ?? (el('userID') ? el('userID').value.trim() : '');
+      console.log('after Re Reading Creating/fetching visitor', username, userID);
+
+      if(!username || !userID){
+        // if missing, keep prompting but avoid infinite loop: prompt up to 3 times
+        for(let i=0;i<3 && (!username || !userID);i++){
+          if(!username){
+            const u = prompt("Please enter username:");
+            if(u) username = u.trim().toLowerCase().replace(/\s+/g,'');
+          }
+          if(!userID){
+            const p = prompt("Please enter passcode:");
+            if(p) userID = p.trim();
+          }
+        }
+      }
+
+      if(!username || !userID){
+        console.warn('Missing credentials — aborting visitor fetch.');
+        return null;
+      }
+
+      // persist
+      try{ localStorage.setItem('username', username); localStorage.setItem('userID', userID); } catch(e){}
+
+      showSpinner();
+      const payload = { username, userID, collectionStr: '{{ collectionStr }}' };
+      console.log('Payload for visitor fetch:', payload);
+
+      // Check if username exists
+      try {
+        const checkPayload = { username };
+        const checkRes = await fetch('/garden/check_visitor/', {
+          method: 'PUT',
+          headers: { 'Content-Type':'application/json', 'X-CSRFToken': getCSRFToken() },
+          body: JSON.stringify(checkPayload)
+        });
+        if (!checkRes.ok) {
+          hideSpinner();
+          alert('Username already exist. or wrong Passcode. Please ensure your username is correct or create an account.');
+          return null;
+        }
+      } catch (err) {
+        hideSpinner();
+        console.error('Error checking username', err);
+        alert('Error checking username.');
+        return null;
+      }
+
+      try{
+        console.log('Starting visitor fetch');
+        const res = await fetch('/garden/visitor/', {
+          method: 'PUT',
+          headers: { 'Content-Type':'application/json', 'X-CSRFToken': getCSRFToken() },
+          body: JSON.stringify(payload)
+        });
+        if(!res.ok){
+          const text = await res.text();
+          throw new Error(`Server error: ${res.status} ${text}`);
+        }
+        const data = await res.json();
+        hideSpinner();
+        console.log('Visitor fetch successful:', data);
+
+
+
+        // render welcome & collections
+        const authCard = document.querySelector('.auth-card');
+        if(authCard) {
+          authCard.innerHTML = `
+            <h3>Welcome Back</h3>
+            <p style="color:var(--color-fg-muted);margin-bottom:16px;font-size:14px;">
+              Signed in as <strong id="current-collector">${data.visitorName || username}</strong>
+            </p>
+            <button class="btn-browse" onclick="location.reload()" style="width:100%;">Switch Account</button>
+          `;
+        }
+        el('authModal').style.display = 'none';
+        if(data && data.visitorCollections) list_collection(data.visitorCollections);
+
+                      try{
+                        console.log('auto-loading scanned collection for');
+                                const path = window.location.pathname;
+        const urlParams = new URLSearchParams(window.location.search);
+        let collectionStr = urlParams.get('collectionStr') || path.split('/').filter(Boolean).pop();
+        // Only attempt auto-fetch when we have a collectionStr and a signed-in user
+        if (collectionStr && localStorage.getItem('username')) {
+          const payload = { username: localStorage.getItem('username') || '', userID: localStorage.getItem('userID') || '', collectionStr, scan_result: collectionStr };
+          const res = await fetch(`/garden/look/${collectionStr}`, {
+            method: 'PUT',
+            headers: { 'Content-Type':'application/json', 'X-CSRFToken': getCSRFToken() },
+            body: JSON.stringify(payload)
+          });
+          if(res.ok){
+            const result = await res.json();
+            if(result) scanned_collection(result);
+                    console.log('showing current user')
+        authCard = document.querySelector(".auth-card")
+        if (authCard) authCard.style.display = "block"
+          }else{
+            console.warn('Collection fetch returned', res.status);
+          }
+        } else {
+          console.log('Skipping auto-loaded collection fetch: missing collectionStr or username.');
+          
+        }
+          
+        }catch(err){
+          console.error('Error fetching single collection', err);
+        }
+
+
+
+        return data;
+      }catch(err){
+        hideSpinner();
+        console.error('Visitor fetch error', err);
+        alert('Unable to fetch your visitor data. See console for details.');
+        return null;
+      }
+
+
+
+
+    }
+
+    async function loadCollections(){
+      const username = localStorage.getItem('username') || '';
+      const userID = localStorage.getItem('userID') || '';
+      if(!username || !userID){
+        alert('Please sign in to load collections.');
+        return;
+      }
+      showSpinner();
+      try{
+        const payload = { username, userID };
+        const res = await fetch('/garden/api/collections/', {
+          method: 'PUT',
+          headers: { 'Content-Type':'application/json', 'X-CSRFToken': getCSRFToken() },
+          body: JSON.stringify(payload)
+        });
+        if(!res.ok) throw new Error('Network response not ok');
+        const collections = await res.json();
+        list_collection(collections || []);
+      }catch(err){
+        console.error('Error fetching collections', err);
+        alert('Failed to load collections. Check console.');
+      }finally{
+        hideSpinner();
+        el('authModal').style.display = 'none';
+      }
+    }
+ 
+    /* -------------------------
+       Initial page load & interactions
+    --------------------------*/
+    document.addEventListener('DOMContentLoaded', () => {
+
+
+      // auto-fetch scanned collection by collectionStr if available
+      (async function autoLoad(){
+        const path = window.location.pathname;
+        const urlParams = new URLSearchParams(window.location.search);
+        let collectionStr = urlParams.get('collectionStr') || path.split('/').filter(Boolean).pop();
+        if(!collectionStr) return;
+        const username = localStorage.getItem('username') || el('username').value || null;
+        const userID = localStorage.getItem('userID') || el('userID').value || null;
+
+        // fetch visitor (best-effort)
+        if(!username || !userID){
+          // prompt user quickly once
+          // skipping blocking prompts here to keep UX smooth
+        } else {
+          await createOrFetchVisitor(username, userID);
+        }
+
+        // fetch single collection only when username is available
+        if (username && userID) {
+          try{
+            const payload = { username: localStorage.getItem('username') || '', userID: localStorage.getItem('userID') || '', collectionStr, scan_result: collectionStr };
+            const res = await fetch(`/garden/look/${collectionStr}`, {
+              method: 'PUT',
+              headers: { 'Content-Type':'application/json', 'X-CSRFToken': getCSRFToken() },
+              body: JSON.stringify(payload)
+            });
+            if(res.ok){
+              const result = await res.json();
+              if(result) scanned_collection(result);
+            }else{
+              console.warn('Collection fetch returned', res.status);
+            }
+          }catch(err){
+            console.error('Error fetching single collection', err);
+          }
+        } else {
+          console.log('Skipping collection fetch until username is available.');
+        }
+      })();
+
+
+
+
+      // prefill fields from localStorage
+      try{
+        
+        if (localStorage.getItem('username') != null){
+          showSpinner();
+          try{
+
+            authCard = document.querySelector(".auth-card")
+            if (authCard) authCard.style.display = "none"
+            el('authModal').style.display = 'none';
+          }catch(e){}
+        }
+        el('username').value = localStorage.getItem('username') || '';
+        el('userID').value = localStorage.getItem('userID') || '';
+        autoLoad()
+        console.log('Hiding SPinner')
+          hideSpinner();
+
+      }catch(e){}
+
+      // top nav actions  
+      const openCollectionsBtn = el('openCollectionsBtn');
+      if(openCollectionsBtn) openCollectionsBtn.addEventListener('click', ()=> { window.scrollTo({ top: document.getElementById('collection-grid-section').offsetTop - 64, behavior: 'smooth' }); });
+
+      // close map
+      const closeMapBtn = el('closeMapBtn');
+      if(closeMapBtn) closeMapBtn.addEventListener('click', ()=> { el('mapModal').style.display = 'none'; });
+
+      // clicking outside map modal closes it
+      const modal = el('mapModal');
+      if(modal) modal.addEventListener('click', (e) => { if(e.target === modal) modal.style.display = 'none'; });
+
+      // Upload modal handlers are attached after rendering the scanned collection so elements exist
+      // (Handlers are bound inside scanned_collection())
+
+      // --- AJAX upload support & previews ---
+      const uploadInput = el('modalMultiImageUpload');
+      const uploadPreview = el('uploadPreview');
+      const uploadForm = el('uploadForm');
+      const uploadProgress = el('uploadProgress');
+
+      function clearPreview(){ if(uploadPreview) uploadPreview.innerHTML = ''; }
+
+      function addPreview(file, idx){
+        if(!uploadPreview) return;
+        const thumb = document.createElement('div');
+        thumb.className = 'upload-thumb';
+        thumb.style.position = 'relative';
+
+        const img = document.createElement('img');
+        img.alt = file.name;
+        img.src = URL.createObjectURL(file);
+
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'remove-thumb';
+        removeBtn.type = 'button';
+        removeBtn.innerText = '×';
+        removeBtn.addEventListener('click', () => {
+          // remove from file list handled during submit by filtering
+          thumb.remove();
+          // mark this thumb as removed
+          thumb.dataset.removed = '1';
+        });
+
+        const label = document.createElement('div');
+        label.innerText = file.name.split('.').slice(0, -1).join('.') || file.name;
+
+        thumb.appendChild(img);
+        thumb.appendChild(label);
+        thumb.appendChild(removeBtn);
+        uploadPreview.appendChild(thumb);
+      }
+
+      if(uploadInput){
+        uploadInput.addEventListener('change', (e)=>{
+          clearPreview();
+          const files = Array.from(e.target.files || []);
+          files.forEach((f,i)=> addPreview(f,i));
+        });
+      }
+
+      if(uploadForm){
+        uploadForm.addEventListener('submit', async (e)=>{
+          e.preventDefault();
+          const filesAll = Array.from(uploadInput.files || []);
+          if(filesAll.length === 0) return alert('Please select images to upload.');
+
+          // Filter out removed thumbs
+          const thumbs = uploadPreview.querySelectorAll('.upload-thumb');
+          const keptIndexes = [];
+          thumbs.forEach((t, idx)=>{ if(!t.dataset.removed) keptIndexes.push(idx); });
+          const files = keptIndexes.map(i => filesAll[i]).filter(Boolean);
+          if(files.length === 0) return alert('No files selected after removals.');
+
+          const formData = new FormData();
+          files.forEach((f)=> formData.append('images', f));
+          formData.append('imageField', el('modalImageField') ? el('modalImageField').value : '');
+          formData.append('username', el('uploadFormUsername') ? el('uploadFormUsername').value : '');
+          formData.append('userID', el('uploadFormUserID') ? el('uploadFormUserID').value : '');
+          formData.append('collectionUniqueID', el('uploadFormCollectionUniqueID') ? el('uploadFormCollectionUniqueID').value : '');
+
+          // Show progress
+          if(uploadProgress) { uploadProgress.style.display = 'block'; uploadProgress.value = 0; }
+
+          try{
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', uploadForm.action, true);
+            xhr.setRequestHeader('X-CSRFToken', getCSRFToken());
+
+            xhr.upload.onprogress = function(event){
+              if(event.lengthComputable && uploadProgress){
+                const percent = Math.round((event.loaded / event.total) * 100);
+                uploadProgress.value = percent;
+              }
+            };
+
+            xhr.onload = function(){
+              if(xhr.status >= 200 && xhr.status < 300){
+                try{
+                  const res = JSON.parse(xhr.responseText);
+                  console.log('Upload complete', res);
+                  alert('Upload successful.');
+                  // cleanup
+                  if(uploadPreview) uploadPreview.innerHTML = '';
+                  if(uploadInput) uploadInput.value = null;
+                  if(uploadProgress) { uploadProgress.style.display='none'; uploadProgress.value=0; }
+                  // close modal
+                  const m = el('uploadModal'); if(m) m.style.display = 'none';
+
+                  // Optionally, refresh the scanned collection to show new Memory
+                  // Simple approach: re-fetch current collection data by re-running the auto-load flow
+                  const username = localStorage.getItem('username') || '';
+                  const userID = localStorage.getItem('userID') || '';
+                  const collectionStr = el('uploadFormCollectionUniqueID')?.value || '';
+                  if(username && userID && collectionStr){
+                    fetch(`/garden/look/${collectionStr}`, {
+                      method: 'PUT',
+                      headers: { 'Content-Type':'application/json', 'X-CSRFToken': getCSRFToken() },
+                      body: JSON.stringify({ username, userID, collectionStr, scan_result: collectionStr })
+                    }).then(r=> r.ok && r.json()).then(d=>{ if(d) scanned_collection(d); }).catch(()=>{});
+                  }
+
+                }catch(err){ console.error('Parsing response failed', err); alert('Upload completed but server response could not be parsed.'); }
+              } else {
+                console.error('Upload failed', xhr.status, xhr.responseText);
+                alert('Upload failed. See console for details.');
+                if(uploadProgress) uploadProgress.style.display='none';
+              }
+            };
+
+            xhr.onerror = function(){ alert('Upload failed due to network error.'); if(uploadProgress) uploadProgress.style.display='none'; };
+
+            xhr.send(formData);
+
+          }catch(err){ console.error('Upload error', err); alert('Upload failed.'); if(uploadProgress) uploadProgress.style.display='none'; }
+        });
+      }
+
+
+      // Fancybox bind
+      Fancybox.bind("[data-fancybox]", {
+        Carousel: { Dots: false },
+      });
+
+      /* -------------------------
+         Discussion/Chat Box functionality
+      --------------------------*/
+      const discussionBox = el('discussionBox');
+      const discussionMessages = el('discussionMessages');
+      const discussionInput = el('discussionInput');
+      const discussionSendBtn = el('discussionSendBtn');
+      const closeDiscussionBtn = el('closeDiscussionBtn');
+      const mobileChatBtn = el('mobileChatBtn');
+
+      // Open discussion box from mobile chat button
+      if(mobileChatBtn) {
+        mobileChatBtn.addEventListener('click', () => {
+          if(discussionBox) {
+            discussionBox.classList.remove('hidden');
+            discussionInput.focus();
+          }
+        });
+      }
+
+      // Close discussion box
+      if(closeDiscussionBtn) {
+        closeDiscussionBtn.addEventListener('click', () => {
+          if(discussionBox) discussionBox.classList.add('hidden');
+        });
+      }
+
+      // Add message to discussion
+      function addMessage(text, isUser = true) {
+        if(!discussionMessages) return;
+        const messageEl = document.createElement('div');
+        messageEl.className = `message ${isUser ? 'user' : 'bot'}`;
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+        messageEl.innerHTML = `
+          <div class="message-content">${text}</div>
+          <div class="message-time">${timeStr}</div>
+        `;
+        discussionMessages.appendChild(messageEl);
+        discussionMessages.scrollTop = discussionMessages.scrollHeight;
+      }
+
+      // Send message function
+      async function sendDiscussionMessage(messageOverride = null) {
+        console.log('Sending discussion message');
+        const message = (messageOverride ?? discussionInput.value).trim();
+        if(!message) return;
+
+        // Ensure chat box is visible when sending from Quick Ask
+        if(discussionBox) discussionBox.classList.remove('hidden');
+
+        // Add user message
+        addMessage(message, true);
+        discussionInput.value = '';
+
+        // Show typing indicator
+        const typingEl = document.createElement('div');
+        typingEl.className = 'message bot';
+        typingEl.innerHTML = `<div class="message-content">Typing...</div>`;
+        discussionMessages.appendChild(typingEl);
+        discussionMessages.scrollTop = discussionMessages.scrollHeight;
+
+        try {
+          // Get placeID from window or data attribute
+          const placeID = window.currentPlaceID || 
+                          document.querySelector('[data-place-id]')?.getAttribute('data-place-id');
+
+          if(!placeID) {
+            throw new Error('Place ID not available');
+          }
+
+          const payload = {
+            username: localStorage.getItem('username') || '',
+            userID: localStorage.getItem('userID') || '',
+            message: message
+          };
+
+          // Send to backend
+          const res = await fetch(`/discuss/${placeID}`, {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json',
+              'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify(payload)
+          });
+
+          // Remove typing indicator
+          typingEl.remove();
+
+          if(res.ok) {
+            const data = await res.json();
+            if(Array.isArray(data.response)) {
+              console.log('Received array response:', data.response);
+              // Handle array of discussions
+              discussion = data.response[0]
+              // data.response.forEach(discussion => {
+                const msg = discussion?.discuss || 'No message';
+                const name = discussion?.discusserName || 'Assistant';
+                addMessage(`${name}: ${msg}`, false);
+              // });
+            } else {
+              console.log('Received single response:', data.response);
+              // Handle single response string
+              const response = data.response || 'No response available.';
+              addMessage(response, false);
+            }
+          } else {
+            addMessage('Sorry, I could not process that. Please try again.', false);
+          }
+        } catch(err) {
+          console.error('Error sending message:', err);
+          typingEl.remove();
+          addMessage('Sorry, something went wrong. Please try again later.', false);
+        }
+      }
+
+      // Send on button click
+      if(discussionSendBtn) {
+        discussionSendBtn.addEventListener('click', sendDiscussionMessage);
+      }
+
+      // Send on Enter key
+      if(discussionInput) {
+        discussionInput.addEventListener('keypress', (e) => {
+          if(e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendDiscussionMessage();
+          }
+        });
+      } 
+
+      /* -------------------------
+         Ask box functionality (scanned collection section)
+      --------------------------*/
+      document.addEventListener('click', (e) => {
+        const askSendBtn = e.target && e.target.closest ? e.target.closest('.ask-send-btn') : null;
+        if(!askSendBtn) return;
+        const askBox = askSendBtn.closest('.ask-box');
+        const input = askBox ? askBox.querySelector('.ask-input') : null;
+        const message = input ? (input.value || '').trim() : '';
+        if(!message) return;
+        if(input) input.value = '';
+        sendDiscussionMessage(message);
+      });
+
+      // Send Quick Ask on Enter
+      document.addEventListener('keydown', (e) => {
+        const target = e.target;
+        if(!target || !target.classList || !target.classList.contains('ask-input')) return;
+        if(e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          const message = (target.value || '').trim();
+          if(!message) return;
+          target.value = '';
+          sendDiscussionMessage(message);
+        }
+      });
+
+    }); // DOMContentLoaded
+  </script>
+</body>
+</html>

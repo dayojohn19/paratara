@@ -1,0 +1,22 @@
+<script src="https://www.paypal.com/sdk/js?client-id=AREL4vTRiJV97jXqNzJkFn2dwjMsUhdmsFRORX5yv8WnqErFYPh7gi1Qy8UVm3KY1TS_DmZCRSzougyu&vault=true&intent=subscription"></script>
+<div id="paypal-button-{{ resort.id }}"></div>
+
+<script>
+paypal.Buttons({
+    createSubscription: function () {
+        return fetch("/subscriptions/create/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: JSON.stringify({
+                plan_id: "P-XXXXXXXX",
+                resort_id: {{ resort.id }}
+            })
+        })
+        .then(res => res.json())
+        .then(data => data.id);
+    }
+}).render("#paypal-button-{{ resort.id }}");
+</script>

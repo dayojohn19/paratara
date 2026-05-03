@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ resort_name|default:"Resort" }} Reservation Ticket</title>
+    <!-- To Download the html -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+body {
+
+}
+
+.ticket-card {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background: #f0f3f7;
+    margin: 0 auto;
+    padding: 20px;
+    max-width: 600px;
+    background: linear-gradient(145deg, #ffffff, #e6ebf0);
+    border-radius: 18px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    padding: 30px;
+    color: #333;
+}
+
+.ticket-header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.ticket-header .logo {
+    width: 80px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+}
+
+.ticket-header h2 {
+    font-size: 26px;
+    margin: 5px 0;
+    color: #1a1a1a;
+}
+
+.ticket-header p {
+    font-size: 14px;
+    color: #666;
+}
+
+.ticket-qr {
+    text-align: center;
+    margin: 20px 0;
+}
+
+.ticket-qr img {
+    width: 220px;
+    border-radius: 12px;
+    border: 1px solid #ddd;
+}
+
+.ticket-guest {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.ticket-guest h1 {
+    font-size: 28px;
+    margin: 0;
+}
+
+.ticket-guest p {
+    font-size: 16px;
+    color: #555;
+}
+
+.ticket-details {
+    background: #f8f9fb;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.ticket-details .row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid #e0e4e8;
+    font-size: 15px;
+}
+
+.ticket-details .row:last-child {
+    border-bottom: none;
+}
+
+.ticket-reminders h3 {
+    margin-bottom: 10px;
+    color: #1a1a1a;
+}
+
+.ticket-reminders ul {
+    padding-left: 20px;
+    list-style-type: disc;
+    font-size: 14px;
+}
+
+.ticket-reminders li {
+    margin-bottom: 5px;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .ticket-card {
+        padding: 20px;
+    }
+    .ticket-qr img {
+        width: 180px;
+    }
+    .ticket-guest h1 {
+        font-size: 22px;
+    }
+}
+</style>
+</head>
+<body>
+
+
+
+
+
+<script>
+function downloadImage() {
+    const ticket = document.getElementById("ticketArea");
+    html2canvas(ticket).then(canvas => {
+        const link = document.createElement("a");
+        link.download = "reservation.png"; // filename
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+    });
+}
+</script>
+
+<!--  -->
+<!--  -->
+<!--  -->
+<!--  -->
+<!--  -->
+<!--  -->
+<!--  -->
+<!--  -->
+<!--  -->
+
+
+<div class="ticket-card" id="ticketArea">
+    <div class="ticket-header">
+        <img src="{{ resort_logo }}" alt="Logo" class="logo">
+        <h2>{{ resort_name }}</h2>
+        <p>{{ resort_address }}</p>
+    </div>
+
+    <div class="ticket-qr">
+        <img src="data:image/png;base64, {{ imageStr }}" alt="QR Code">
+    </div>
+
+    <div class="ticket-guest">
+        <h1>{{ dictdata.guest_name }}</h1>
+        <p><b>Reservation #: </b>{{ dictdata.id }}</p>
+    </div>
+
+    <div class="ticket-details">
+        <div class="row"><span>Check-in:</span><span>{{ dictdata.checkin_date_readable }}</span></div>
+        <div class="row"><span>Check-out:</span><span>{{ dictdata.checkout_date_readable }}</span></div>
+        <div class="row"><span>Resort:</span><span>{{ resort_name|default:"-" }}</span></div>
+        <div class="row"><span>Room:</span><span>{{ dictdata.package_name_display|default:"Standard" }}</span></div>
+
+        <div class="row"><span>Email:</span><span>{{ dictdata.guest_email }}</span></div>
+        <div class="row"><span>Phone:</span><span>{{ dictdata.guest_phone }}</span></div>
+        <div class="row"><span>Special Requests:</span><span>{{ dictdata.special_requests }}</span></div>
+    </div>
+
+    <div class="ticket-reminders">
+        <h3>Reminders</h3>
+        <ul>
+            <li>Please present this QR ticket and a valid ID at the front desk.</li>
+            <li>Check-in begins at 3:00 PM; checkout is by 12:00 Noon.</li>
+            <li>Store valuables securely—resort is not liable for lost items.</li>
+        </ul>
+    </div>
+</div>
+
+<button onclick="downloadImage()" 
+        style="padding:10px 20px; background:#007bff; color:white; border:none; border-radius:6px;">
+    Download Ticket as Image
+</button>
+
+<button onclick="window.print()" 
+        style="padding:10px 20px; background:#28a745; color:white; border:none; border-radius:6px;">
+    Print Ticket
+</button>
+
+
+</body>
+
+</html>

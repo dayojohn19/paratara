@@ -1,0 +1,782 @@
+{% load static %}
+{% load humanize %}
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="48x48" href="{% static 'home/images/favicon-48x48.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'home/images/favicon-16x16.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'home/images/favicon-32x32.png' %}">
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow">
+    <title>{{pageUser.name}} </title>
+    <!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4843007524416588"
+    crossorigin="anonymous"></script>
+     -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous" /> -->
+
+    <link rel="stylesheet" href="{% static 'bootstrap/css/master.css' %}" />
+
+  </head>
+<!-- <fb:login-button scope="public_profile,email" onlogin="checkLoginState();"></fb:login-button> -->
+
+
+{% include "userProfile/indexJS.html" %}
+<!-- <button onclick="ContinueWithFacebook()">Login with Facebook</button>
+<div class="row">
+  <div class="col-md-8 mx-auto social-container my-2 order-md-1">
+      <button class="btn btn-primary mb-2">
+        <small>put a button loging with facebook</small>
+      </button>
+  </div>
+</div> -->
+
+  <style>
+    .list-group {
+      overflow: scroll;
+      max-height: 50vh;
+    }
+    .t-svg svg {
+      height: 16px;
+    }
+    .user-svg-top {
+      fill: #38a2ff;
+      max-height: 16px;
+      min-height: 15px;
+      /* padding-right: 10px;
+  padding-left: 10px; */
+    }
+    svg:hover {
+      fill: #0061b6;
+    }
+    .custom-file-input {
+      display: none;
+    }
+    .user-svg {
+      padding-right: 4px;
+      height: 16px;
+      padding-left: 4px;
+      padding-right: 4px;
+      fill: #428bca;
+    }
+    .svg-container {
+      color: #428bca;
+      width: fit-content;
+      font-size: 10px !important;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      position: relative;
+      margin: 5px;
+    }
+
+      .comment-sender {
+        font-size: x-small;
+        text-align: right;
+      }
+      .comment-subContainer {
+        list-style: none;
+        display: grid;
+        margin-bottom: 2px;
+        border-bottom: 0.5px solid rgb(151, 151, 151);
+      }
+      .comment-message {
+        font-size: small;
+      }
+
+  </style>
+
+  <body style="padding: 0; margin: 0">
+    {% include "userProfile/header.html" %} {% if user.is_authenticated %}
+    <div>
+      <div style="display: flex; flex-wrap: wrap; margin-top: 2rem">
+        <div class="col-md-4 mb-3" style="margin: auto auto;">
+          <div class="card">
+            <div class="card-body">
+              <div class="d-flex flex-column align-items-center text-center">
+                {% if pageUser.photo %}
+                <img src="{{pageUser.photo}}" alt="user-photo" class="rounded-circle" width="150">
+                <!-- <a style="text-decoration: none;" href="{{pageUser.photo}}" >View Photo </a> -->
+                {% endif %}
+                {% if user.id == pageUser.userID %} 
+                  <div class="" id="changePasswordModal" tabindex="-1" role="dialog" style="display: none; ">
+                    <div class="modal-dialog">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                        </div>
+                        <div class="modal-body">
+                          <!-- Your form here -->
+                          <form method="post" action="{% url 'userProfile:changepsw' %}">
+                            {% csrf_token %}
+                          <input style="margin-bottom:0.5em;" name="currentPassword" type="password" placeholder="Old password" class="form-control">
+                          <input style="margin-bottom:0.5em;" name="newPassword" type="password" placeholder="New password" class="form-control">
+                          <input style="margin-bottom:0.5em;" name="newPasswordConfirmation" type="password" placeholder="New password" class="form-control">
+                          <button id="" type="submit" action="submit" class="btn btn-primary">
+                            Change Password
+                          </button>
+                          <hr>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+                  </div>                
+                  {% if pageUser.photo == '' %}
+                    <div>
+                      <span >
+                        <form class="was-validated" method="POST" action="{% url 'userProfile:uploadPhoto' %}" enctype="multipart/form-data">
+                          {% csrf_token %}
+                          <input hidden readonly name="purpose" value="profilePhoto" />
+                          <!-- <input name="fileobject" type="file" /> -->
+                          <div class="custom-file">
+                            {% csrf_token %} {{form.image}}
+                            <label style="font-size: 16px" class="custom-file-label btn btn-secondary btn-lg btn-block" for="validatedCustomFile">Upload Picture</label>
+                            <!-- <label style="font-size: 16px" class="custom-file-label" for="validatedCustomFile"></label> -->
+                          </div>
+                          <!-- <button type="submit">Change Profile Picture</button> -->
+                        </form>
+                      </span>
+                      <!-- <button type="submit">Submit</button> -->
+                    </div>
+                  {% endif %}
+
+                {% endif %}
+                <div class="mt-3">
+                  <div class="" style="line-height: 1%; margin: 0 auto;">
+                    
+
+
+                    <hr>
+
+<!--  -->
+
+                    <div>
+                      {% if pageUser.verified %}
+                      
+                      <span style=" display: inline-flex; align-items: center; gap: 6px;">
+                          <svg viewBox="0 0 16 16" class="user-svg" onclick="alert('User is Verified')">
+                            <path d="M10.067.87a2.89 2.89 0 0 0-4.134 0l-.622.638-.89-.011a2.89 2.89 0 0 0-2.924 2.924l.01.89-.636.622a2.89 2.89 0 0 0 0 4.134l.637.622-.011.89a2.89 2.89 0 0 0 2.924 2.924l.89-.01.622.636a2.89 2.89 0 0 0 4.134 0l.622-.637.89.011a2.89 2.89 0 0 0 2.924-2.924l-.01-.89.636-.622a2.89 2.89 0 0 0 0-4.134l-.637-.622.011-.89a2.89 2.89 0 0 0-2.924-2.924l-.89.01-.622-.636zm.287 5.984-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7 8.793l2.646-2.647a.5.5 0 0 1 .708.708z"></path>
+                          </svg>
+                        <span>{{pageUser.name}}</span>
+                        </span>
+                      {% else %}
+                      {{pageUser.name}}
+                      {% if user.id == pageUser.userID %}
+                      
+                      {% if pageUser.photo != '' %}
+                      <span>
+                        <div>
+                          
+                        </div>
+                        <form class="was-validated" method="POST" action="{% url 'userProfile:uploadPhoto' %}" enctype="multipart/form-data">
+                          <div class="custom-file w-100 py-2 mb-2">
+                            <input hidden readonly name="purpose" value="verification" />
+                            {% csrf_token %} {{form.image}}
+                            <label style="font-size: 16px" class="custom-file-label btn btn-secondary btn-lg btn-block" for="validatedCustomFile">Upload selfie with Valid ID</label>
+                          </div>
+                      
+                        </form>
+                      </span>
+                      {% endif %}
+                      {% endif %} {% endif %}
+ 
+                    </div>
+                    
+                    <div>
+                      {% if user.id == pageUser.userID %} {% if pageUser.name == 'Facebook not Connected' %}
+                      <button onclick="ContinueWithFacebook()" class="w-100 py-2 btn btn-outline-primary rounded-3" type="submit">
+                        <svg class="" width="1" height="1"><use xlink:href="#facebook"></use></svg>
+                        Connect with Facebook
+                      </button>
+                      {% else %} {% endif %} {% else %} {% endif %}
+                    </div>
+                  </div>
+                    <button id="openModalBtn" type="button" class="btn btn-primary" style="margin-top: 1em;">
+                      Change Password
+                    </button>
+                  <p class="text-secondary mb-1"><div class="svg-container"> <small style="color: rgb(159, 165, 172) ; text-shadow: 0px;">Member since:  </small> <br>{{pageUser.registeredTimeStamp}}</div></p>
+                  <div class="svg-container">
+                    <div>{{pageUser.contact}} </div>
+                  </div>                  
+                  {% if not createBalance_FORM %}
+
+                  <!-- Advance Payment FORM -->
+                  {% if pageUser.name != request.user.username %}
+
+                  <!-- <div class="btn btn-primary" >
+                    <span onclick="sendAmount()" class="btn btn-primary">Advance Pay</span>
+                  </div> -->
+                    
+
+                  {% else %}
+                  <div hidden>₱ {{pageUser.currentBalance | intcomma }} Balance </div>
+                  <!-- FOR PAYMENT -->
+                  <div class="block-image" onclick="hide(this)" style="display:none;background-color: #d0d0d0; width: 100vw;height: 100vh; position: fixed;top: 0;left: 0; z-index: 2;">
+                    <div>
+                      <p style="padding-top: 50px;">Scan the QRCode and Send Gcash to add Balance
+                        <br>
+                        and email to <input type="text" readonly value="johnwebsiteproject@gmail.com" style="width: 300px; text-align: center;"> <br>the print screen and receipt
+                      </p>
+                      <p>
+                        or Message us <input type="text" readonly value="+639568543802" style="width: 300px; text-align: center;">
+                      </p>
+                      <img style="max-height: 400px;margin: 0 auto;" src="{% static 'pictures/gcash.jpg' %}"> 
+                    </div>
+                  </div>
+                  <!-- <button style="border: none;border-radius: 4px;" onclick="document.querySelector('.block-image').style.display = 'block' ">+</button> -->
+                  {% endif %}
+                  {% endif %}
+                  {% if pageUser %}
+                  <div class="svg-container" onclick="alert('Visitor Count')">
+                    <svg class="user-svg" viewBox="0 0 16 16">
+                      <path d="m8 0 1.669.864 1.858.282.842 1.68 1.337 1.32L13.4 6l.306 1.854-1.337 1.32-.842 1.68-1.858.282L8 12l-1.669-.864-1.858-.282-.842-1.68-1.337-1.32L2.6 6l-.306-1.854 1.337-1.32.842-1.68L6.331.864 8 0z" />
+                      <path d="M4 11.794V16l4-1 4 1v-4.206l-2.018.306L8 13.126 6.018 12.1 4 11.794z" />
+                    </svg>
+                    {{pageUser.reputations | intcomma}}
+                  </div>
+                  <div class="svg-container" onclick="alert('Transactions Count')">
+                    <svg class="user-svg" viewBox="0 0 256 256" >
+                      <defs>
+                      </defs>
+                      <g style="stroke: none; stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill-rule: nonzero; opacity: 1;" transform="translate(1.4065934065934016 1.4065934065934016) scale(2.81 2.81)" >
+                        <path d="M 88.828 41.622 L 78.775 31.569 c -0.002 -0.002 -0.003 -0.003 -0.005 -0.004 c -0.185 -0.184 -0.388 -0.349 -0.605 -0.494 c -0.095 -0.064 -0.199 -0.107 -0.298 -0.162 c -0.129 -0.071 -0.254 -0.149 -0.391 -0.206 c -0.127 -0.052 -0.26 -0.082 -0.39 -0.121 c -0.119 -0.035 -0.233 -0.081 -0.356 -0.105 c -0.242 -0.048 -0.488 -0.071 -0.734 -0.074 c -0.017 0 -0.032 -0.005 -0.048 -0.005 s -0.032 0.005 -0.048 0.005 c -0.246 0.003 -0.492 0.026 -0.734 0.074 c -0.123 0.024 -0.237 0.07 -0.355 0.105 c -0.131 0.039 -0.264 0.069 -0.391 0.121 c -0.137 0.057 -0.261 0.134 -0.39 0.205 c -0.1 0.055 -0.204 0.099 -0.299 0.162 c -0.218 0.145 -0.421 0.31 -0.605 0.494 c -0.002 0.002 -0.003 0.003 -0.005 0.004 L 63.065 41.622 c -1.563 1.562 -1.563 4.095 0 5.657 c 1.561 1.563 4.094 1.563 5.656 0 l 3.226 -3.225 V 58.44 c 0 6.409 -5.215 11.624 -11.624 11.624 h -46.27 c -2.209 0 -4 1.791 -4 4 s 1.791 4 4 4 h 46.27 c 10.82 0 19.624 -8.804 19.624 -19.624 V 44.055 l 3.225 3.225 c 0.78 0.781 1.805 1.171 2.828 1.171 s 2.048 -0.39 2.828 -1.171 C 90.391 45.717 90.391 43.185 88.828 41.622 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(0,0,0); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+                        <path d="M 11.225 58.431 c 0.184 0.184 0.387 0.349 0.604 0.495 c 0.056 0.038 0.12 0.062 0.178 0.096 c 0.165 0.099 0.33 0.197 0.509 0.272 c 0.083 0.034 0.172 0.051 0.257 0.08 c 0.161 0.055 0.32 0.115 0.49 0.149 c 0.259 0.052 0.523 0.08 0.791 0.08 s 0.533 -0.028 0.791 -0.08 c 0.171 -0.034 0.33 -0.094 0.492 -0.15 c 0.084 -0.029 0.172 -0.045 0.255 -0.079 c 0.179 -0.075 0.345 -0.173 0.51 -0.272 c 0.058 -0.035 0.121 -0.058 0.177 -0.096 c 0.217 -0.146 0.42 -0.311 0.604 -0.495 c 0 0 0 0 0 0 l 10.053 -10.053 c 1.562 -1.563 1.562 -4.095 0 -5.657 c -1.562 -1.562 -4.094 -1.562 -5.657 0 l -3.224 3.224 V 31.56 c 0 -6.41 5.214 -11.624 11.624 -11.624 h 46.271 c 2.209 0 4 -1.791 4 -4 s -1.791 -4 -4 -4 H 29.677 c -10.82 0 -19.624 8.803 -19.624 19.624 v 14.386 l -3.225 -3.225 c -1.563 -1.562 -4.095 -1.562 -5.657 0 c -1.562 1.563 -1.562 4.095 0 5.657 L 11.225 58.431 C 11.225 58.431 11.225 58.431 11.225 58.431 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(0,0,0); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+                      </g>
+                      </svg>
+                    {{pageUser.TransactionCount | intcomma}}
+                  </div>
+                  <div class="svg-container" onclick="alert('ask Blog register')">
+                  <!-- <span><a href="/apis/blog">My Blog</a></span> -->
+ 
+                  </div>
+                  <hr>
+                  <div>
+                    {% if pageUser.MyVisitors %}
+                    <div>
+                      <small style="color: #909090;">Visitors:</small>
+                      {{pageUser.MyVisitors.count}}
+                    </div>
+                    <!--  -->
+
+                    {% for eachUser in pageUser.MyVisitors|slice:":5" %}
+                    <span>
+                      <a title="View Profile" href="/userProfile/view/{{csrf_token}}/{{eachUser.userID}}" style="text-decoration: none;">
+                      <!-- <img title="{{eachUser.name}}" src="{{eachUser.photo|default:'https://st3.depositphotos.com/3581215/18899/v/600/depositphotos_188994514-stock-illustration-vector-illustration-male-silhouette-profile.jpg'}}" alt="Admin" style="object-fit: cover;"  class="rounded-circle" width="30px" height="30px" > -->
+                      <div style="display:block;">
+                        {{eachUser.name}}
+                      </div>
+                      
+                      </a>
+                    </span>
+                    {% endfor %}
+                    {% endif %}
+                    {% endif %}
+                  </div>
+
+
+
+                  <!-- <p class="text-muted font-size-sm">Bay Area, San Francisco, CA</p>
+                  <button class="btn btn-primary">Follow</button>
+                  <button class="btn btn-outline-primary">Message</button> -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="max-width: 300px; background-color: rgb(255, 250, 242); margin: auto auto; min-width: 200px">
+          <!--  -->
+          <div class="list-group w-auto">
+            {% for post in pageUser.allPosts %}
+            <span  class="list-group-item list-group-item-action d-flex gap-3 py-3" aria-current="true">
+              <div class="t-svg">
+                {% if post.scheduleTravelType == 'RIDE' %}
+                <svg viewBox="0 0 20 20" class="user-svg-top"><path clip-rule="evenodd" d="M18.478 8.182a.21.21 0 00.057.174 3.71 3.71 0 011.048 2.581v1.667a2.078 2.078 0 01-1.326 1.93.21.21 0 00-.132.194v1.623a1.875 1.875 0 11-3.75 0v-1.459a.208.208 0 00-.208-.208H5.833a.208.208 0 00-.208.208v1.459a1.875 1.875 0 11-3.75 0v-1.626a.21.21 0 00-.133-.194A2.077 2.077 0 01.417 12.6v-1.667a3.71 3.71 0 011.045-2.577.207.207 0 00-.046-.325L.75 7.647A1.25 1.25 0 112 5.48l.886.512a.21.21 0 00.31-.146l.333-1.986a2.493 2.493 0 012.466-2.091h8.007a2.492 2.492 0 012.465 2.09l.334 1.985a.208.208 0 00.309.147l.887-.513a1.25 1.25 0 011.25 2.167l-.666.386a.207.207 0 00-.103.15zm-4.473-4.745h-8.01a.833.833 0 00-.822.695l-.399 2.394a.208.208 0 00.206.242h10.04a.208.208 0 00.206-.24l-.4-2.394a.833.833 0 00-.821-.697zm2.245 6.667a1.25 1.25 0 110 2.5 1.25 1.25 0 010-2.5zm-12.5 0a1.25 1.25 0 100 2.5 1.25 1.25 0 000-2.5z" fill-rule="evenodd"></path></svg>
+                {% elif post.scheduleTravelType == 'BIKE'%}
+                <svg viewBox="0 0 16 16" class="user-svg-top"><path d="M4 4.5a.5.5 0 0 1 .5-.5H6a.5.5 0 0 1 0 1v.5h4.14l.386-1.158A.5.5 0 0 1 11 4h1a.5.5 0 0 1 0 1h-.64l-.311.935.807 1.29a3 3 0 1 1-.848.53l-.508-.812-2.076 3.322A.5.5 0 0 1 8 10.5H5.959a3 3 0 1 1-1.815-3.274L5 5.856V5h-.5a.5.5 0 0 1-.5-.5zm1.5 2.443-.508.814c.5.444.85 1.054.967 1.743h1.139L5.5 6.943zM8 9.057 9.598 6.5H6.402L8 9.057zM4.937 9.5a1.997 1.997 0 0 0-.487-.877l-.548.877h1.035zM3.603 8.092A2 2 0 1 0 4.937 10.5H3a.5.5 0 0 1-.424-.765l1.027-1.643zm7.947.53a2 2 0 1 0 .848-.53l1.026 1.643a.5.5 0 1 1-.848.53L11.55 8.623z" /></svg>
+                {% elif post.scheduleTravelType == 'HIKE'%}
+                <svg viewBox="0 0 12.2 18.6" class="user-svg-top"><path d="M7.5 7.3c-.3.7-.7 1.3-1 2 .5.7 1.4 1.5 1.9 2.2.6.8 1 1.7 1.1 2.8.1 1.3.2 2.3.3 3.5 0 .4-.4.8-.8.8s-1.1-.2-1.1-.6c-.3-1.4-.5-2.8-.8-4.2-.1-.3-.2-.6-.4-.8-.8-.8-1.6-1.7-2.4-2.5-.7-.6-.8-1.2-.6-2 .1-.2.2-.5.3-.7.5-1 1.1-2 1.6-3 .2-.4.3-.5.5-.8.3-.3.6-.3 1-.2.3.1.4.2.6.4.4.2.7.4.8.8.3.8.4 1.2.8 1.9.1.3.7.7 1 .8.6.3.8.3 1.4.6.5.2.5.7.4 1.1s-.7.5-1 .4c-.8-.2-1.1-.3-1.8-.5-.2-.1-.9-.6-1-.8-.4-.4-.5-.7-.8-1.2zm-5.4 2.9h-.3c0-.5.1-.9.2-1.3-.2-.1-.3-.1-.4-.2-.3.5-.5 1-.8 1.5-.1-.1-.3-.1-.3-.2.2-.4.5-.9.8-1.3-.2-.1-.2-.1-.3-.1-.9-.4-1.1-.7-1-1.8.1-.9.6-1.6 1.1-2.4.1-.2.2-.3.3-.4.5-.9 1.4-1.3 2.4-1.4h.3c.4.2.9.4 1.4.6-1.8 2-2.9 4.3-3.4 7zm1.7.9c.5.5 1.1 1 1.6 1.6.1.1.1.2 0 .3-.2.7-.3 1.4-.6 2-.1.2-.4.8-.6 1-1 1-1.6 1.4-2.6 2.3-.3.3-1 .2-1.3-.1-.3-.3-.5-1-.1-1.4.7-.7 1.3-1.2 2.1-1.9.3-.3.5-.6.7-1 .4-.9.6-1.6.8-2.5v-.3zm3.3-9.3C7.1.8 7.9 0 9 0c1 0 1.9.9 1.8 1.9 0 1-.8 1.8-1.9 1.8s-1.8-.8-1.8-1.9z"></path></svg>
+                {% elif post.scheduleTravelType == 'CAMP'%}
+                <svg class="user-svg-top" viewBox="0 0 16 16"><path d="M7 2.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0zm4.225 4.053a.5.5 0 0 0-.577.093l-3.71 4.71-2.66-2.772a.5.5 0 0 0-.63.062L.002 13v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4.5l-4.777-3.947z"></path></svg>
+                {% elif post.scheduleTravelType == 'DIVE'%}
+                <svg class="user-svg-top" viewBox="0 0 16 16"><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm6.43-5.228a7.025 7.025 0 0 1-3.658 3.658l-1.115-2.788a4.015 4.015 0 0 0 1.985-1.985l2.788 1.115zM5.228 14.43a7.025 7.025 0 0 1-3.658-3.658l2.788-1.115a4.015 4.015 0 0 0 1.985 1.985L5.228 14.43zm9.202-9.202-2.788 1.115a4.015 4.015 0 0 0-1.985-1.985l1.115-2.788a7.025 7.025 0 0 1 3.658 3.658zm-8.087-.87a4.015 4.015 0 0 0-1.985 1.985L1.57 5.228A7.025 7.025 0 0 1 5.228 1.57l1.115 2.788zM8 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"></path></svg>
+                {% endif %}
+              </div>
+              <div class="t-svg">
+                {% if post.MakerOrLooker == 'Make' %}
+                <svg class="user-svg-top" viewBox="0 0 16 16">
+                  <path fill-rule="evenodd" d="M15.817.113A.5.5 0 0 1 16 .5v14a.5.5 0 0 1-.402.49l-5 1a.502.502 0 0 1-.196 0L5.5 15.01l-4.902.98A.5.5 0 0 1 0 15.5v-14a.5.5 0 0 1 .402-.49l5-1a.5.5 0 0 1 .196 0L10.5.99l4.902-.98a.5.5 0 0 1 .415.103zM10 1.91l-4-.8v12.98l4 .8V1.91zm1 12.98 4-.8V1.11l-4 .8v12.98zm-6-.8V1.11l-4 .8v12.98l4-.8z"></path>
+                </svg>
+                {% else %}
+                <svg class="user-svg-top" viewBox="0 0 16 16">
+                  <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"></path>
+                </svg>
+                {% endif %}
+              </div>
+              <div class="d-flex gap-2 w-100 justify-content-between" style="flex-wrap: wrap-reverse;">
+                <div>
+                  <a style="text-decoration: none;"  href="{% url 'home:place' post.schedulePlace.id post.monthN post.yearN  %}"><h6 class="mb-0">{{post.schedulePlace}} </h6></a>
+                  
+                  <p class="mb-0 opacity-75">
+                    {% if post.commentCount >= 1 %}
+                    <details>
+                      <summary><small onclick="closeThisModal()">{{post.commentCount}} comments</small></summary>
+                      <ul class="comment-container">
+                      {% for c in post.comments.reverse|slice:":3" %}
+                      <li class="comment-subContainer"><span class="comment-message">{{c.messageSummary}}</span><span class="comment-sender">{{c.messanger}}</span></li>
+                        <!-- <li><span class="comment-sender">{{c.messanger}}</span> <span class="comment-message">{{c.messageSummary}}</span></li> -->
+                      {% endfor %}
+                      <li style="text-align: center; border: none;" class="comment-subContainer" > <small><a style="text-decoration: none;"  href="{% url 'home:place' post.schedulePlace.id post.monthN post.yearN  %}">See all</a></small></li>
+                    </ul>
+                    </details>
+                    {% endif %}
+                  </p>
+                </div>
+                <small class="opacity-50 text-nowrap">{{post.monthN}}/{{post.dateN}}/{{post.yearN}}</small>
+                
+              </div>
+            </span>
+            {% endfor %}
+          </div>
+          <!--  -->
+        </div>
+      </div>
+      <div style="text-align: center">
+
+<!-- Transaction HTML -->
+
+{% if pageUser.name != request.user.username %}
+
+{% endif %}
+<!-- END Transaction HTML -->
+        {% if message %}
+        <h2>{{message}}</h2>
+        {% endif %}
+        <div class="container-table">
+  <table class="tg table">
+    <caption>Transaction Records</caption>
+    <tbody>
+    {% if pageUser.userID != request.user.id %}
+        {% for transactor in pageUser.unconfirmedTransaction %}
+          {% if transactor.initiator.userID == request.user.id %}
+            <tr>
+              <td>
+                <button class="view-button" onclick="confirmTransaction('{{transactor.id}}',true)">Confirm</button>
+                <button class="cancel-button" onclick="confirmTransaction('{{transactor.id}}',false)">Cancel</button>
+              </td>
+              <td>
+                <div class="user-info">
+                  <div class="user-info__img">
+                    <img src="{{transactor.initiator.photo|default:'https://st3.depositphotos.com/3581215/18899/v/600/depositphotos_188994514-stock-illustration-vector-illustration-male-silhouette-profile.jpg'}}">
+                  </div>
+                  <div class="user-info__basic">
+                    <span>{{transactor.target.name}}</span>
+                    <p class="receipt-no">₱ {{transactor.amount}}</p>
+                  </div>
+                </div>
+              </td>
+              <td class="time-stamp">{{transactor.target.contact}}</td>
+            </tr>
+          {% endif %}
+        {% endfor %}
+      <!-- Top if Different User View-->
+      {% else %}
+      <!-- Bottom Same User View -->
+      {% for transactor in pageUser.lastFewTransaction %}
+      <tr>
+        {% if transactor.confirmed == True %}
+        <td title="confirmed" onclick="alert('Confirmed')">
+          <svg viewBox="0 0 16 16" class="user-svg" onclick="alert('User is Verified')">
+            <path d="M10.067.87a2.89 2.89 0 0 0-4.134 0l-.622.638-.89-.011a2.89 2.89 0 0 0-2.924 2.924l.01.89-.636.622a2.89 2.89 0 0 0 0 4.134l.637.622-.011.89a2.89 2.89 0 0 0 2.924 2.924l.89-.01.622.636a2.89 2.89 0 0 0 4.134 0l.622-.637.89.011a2.89 2.89 0 0 0 2.924-2.924l-.01-.89.636-.622a2.89 2.89 0 0 0 0-4.134l-.637-.622.011-.89a2.89 2.89 0 0 0-2.924-2.924l-.89.01-.622-.636zm.287 5.984-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7 8.793l2.646-2.647a.5.5 0 0 1 .708.708z"></path>
+          </svg>
+        </td>
+        {% elif transactor.confirmed == False %}
+        <td>
+          <button class="cancel-button">Canceled</button>
+        </td>
+        {% elif transactor.initiator.userID == request.user.id %}
+        <td>
+          <button class="view-button" onclick="confirmTransaction('{{transactor.id}}',true)">Confirm</button>
+          <!-- <button class="cancel-button" onclick="confirmTransaction('{{transactor.id}}',false)">Cancel</button> -->
+        </td>
+        {% else %}
+        <td><button class="view-button" >Pending</button></td>
+        {% endif %}
+      
+        {% if transactor.initiator.userID == request.user.id %}
+        <td>
+          <div class="user-info">
+            <div class="user-info__img">
+              <img src="{{transactor.target.photo|default:'https://st3.depositphotos.com/3581215/18899/v/600/depositphotos_188994514-stock-illustration-vector-illustration-male-silhouette-profile.jpg'}}">
+            </div>
+            <div class="user-info__basic">
+              <span>{{transactor.target.name}}</span>
+              <p class="receipt-no">₱ -{{transactor.amount}}</p>
+            </div>
+          </div>
+        </td>
+
+        <td><a href="{% url 'userProfile:profileOf' csrf_token transactor.target.userID %}">View Profile</a></td>
+        <td class="time-stamp">{{transactor.target.contact}}</td>
+        {% else %}
+        <td>
+          <div class="user-info">
+            <div class="user-info__img">
+              <img src="{{transactor.initiator.photo|default:'https://st3.depositphotos.com/3581215/18899/v/600/depositphotos_188994514-stock-illustration-vector-illustration-male-silhouette-profile.jpg'}}">
+            </div>
+            <div class="user-info__basic">
+              <span>{{transactor.initiator.name}}</span>
+              <p class="receipt-no">₱ {{transactor.amount}}</p>
+            </div>
+          </div>
+        </td>
+        <td><a href="{% url 'userProfile:profileOf' csrf_token transactor.target.userID %}">View Profile</a></td>
+        <td class="time-stamp">{{transactor.initiator.contact}}</td>
+        {% endif %}
+
+      </tr>
+      {% endfor %}
+    {% endif %}
+    </tbody>
+  </table>
+</div>
+      </div>
+    </div>
+    <div style="text-align: center;" >
+      <!-- <img src="{{pageUser.member_ID}}" class="img-fluid border rounded-4 shadow-lg mb-4" > -->
+    </div>
+
+    {% else %}
+
+    <div style=" margin: 0 auto; text-align: center; margin-top: 3rem; max-width: 400px;">
+      <div >
+        <div class="modal-content rounded-4 shadow">
+          <div id="signUpForm" class="modal-body p-5 pt-0" style="display: none">
+            <div class="modal-header p-5 pb-4 border-bottom-0">
+              <!-- <h1 class="modal-title fs-5">Modal title</h1> -->
+              {% if message != 'Please Log in' %}
+              <h1 class="fw-bold mb-0 fs-2">{{message}}</h1>
+              {% else %}
+              <h1 class="fw-bold mb-0 fs-2">Sign up for free</h1>
+              {% endif %}
+            </div>
+            <form method="post" action="{%  url 'userProfile:registerUser' %}">
+              {% csrf_token %}
+              <div class="form-floating mb-3">
+                <input required id="usernameInput" class="form-control rounded-3" type="text" name="userName" placeholder="Username" />
+                <label for="usernameInput">User Name</label>
+              </div>
+              <div class="form-floating mb-3">
+                <input required id="userContactInput" class="form-control" type="text" name="userEmail" placeholder="Email Address" />
+                <label for="userContactInput">Your Contact Information</label>
+              </div>
+              <div class="form-floating mb-3">
+                <input required id="PasswordInput1" class="form-control" type="password" name="userPassword" placeholder="Password" />
+                <label for="PasswordInput1">Password</label>
+              </div>
+              <div class="form-floating mb-3">
+                <input required id="PasswordInput2" class="form-control" type="password" name="userPasswordConfirmation" placeholder="Confirm Password" />
+                <label for="PasswordInput2">Password Confirmation</label>
+              </div>
+              <button class="w-100 mb-2 btn btn-lg rounded-3 btn-warning" type="submit">Sign up</button>
+              <small class="text-muted">By clicking Sign up, you agree to the terms of use.</small>
+                  <div>
+              <div>
+                <div>
+                  <p style="margin-left: 1em; margin-top: 3em;">Registering means you agree with our
+                    <a href="{% url 'userProfile:privacypolicy' %}">Privacy Policy</a>
+                    <a href="{% url 'userProfile:termsandconditions' %}">Terms and Conditions</a>
+                  </p>
+                </div>
+              </div>
+            </div>
+              <hr class="my-4" />
+
+              <small>put a button loging with facebook</small>
+              
+              <!-- TODO ADD LINK TO Third party sign ups -->
+              <!-- <h2 class="fs-5 fw-bold mb-3">Or use a third-party(TODO)</h2>
+              <button class="w-100 py-2 mb-2 btn btn-outline-dark rounded-3" type="submit">
+                <svg class="bi me-1" width="16" height="16"><use xlink:hre  f="#twitter"></use></svg>
+                Sign up with Twitter
+              </button>
+              <button class="w-100 py-2 mb-2 btn btn-outline-primary rounded-3" type="submit">
+                <svg class="bi me-1" width="16" height="16"><use xlink:href="#facebook"></use></svg>
+                Sign up with Facebook
+              </button>
+              <button class="w-100 py-2 mb-2 btn btn-outline-secondary rounded-3" type="submit">
+                <svg class="bi me-1" width="16" height="16"><use xlink:href="#github"></use></svg>
+                Sign up with GitHub
+              </button> -->
+          </form>
+          <!-- <small>put a button loging with facebook</small> -->
+                {% csrf_token %}
+              <!-- <button class="w-100 py-2 mb-2 btn btn-outline-primary rounded-3" type="submit">
+                <svg class="bi me-1" width="16" height="16"></svg>
+                Sign up with Facebook
+              </button> -->
+            </form> 
+          </div>
+        </div>
+      </div>
+      <div id="signIpForm" >
+        <!-- UN Authenticate Section -->
+        <div class="modal-body p-5 pt-0">
+          {% if message != 'Please Log in' %}
+          <h1 class="fw-bold mb-0 fs-2">{{message}}</h1>
+          {% endif %}
+
+
+          <form method="post" action="{%  url 'userProfile:loginUser' %}">
+            {% csrf_token %}
+            <div class="form-floating mb-3">
+              <input id="userLoginInput" required class="form-control" autofocus type="text" name="userName" placeholder="Username" />
+              <label for="userLoginInput">Username</label>
+            </div>
+            <div class="form-floating mb-3">
+              <input id="passwordLoginInput" required class="form-control" type="password" name="userPassword" placeholder="Password" />
+              <label for="passwordLoginInput">Password</label>
+            </div>
+            <div style=" justify-content: space-evenly;">
+              <button style="margin: 0 auto; width: 100%;" class="btn btn-primary" type="submit">Login</button>
+              <button style="width: 100%; margin-top: 1em;" type="button" class="btn btn-warning" onclick="document.querySelector('#signUpForm').style.display = 'block';document.querySelector('#signIpForm').style.display = 'none';">Sign-up</button>
+            </div>
+          </form>
+          <!-- <small>put a button loging with facebook</small> -->
+            {% csrf_token %}
+
+          <!-- <button class="w-100 py-2 mb-2 btn btn-outline-primary rounded-3" type="submit">
+            <svg class="bi me-1" width="16" height="16"></svg>
+            Login with Facebook
+          </button> -->
+        </form>
+
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+
+    <!-- END LOGIN FORM MODAL -->
+
+<!--  -->
+<!--  -->
+<!--  -->
+<!--  -->
+<!--  -->
+<!--  -->
+<!--  -->
+<style>
+  .card {
+    box-shadow: 0 1px 3px 0 rgba(0,0,0,.1), 0 1px 2px 0 rgba(0,0,0,.06);
+}
+
+.card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    word-wrap: break-word;
+    background-color: #fff;
+    background-clip: border-box;
+    border: 0 solid rgba(0,0,0,.125);
+    border-radius: .25rem;
+}
+
+.card-body {
+    flex: 1 1 auto;
+    min-height: 1px;
+    padding: 1rem;
+}
+
+.gutters-sm {
+    margin-right: -8px;
+    margin-left: -8px;
+}
+
+.gutters-sm>.col, .gutters-sm>[class*=col-] {
+    padding-right: 8px;
+    padding-left: 8px;
+}
+.mb-3, .my-3 {
+    margin-bottom: 1rem!important;
+}
+
+.bg-gray-300 {
+    background-color: #e2e8f0;
+}
+.h-100 {
+    height: 100%!important;
+}
+.shadow-none {
+    box-shadow: none!important;
+}
+</style>
+<style type="text/css">
+  @import url("https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap");
+  body {
+    background: #f9f9f9;
+    font-family: "Roboto", sans-serif;
+  }
+
+  .main-content {
+    padding-top: 100px;
+    padding-bottom: 100px;
+  }
+
+  .table {
+    border-spacing: 0 15px;
+    border-collapse: separate;
+  }
+  .table thead tr th,
+  .table thead tr td,
+  .table tbody tr th,
+  .table tbody tr td {
+    vertical-align: middle;
+    border: none;
+  }
+  .table thead tr th:nth-last-child(1),
+  .table thead tr td:nth-last-child(1),
+  .table tbody tr th:nth-last-child(1),
+  .table tbody tr td:nth-last-child(1) {
+    text-align: center;
+  }
+  .table tbody tr {
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+  }
+  .table tbody tr:hover {
+    background: #d0d0d0;
+  }
+
+  .table tbody tr td:nth-child(1) {
+    border-radius: 5px 0 0 5px;
+  }
+  .table tbody tr td:nth-last-child(1) {
+    border-radius: 0 5px 5px 0;
+  }
+
+  .user-info {
+    display: flex;
+    align-items: center;
+  }
+  .user-info__img img {
+    margin-right: 15px;
+    height: 55px;
+    width: 55px;
+    border-radius: 45px;
+    border: 3px solid #fff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  .container-table {
+    /* width: 100%; */
+    text-align: center;
+    margin: 5px;
+  }
+  table {
+    width: inherit;
+    
+  }
+  .tg {
+    border-collapse: collapse;
+    border-spacing: 0;
+    font-family: Georgia, "Times New Roman", Times, serif;
+  }
+  .tg caption {
+    border-bottom: 1px black solid;
+    padding: 10px 5px;
+  }
+  .tg td {
+    /* border-color: black;
+    border-style: solid;
+    border-width: 1px; */
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    overflow: hidden;
+    padding: 10px 5px;
+    word-break: normal;
+  }
+  .tg th {
+    /* border-color: black;
+    border-style: solid;
+    border-width: 1px; */
+    border-bottom: black solid 1px;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    font-weight: normal;
+    overflow: hidden;
+    padding: 10px 5px;
+    word-break: normal;
+  }
+  .tg .tg-0lax {
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .time-stamp {
+    color: red;
+  }
+  .receipt-no {
+    color: grey;
+  }
+  .view-button {
+    background-color: rgb(0, 183, 255);
+    border: none;
+    border-radius: 4px;
+    color: white;
+  }
+  .cancel-button {
+    background-color: rgb(255, 64, 0);
+    border: none;
+    border-radius: 4px;
+    color: white;
+    margin-top: 15px;
+  }
+  .user-svg {
+    padding-right: 4px;
+    height: 16px;
+    padding-left: 4px;
+    padding-right: 4px;
+    fill: #428bca;
+  }
+</style>
+
+  </body>
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2882527506814305"
+     crossorigin="anonymous"></script>
+<ins class="adsbygoogle"
+     style="display:block; text-align:center;"
+     data-ad-layout="in-article"
+     data-ad-format="fluid"
+     data-ad-client="ca-pub-2882527506814305"
+     data-ad-slot="7020610786"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+     function hide(element){
+   element.style.display = 'none';
+}
+</script>
+<script>
+  // document.querySelectorAll('img').forEach(img => {
+  //   img.src = 'https://st3.depositphotos.com/3581215/18899/v/600/depositphotos_188994514-stock-illustration-vector-illustration-male-silhouette-profile.jpg';
+  // });
+  
+  </script>
+      <script>
+  const btn = document.getElementById("openModalBtn");
+  const modalEl = document.getElementById("changePasswordModal");
+
+  btn.addEventListener("click", () => {
+    btn.style.display = "none"; // hide the button
+    console.log('clicked');
+    // Show the Bootstrap modal programmatically
+    modalEl.style.display = "block"; // Ensure the modal is visible
+    // const modal = new bootstrap.Modal(modalEl);
+    // modal.show();
+  });
+</script>
+</html>

@@ -1,0 +1,932 @@
+{% load humanize %} {% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="48x48" href="{% static 'home/images/favicon-48x48.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'home/images/favicon-16x16.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'home/images/favicon-32x32.png' %}">
+
+    <meta property="og:image" content="{{resortObject.headerImage}}" />
+    <meta property="og:description" content="{{resortObject.description}}" />
+    <meta property="og:title" content="{{resortObject.RealName}}" />    
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />    
+    <!-- Fancy Box -->
+    <link rel="stylesheet"href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@6.0/dist/fancybox/fancybox.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@6.0/dist/fancybox/fancybox.umd.js"></script>
+    <script defer type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+
+
+
+    <!-- Google tag (gtag.js) -->
+    <script defer src="https://www.googletagmanager.com/gtag/js?id=G-MH2W7TQEH3"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-MH2W7TQEH3');
+    </script>    
+
+    <link rel="stylesheet" href="{% static 'resorts/layout.css' %}" />
+    <title>{{resortObject.name}} </title>
+
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4843007524416588"
+     crossorigin="anonymous"></script>
+    <script>
+
+    </script>    
+
+
+    <script>
+
+      function bookNow(toBook) {
+        monthName = document.querySelectorAll('.month')[1].textContent;
+        dom = document.querySelector("#contact-form-link");
+        dom.click()
+        bookContainer = document.querySelector("#guest_book");
+        bookContainer.value = monthName+'\n'+toBook +'\n';
+        bookContainer.style.display = "block";
+      }
+
+      function closeModal() {
+        dom = document.querySelector(".modal-container-main");
+        if (dom.style.display == "none") {
+          dom.style.display = "block";
+        } else {
+          dom.style.display = "none";
+        }
+      }
+      // *************** *************** ***************
+      // *************** SENDING MESSAGE ***************
+      // *************** *************** *************** START
+      // TODO CHANGE
+      DATA_BASE_URL = "http://127.0.0.1:8000/resortDB/{{resortObject.id}}";
+      // DATA_BASE_URL = "https://treep.today/resortDB/{{resortObject.id}}";
+      webID = "{{resortObject.id}}";
+      function SendGuestMessage() {
+        guestContact = document.querySelector("#guest_contact").value;
+        if (guestContact == "") {
+          return alert("Please Provide Contact");
+        }
+        guestMessage = document.querySelector("#guest_message").value;
+        booking = document.querySelector("#guest_book").value+'USER_Logged_in: {{request.user}}\n';
+        guestMessage += booking;
+        if (guestMessage == "") {
+          return alert("What is your Message");
+        }
+
+        fetch(DATA_BASE_URL, {
+          method: "POST",
+          body: JSON.stringify({
+            guestContact: guestContact,
+            guestMessage: guestMessage,
+            webID: webID,
+          }),
+        }).then((response) => {
+          console.log('SENDING>..')
+          sendEmail(guestContact, guestMessage, webID);
+          console.log('email sent')
+          alert("Message Sent");
+        });
+        // closeModal  document.querySelector("#guest_book")
+        closeModal();
+      }
+      //  <script src="https://smtpjs.com/v3/smtp.js">
+      function sendEmail(guestContact, guestMessage, resortID) {
+        Email.send({
+          Host: "smtp.elasticemail.com",
+          Username: "dayo_john16@yahoo.com",
+          Password: "791C3E113E1577E526AF1AD519D12D712925",
+          To: "dayo_john16@yahoo.com",
+          From: "dayo_john16@yahoo.com",
+          Subject: `{{resortObject.RealName}} - ${resortID}: ${guestContact}`,
+          Body: guestMessage,
+        }).then((message) => alert("to ensure receiving your message please email us Twice, or contact us Directly from contact below this page", message));
+      }
+      // *************** *************** ***************
+      // *************** SENDING MESSAGE ***************
+      // *************** *************** *************** END
+      function addClassZoom(id) {
+        elem = document.getElementById(id);
+        elem.classList.add("block-container-sub-content");
+      }
+      // id="Package-{{act.id}}" onclick="PutToBlockContainer(id)"
+      function hideThisContainer(containerID) {
+        elem = document.getElementById(containerID);
+        elem.style.display = "none";
+        console.log("Hided");
+      }
+      function PutToBlockContainer(blockID) {
+        mainContainer = document.getElementById("mainBlockContainer");
+        mainContainer.style.display = "block";
+        elem = document.getElementById(blockID);
+        newNode = elem.cloneNode(false);
+        newNode.removeAttribute("id");
+        newNode.removeAttribute("onclick");
+        content = document.querySelector(".block-container-sub-content");
+        toReplace = content.firstElementChild;
+        content.replaceChild(newNode, toReplace);
+        console.log("done");
+      }
+
+
+
+      function next_calendar_button(next_previous){
+        calendar_open_container = document.querySelector('.single_calendar_main_container')
+        // this.style.display='none'
+        calendar_open = document.querySelector(`#calendar_object_month-${month_number}`)
+          calendar_open.style.display = 'none'
+          console.log('Not')
+          if (next_previous == 'next'){
+            // calendar_open = document.querySelector(`#calendar_object_month-${month_number+1}`)
+            if (month_number >=12) {
+              alert('Please Inclue in your message if you want next year')
+              calendar_open.style.display = 'block'
+              return}
+            month_number+=1
+
+
+          }else {
+            if (month_number <=1 ){
+              calendar_open.style.display = 'block'
+              return}
+            month_number-=1
+          }
+          calendar_open = document.querySelector(`#calendar_object_month-${month_number}`)
+          calendar_open.style.display = 'block'
+        
+      }
+      month_number = parseInt(`{{currentMonth}}`)
+      
+    </script>
+
+
+  </head>
+
+
+  <body>
+    
+
+  <!-- RESORT PICTURE -->
+  <div id="RESORTURLMODAL" class="" tabindex="-1" role="dialog" id="modalSheet" onclick="this.style.display = 'none';">
+    <div class="qr_image_container" role="document">
+      <div class=" rounded-4 shadow qr_image" >
+        <div class="modal-header border-bottom-0">
+        <img id="qr_code_image" src="{{resortObject.resortQRLink}}">
+      
+        </div>
+          <a href="{{resortObject.resortQRLink}}" target="_blank" class="btn btn-primary" download>Download</a>      
+      </div>
+    </div>
+  </div>
+  <!--  -->
+  <div>
+    <header  class="header" style="min-height: 40vh;background-size: cover;background-position: bottom;background-image: url('{{resortObject.headerImage}}');">
+      <span onclick="document.querySelector('#RESORTURLMODAL').style.display= 'block';" class="header-sub">
+        <h1 class="header-name">{{resortObject.RealName}}</h1>
+        <div class="header-name-sub">
+          <hr style="padding: 0; margin: 0" />
+          <small style="padding: 0; margin: 0; color: white"> {{resortObject.address}} </small>
+        </div>
+      </span>
+    </header>
+    <!-- MODALMODAL -->
+  </div>
+
+    <div class="bottom-nav" >
+      <ul class="nav justify-content-center">
+        <li class="nav-item"><a href="#activities-packages">Activities</a></li>
+        <li class="nav-item"><a href="#tour-packages">Promotion</a></li>
+        <li class="nav-item"><a href="#accomodation-packages">Accomodation</a></li>
+        <li class="nav-item"><a href="https://maps.google.com/maps?q={{resortObject.latitude}},%20{{resortObject.longitude}}&t=&z=13&ie=UTF8&iwloc=&output=embed" data-fancybox data-type="iframe" data-width="640" data-height="480">Map</a></li>
+        <li class="nav-item"><a id="contact-form-link" data-fancybox data-src="#contact-form-dialog">Contact</a></li>
+      </ul>
+    </div>
+
+
+
+
+
+
+    <!-- MODALMODAL -->
+    <!-- STYLE FOR ADDING FORM -->
+    <!--  -->
+    <div class="wrapper">
+      <article class="main">
+        <p style="padding: 10px;" > {{resortObject.description}} </p>
+        {% if resortObject.TourList %}
+          <div id="tour-packages" class="tour-packages">
+            <div>
+              <aside class="aside">
+              <details open>
+                <summary class="tour-summary">
+                  <h3 class="column-sub-title">Get our</h3>
+                  <div style="padding-left: 30%; padding-right: 30%">
+                    <hr style="margin: 0; padding: 0" />
+                  </div>
+                  <h2 class="column-title">Special Promotions</h2>
+                </summary>
+                <!--  -->
+                <button class="button-hide-aside yellow-green" onclick="document.querySelector('.tour-summary').click()">
+                  <svg fill="none" height="16px" width="16px" viewBox="0 0 24 24" class="sc-16r8icm-0 coGWQa">
+                    <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
+                  </svg>
+                </button>
+                <!--  -->
+                {% for acc in resortObject.TourList %}
+                <details open class="package-summary ">
+                  {% if managerUser %}
+                  <a onclick="confirm('Deleted {{acc.PackageTitle}}')" href="{% url 'resorts:removeResortPackage' acc.id %}" class="button-delete-package">
+                    <svg width="24px" height="24px" data-v-52ef1373="" viewBox="0 -2 24 24" class="icon-24px">
+                      <path data-v-52ef1373="" fill="currentColor" d="M9,3V4H4V6H5V19A2,2 0 0,0 7,21H17A2,2 0 0,0 19,19V6H20V4H15V3H9M7,6H17V19H7V6M9,8V17H11V8H9M13,8V17H15V8H13Z"></path>
+                    </svg>
+                    <span>Delete {{acc.PackageTitle}}</span>
+                  </a>
+                  {% endif %}
+                  <summary class="sub-package-summary wew" >
+                    <span class=""> {{acc}} </span>
+                  </summary>
+                  <!--  -->
+                  {% if managerUser %}
+                    <div>
+                      <div class="package-form-css-container ">
+                        <!-- FORM FOR TOUR PACKAGes -->
+                        <form class="package-form-css"  method="post" action="{% url 'resorts:createPackaged' %}">
+                          <p>New Item for: {{acc.PackageTitle}}</p>
+                          {% csrf_token %}
+                          <input hidden readonly name="packageID" value="{{acc.id}}" />
+                          <input name="title" placeholder="Title" />
+                          <input name="description" placeholder="Description" />
+                          <input name="information" placeholder="Information" />
+                          <input name="price" placeholder="Price" value="" />
+                          <button>Create</button>
+                        </form>
+                      </div>
+                    </div>
+                  {% endif %}
+                  <!-- ------------- -->
+                  <span>
+                    {% for sub in acc.subPackagesList %}
+                    <li style="margin-top: 3rem">
+                      <div id="carousel-acc-{{sub.id}}" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-inner">
+                        {% for images in sub.images %}
+                          <div class="carousel-item">
+
+
+                            <a data-fancybox href="{{images.urlField}}" data-caption="{{sub.description}}">
+                              <img  class="d-block w-100"  src="{{images.urlField}}"  alt="" id="{{images.id}}-{{acc.id}}-{{sub.id}}-Slides" />
+                            </a>                          
+
+                          </div>
+                        {% endfor %}
+                        <div class="carousel-item active">
+                            <a data-fancybox href="{{sub.images.last.urlField}}" data-caption="{{sub.description}}">
+                              <img  class="d-block w-100"  src="{{sub.images.last.urlField}}"  alt="" id="{{sub.images.id}}-{{acc.id}}-{{sub.id}}" />
+                            </a>                               
+                        </div>
+                      </div>
+                        <!--  -->
+                      <span>
+                        <span>
+                          {{sub}} 
+                          {% if managerUser %}
+                            <button id="{{sub.id}}" onclick="alert(id)" class="button-delete-package">
+                              <svg width="24px" height="24px" data-v-52ef1373="" viewBox="0 -2 24 24" class="icon-24px"><path data-v-52ef1373="" fill="currentColor" d="M9,3V4H4V6H5V19A2,2 0 0,0 7,21H17A2,2 0 0,0 19,19V6H20V4H15V3H9M7,6H17V19H7V6M9,8V17H11V8H9M13,8V17H15V8H13Z"></path></svg>
+                              <span>Delete {{sub}}</span>
+                            </button>
+                            <form  enctype="multipart/form-data" method="post" action="{% url 'resorts:createImage' %}">
+                              {% csrf_token %}
+                              <!-- {{masterURLform.thismatter}} -->
+                              <input hidden readonly name="subID" value="{{sub.id}}" />
+                              <p>
+                                <!-- <label for="id_image">Image:</label> -->
+                                <input name="imageURL" placeholder="Image URL for {{sub.title}}" />
+                                <input type="file" name="image" accept="image/*" required="" id="id_image">
+                              </p>                          
+                              <button>Submit </button>
+                            </form>
+                          {% endif %}
+                        </span>
+                        <p>{{sub.description}}</p>
+                        <p>{{sub.information}}</p>
+                        <div style="text-align: right">
+                          {% if sub.price %}
+                          <strong class="price-indicator">₱{{sub.price| intcomma}}</strong>
+                          {% endif %}
+                          <!-- <a href="{% url 'resort_management:movemarkedcalendarnamed' resortObject.id sub.id currentMonth currentYear 'next' %}" class="btn btn-danger" >Check Availability</a>                           -->
+                          <a href="" data-fancybox data-src="#dialog-content-{{sub.id}}-{{resortObject.id}}" class="btn btn-danger">Check Availability</a>
+                          <div id="dialog-content-{{sub.id}}-{{resortObject.id}}" style="display:none;">
+                            <iframe sandbox="allow-scripts allow-forms allow-popups allow-same-origin" src="{% url 'resort_management:movemarkedcalendarnamed' resortObject.id sub.id currentMonth currentYear 'upload_id' %}"></iframe>
+
+                          </div>                          
+                          <button class="button-book" onclick="bookNow('Booking {{sub.title}}\n ₱{{sub.price|intcomma}}')">Join</button>
+                        </div>
+                        <hr>
+                      </span>
+                    </li>
+                    {% endfor %}
+                  </span>
+
+                </details>
+                {% endfor %}
+              </details>
+            </aside>
+            </div>
+          </div>
+        {% endif %}
+
+        {% if resortObject.promotionalVideo %}
+
+        <!-- <iframe width="1030" height="579" src="https://www.youtube.com/embed/RWce490UIPo" title="3rd Forbes Travel Guide Five Star Award | Okada Manila" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe> -->
+          <div style="margin: 0 auto; text-align: center;">
+            <a class="video-link" href="{{resortObject.promotionalVideo}}" data-fancybox="video-gallery">
+              <img alt="Video poster #1" width="736" height="444" src="{{resortObject.headerImage}}" />
+              <span class="play-overlay">
+                ▶
+                <div>Watch</div>
+              </span>
+              
+            </a>         
+          </div>         
+        {% else %}
+        {% endif %}
+    
+        {% if resortObject.virtualpicture %}
+        <button class="btn btn-danger" data-fancybox data-src="#three-sixty-picture">360 View</button>
+        <div id="three-sixty-picture" style="display:none;">
+
+                  <!-- <div class="iframe-overlay" 
+                      style="position: absolute; top:0; left:0; width:100%; height:100%; z-index:2; background:transparent; cursor:pointer;">
+                  </div>         -->
+                  <div class="f-html">
+                    <iframe
+                      class="f-iframe"
+                      src="{{resortObject.virtualpicture}}"
+                      allowfullscreen="true">
+                    </iframe>
+                  </div>
+
+        </div>            
+        {% endif %}
+
+ 
+        <!-- <iframe style="border: 0px; padding: 0; margin: 0" width="736" height="444" src="https://www.youtube.com/embed/Ua64zisXhCs" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture;" allowfullscreen></iframe> -->
+        <!-- <iframe width="858" height="358" src="https://www.youtube.com/embed/Ua64zisXhCs" title="FlipTop - Sinio vs Apekz" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe> -->
+        <!-- <iframe style="border: 0px;padding: 0;margin: 0;" width="736" height="444" src="{{resortObject.promotionalVideo}}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture;" allowfullscreen></iframe> -->
+ 
+
+ 
+      </article>
+      {% block body %} {% endblock %}
+      <footer class="footer" >
+        <!-- <span class="button-close contact-us" onclick="closeModal()" class="close">Contact Us</span> -->
+        {% if managerUser %}
+        <div class="button-close contact-us"> 
+          <span><a class="mb-3" style="text-decoration: none;" href="{% url 'resort_management:room_list' resortObject.id%}"> View Schedule</a></span>
+          <span><a class="mt-3" href="{% url 'resort_management:getguesstlists' resortObject.id %}">View Check In</a></span>
+        </div>
+        
+                                <!-- <h1>Manager: {{isManager.additionalCreds.name}}</h1> -->
+                        <!-- <button hidden class="payBtn" data-packagetitle="{{room_item.title}}" data-packageprice="{{room_item.price}}" data-packageresortid="{{room_item.packageName.id}}" data-packageid="{{room_item.id}}"> Check in </button>                     -->
+        
+
+        {% else %}
+        <span class="button-close contact-us" onclick="bookNow('Inquiry')" class="close">Contact Us
+        {% endif %}
+        </span>
+        <br /><br />
+        <div class="mapouter">
+          <div class="gmap_canvas">
+          </div>
+        </div>
+
+      </footer>
+    </div>
+       
+    
+    <script>
+      Fancybox.bind('[data-fancybox]', {
+        //
+      });    
+    </script>
+  </body>
+
+  <footer id="footer-nav" class="py-3 my-4">
+    <ul class="nav  border-bottom pb-3 mb-3">
+      <li class="nav-item">
+        <i class="new-footer-icon-container">
+          <svg class="bi bi-geo-alt" viewBox="0 0 16 16" width="22px" style="fill: rgb(117, 165, 249)">
+            <path d="M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A31.493 31.493 0 0 1 8 14.58a31.481 31.481 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94zM8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10z"></path>
+            <path d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path>
+          </svg>
+          {{resortObject.address}}
+        </i>
+
+
+      <li class="nav-item">
+        <i class="new-footer-icon-container">
+          <svg viewBox="0 0 16 16" width="22px" style="fill: rgb(55, 165, 255)">
+            <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z"></path>
+          </svg>
+          {{resortObject.contactNumber}}
+        </i>
+
+      <li class="nav-item">
+        <i class="new-footer-icon-container">
+          <svg viewBox="0 0 24 16" width="22px" style="fill: rgb(55, 165, 255)">
+            <path d="M23.9 1.8h-.2L14 11.5c-1.1 1.1-2.8 1.1-3.9 0L.3 1.9c-.1-.1-.1-.1-.2 0-.1 0-.1 0-.1.1v12c0 1.1.9 2 2 2h20c1.1 0 2-.9 2-2V2c0-.1 0-.1-.1-.2z"></path>
+            <path d="M11.1 10.6c.5.5 1.3.5 1.8 0L22.6.9c.1-.1.2-.3.1-.5-.1-.4-.4-.4-.7-.4H2c-.3 0-.6 0-.7.4-.1.2 0 .4.1.5z"></path>
+          </svg>
+          {{resortObject.contactEmail}}
+        </i>  
+      </li>
+      <li class="nav-item">
+        <i class="new-footer-icon-container">
+          <a href="/carpool" class="btn btn-primary button-book">Find Carpool</a>
+        </i>  
+      </li>
+      <li class="nav-item"><p class="text-center text-muted" style="margin-left: 10px;margin-bottom: 8em;">© 2022 Company, Inc</p></li>
+      {% if managerUser %}
+      <li class="nav-item"><p class="text-center text-muted" style="margin-left: 10px;margin-bottom: 8em;">Admin Contact </p></li>
+      <li class="nav-item"><p class="text-center text-muted" style="margin-left: 10px;margin-bottom: 8em;">johnwebsiteprojects@gmail.com</p></li>
+      <li class="nav-item"><p class="text-center text-muted" style="margin-left: 10px;margin-bottom: 8em;">+639765514253</p></li>
+      {% endif %}
+
+
+<!-- Facebook Share Button -->
+      
+      <li class="nav-item"><p class="btn btn-primary" style="margin-left: 10px;margin-bottom: 8em;"><button class="btn btn-primary" id="fb-share-btn">Share {{resortObject.RealName}} on Facebook</button> </p></li>
+
+      <script>
+        const fbShareBtn = document.getElementById('fb-share-btn');
+        fbShareBtn.addEventListener('click', () => {
+          const pageUrl = encodeURIComponent(window.location.href); // URL of current page
+          const fbShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${pageUrl}`;
+          window.open(fbShareUrl, '_blank', 'width=600,height=400');
+        });
+      </script>
+
+    </ul>
+  </footer>
+
+
+
+  
+  <div>
+    <!-- modal-container-main inset here -->
+    <div class="modal-container-main" style="display: none">
+      <div class="modal-container-sub">
+        <span class="button-close bigger-font" onclick="closeModal()" class="close">&times;</span>
+  
+      </div>
+    </div>
+
+
+<div id="contact-form-dialog" style="display:none;">
+      <div class="modal-item-head">
+          <!-- form Start here -->
+          <form id="contact-form">
+            <!-- <input type="text" name="from_name" value="{{resortObject.RealName}}"> -->
+            <input style="display: none;" hidden type="email" name="to_name" value="{{resortObject.contactEmail}}">
+
+            <div class="form-floating mb-3">
+              <label for="guest_name">Your Name</label>
+              <input name="from_name" type="text" class="form-control custom-field text-contact-input" id="guest_name" placeholder="" />
+            </div>
+
+            <div class="form-floating mb-3">
+              <label for="guest_contact">Your Contact</label>
+              <input name="sender_contact" type="text" class="form-control custom-field text-contact-input" id="guest_contact" placeholder="name@example.com" />
+            </div>
+            <input style="display: none;" hidden type="email" name="reply_to" value="johnwebsiteprojects@gmail.com">
+            <!--  -->
+            <!-- <input id="guest_contact" placeholder="Your Contact" class="custom-field"> -->
+              <hr />
+            <!-- <textarea  style="min-height: 40vh; display: block; margin: 0 auto;" class="custom-field"></textarea> -->
+            <!--  -->
+            <div class="input-group" style="padding-bottom: 1rem">
+              <div class="custom-field">
+                <textarea name="message" placeholder="Your Message" id="guest_message" aria-label="With textarea" class="text-contact-input" style="height: 150px"></textarea>
+                <button class="button-send" type="submit" style="flex-flow: row wrap;">
+                  <span>
+                    <svg viewBox="0 0 16 16" width="70%" style="fill: #2196f3">
+                      <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z"></path>
+                    </svg>
+                  </span>
+                  <span>
+                    Send
+                  </span>
+                </button>
+                {% for eachCalendarObject in calendarValues %}
+                <div id="calendar_object_month-{{eachCalendarObject.id}}" style="display: none">{{eachCalendarObject.calendar_html | safe}}</div>
+                {% endfor %}
+                <!-- <div id="calendar_object_month-{{currentMonth}}">{{calendarObject | safe}}</div> -->
+                <!-- <div>
+                  <a onclick="next_calendar_button('previous')" class="button_previous_month btn btn-primary">
+                    <svg width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
+                      <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+                    </svg>
+                  </a>
+                  <a onclick="next_calendar_button('next')" class="button_next_month btn btn-primary">
+                    <svg width="16" height="16" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
+                      <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/>
+                    </svg>
+                  </a>
+                </div> -->
+
+    <div class="calendar-nav">
+      <button type="button" class="btn btn-primary prev-month" onclick="next_calendar_button('previous')">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
+          <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+        </svg>
+        <span class="visually-hidden">Previous Month</span>
+      </button>
+
+      <button type="button" class="btn btn-primary next-month" onclick="next_calendar_button('next')">
+        <span class="visually-hidden">Next Month</span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
+          <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/>
+        </svg>
+      </button>
+    </div>            
+                <div class="single_calendar_main_container"> </div>
+              </div>
+            </div>
+            <!-- <span class="" style="width: 100px">
+              <button onclick="SendGuestMessage()" class="button-send">
+                <svg viewBox="0 0 16 16" width="50%" style="fill: #2196f3">
+                  <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z"></path>
+                </svg>
+              </button>
+            </span> -->
+            <!--  -->
+
+            <textarea name="booking_inquiry" readonly id="guest_book" class="custom-field text-contact-input" style="display: none; margin: 0 auto; padding-bottom: 1.5rem !important; height: 150px;"></textarea>
+            <!-- <input  type="submit" value="Send"> -->
+
+          </form> 
+
+          <!-- <h1 style="padding: 0; margin: 0;">Send</h1> -->
+          <!-- <i class="footer-notes-icon"> -->
+
+          <!-- </i> -->
+          <!-- </i> -->
+        </div>
+</div>
+
+
+
+
+
+
+
+
+
+  </div>  
+
+    {% if managerUser %}
+
+    <div class="modal modal-sheet position-static bg-body-secondary p-4 py-md-5" style="display: block;" tabindex="-1" role="dialog" id="modalTour">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content rounded-4 shadow">
+          <div class="modal-body p-5">
+            <h2 class="fw-bold mb-0">Edit</h2>
+            <hr>
+            <div> 
+              <ul class="list-unstyled">
+                <li class="d-flex gap-4">
+                  <svg fill="rgba(33, 37, 41, 0.75);" class="bi text-body-secondary flex-shrink-0" width="48" height="48" id="grid-fill" viewBox="0 0 16 16" >
+                    <path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5v-3zm8 0A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5v-3zm-8 8A1.5 1.5 0 0 1 2.5 9h3A1.5 1.5 0 0 1 7 10.5v3A1.5 1.5 0 0 1 5.5 15h-3A1.5 1.5 0 0 1 1 13.5v-3zm8 0A1.5 1.5 0 0 1 10.5 9h3a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1-1.5 1.5h-3A1.5 1.5 0 0 1 9 13.5v-3z"></path>
+                  </svg>
+                </li>        
+              </ul>      
+              <div>
+                <h5 class="mb-0">Background Picture</h5>
+                Save items you love for easy access later.
+              </div>
+<form  class="image-upload-form" id="imageform" enctype="multipart/form-data">
+  {% csrf_token %}
+  <div style="margin-bottom: 1rem;">
+    <label for="image">Choose an image:</label>
+    <input type="file" id="image" name="image" accept="image/*" />
+  </div>
+
+  <!-- Hidden field to store the uploaded image URL -->
+  <input type="hidden" id="url_status" name="image_url" />
+
+  <!-- Upload button -->
+  <button type="button" id="upload-btn">Upload</button>
+
+  <!-- Status message -->
+  <p id="status" style="color: #555; margin-top: 1rem;"></p>
+</form>
+
+              <form class="" method="post" action="{{matterURL}}" enctype="multipart/form-data">
+                {% csrf_token %} 
+                <!-- {{masterURLform.thismatter}} -->
+                {{masterURLform.thismatter2}}
+                <input name="whatsmatter" value="headerImage" hidden>
+                <button type="submit">Change picture</button> 
+              </form>
+            </div>
+            <hr>
+            <div> 
+              <li class="d-flex gap-4">
+                <svg fill="rgb(13, 110, 253)" id="film" viewBox="0 0 16 16" class="bi text-primary flex-shrink-0" width="48" height="48">
+                  <path d="M0 1a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H1a1 1 0 0 1-1-1V1zm4 0v6h8V1H4zm8 8H4v6h8V9zM1 1v2h2V1H1zm2 3H1v2h2V4zM1 7v2h2V7H1zm2 3H1v2h2v-2zm-2 3v2h2v-2H1zM15 1h-2v2h2V1zm-2 3v2h2V4h-2zm2 3h-2v2h2V7zm-2 3v2h2v-2h-2zm2 3h-2v2h2v-2z"></path>
+                </svg>
+              <div>
+                <h5 class="mb-0">Promotional Video</h5>
+                Share videos wherever you go.
+              </div>
+            </li>
+              <form class="" method="post" action="{{matterURL}}" enctype="multipart/form-data" > 
+                {% csrf_token %}
+                {{masterURLform.thismatter2}}
+                <input value="promotionalVideo"  name="whatsmatter" hidden>
+                <button >Change Video Url</button>
+              </form>
+            </div>
+            <hr>
+            <h5>Virtual Picture</h5>
+            <p>Upload picture here <a href="https://momento360.com/#media/">Here</a></p>
+              <form class="" method="post" action="{{matterURL}}" enctype="multipart/form-data" > 
+                {% csrf_token %}
+                {{masterURLform.thismatter2}}
+                <input value="virtualpicture"  name="whatsmatter" hidden>
+                <button >Add virtualpicture Url</button>
+              </form>
+            </div>
+            <hr>
+            <div>
+              <li class="d-flex gap-4">
+                <svg fill="rgb(255, 193, 7)" id="bookmark-star" viewBox="0 0 16 16" class="bi text-warning flex-shrink-0" width="48" height="48">
+                  <path d="M7.84 4.1a.178.178 0 0 1 .32 0l.634 1.285a.178.178 0 0 0 .134.098l1.42.206c.145.021.204.2.098.303L9.42 6.993a.178.178 0 0 0-.051.158l.242 1.414a.178.178 0 0 1-.258.187l-1.27-.668a.178.178 0 0 0-.165 0l-1.27.668a.178.178 0 0 1-.257-.187l.242-1.414a.178.178 0 0 0-.05-.158l-1.03-1.001a.178.178 0 0 1 .098-.303l1.42-.206a.178.178 0 0 0 .134-.098L7.84 4.1z"></path>
+                  <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1H4z"></path>
+                </svg>
+              <div>
+                <h5 class="mb-0">Add a Category</h5>
+                Create additional Activity, Accomodation or Promotion.
+              </div>
+            </li>
+              <form  method="POST" action="{% url 'resorts:createResortPackage' resortID=resortObject.id %}">
+                {% csrf_token %}
+                <select name="packageType" style="margin: 0 auto;">
+                  <option value="accomodation">Accomodation</option>
+                  <option value="activity">Activity</option>
+                  <option value="tour">Special Promotion</option>
+                </select>
+                <input name="title" placeholder="Category Name" />
+                <!-- <input name="packageType" placeholder="accomodation or activity or tour" style="width:50%"> -->
+                <button action="submit">Create</button>
+              </form>
+            </div>
+            <hr>
+            <form method="post" action="{% url 'resorts:putPlace' %}">
+              {% csrf_token %}
+              <h3>Include in Place</h3>
+              <!-- <select name="placeID">
+                            <option selected value="-">---</option>
+                            {% for place in places %}
+                            <option value="{{place.id}}">{{place.placename}}</option>
+                            {% endfor %}
+                        </select> -->
+                        <input name="placeID" list="destinationSearch" type="text" placeholder="Search" />
+                        <!--  -->
+                        <input name="other" placeholder="Other" />
+              <datalist id="destinationSearch">
+                {% for place in places %}
+                <option data-value="{{place.id}}"  value="{{place.placename}}" id="1">{{place}}</option>
+                {% endfor %}
+              </datalist>
+              <!--  -->
+              <input value="{{resortObject.id}}" readonly hidden name="resortID" placeholder="place" /> 
+              <button>Include</button>
+            </form>
+            <hr>
+
+            <form>
+              <h2>
+                {% if user.is_superuser %}
+  <p>Welcome, admin!</p>
+{% endif %}
+{% if user.is_staff %}
+  <p>You have staff privileges.</p>
+{% endif %}
+
+
+              </h2>
+            </form>
+            <hr>
+            <button type="button" class="btn btn-lg btn-primary mt-5 w-100" data-bs-dismiss="modal" onclick='document.querySelector("#modalTour").style.display = "none";document.querySelector("#buttonForOpen").style.display = "block"'>Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <button id="buttonForOpen" type="button" class="btn btn-lg btn-primary " data-bs-dismiss="modal" onclick='document.querySelector("#modalTour").style.display = "block";this.style.display = "none";' style="display: none; ">Edit</button>
+    {% endif %}
+
+  <!-- BUTTON FOR CONTACT  -->
+  <script src="https://smtpjs.com/v3/smtp.js"></script>
+
+  <script>
+
+    tdList = document.querySelectorAll('td')
+      monthList = x = document.querySelectorAll(".month .month")
+    // Content Loaded
+    for (i = 0; i < tdList.length; i++) {
+ tdList[i].addEventListener('click',function(){
+  addAndRemoveTag()
+    }
+)}
+    function addAndRemoveTag (){
+      targetMonth = event.target.closest('.month').textContent.split(' ')[0]
+      clickedDate= event.target.textContent+','
+      MessageOfGuest = document.querySelector("#guest_book")
+      if (event.target.style.backgroundColor == 'rgba(138, 255, 138, 0.59)') {
+        
+        event.target.style.backgroundColor =  ''
+        event.target.style.removeProperty('background-color');
+        
+        if (MessageOfGuest.value.search(clickedDate)>= 0){
+          
+          MessageOfGuest.value = MessageOfGuest.value.replace(clickedDate,'')
+
+          
+          // currentMessage = MessageOfGuest.value.split(' ')
+          // console.log(MessageOfGuest.value)
+          // console.log(currentMessage.slice(1).join(' '))
+          // console.log(currentMessage)
+          // MessageOfGuest.value = currentMessage
+};
+      } else {
+        MessageOfGuest.value = MessageOfGuest.value.replace(MessageOfGuest.value.split(' ')[0],targetMonth)
+        
+        event.target.style.backgroundColor = 'rgba(138, 255, 138, 0.59)'
+        
+      addOnMessageOfGuest = event.target.textContent;
+      MessageOfGuest.value = MessageOfGuest.value+addOnMessageOfGuest+','
+      }
+
+      
+    }
+    document.querySelector(`#calendar_object_month-${month_number}`).style.display='block'
+
+
+
+
+    
+  </script>
+
+
+
+
+
+
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+document.querySelectorAll('img').forEach(img => img.setAttribute('loading', 'lazy'));
+document.querySelectorAll('iframe').forEach(frame => frame.setAttribute('loading', 'lazy'));
+});
+
+
+
+</script>
+<!-- jQuery (deferred for non-blocking load) -->
+<script defer src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Upload Image AJAX -->
+<script>
+
+
+
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize any required components or plugins here
+
+  $(document).on('submit', '.image-upload-form', function(e) {
+    e.preventDefault();
+
+    const form = $(this)[0];              // get the raw form element
+    const formData = new FormData(form);  // capture file + text inputs
+    const $form = $(this);
+    const subID = $form.find('input[name="subID"]').val();
+    const resultBox = $("#upload-result-" + subID);
+
+    $.ajax({
+      url: $form.attr('action'),
+      type: 'POST',
+      data: formData,
+      processData: false,
+      contentType: false,
+      headers: { 'X-CSRFToken': $form.find('input[name="csrfmiddlewaretoken"]').val() },
+      beforeSend: function() {
+        resultBox.html("<p>Uploading...</p>");
+      },
+      success: function(response) {
+        resultBox.html("<p style='color:green;'>✅ Uploaded successfully!</p>");
+        console.log("Upload success:", response);
+        form.querySelector('input[type="file"]').value = '';
+      },
+      error: function(xhr, status, error) {
+        resultBox.html("<p style='color:red;'>❌ Upload failed</p>");
+        console.error("Error:", error, xhr.responseText);
+      }
+    });
+  });
+
+
+
+  document.getElementById("upload-btn").addEventListener("click", async () => {
+    const fileInput = document.getElementById("image");
+    const status = document.getElementById("status");
+    const image_url = document.getElementById("url_status");
+    //   const preview = document.getElementById("preview");
+    const imageform = document.getElementById("imageform");
+    
+
+    if (!fileInput.files.length) {
+        status.textContent = "Please choose a file first.";
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("csrfmiddlewaretoken", "{{ csrf_token }}");
+    formData.append("image", fileInput.files[0]);
+
+    status.textContent = "Uploading...";
+
+    try {
+        const response = await fetch("{% url 'resort_management:ajax_upload' %}", {
+        method: "POST",
+        body: formData
+        });
+        const data = await response.json();
+
+        if (data.success) {
+        status.textContent = "Upload successful!";
+        console.log('Successful')
+        console.log('data.url: ',data.url)
+        image_url.value = data.url
+
+        document.querySelector("#thismatter2").value = data.url
+        } else {
+        status.textContent = "Upload failed: " + (data.error || "Check file.");
+        }
+    } catch (err) {
+        status.textContent = "Error: " + err.message;
+    }
+});
+
+  });
+
+</script>
+
+    <script type="text/javascript"></script>
+    <script type="text/javascript">
+      window.onload = function() {
+          document.getElementById('contact-form').addEventListener('submit', function(event) {
+            // const sender = this.sender_name.value;
+            const originalMessage = this.message.value;
+            const booking_inquiry = this.booking_inquiry.value
+            const sender_contact = this.sender_contact.value;
+            const sender_name = this.from_name.value
+            // Combine into a new message
+            const fullMessage = `\n${originalMessage} \n \n Booking Inquiry ${booking_inquiry} \n\n contact me:\n${sender_name}\n \n&nbsp;&nbsp;${sender_contact}`;
+            console.log(fullMessage)
+            // Temporarily update the message textarea
+            this.message.value = fullMessage;
+            (function() {
+              // EMAIL WRITING
+              
+          // https://dashboard.emailjs.com/admin/account
+          emailjs.init({
+            publicKey: "kPR5fCmH0j3E0NSyr",
+          });
+      })();
+              event.preventDefault();
+              // these IDs from the previous steps
+              closeModal();
+              alert('Sending Message')
+              emailjs.sendForm('service_jv335d7', 'template_hzlk188',this)
+              // emailjs.sendForm('service_wizvf4w', 'template_hzlk188', {from_name:'John Name Test',to_name:'NotesTest fomr template param'})
+              // emailjs.sendForm({serviceID:'service_9uqpnxq'}, {templateID:'template_ifyyi4c'}, this)
+                  .then(() => {
+                      console.log('SUCCESS!');
+                      alert('Message Sent !') 
+                      this.reset();
+                  }, (error) => {
+                    alert('Message Not Sent !')
+                      console.log('FAILED...', error);
+                  });
+          });
+      }
+    </script>
+
+</html>

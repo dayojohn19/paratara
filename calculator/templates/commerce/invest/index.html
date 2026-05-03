@@ -1,0 +1,144 @@
+{% extends "commerce/invest/layout.html" %}
+{% load static %}
+{% block body %}
+<link rel="stylesheet" href="{% static 'commerce/invest/index.css' %}">
+<script src="{% static 'commerce/invest/index.js' %}"></script>
+
+
+<div id="calculator">
+    <h2>Calculator</h2>
+    <input class="stock_header" id="stock" placeholder="Stock" type="text">
+
+    <input class="stock_header" id="amount" placeholder="Your Amount" type="number">
+    <br>
+    <label class="side" for="price">buy Price</label>
+    <input id="price" placeholder="price" type="number" onchange="calculate('buy')">
+    <br>
+    <!-- <button id="calculate_buy" onclick="calculate('buy')">Calculate Buy</button> -->
+    <!-- <button id="calculate_selll" onclick="calculate('sell')">Calculate Sell</button> -->
+    <br>
+    <label for="result">You can buy</label>
+    <input disabled id="result"> Stocks
+    <br>
+    <label for="result_for">For: ₱</label>
+    <input readonly id="result_for">
+    <br>
+    <label for="remaining">Remaining</label>
+    <input readonly id="remaining">
+    <br>
+    <hr>
+    <label for="sell_amount">You can Sell</label>
+    <input readonly id="sell_amount">
+    <br>
+    <label class="side" for="sell_price">sell Price</label>
+    <input id="sell_price" type="number" value="0" onchange="calculate_sell(value)">
+    <button onclick="calculate_profit('add')">+</button>
+    <button onclick="calculate_profit('subtract')">-</button>
+    <br>
+    <label for="sell_get">For: ₱</label>
+    <input readonly id="sell_get">
+    <br>
+    <hr>
+
+    Selling Price: ₱
+    <input disabled id="incremented_price">
+    <br>
+    <label for="profit">Profit: ₱</label>
+    <input readonly id="profit">
+    <br>
+    increment
+    <input readonly id="increment" value="0">%
+
+    <br>
+
+
+
+    <!-- <hr>
+    <p id="stock_buy">
+        If you <strong>bought</strong>
+        <strong id="stock"><i></i></strong>
+        at Price of
+        <strong id="stock_price">
+            <h2></h2>
+        </strong>
+        it will total
+        <strong id="stock_cost"><i></i></strong>
+        including all trading fees
+    </p> -->
+
+</div>
+
+
+
+<link rel="stylesheet" href="{% static 'commerce/invest/about.css' %}">
+
+
+<br>
+<br>
+<br>
+<br>
+<br><br>
+<h3>Calculator Tutorial</h3>
+
+<div>
+    <div>
+
+        <span class="about-main-list">
+            <h2>Stock Item</h2>
+            <img src="{% static 'commerce/invest/images/stock_item.png' %}">
+            <Details>This is where you put what stock you are going to buy</Details>
+        </span>
+
+        <span class="about-main-list">
+            <h2>Amount</h2>
+            <img src="{% static 'commerce/invest/images/amount.png' %}">
+            <details>Input How much are you willing to <strong>Buy</strong></details>
+        </span>
+
+        <span class="about-main-list">
+            <h2>Buy Price</h2>
+            <img src="{% static 'commerce/invest/images/buy_price.png' %}">
+            <details>Buy Price is the <strong>Stock Price</strong> you are willing to Buy</details>
+            <details>Price determines the quantity you can buy with the amount you are willing to invest</details>
+        </span>
+
+        <span class="about-main-list">
+            <h2>You Can Buy</h2>
+            <img src="{% static 'commerce/invest/images/you_can_buy.png' %}">
+            <details>Gives you How many <strong>quantity</strong> you can buy</details>
+            <details>Shows you the remaining balance after you made the buying Trade</details>
+            <details><strong>For</strong> the actual amount you will spent after buying</details>
+        </span>
+
+
+        <span class="about-main-list">
+            <h2>You Can Sell</h2>
+            <img src="{% static 'commerce/invest/images/you_can_sell.png' %}">
+            <details>Quanity you can sell</details>
+            <details>Automatically provides you with <strong>Profitable</strong> Price </details>
+        </span>
+
+        <span class="about-main-list">
+            <h2>++ -- Increment</h2>
+            <img src="{% static 'commerce/invest/images/increment.png' %}">
+            <br>
+            <details>
+                Increase the selling price with small percentage
+            </details>
+        </span>
+
+        <span class="about-main-list">
+            <h2>Profit</h2>
+            <img src="{% static 'commerce/invest/images/profit.png' %}">
+            <details>
+                Calculate the profit based on the Sell Price
+            </details>
+            <details>
+                Increment is How many increase on profitable price in percentage
+            </details>
+        </span>
+
+    </div>
+</div>
+
+{% endblock %}

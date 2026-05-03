@@ -1,0 +1,142 @@
+[
+    {
+     "resort_Accomodations": [
+      {
+       "package_subpackage": [
+        {
+         "package_description": "Premiere Deluxe Twin Roon - 61 sqm Exemplary for families and groups travelling together, the spectacular Premier Deluxe Rooms offer two queen-size beds which offers a spacious floor area of 61-67 sqm, thoughtfully appointed for your comfort.",
+         "package_id": 21,
+         "package_image": [
+          "https://reservations.nustar.ph/shs-ngbe-image-resizer/images/hotel/37834/images/room/premier_deluxe_2.jpg",
+          "https://reservations.nustar.ph/shs-ngbe-image-resizer/images/hotel/37834/images/room/premier_deluxe_3.jpg",
+          "https://reservations.nustar.ph/shs-ngbe-image-resizer/images/hotel/37834/images/room/premier_deluxe_bathroom.jpg",
+          "https://reservations.nustar.ph/shs-ngbe-image-resizer/images/hotel/37834/images/room/premier_deluxe.jpg",
+          "https://reservations.nustar.ph/shs-ngbe-image-resizer/images/hotel/37834/images/room/premier_deluxe_2.jpg"
+         ],
+         "package_information": "Guestroom Features:  Smart TV Complimentary high-speed internet access for multiple devices 24-hour in-room dining service Minibar and coffee / tea facility In-room safe IDD telephone and voicemail Premium bath amenities Nespresso coffee machine",
+         "package_name": "PREMIERE DELUXE TWIN BED",
+         "package_price": 10795,
+         "package_resort": "Premiere Deluxe Rooms"
+        },
+        {
+         "package_description": "Luxurious room offering two twin beds with city views and access to The Executive Club. Styled with traditional Filipino and contemporary designs for luxurious comfort offering a king bed to ensure a refreshing and relaxing stay.",
+         "package_id": 22,
+         "package_image": [
+          "https://reservations.nustar.ph/shs-ngbe-image-resizer/images/hotel/37834/images/room/edlxt_city_view.jpg",
+          "https://reservations.nustar.ph/shs-ngbe-image-resizer/images/hotel/37834/images/room/edsvt_city_view.jpg",
+          "https://reservations.nustar.ph/shs-ngbe-image-resizer/images/hotel/37834/images/room/edsvk_city_view.jpg"
+         ],
+         "package_information": "Guestroom Features:  Elevated on an upper floor, providing exclusive access to the Executive Club. Smart TV Complimentary WiFi 24-hour in-room dining service Minibar and coffee / tea facility In-room safe IDD telephone and voicemail Premium bath amenities Nespresso coffee machine",
+         "package_name": "Executive Deluxe Twin",
+         "package_price": 11645,
+         "package_resort": "Premiere Deluxe Rooms"
+        }
+       ],
+       "package_title": "Premiere Deluxe Rooms",
+       "resortpackage_id": 20
+      },
+      {
+       "package_subpackage": [
+        {
+         "package_description": "Fili Suite - 89 sqm A favorite amongst many for its spacious size and lavish details, this suite has 89-91 sqm floor area offering a breathtaking view of the city.",
+         "package_id": 23,
+         "package_image": [
+          "https://reservations.nustar.ph/shs-ngbe-image-resizer/images/hotel/37834/images/room/suite_1.jpg",
+          "https://reservations.nustar.ph/shs-ngbe-image-resizer/images/hotel/37834/images/room/suite_2.jpg",
+          "https://reservations.nustar.ph/shs-ngbe-image-resizer/images/hotel/37834/images/room/suite_3.jpg"
+         ],
+         "package_information": "Guestroom Features:  Smart TV Complimentary high-speed internet access for multiple devices 24-hour in-room dining service Minibar and coffee / tea facility In-room safe IDD telephone and voicemail Premium bath amenities Nespresso coffee machine",
+         "package_name": "Fili Suite City View",
+         "package_price": 19550,
+         "package_resort": "Suite"
+        }
+       ],
+       "package_title": "Suite",
+       "resortpackage_id": 22
+      }
+     ],
+     "resort_Activities": [
+      {
+       "package_subpackage": [
+        {
+         "package_description": "NUSTAR Resort and Casino features over 250 tables with a wildly exciting array of games to choose from. Indulge in all of your favorites from Baccarat to Poker to Blackjack, and enjoy gaming to brand new heights like you\u2019ve never imagined!",
+         "package_id": 24,
+         "package_image": [
+
+          "https://nustar.ph/wp-content/uploads/2023/12/nustar-roulette-1024x587.webp",
+          "https://nustar.ph/wp-content/uploads/2023/12/nustar-casino_inset-8-1.webp",
+          "https://nustar.ph/wp-content/uploads/2023/12/texa-poker-hero@2x-1024x587.webp"
+         ],
+         "package_information": "BlackJack, Nustar Stud Poker, Pontoon, Roulette, Baccarat, Nustar Holdem Progressive Poker, SIC BO",
+         "package_name": "Table Games",
+         "package_price": 0,
+         "package_resort": "Casino"
+        },
+        {
+         "package_description": "NUSTAR Resort and Casinos offers one of the most extensive selections of slot machines in the region. The thrill of reels spinning and slots ringing makes every play extraordinary! With a variety of games to choose from, there is bound to be something for everyone.",
+         "package_id": 25,
+         "package_image": [
+            "https://i.ibb.co/VtDzMdv/nustar-casino-inset-6-1-768x509.webp",
+            "https://i.ibb.co/60QwLBv/caribbean-poker-hero-2x-jpg.webp"
+         ],
+         "package_information": "With exquisite, lavish VIP Rooms that offer top-notch gourmet dishes, drinks, and services, we rede\ufb01ne the casino experience for the highest of high-rollers. Enjoy playing like royalty and experience amenities and privileges exclusively for our most valued guests.",
+         "package_name": "Slot Machines",
+         "package_price": 0,
+         "package_resort": "Casino"
+        }
+       ],
+       "package_title": "Casino",
+       "resortpackage_id": 23
+      },
+      {
+       "package_subpackage": [
+        {
+         "package_description": "Tantalize both your palate and your senses as you enjoy some of the world\u2019s most delightful international cuisines ranging from Filipino, Asian, and European to American delicacies sumptuously prepared by our renowned chefs. ",
+         "package_id": 26,
+         "package_image": [
+"https://i.ibb.co/xMyfVqm/NUSTAR-Gaming-Floor-10-1024x683-jpg-2.webp"
+
+         ],
+         "package_information": " ",
+         "package_name": "VARIETY IS THE SPICE OF LIFE",
+         "package_price": 0,
+         "package_resort": "Dining"
+        },
+        {
+         "package_description": "Translating to \u201cNew Heaven and Earth,\u201d Xin Tian Di is where southern Chinese and southeast Asian specialties come together in both classic and fusion preparations, and in a casual dining restaurant that\u2019s open 24/7.",
+         "package_id": 27,
+         "package_image": [
+
+
+            "https://i.ibb.co/SmXT58f/Hotel-Selects-37-500x500-jpg.webp",
+            "https://i.ibb.co/TLj7NWs/Mott-32-40-2048x1366-jpg.webp"
+
+         ],
+         "package_information": "CUSINE  Chinese DRESS CODE  Casual OPERATING HOURS  Open 24 hours",
+         "package_name": " Xin Tian Di",
+         "package_price": 0,
+         "package_resort": "Dining"
+        }
+       ],
+       "package_title": "Dining",
+       "resortpackage_id": 24
+      }
+     ],
+     "resort_ID": 0,
+     "resort_QRLink": "http://127.0.0.1:8000/resorts/nustar/",
+     "resort_RealName": "Nustar",
+     "resort_Tour": [],
+     "resort_address": "NUSTAR Resort, Kawit Island, South Road Properties, Cebu, Philippines, 6000",
+     "resort_contactEmail": "dayo_john16@yahoo.com",
+     "resort_contactNumber": "+63-32-888-8282",
+     "resort_description": "Experience opulence at every turn. Designed to exude luxury and comfort in every detail, each of the luxe spaces will have guests wake up with renewed vigor to enjoy the amenities and attractions within the integrated resort.",
+     "resort_headerImage": "https://nustar.ph/wp-content/uploads/2023/12/NUSTAR-Website-Media-Center_Banner-1600x416px_2023-09-29-150347_ashl.webp",
+     "resort_latitude": 10.272592480888752,
+     "resort_longitude": 123.8821614295979,
+     "resort_name": "nustar",
+     "resort_promotionalVideo": "https://nustar.ph/wp-content/uploads/2024/08/4th-revision-nustar-ball-2024.mp4",
+     "resort_province": "Cebu",
+     "resort_reviews": 104,
+     "resort_timestamp": "2024-10-17 04:51:02.345274+00:00"
+    }
+   ]

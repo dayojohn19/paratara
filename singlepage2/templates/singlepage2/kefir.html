@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Shepherd's Kefir</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+      :root{--panel:#0079c9;--bg:#f6efe9}
+      html,body{height:100%;margin:0;font-family:'Open Sans',system-ui,Segoe UI,Helvetica,Arial;color:#083649}
+      body{background:var(--bg);display:flex;align-items:center;justify-content:center;padding:28px}
+
+      /* cloud pattern */
+      .clouds{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.55;background-image:radial-gradient(circle at 8% 18%, rgba(126,198,243,0.95) 0 40px, transparent 41px),radial-gradient(circle at 38% 8%, rgba(126,198,243,0.95) 0 48px, transparent 49px),radial-gradient(circle at 78% 24%, rgba(126,198,243,0.95) 0 44px, transparent 45px),radial-gradient(circle at 62% 72%, rgba(126,198,243,0.95) 0 36px, transparent 37px),radial-gradient(circle at 20% 80%, rgba(126,198,243,0.95) 0 52px, transparent 53px);transform:scale(2)}
+
+      .container{position:relative;z-index:1;max-width:980px;width:100%;text-align:center}
+
+      .logo-wrap{display:flex;justify-content:center;margin-bottom:18px}
+      .logo{width:180px;height:180px;border-radius:50%;background:linear-gradient(#dff4ff,#eef9ff);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 28px rgba(3,60,80,0.08)}
+      .logo svg{width:82%;height:auto;display:block}
+
+      .panel{background:var(--panel);color:#fff;border-radius:30px;padding:44px 36px;text-align:left;box-shadow:0 10px 40px rgba(0,0,0,0.08)}
+      .panel h1{font-family:'Montserrat',sans-serif;font-size:44px;margin:0 0 14px}
+      .panel p{font-size:18px;line-height:1.6;margin:8px 0}
+
+      .footer{display:flex;justify-content:space-between;align-items:center;margin-top:20px;color:#0b5b84;font-size:15px}
+
+      @media (max-width:640px){.logo{width:120px;height:120px}.panel{padding:26px}.panel h1{font-size:28px}}
+    </style>
+  </head>
+  <body>
+    <div class="clouds" aria-hidden="true"></div>
+    <main class="container">
+      <div class="logo-wrap">
+        <div class="logo" aria-hidden="false">
+          <!-- Prefer the raster logo if present in static files -->
+          <img src="/static/singlepage2/images/shepherd-logo.png" alt="Shepherd's Kefir logo" style="width:82%;height:auto;display:block" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+          <!-- Inline SVG fallback (hidden by default) -->
+          <svg style="display:none" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Shepherd's Kefir logo">
+            <defs>
+              <linearGradient id="g" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0" stop-color="#e6f8ff" />
+                <stop offset="1" stop-color="#d3f0ff" />
+              </linearGradient>
+            </defs>
+            <rect width="240" height="240" rx="120" fill="none" />
+            <!-- cluster of soft clouds -->
+            <g transform="translate(30,40) scale(0.9)">
+              <ellipse cx="80" cy="40" rx="44" ry="28" fill="#fff" stroke="#9ed7f8" stroke-width="3" />
+              <ellipse cx="48" cy="58" rx="36" ry="24" fill="#fff" stroke="#9ed7f8" stroke-width="3" />
+              <ellipse cx="112" cy="66" rx="38" ry="26" fill="#fff" stroke="#9ed7f8" stroke-width="3" />
+              <ellipse cx="74" cy="28" rx="28" ry="18" fill="#fff" stroke="#9ed7f8" stroke-width="3" />
+            </g>
+            <!-- simple happy eyes on center cloud -->
+            <g transform="translate(66,96)" fill="#0378b7">
+              <circle cx="18" cy="-24" r="3" />
+              <circle cx="34" cy="-24" r="3" />
+              <path d="M20 -12 q8 8 18 0" stroke="#0378b7" stroke-width="2" fill="none" stroke-linecap="round" />
+            </g>
+            <!-- wordmark -->
+            <g transform="translate(120,180)">
+              <text x="0" y="0" font-family="Montserrat, Arial" font-weight="700" font-size="18" fill="#0378b7" text-anchor="middle">SHEPHERD'S KEFIR</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+
+      <section class="panel" aria-labelledby="whatwedo">
+        <h1 id="whatwedo">WHAT WE DO</h1>
+        <p>Shepherd's Kefir was born from a simple idea: to make real kefir, the traditional way.</p>
+        <p>Slow-fermented with live grains, made in small batches, and crafted with care here in Siargao.</p>
+        <p>No shortcuts. No powders. Just patience, time, and respect for the process.</p>
+      </section>
+
+      <div class="footer">
+        <div>@shepherdskefir</div>
+        <div>shepherdskefir@gmail.com</div>
+      </div>
+    </main>
+  </body>
+</html>

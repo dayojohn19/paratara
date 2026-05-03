@@ -1,0 +1,600 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="48x48" href="{% static 'home/images/favicon-48x48.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'home/images/favicon-16x16.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'home/images/favicon-32x32.png' %}">
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-G688H6ZTMP"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+    
+      gtag('config', 'G-MH2W7TQEH3');
+    </script>    
+    <meta name="google-site-verification" content="8jqO-yxHVkp0mIbnh_nvbfA0N21q0QcCR4aDkFbb8rc" />
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4843007524416588"
+     crossorigin="anonymous"></script>
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MNDNQVRF"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+
+<meta name="google-adsense-account" content="ca-pub-4843007524416588">
+<style>
+ .poi-title {
+      text-align: center;
+      color: #333;
+      margin-bottom: 30px;
+    }
+
+    .poi-container {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .poi-card {
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+      width: 320px;
+      overflow: hidden;
+      transition: transform 0.25s ease;
+    }
+
+    .poi-card:hover {
+      transform: translateY(-6px);
+    }
+
+    .poi-image {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      border-radius: 14px 14px 0 0;
+    }
+
+    .poi-content {
+      padding: 16px;
+    }
+
+    .poi-name {
+      margin: 0 0 12px;
+      font-size: 20px;
+      font-weight: bold;
+      color: #222;
+    }
+
+    .poi-desc {
+      font-size: 14px;
+      color: #555;
+      line-height: 1.6;
+    }
+
+    .poi-rating {
+      margin: 12px 0;
+      color: #FFD700;
+      font-size: 16px;
+    }
+
+    .poi-buttons {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 15px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .poi-btn {
+      background: #f3f3f3;
+      border: none;
+      border-radius: 20px;
+      padding: 8px 14px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.25s;
+    }
+
+    .poi-btn:hover {
+      background: #e0e0e0;
+    }
+
+    .poi-btn i {
+      margin-right: 6px;
+    }
+
+
+  #___gcse_0 {
+    width: 100%;
+  }
+</style>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4575618483167828"
+crossorigin="anonymous"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Professional Web Page</title>
+
+    <!-- <link href="static/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" /> -->
+
+    <link href="{% static 'bootstrap/dist/css/bootstrap.min.css' %}" rel="stylesheet" />
+
+    <!-- <img src="{% static 'singlepage2/images/travel/cebu-1.jpeg' %}" alt=""> -->
+
+    <script src="{% static 'bootstrap/dist/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'bootstrap/dist/js/bootstrap.bundle.min.js' %}"></script>
+
+    <link href="{% static 'singlepage2/src/navbar-static.css' %}" rel="stylesheet" />
+    <script src="{% static 'singlepage2/src/PageView.js' %}"></script>
+    <script src="{% static 'js/scrollChecker.js' %}" ></script>
+    <link href="{% static 'singlepage2/src/style.css' %}" rel="stylesheet" />
+    <link href="{% static 'singlepage2/src/ChatRoom.css' %}" rel="stylesheet" />
+    <link href="{% static 'singlepage2/src/ChatBox.css' %}" rel="stylesheet" />
+    <link href="{% static 'singlepage2/src/Navbar_2_Page.css' %}" rel="stylesheet" />
+    <link href="{% static 'singlepage2/src/carousel.css' %}" rel="stylesheet" />
+    <!-- <link href="static/singlepage2/image.css" rel="stylesheet" /> -->
+    <meta property="og:image" content="data:image/png;base64,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" />
+    <meta name="description" content="Website for carpooling, bike cycling traveller, passengers looking for a car service, driver looking for cost share, place to stay recommendation, Travelling" />
+    <meta name="keywords" content="Carpool,Carpooling, Bike, Bikepacking, Camping, Travel,Vehicle, Cycling, Passenger" />
+    <meta name="author" content="johnwebsietprojects@gmail.com" />
+  </head>
+  <body>
+     <!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MNDNQVRF"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+
+
+
+    <i class="bi bi-chat"></i>
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">Dzhon Foreign</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarCollapse">
+
+            <input type="radio" id="featured-radio" class="radio-button" name="content-filter" checked="checked">
+            <input type="radio" id="personal-radio" class="radio-button" name="content-filter" value="Personal">
+            <input type="radio" id="tech-radio" class="radio-button" name="content-filter" value="Tech">
+            <header id="filter">
+              <ul class="navbar-nav me-auto mb-2 mb-md-0">
+                <li class="nav-item">
+                  <a class="nav-link active" aria-current="page" href="#">Thank you for visiting</a>
+                </li>
+    
+                <li class="nav-item">
+                  <a href="{% url 'home:carpool' %}" class="nav-link" >Go Carpool</a>
+                </li>
+    
+              
+              
+                        
+            <li class="nav-item">
+              <!-- <label for="featured-radio" class="filter-label " id="feature-label">Featured</label> -->
+              <label for="featured-radio"  data-page="main-container-page-1" class="featured filter-label PageButton btn btn-outline-success" id="feature-label">Creator Page</label>
+            </li>
+            &nbsp
+            <!-- PAGE BUTTON -->
+            <li class="nav-item">
+              <!-- <label for="personal-radio" class="filter-label " id="personal-label">Personal</label> -->
+              <label for="personal-radio" data-page="main-container-page-2" class="personal filter-label PageButton btn btn-outline-success" id="feature-label" href="travel">Travel</label>
+            </li>
+            &nbsp
+            <!-- END PAGE BUTTON -->
+            <li class="nav-item">
+              <!-- <label  class="filter-label tech" id="tech-label">Tech</label> -->
+              <label for="tech-radio" id="JoinPublicChat" data-page="main-container-page-3" class="tech filter-label PageButton btn btn-outline-success" id="feature-label">Chat Rooms &nbsp<span class="badge text-bg-secondary">4</span></label>
+            </li>
+            &nbsp
+          </ul>
+          </header>
+          <form class="d-flex" role="search">
+            <script async src="https://cse.google.com/cse.js?cx=83f1204d7e00547df">
+            </script>
+            <div class="gcse-search"></div>
+          </div>
+            <!-- <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" /> -->
+            <!-- <button class="btn btn-outline-success" type="submit">Search</button> -->
+          </form>
+        </div>
+      </div>
+    </nav>
+    <!-- Start Page Body -->
+<!--         ***      -->
+<!--       ******     -->
+<!--     ***  ***     -->
+<!--          ***     -->
+<!--          ***     -->
+<!--          ***     -->
+<!--          ***     -->
+<!--          ***     -->
+<!--          ***     -->
+<!--      ************     -->
+<!--      ************     -->
+
+    <main class="main-container" id="main-container-page-1"  style="display: block !important">
+      <div class="bg-body-tertiary p-5 rounded">
+        <!-- Starts here -->
+        <h1>AbouT</h1>
+        <div class="row featurette">
+          <div class="col-md-7">
+            <h2 class="featurette-heading">I Started Travelling from the further most north Philippines. <span class="text-muted">Bought a bike from there</span></h2>
+            <p class="lead">I'm suppose to renew my passport in Northern Philippines Ilocos Region. But it was in the midst of pandemic lockdown where crossing provincial border was stricted tis when I got the idea to bike, Without any knowledge and by mere determination to do it.</p>
+            <a type="button" class="btn btn-success" href="/##">View Northern Philippines</a>
+          </div>
+          <div style="margin: auto auto;" class="col-md-5" >
+            <div class="float-sm-left">Northern Philippines Compilation <a target="_blank" href="https://youtu.be/HpoM_zcyaDY">Watch with Music</a></div>
+
+
+            <!-- <iframe style="aspect-ratio: 2/1;" width="100%"  src="https://www.youtube.com/embed/v2hggMtQZpQ" title="After 11 months cycling, we made it to Mexico! // 13" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>             -->
+            <!-- <iframe width="1424" height="599" src="https://www.youtube.com/embed/C9M8M5-H2Ow" title="John Foreign_" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe> -->
+            <!-- <iframe width="1424" height="599" src="https://www.youtube.com/embed/C9M8M5-H2Ow" title="John Foreign_" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe> -->
+            <iframe style="aspect-ratio: 2/1;" width="100%" src="https://www.youtube.com/embed/C9M8M5-H2Ow" title="Northern Luzon Philippines to Southern Luzon Philippines in 30 seconds" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
+            
+          </div>
+        </div>  
+        <hr>
+
+        
+
+<figure class="wp-block-image aligncenter size-large">
+  <a href="https://roamaround.app/itinerary/siargao-island/3-days/68e0d18fdd61df34a66b6376?utm_source=embed&utm_source=embed">
+  <img src="https://roamaround.app/api/embedPlanImage?place=Siargao+Island&days=3" alt='Plan Trips AI Itinerary Embed' loading='lazy' width='600' height='400'/>
+  </a>
+</figure>
+
+
+  <h2 class="poi-title">Places of interest</h2>
+
+  <div class="poi-container">
+    <!-- Card 1 -->
+    <div class="poi-card">
+      <img class="poi-image" src="https://source.unsplash.com/400x300/?island,beach" alt="Siargao Island">
+      <div class="poi-content">
+        <h3 class="poi-name">Siargao Island</h3>
+        <p class="poi-desc"><strong>Description:</strong> Siargao Island is a tropical paradise located in the Philippines, renowned for its stunning beaches, crystal-clear waters, and vibrant surf culture...</p>
+        <div class="poi-rating">★★★★☆</div>
+        <div class="poi-buttons">
+          <button class="poi-btn"><i class="fa fa-phone"></i> Phone</button>
+          <button class="poi-btn"><i class="fa fa-globe"></i> Website</button>
+          <button class="poi-btn"><i class="fa fa-ticket"></i> Tickets</button>
+          <button class="poi-btn"><i class="fa fa-map"></i> Map</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="poi-card">
+      <img class="poi-image" src="https://source.unsplash.com/400x300/?ocean,city" alt="General Luna">
+      <div class="poi-content">
+        <h3 class="poi-name">General Luna</h3>
+        <p class="poi-desc"><strong>Description:</strong> General Luna is a vibrant coastal town on Siargao Island, known for its stunning beaches, surf spots, and laid-back atmosphere...</p>
+        <div class="poi-rating">★★★★☆</div>
+        <div class="poi-buttons">
+          <button class="poi-btn"><i class="fa fa-phone"></i> Phone</button>
+          <button class="poi-btn"><i class="fa fa-globe"></i> Website</button>
+          <button class="poi-btn"><i class="fa fa-ticket"></i> Tickets</button>
+          <button class="poi-btn"><i class="fa fa-map"></i> Map</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="poi-card">
+      <img class="poi-image" src="https://source.unsplash.com/400x300/?surf,beach" alt="Cloud 9">
+      <div class="poi-content">
+        <h3 class="poi-name">Cloud 9</h3>
+        <p class="poi-desc"><strong>Description:</strong> Cloud 9 is a world-renowned surf spot on Siargao Island, famous for its powerful waves and stunning natural beauty...</p>
+        <div class="poi-rating">★★★★☆</div>
+        <div class="poi-buttons">
+          <button class="poi-btn"><i class="fa fa-phone"></i> Phone</button>
+          <button class="poi-btn"><i class="fa fa-globe"></i> Website</button>
+          <button class="poi-btn"><i class="fa fa-ticket"></i> Tickets</button>
+          <button class="poi-btn"><i class="fa fa-map"></i> Map</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+        <div class="row featurette">
+          <div style="margin: auto auto;" class="col-md-7 order-md-2">
+            <h2 class="featurette-heading">Indulged doing it. Continued further to Central Philippines <span class="text-muted">Though it was cut short</span></h2>
+            <p class="lead">It only lasts for around 3 weeks then I stopped in months for work, and the first minute I had the resource to bike I begin doing it again going further to central Philippines Visayaz region</p>
+          </div>
+          <div style="margin: auto auto;" class="col-md-5" >
+            <div class="float-sm-left">Central Philippines</div>
+            <iframe style="aspect-ratio: 2/1;"  width="100%"  src="https://www.youtube.com/embed/9wYfddx2xtI" title="Central Philippines" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+          </div>
+        </div>
+        <hr>
+        <div>
+          <p>Subscribe or Contribute through Gcash John D <input value="09569543802" disabled></p>
+        </div>
+        <div id="paypal-button-container-P-5HA54541XU111810DMU7Q22A"></div>
+        <script src="https://www.paypal.com/sdk/js?client-id=AZKp29XmANwKqTx3-VdxuiDVnuXihdQBZ_vCRJYOcq6v4xh8fZ5YWbtobAMADBTG1bm4a-N9csgOEgwu&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
+        <script>
+          paypal.Buttons({
+              style: {
+                  shape: 'rect',
+                  color: 'gold',
+                  layout: 'vertical',
+                  label: 'subscribe'
+              },
+              createSubscription: function(data, actions) {
+                return actions.subscription.create({
+                  /* Creates the subscription */
+                  plan_id: 'P-5HA54541XU111810DMU7Q22A'
+                });
+              },
+              onApprove: function(data, actions) {
+                alert(data.subscriptionID); // You can add optional success message for the subscriber here
+              }
+          }).render('#paypal-button-container-P-5HA54541XU111810DMU7Q22A'); // Renders the PayPal button
+        </script>
+
+
+        <!-- End here -->
+
+
+
+      </div>
+    </main>
+    
+    <!--END  Page Body -->
+<!--         ***      -->
+<!--       ******     -->
+<!--     ***  ***     -->
+<!--          ***     -->
+<!--          ***     -->
+<!--          ***     -->
+<!--          ***     -->
+<!--          ***     -->
+<!--          ***     -->
+<!--      ************     -->
+<!--      ************     -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <main class="main-container" id="main-container-page-2" >
+      <div class="bg-body-tertiary p-5 rounded">
+<!-- MOUNTAIN PROvInce -->
+        <div class="row g-3" style="max-height: 90vh; overflow-y: scroll;">
+          <div class="col-lg-7 col-md-6">
+            <div class="row g-3">
+              <div class="col-lg-12 col-md-12 wow zoomIn" data-wow-delay="0.1s" style="visibility: visible; animation-delay: 0.1s; animation-name: zoomIn;">
+                
+                  <!-- <img class="img-fluid" src="https://gttp.imgix.net/223513/x/0/sagada-travel-guide-a-peaceful-mountain-destination-1.jpg?auto=compress%2Cformat&amp;ch=Width%2CDPR&amp;dpr=1&amp;ixlib=php-3.3.0&amp;w=883" alt=""> -->
+                  <img class="img-fluid" src="{% static 'singlepage2/images/travel/sagada-1.jpg' %}" alt="">
+                  <div class="bg-white text-danger fw-bold position-absolute top-0 start-0 m-3 py-1 px-2">Dry Season</div>
+                  <div class="bg-white text-primary fw-bold position-absolute bottom-0 end-0 m-3 py-1 px-2">Sagada, Philippines</div>
+                </a>
+              </div>
+              <div class="col-lg-6 col-md-12 wow zoomIn" data-wow-delay="0.3s" style="visibility: visible; animation-delay: 0.3s; animation-name: zoomIn;">
+                
+                  <img class="img-fluid" src="{% static 'singlepage2/images/travel/bontoc-1.jpg'}" alt="">
+                  <div class="bg-white text-danger fw-bold position-absolute top-0 start-0 m-3 py-1 px-2">Dry Season</div>
+                  <div class="bg-white text-primary fw-bold position-absolute bottom-0 end-0 m-3 py-1 px-2">Bontoc, Philippines</div>
+                </a>
+              </div>
+              <div class="col-lg-6 col-md-12 wow zoomIn" data-wow-delay="0.5s" style="visibility: visible; animation-delay: 0.5s; animation-name: zoomIn;">
+                
+                  <img class="img-fluid" src="{% static 'singlepage2/images/travel/kabayan-1.jpg' %}" alt="">
+                  <div class="bg-white text-danger fw-bold position-absolute top-0 start-0 m-3 py-1 px-2">Dry Season</div>
+                  <div class="bg-white text-primary fw-bold position-absolute bottom-0 end-0 m-3 py-1 px-2">Kabayan Benguet Philippines</div>
+                </a>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-5 col-md-6 wow zoomIn" data-wow-delay="0.7s" style="min-height: 350px; visibility: visible; animation-delay: 0.7s; animation-name: zoomIn;">
+            <a class="position-relative d-block h-100 overflow-hidden" href="">
+              <img class="img-fluid position-absolute w-100 h-100" src="{% static 'singlepage2/images/travel/banaue-1.jpg' %}" alt="" style="object-fit: cover">
+              <div class="bg-white text-danger fw-bold position-absolute top-0 start-0 m-3 py-1 px-2">Dry Season</div>
+              <div class="bg-white text-primary fw-bold position-absolute bottom-0 end-0 m-3 py-1 px-2">Banaue Ifugao Philippines</div>
+            </a>
+          </div>
+
+          <div class="col-lg-5 col-md-6 wow zoomIn" data-wow-delay="0.7s" style="min-height: 350px; visibility: visible; animation-delay: 0.7s; animation-name: zoomIn;">
+            <a class="position-relative d-block h-100 overflow-hidden" href="{% url 'singlepage2:getcebutravelbooking' csrf_token %}">
+              <!-- <img class="img-fluid position-absolute w-100 h-100" src="{% static 'singlepage2/images/travel/cebu-1.jpeg' %}" alt="" style="object-fit: cover"> -->
+              <img class="img-fluid position-absolute w-100 h-100" src="{% static 'singlepage2/images/travel/cebu-1.jpeg' %}" alt="" style="object-fit: cover">
+              <!-- <img class="img-fluid position-absolute w-100 h-100" src="{% static 'singlepage2/images/travel/cebu-1111111111111111111111111111.jpeg' %}" alt="" style="object-fit: cover"> -->
+              <div class="bg-white text-danger fw-bold position-absolute top-0 start-0 m-3 py-1 px-2">Dry Season</div>
+              <div class="bg-white text-primary fw-bold position-absolute bottom-0 end-0 m-3 py-1 px-2">Cebu City Philippines</div>
+            </a>
+          </div>
+        </div>        
+
+
+
+        <p class="lead">
+          <h1>Mountain Province, Ifugao, and Benguet</h1>
+          Memories, Guides in these Provinces in Northern Part of the Philippines
+        </p>
+        
+        <a class="btn btn-lg btn-primary" role="button">Click Image to View &raquo;</a>
+
+        <div class="nav-bar-2-container-2 border border-1">
+          <h1>Projects</h1>
+          <div class="nav-bar-2-container-2-sub-container" id="flex-container">
+            <div class="nav-bar-2-sub-container-item">
+              <div class="card">
+                <svg class="bd-placeholder-img card-img-top" width="100%" height="200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder: Image cap" preserveAspectRatio="xMidYMid slice" focusable="false">
+                  <title>Placeholder</title>
+                  <text x="50%" y="50%" fill="#dee2e6" dy=".3em">Image cap</text>
+                </svg>
+                <div class="card-body">
+                  <h5 class="card-title">Card title that wraps to a new line</h5>
+                  <p class="card-text">This is a longer card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+                </div>
+              </div>
+            </div>
+            <div class="nav-bar-2-sub-container-item">
+              <div class="card">
+                <svg class="bd-placeholder-img card-img-top" width="100%" height="200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder: Image cap" preserveAspectRatio="xMidYMid slice" focusable="false">
+                  <title>Placeholder</title>
+                  <text x="50%" y="50%" fill="#dee2e6" dy=".3em">Image cap</text>
+                </svg>
+                <div class="card-body">
+                  <h5 class="card-title">Card title that wraps to a new line</h5>
+                  <p class="card-text">This is a longer card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+                </div>
+              </div>
+            </div>
+            <div class="nav-bar-2-sub-container-item">
+              <div class="card">
+                <svg class="bd-placeholder-img card-img-top" width="100%" height="200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder: Image cap" preserveAspectRatio="xMidYMid slice" focusable="false">
+                  <title>Placeholder</title>
+                  <text x="50%" y="50%" fill="#dee2e6" dy=".3em">Image cap</text>
+                </svg>
+                <div class="card-body">
+                  <h5 class="card-title">Card title that wraps to a new line</h5>
+                  <p class="card-text">This is a longer card with supporting text below as a natural lead-in to additional content. This content is a little bit longer.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d31197.5936048951!2d123.25939934359172!3d12.200858985062592!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x33a6906a1f0426a9%3A0xc342e5cb5ccd1b66!2sGapus%2C%20Masbate!5e0!3m2!1sen!2sph!4v1695854101840!5m2!1sen!2sph" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe> -->
+        </div>
+        
+        <div id="paypal-button-container-P-81658421GL624870NMUKCK5Q"></div>
+        <!-- PAYPAL PAYMENT -->
+    <!-- <script src="https://www.paypal.com/sdk/js?client-id=AaD6b_SIlF0AS5vEqFpuofGmq9zRadDp3TIZ6w1-bhTRzFMpeCeQf2E3Y7b7UBCs0lAd9p8sWvnt9enO&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
+    <script>
+      paypal.Buttons({
+          style: {
+              shape: 'rect',
+              color: 'gold',
+              layout: 'vertical',
+              label: 'subscribe'
+          },
+          createSubscription: function(data, actions) {
+            return actions.subscription.create({
+              /* Creates the subscription */
+              plan_id: 'P-81658421GL624870NMUKCK5Q'
+            });
+          },
+          onApprove: function(data, actions) {
+            alert(data.subscriptionID); // You can add optional success message for the subscriber here
+          }
+      }).render('#paypal-button-container-P-81658421GL624870NMUKCK5Q'); // Renders the PayPal button
+    </script> -->
+      </div>
+    </main>
+
+    <main class="main-container" id="main-container-page-3" >
+      <div class="bg-body-tertiary p-5 rounded">
+        <h1>Navbar 3 example</h1>
+
+
+
+
+
+
+
+        <!-- 
+Lorem, ipsum dolor sit amet consectetur adipisicing elit
+. Eveniet minima laudantium ducimus fugit incidunt recusandae,
+ nobis neque eaque tempora adipisci quo consectetur, numquam ab 
+ corporis odit praesentium. Veniam, rem magnam?
+         -->
+        <div class="d-flex flex-column flex-md-row p-4 gap-4 py-md-5 align-items-center justify-content-center" >
+          <div class="dropdown-menu d-block position-static pt-0 mx-0 rounded-3 shadow overflow-hidden w-280px" data-bs-theme="light">
+            <!-- <form onsubmit="searchRoom()" class="p-2 mb-2 bg-body-tertiary border-bottom"> -->
+            <form onsubmit="event.preventDefault();new Chat_Roomm(event.target.message.value);reset()" class="p-2 mb-2 bg-body-tertiary border-bottom">
+              <input  name="message" type="search" class="form-control" autocomplete="false" placeholder="Room Name...">
+            </form>
+            <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="#"><h1>Room List</h1></a>
+            <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="#"><small>Click to Join</small></a>
+            <ul class="list-unstyled mb-0">
+              <li onclick="this.style.display = 'none';new Chat_Roomm(this.innerText)"><a class="dropdown-item d-flex align-items-center gap-2 py-2" href="#">
+                <span class="d-inline-block bg-success rounded-circle p-1"></span>
+                Public Chat
+              </a></li>
+              <li onclick="this.style.display = 'none';new Chat_Roomm(this.innerText)"><a class="dropdown-item d-flex align-items-center gap-2 py-2" href="#">
+                <span class="d-inline-block bg-primary rounded-circle p-1"></span>
+                Private Chat
+              </a></li>
+              <li onclick="this.style.display = 'none';new Chat_Roomm(this.innerText)"><a class="dropdown-item d-flex align-items-center gap-2 py-2" href="#">
+                <span class="d-inline-block bg-danger rounded-circle p-1"></span>
+                Exclusive Room
+              </a></li>
+              <li onclick="this.style.display = 'none';new Chat_Roomm(this.innerText)"><a class="dropdown-item d-flex align-items-center gap-2 py-2" href="#">
+                <span class="d-inline-block bg-info rounded-circle p-1" ></span>
+                Guest Lobby
+              </a></li>
+            </ul>
+          </div>
+      </div>
+    </main>
+    
+    <script>
+      function searchRoom(){
+        new Chat_Roomm(event.target.message.value)
+      }
+    </script>
+    <script type="text/javascript" src="{% static 'js/apis.js' %}"></script>
+    <script type="text/javascript" src="{% static 'singlepage2/src/ChatRoom.js' %}"></script>
+  </body>
+
+  <!-- Button For reaching Bottom -->
+  <button name="ReachingBottomPageModal" type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#ReachingBottomPageModal" style="display: none;">
+    Launch static backdrop modal
+  </button>
+
+  <!-- Modal For Reaching Bottom -->
+<div class="modal fade" id="ReachingBottomPageModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="ReachingBottomPageModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="ReachingBottomPageModalLabel">What I do</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+
+        <div style="margin: auto auto;" class="col-md-7 order-md-2">
+          <h2 class="featurette-heading">Carpooling Services, Driver or a Passenger?</span></h2>
+          <p class="lead">Take a minute to see</p>
+
+          <a class="btn btn-primary" href="{% url 'home:carpool' %}">Carpool Now</a>
+        </div>
+
+        
+        <div style="margin: auto auto;" class="col-md-7 order-md-2">
+          <h2 class="featurette-heading">Services I offered are Creating a website for resorts for a very generous amount</span></h2>
+          <p class="lead">Take a minute to see</p>
+
+
+          <!-- <a class="btn btn-primary" href={% url 'singlepage2:services' %}">View Deals</a> -->
+          <a class="btn btn-primary" href="{% url 'singlepage2:services' %}">View Deals</a>
+          <!-- <a href="{% url 'singlepage2:services' %}">View Deals</a> -->
+          
+          
+        </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+<hr>
+<div class="modal-footer">
+</div>
+</html>

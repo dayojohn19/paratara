@@ -1,0 +1,21 @@
+.single-chat-room {
+  max-height: 50vh;
+  overflow-y: scroll;
+  border-bottom: 3px solid gray;
+}
+
+.form_message_input_box {
+  top: 0%;
+  margin: 0 auto;
+  position: sticky;
+  z-index: 2;
+  background-color: aliceblue;
+  width: 100%;
+  padding: 20px;
+}
+.input-group {
+  min-width: 300px;
+}
+main .container {
+  padding-top: 0 !important;
+}

@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4843007524416588"
+     crossorigin="anonymous"></script> -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Services Offered</title>
+    <link href="/static/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="/static/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+      .card.shadow {
+        height: 550px;       /* let it expand beyond min-height if needed */
+        margin-bottom: 150px;
+      }
+
+
+            #emailForm {
+        width: 100%;
+        padding: 0;        /* ensure no extra padding from custom styles */
+        margin: 0;         /* reset margin */
+      }
+      #emailForm .form-control,
+      #emailForm textarea {
+        margin-bottom: 1rem;  /* add spacing between inputs */
+      }
+    .chat-card {
+      height: 420px;
+      display: flex;
+      flex-direction: column;
+    }
+    .card.chat-card {
+      border: none;      /* Removes the card border */
+      box-shadow: none;  /* Optional: removes Bootstrap's subtle shadow */
+    }
+    .card-body {
+      display: flex;
+      flex-direction: column;   /* Stack elements vertically */
+      height: 400px; 
+    }
+    .messages {
+      border: 1px solid #ddd;
+      background-color: #f8f9fa;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      font-size: 0.9rem;
+
+      flex: 1;                  /* Take up remaining space */
+      overflow-y: auto;
+      padding: 10px;
+    }
+    .message {
+      margin-bottom: 8px;
+    }
+    .message .meta {
+      font-size: 0.75rem;
+      color: #6c757d;
+    }
+    .self {
+      text-align: right;
+      color: #0d6efd;
+    }
+  </style>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script>
+      // EMAIL SENDING
+    window.onload = function () {
+
+            document.getElementById('emailForm').addEventListener('submit', function(event) {
+            const originalMessage = this.subject.value;
+            const booking_inquiry = this.message.value;
+            const sender_contact = this.email.value;
+            const sender_name = this.from_name.value;
+            const fullMessage = `\n${originalMessage} \n \n Booking Inquiry ${booking_inquiry} \n\n contact me:\n${sender_name}\n \n&nbsp;&nbsp;${sender_contact}`;
+            console.log(fullMessage)
+            this.message.value = fullMessage;
+            (function() {
+              // EMAIL WRITING
+          // https://dashboard.emailjs.com/admin/account
+          emailjs.init({
+            publicKey: "kPR5fCmH0j3E0NSyr",
+          });
+      })();
+              event.preventDefault();
+              // these IDs from the previous steps
+              alert('Sending Message')
+              emailjs.sendForm('service_jv335d7', 'template_hzlk188',this)
+                  .then(() => {
+                      console.log('SUCCESS!');
+                      alert('Message Sent !') 
+                      this.reset();
+                  }, (error) => {
+                    alert('Message Not Sent !')
+                      console.log('FAILED...', error);
+                  });
+          });
+      
+    };
+
+ 
+      // END EMAIL SENDING
+
+
+
+      // LIVE MESSAGING
+      function formatTime() {
+            const now = new Date();
+            return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          }
+
+          function sendMessage(sender) {
+            const input = document.getElementById(sender === 'A' ? 'inputA' : 'inputB');
+            const msg = input.value.trim();
+            if (!msg) return;
+
+            const messagesA = document.getElementById('messagesA');
+            const messagesB = document.getElementById('messagesB');
+
+            const time = formatTime();
+            const senderName = sender === 'A' ? 'User A' : 'User B';
+            const receiverName = sender === 'A' ? 'User B' : 'User A';
+
+            // Sender's message
+            const senderDiv = document.createElement('div');
+            senderDiv.className = 'message self';
+            senderDiv.innerHTML = `
+              <div>${msg}</div>
+              <div class="meta">${senderName} • ${time}</div>
+            `;
+
+            // Receiver's message
+            const receiverDiv = document.createElement('div');
+            receiverDiv.className = 'message';
+            receiverDiv.innerHTML = `
+              <div>${msg}</div>
+              <div class="meta">${senderName} • ${time}</div>
+            `;
+
+            if (sender === 'A') {
+              messagesA.appendChild(senderDiv);
+              messagesB.appendChild(receiverDiv);
+            } else {
+              messagesB.appendChild(senderDiv);
+              messagesA.appendChild(receiverDiv);
+            }
+
+            // Scroll to bottom for both
+            messagesA.scrollTop = messagesA.scrollHeight;
+            messagesB.scrollTop = messagesB.scrollHeight;
+
+            input.value = '';
+            input.focus();
+          }    
+      // END LIVE MESSAGING
+    </script>
+  </head>
+  <body>
+    <div class="email-box">
+      <div class="container">
+        <h2 class="pb-2 border-bottom">Email</h2>
+        <div class="row justify-content-center">
+          <div class="col-lg-6">
+            <div class="card shadow">
+              <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Test Your Email</h5>
+              </div>
+              <div class="card-body">
+                <form id="emailForm">
+                  <div class="mb-3">
+                    <label for="name" class="form-label">Full Name</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="name"
+                      name="from_name"
+                      placeholder="Your name"
+                      required
+                    />
+                  </div>
+
+                  <div class="mb-3">
+                    <label for="email" class="form-label">Email address</label>
+                    <input
+                      type="email"
+                      name="to_name"
+                      class="form-control"
+                      id="email"
+                      placeholder="you@example.com"
+                      required
+                    />
+                  </div>
+
+                  <div class="mb-3">
+                    <label for="subject" class="form-label">Subject</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="subject"
+                      name="subject"
+                      placeholder="Subject"
+                      required
+                    />
+                  </div>
+
+                  <div class="mb-3">
+                    <label for="message" class="form-label">Message</label>
+                    <textarea
+                      class="form-control"
+                      id="message"
+                      name="message"
+                      rows="4"
+                      placeholder="Your message..."
+                      required
+                    ></textarea>
+                  </div>
+
+                  <button type="submit" class="btn btn-primary w-100">
+                    Send Email
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            <!-- Alert for demo -->
+            <div id="alertBox" class="alert alert-success mt-3 d-none">
+              ✅ Your message has been prepared! (Front-end only demo)
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <div id="chat-box">
+      <div class="container">
+        <h2 class="pb-2 border-bottom">Live Chat Server</h2>
+        <div class="row g-4">
+          <!-- User A Card -->
+          <div class="col-md-6">
+            <div class="card chat-card">
+              <div class="card-header bg-primary text-white">User A</div>
+              <div class="card-body d-flex flex-column">
+                <div id="messagesA" class="messages"></div>
+                <div class="input-group">
+                  <input
+                    id="inputA"
+                    type="text"
+                    class="form-control"
+                    placeholder="Type a message..."
+                  />
+                  <button class="btn btn-primary" onclick="sendMessage('A')">
+                    Send
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- User B Card -->
+          <div class="col-md-6">
+            <div class="card chat-card">
+              <div class="card-header bg-success text-white">User B</div>
+              <div class="card-body d-flex flex-column">
+                <div id="messagesB" class="messages"></div>
+                <div class="input-group">
+                  <input
+                    id="inputB"
+                    type="text"
+                    class="form-control"
+                    placeholder="Type a message..."
+                  />
+                  <button class="btn btn-success" onclick="sendMessage('B')">
+                    Send
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+
+    <div id="uploading-image">
+      <div class="container px-4 py-5" id="custom-cards"> 
+        <h2 class="pb-2 border-bottom">Uploading Image</h2>
+        <div class="row row-cols-1 row-cols-lg-3 align-items-stretch g-4 py-5">
+        <div class="col"> 
+          <div class="card card-cover h-100 overflow-hidden text-bg-dark rounded-4 shadow-lg" style="background-image: url('unsplash-photo-1.jpg');"> 
+          <div class="d-flex flex-column h-100 p-5 pb-3 text-white text-shadow-1"> 
+            <h3 class="pt-5 mt-5 mb-4 display-6 lh-1 fw-bold">
+              Uploading Images
+            </h3>
+            <form action="{% url 'singlepage2:upploadtheimage' %}" method="POST" enctype="multipart/form-data" class="p-3 border rounded">
+              <div class="mb-3">
+                {% csrf_token %}
+                <label for="formFile" class="form-label">Upload an image</label>
+                <input required class="form-control" type="file" id="formFile" name="image" accept="image/*">
+              </div>
+              <button type="submit" class="btn btn-primary">Try Image</button>
+            </form>
+            <ul class="d-flex list-unstyled mt-auto">   
+            <li class="me-auto"> 
+              <img src="https://github.com/twbs.png" alt="Bootstrap" width="32" height="32" class="rounded-circle border border-white">
+            </li> 
+            <li class="d-flex align-items-center me-3"> 
+              <svg class="bi me-2" width="1em" height="1em" role="img" aria-label="Location">
+                <use xlink:href="#geo-fill">
+                </use>
+              </svg> 
+              <small>Try Uploading Image</small>
+              </li> <li class="d-flex align-items-center">
+                <svg class="bi me-2" width="1em" height="1em" role="img" aria-label="Duration">
+                  <use xlink:href="#calendar3"></use>
+                </svg> <small>1 pc</small>
+              </li> 
+            </ul>
+        </div>
+          </div>
+        </div>
+        {% if renderedimage %}
+        <div class="col"> <div class="card card-cover h-100 overflow-hidden text-bg-dark rounded-4 shadow-lg" style="background-size: cover ;background-image: url('{{renderedimage}}');"> <div class="d-flex flex-column h-100 p-5 pb-3 text-white text-shadow-1"> <h3 class="pt-5 mt-5 mb-4 display-6 lh-1 fw-bold">Your Uploaded Image</h3> <ul class="d-flex list-unstyled mt-auto"> <li class="me-auto"> <img src="https://github.com/twbs.png" alt="Bootstrap" width="32" height="32" class="rounded-circle border border-white"> </li> <li class="d-flex align-items-center me-3"> <svg class="bi me-2" width="1em" height="1em" role="img" aria-label="Location"><use xlink:href="#geo-fill"></use></svg> <small>Uploaded Image</small> </li> <li class="d-flex align-items-center"> <svg class="bi me-2" width="1em" height="1em" role="img" aria-label="Duration"><use xlink:href="#calendar3"></use></svg> <small>1 pc</small> </li> </ul> </div> </div> </div>
+        {% endif %}
+
+
+
+      </div>
+      </div>
+    </div>
+    
+
+
+    <div style="display: none">
+      <svg id="check">
+        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"></path>
+      </svg>
+    </div>
+    <div class="container py-3">
+      <main>
+        <div class="col-md-7">
+          <h2 class="featurette-heading"> There is a Carpooling website and having your website created by us increases the chance having guests in your place  </span></h2>
+          <!-- <p class="lead">We provide in your conviniency, a website will be under subdomain for <strong style="color: rgb(0, 107, 228);"><a href="https://treep.today/" target="_blank">https://treep.today</a></strong></p> -->
+          <p class="lead">We provide in your conviniency, a website will be under subdomain for <strong style="color: rgb(0, 107, 228);"><a href="https://gotreepnow.xyz/" target="_blank">https://gotreepnow.xyz</a></strong></p>
+        </div>
+        
+        <br />
+        <div class="row row-cols-1 row-cols-md-3 mb-3 text-center">
+          <div class="col">
+            <div class="card mb-4 rounded-3 shadow-sm">
+              <div class="card-header py-3">
+                <h4 class="my-0 fw-normal"> Plain Website</h4>
+              </div>
+              <div class="card-body">
+                <h1 class="card-title pricing-card-title">₱ 199<small class="text-body-secondary fw-light"> /year</small></h1>
+                <ul class="list-unstyled mt-3 mb-4">
+                  <li>You Provide Pictures</li>
+                  <li>You Provide Brochures</li>
+                  <li>Recommendation to travellers</li>
+                </ul>                
+              </div>
+              <div   id="paypal-button-container-P-6YY77491JA327313EMU7Y7XQ"></div>
+                <script src="https://www.paypal.com/sdk/js?client-id=AZKp29XmANwKqTx3-VdxuiDVnuXihdQBZ_vCRJYOcq6v4xh8fZ5YWbtobAMADBTG1bm4a-N9csgOEgwu&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
+                <script>
+                paypal.Buttons({
+                    style: {
+                        shape: 'rect',
+                        color: 'blue',
+                        layout: 'vertical',
+                        label: 'subscribe'
+                    },
+                    createSubscription: function(data, actions) {
+                        return actions.subscription.create({
+                        /* Creates the subscription */
+                        plan_id: 'P-6YY77491JA327313EMU7Y7XQ'
+                        });
+                    },
+                    onApprove: function(data, actions) {
+                        alert(data.subscriptionID); // You can add optional success message for the subscriber here
+                    }
+                }).render('#paypal-button-container-P-6YY77491JA327313EMU7Y7XQ'); // Renders the PayPal button
+                </script>
+            </div>
+          </div>
+
+          <div class="col">
+            <div class="card mb-4 rounded-3 shadow-sm">
+              <div class="card-header py-3">
+                <h4 class="my-0 fw-normal">Website + Pictures</h4>
+              </div>
+              <div class="col">
+                <div class="card shadow-sm">
+                  <svg class="bd-placeholder-img card-img-top" width="100%" height="225" style="background-image: url('images/services/no_video.png'); background-position:center; background-size:contain; background-repeat:no-repeat; overflow:scroll" role="img" aria-label="Placeholder: Thumbnail" preserveAspectRatio="xMidYMid slice" focusable="false"></svg>
+                  <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div class="btn-group">
+                        <a target="_blank" class="btn btn-success" href="https://treep.today/resorts/adventurecampsablayan/">Visit Website</a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>                
+              <div class="card-body">
+                <h1 class="card-title pricing-card-title">₱ 999<small class="text-body-secondary fw-light"> /year</small></h1>
+                <ul class="list-unstyled mt-3 mb-4">
+                  <li>We take pictures for your website</li>
+                  <li>Priority email support</li>
+                  <li>Location Varies</li>
+                </ul>
+              </div>
+              <div id="paypal-button-container-P-2HA61154WP755715HMU7ZEAA"></div>
+            <script>
+            paypal.Buttons({
+                style: {
+                    shape: 'rect',
+                    color: 'gold',
+                    layout: 'vertical',
+                    label: 'subscribe'
+                },
+                createSubscription: function(data, actions) {
+                    return actions.subscription.create({
+                    /* Creates the subscription */
+                    plan_id: 'P-2HA61154WP755715HMU7ZEAA'
+                    });
+                },
+                onApprove: function(data, actions) {
+                    alert(data.subscriptionID); // You can add optional success message for the subscriber here
+                }
+            }).render('#paypal-button-container-P-2HA61154WP755715HMU7ZEAA'); // Renders the PayPal button
+            </script>
+            </div>
+            
+          </div>
+          <div class="col">
+            <div class="card mb-4 rounded-3 shadow-sm border-primary">
+              <div class="card-header py-3 text-bg-primary border-primary">
+                <h4 class="my-0 fw-normal">Website + Pictures + Video</h4>
+              </div>
+              <div class="col">
+                <div class="card shadow-sm">
+                  <svg class="bd-placeholder-img card-img-top" width="100%" height="225" style="background-image: url('images/services/with_video.png'); background-position:center; background-size:contain; background-repeat:no-repeat; overflow:scroll" role="img" aria-label="Placeholder: Thumbnail" preserveAspectRatio="xMidYMid slice" focusable="false"></svg>
+                  <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div class="btn-group">
+                        <a target="_blank" class="btn btn-success" href="https://treep.today/resorts/villavicentabeachresort/">Visit Website</a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>     
+              <div class="card-body">
+                <h1 class="card-title pricing-card-title">₱ 1,499<small class="text-body-secondary fw-light"> /year</small></h1>
+                <ul class="list-unstyled mt-3 mb-4">
+                  <li>We take Picture</li>
+                  <li>Create Video Walk Through</li>
+                  <li>Location Varies</li>
+                </ul>
+              </div>
+              <div id="paypal-button-container-P-8EA09025YF8541728MU7ZF2Y"></div>
+              <script>
+              paypal.Buttons({
+                  style: {
+                      shape: 'rect',
+                      color: 'blue',
+                      layout: 'vertical',
+                      label: 'subscribe'
+                  },
+                  createSubscription: function(data, actions) {
+                      return actions.subscription.create({
+                      /* Creates the subscription */
+                      plan_id: 'P-8EA09025YF8541728MU7ZF2Y'
+                      });
+                  },
+                  onApprove: function(data, actions) {
+                      alert(data.subscriptionID); // You can add optional success message for the subscriber here
+                  }
+              }).render('#paypal-button-container-P-8EA09025YF8541728MU7ZF2Y'); // Renders the PayPal button
+              </script>              
+            </div>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table text-center">
+            <thead>
+              <tr>
+                <th style="width: 34%"></th>
+                <th style="width: 22%">Plain Website</th>
+                <th style="width: 22%">Website + Pictures</th>
+                <th style="width: 22%">Website + Pictures + Videos</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row" class="text-start">Pictures</th>
+                <td> 30 + </td>
+                <td> 50 + </td>
+                <td> Unlimited </td>
+              </tr>
+              <tr>
+                <th scope="row" class="text-start">Support</th>
+                <td>Email</td>
+                <td> Email and Mobile Message </td>
+                <td> Email, Message, Video Call </td>
+              </tr>
+            </tbody>
+
+            <tbody>
+              <tr>
+                <th scope="row" class="text-start">Video</th>
+                <td> No</td>
+                <td> You Provide the Video </td>
+                <td> We Create Video for you </td>
+              </tr>
+              <tr>
+                <th scope="row" class="text-start">Recommendation</th>
+                <td>
+                  <svg class="bi" width="24" height="24"><use xlink:href="#check"></use></svg>
+                </td>
+                <td>
+                  <svg class="bi" width="24" height="24"><use xlink:href="#check"></use></svg>
+                </td>
+                <td>
+                  <svg class="bi" width="24" height="24"><use xlink:href="#check"></use></svg>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </main>
+      <h1>Contact Us at <strong>johnwebsiteprojects@gmail.com</strong></h1>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,157 @@
+{% extends "commerce/invest/layout.html" %}
+{% load static %}
+{% block body %}
+<style>
+    .input-Contact {
+        color: white;
+        background-color: rgba(255, 0, 0, 0.082);
+        padding: 5px;
+        border: none;
+        border-radius: 4px;
+    }
+
+    .paragraph-head {
+        background-color: rgba(0, 0, 0, 0.185);
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.199);
+        text-shadow: 0 0 5px black;
+        /* width: fit-content; */
+        font-family: sans-serif;
+        font-weight: 300;
+        padding: 5px;
+    }
+
+    .flex-SpaceAround {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        padding-left: 20px;
+    }
+
+    .label-Details {
+        padding: 14px;
+        font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    }
+
+    .input-Details {
+        background-color: rgba(156, 196, 232, 0.35);
+        color: white;
+        padding: 10px;
+        margin-bottom: 20px;
+        border: none;
+        border-radius: 4px;
+        box-shadow: 0 0 3px white;
+        font-size: larger;
+        margin-left: 14px;
+        text-shadow: 0 0 5px black;
+    }
+</style>
+
+<div>
+    <div style="text-align: center;">
+        <div class="paragraph-head" style="font-family:fantasy; font-size: calc(vw + 12px);">
+            <p>
+                Make your Money work for You!
+            </p>
+            <p>
+                By Trusting and Investing with us together with <strong>iClub</strong>
+            </p>
+        </div>
+        <div>
+            <p> <small class="paragraph-head">Email us at: <input class="input-Contact" readonly
+                        value="repapaka20@gmail.com"></small></p>
+            <p><small class="paragraph-head">Call and Text at <input class="input-Contact" readonly
+                        value="+639 5685 43802"></small></p>
+
+        </div>
+        <p><small class="paragraph-head">Meet us in Person or Video Call </small></p>
+    </div>
+</div>
+
+<!-- CONTACT US DIRECTLY -->
+<hr>
+<div style="display: flex;align-items: center; justify-content: center;">
+    <span>
+        <h2 class="label-Details">Message us Now</h2>
+        <div>
+            <div>
+                <div>
+                    <div class="flex-SpaceAround">
+                        <label class="label-Details" for="userContactInfo">Contact: </label>
+                        <input class="input-Details" name="userContactInfo" id="userContactInfo"
+                            placeholder="Your Contact Details">
+
+                    </div>
+                    <div class="flex-SpaceAround">
+                        <label class="label-Details" for="userNameInfo">Name: </label>
+                        <input class="input-Details" name="userNameInfo" id="userNameInfo" placeholder="Name">
+
+                    </div>
+                    <div class="flex-SpaceAround">
+                        <label class="label-Details" for="userPlaceInfo">Location: </label>
+                        <input class="input-Details" name="userPlaceInfo" id="userPlaceInfo" placeholder="Place">
+
+                    </div>
+                    <div class="flex-SpaceAround">
+                        <label class="label-Details" for="userMessage">Message: </label>
+                        <input value="{{userMessage}}" class="input-Details" name="userMessage" id="userMessage"
+                            placeholder="Message" list="messageList">
+                        <datalist id="messageList">
+                            <option value="Interested as Soon as Possible">
+                            <option value="Want to Learn More">
+                            <option value="Let us Meet">
+                            <option value="Let Us Talk">
+                        </datalist>
+
+                    </div>
+
+
+                </div>
+
+                <button class="button-SendMessage" onclick="sendMessage_v1()">Send Message</button>
+
+
+            </div>
+        </div>
+    </span>
+</div>
+<hr>
+<!-- <script src="https://smtpjs.com/v3/smtp.js"></script> -->
+<script>
+    function sendMessage_v1() {
+        infoContact = document.querySelector("#userContactInfo")
+        if (infoContact.value == '') {
+            return alert('Pleae Provide Contact')
+        }
+        infoName = document.querySelector("#userNameInfo")
+        if (infoName.value == '') {
+            return alert('Input your Nick Name')
+        }
+        infoPlace = document.querySelector("#userPlaceInfo")
+        if (infoPlace.value == '') {
+            return alert('Where can we reach you')
+        }
+        infoMessage = document.querySelector("#userMessage")
+        if (infoMessage.value == '') {
+            return alert('Tell us your reason')
+        }
+        toSend = `${infoName.value}:     ${infoMessage.value} ____  ${infoPlace.value}, ${infoContact.value}`
+        console.log(toSend)
+        sendEmail()
+    }
+
+
+    function sendEmail() {
+        Email.send({
+            Host: "smtp.elasticemail.com",
+            Username: "repapaka20@gmail.com",
+            Password: "20B28409FAB2EC360F970DEBC62ACB854E4B",
+            To: 'dayo_john16@yahoo.com',
+            From: "repapaka20@gmail.com",
+            Subject: "iClub Message Investment",
+            Body: toSend
+        }).then(
+            message => alert('Please Check You Spam', message)
+        );
+    }
+</script>
+<div style="height: 50vh;"></div>{% endblock %}

@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visit Recorded</title>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500&display=swap');
+    
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    body {
+        font-family: 'Inter', sans-serif;
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        min-height: 100vh;
+        padding: 40px 20px;
+        color: #e8e8e8;
+        line-height: 1.6;
+    }
+    
+    h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: 3.5rem;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 40px;
+        background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-shadow: 0 4px 20px rgba(246, 211, 101, 0.3);
+        animation: fadeInDown 0.8s ease-out;
+    }
+    
+    #spot-info {
+        max-width: 800px;
+        margin: 0 auto 30px;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+                    0 0 0 1px rgba(255, 255, 255, 0.1);
+        animation: fadeInUp 0.8s ease-out 0.2s both;
+    }
+    
+    #spot-info h2 {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.5rem;
+        margin-bottom: 20px;
+        color: #fda085;
+        border-bottom: 2px solid rgba(246, 211, 101, 0.3);
+        padding-bottom: 15px;
+    }
+    
+    #spot-info p {
+        font-size: 1.1rem;
+        margin-bottom: 20px;
+        color: #d4d4d4;
+        font-weight: 300;
+    }
+    
+    #spot-img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 15px;
+        margin: 25px 0;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        transition: transform 0.3s ease;
+    }
+    
+    #spot-img:hover {
+        transform: scale(1.02);
+    }
+    
+    #spot-url {
+        display: inline-block;
+        color: #f6d365;
+        text-decoration: none;
+        font-weight: 500;
+        padding: 12px 30px;
+        background: linear-gradient(135deg, rgba(246, 211, 101, 0.2), rgba(253, 160, 133, 0.2));
+        border-radius: 30px;
+        border: 1px solid rgba(246, 211, 101, 0.4);
+        transition: all 0.3s ease;
+        margin-top: 10px;
+    }
+    
+    #spot-url:hover {
+        background: linear-gradient(135deg, rgba(246, 211, 101, 0.3), rgba(253, 160, 133, 0.3));
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(246, 211, 101, 0.3);
+    }
+    
+    #visit-message {
+        text-align: center;
+        font-size: 1.2rem;
+        max-width: 800px;
+        margin: 0 auto 30px;
+        padding: 20px;
+        color: #f6d365;
+        animation: fadeIn 0.8s ease-out 0.4s both;
+    }
+    
+    #guide-section {
+        max-width: 800px;
+        margin: 30px auto;
+        padding: 40px;
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(246, 211, 101, 0.2) !important;
+        border-radius: 20px !important;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        animation: fadeInUp 0.8s ease-out 0.6s both;
+    }
+    
+    #guide-section h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.8rem;
+        margin-bottom: 25px;
+        color: #fda085;
+    }
+    
+    #guide-form label {
+        display: block;
+        cursor: pointer;
+        padding: 15px 20px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        border: 1px solid transparent;
+    }
+    
+    #guide-form label:hover {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(246, 211, 101, 0.3);
+    }
+    
+    #guide-form input[type="radio"] {
+        margin-right: 12px;
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: #f6d365;
+    }
+    
+    #guide-username-section {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 25px;
+        border-radius: 12px;
+        margin-top: 20px;
+    }
+    
+    #guide-username-section label {
+        display: inline;
+        padding: 0;
+        background: none;
+        color: #e8e8e8;
+        font-weight: 500;
+    }
+    
+    #guide_username {
+        padding: 12px 20px !important;
+        border: 1px solid rgba(246, 211, 101, 0.3);
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        color: #e8e8e8;
+        font-size: 1rem;
+        margin-left: 15px !important;
+        min-width: 250px;
+        transition: all 0.3s ease;
+    }
+    
+    #guide_username:focus {
+        outline: none;
+        border-color: #f6d365;
+        background: rgba(255, 255, 255, 0.08);
+        box-shadow: 0 0 20px rgba(246, 211, 101, 0.2);
+    }
+    
+    #guide_username::placeholder {
+        color: rgba(232, 232, 232, 0.5);
+    }
+    
+    button[type="submit"] {
+        padding: 12px 30px !important;
+        background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+        border: none;
+        border-radius: 10px;
+        color: #1a1a2e;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        margin-left: 15px !important;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(246, 211, 101, 0.3);
+    }
+    
+    button[type="submit"]:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 25px rgba(246, 211, 101, 0.4);
+    }
+    
+    button[type="submit"]:active {
+        transform: translateY(0);
+    }
+    
+    body > p:last-child {
+        text-align: center;
+        max-width: 800px;
+        margin: 30px auto;
+        font-size: 1.1rem;
+        color: #d4d4d4;
+        font-weight: 300;
+        animation: fadeIn 0.8s ease-out 0.8s both;
+    }
+    
+    @keyframes fadeInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        h1 {
+            font-size: 2.5rem;
+        }
+        
+        #spot-info, #guide-section {
+            padding: 25px;
+        }
+        
+        #spot-info h2 {
+            font-size: 2rem;
+        }
+        
+        #guide_username {
+            min-width: 200px;
+            margin-left: 0 !important;
+            margin-top: 15px;
+            display: block;
+        }
+        
+        button[type="submit"] {
+            margin-left: 0 !important;
+            margin-top: 15px;
+            display: block;
+        }
+    }
+</style>
+</head>
+<body>
+    <h1>Visit Recorded!</h1>
+    <div id="guide-section" style="display: none; margin-top: 20px; padding: 20px; border: 1px solid #ddd; border-radius: 5px;">
+        <h3>Do you have a tour guide?</h3>
+        <form id="guide-form">
+            {% csrf_token %}
+            <div style="margin-bottom: 10px;">
+                <label>
+                    <input type="radio" name="has_guide" value="yes"> Yes, I have a tour guide
+                </label>
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label>
+                    <input type="radio" name="has_guide" value="no" checked> No, I visited independently
+                </label>
+            </div>
+            <div id="guide-username-section" style="display: none; margin-top: 10px;">
+                <label for="guide_username">Enter your tour guide's username:</label>
+                <input type="text" id="guide_username" name="guide_username" placeholder="Guide's username" style="margin-left: 10px; padding: 5px;">
+                <button type="submit" style="margin-left: 10px; padding: 5px 10px;">Submit</button>
+            </div>
+        </form>
+    </div>    
+    <div id="spot-info" style="display: none;">
+        <h2 id="spot-name">Loading...</h2>
+        <p id="spot-desc"></p>
+        <img id="spot-img" src="" alt="" style="max-width: 100%; height: auto;">
+        <p><a id="spot-url" href="" target="_blank">Read More</a></p>
+    </div>
+    <p id="visit-message">Waiting... Visiting the spot...</p>
+
+    <div id="guide-confirmation" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;">
+        <div style="background: rgba(255,255,255,0.95); padding: 30px; border-radius: 20px; text-align: center; max-width: 400px;">
+            <h3 style="color: #2c3e50; margin-bottom: 20px;">Confirm Tour Guide</h3>
+            <div id="guide-photo-container" style="margin-bottom: 15px; display: flex; flex-direction: column; align-items: center;">
+                <img id="guide-photo" 
+                    src="https://res.cloudinary.com/dam2loimt/image/upload/f_auto,q_auto/tour_guide_tourguide1_selfie" 
+                    alt="Tour Guide" 
+                    style="width: 320px; height: 320px; border-radius: 50%; object-fit: cover; border: 3px solid rgb(102, 126, 234);">
+                    
+                <div id="guide-initials" 
+                    style="width: 320px; height: 320px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem; font-weight: bold; display: none;">
+                </div>
+            </div>
+            <p id="guide-name" style="color: #2c3e50; font-size: 1.2rem; margin-bottom: 20px;"></p>
+            <button id="confirm-guide" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; margin-right: 10px;">Confirm</button>
+            <button id="cancel-guide" style="background: #95a5a6; color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer;">Cancel</button>
+        </div>
+    </div>
+    {% csrf_token %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Parse URL to get slugs
+            const path = window.location.pathname;
+            const parts = path.split('/').filter(p => p);
+            const placeSlug = parts[0];
+            const spotSlug = parts[2]; // since /place_slug/visit/spot_slug/
+
+            const messageEl = document.getElementById('visit-message');
+
+            // Record visit first
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            fetch(`/record_visit/${placeSlug}/${spotSlug}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrftoken
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'visit recorded') {
+                    console.log('Visit recorded successfully');
+                    // Now fetch spot details
+                    return fetch(`/api/spot/${placeSlug}/${spotSlug}/`);
+                } else {
+                    console.error('Error recording visit:', data.error);
+                    throw new Error('Visit recording failed');
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('spot-name').textContent = data.name;
+                document.getElementById('spot-desc').textContent = data.desc || '';
+                if (data.img) {
+                    document.getElementById('spot-img').src = data.img;
+                    document.getElementById('spot-img').alt = data.name;
+                    document.getElementById('spot-img').style.display = 'block';
+                }
+                if (data.url) {
+                    document.getElementById('spot-url').href = data.url;
+                    document.getElementById('spot-url').style.display = 'inline';
+                }
+                document.getElementById('spot-info').style.display = 'block';
+                document.getElementById('visit-message').innerHTML = `You have successfully visited <strong>${data.name}</strong>.`;
+                document.title = `Visit Recorded - ${data.name}`;
+                
+                // Show guide section
+                document.getElementById('guide-section').style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('visit-message').innerHTML = 'You have successfully visited the spot.';
+                // Still try to fetch spot details even if visit recording failed
+                return fetch(`/api/spot/${placeSlug}/${spotSlug}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('spot-name').textContent = data.name;
+                        document.getElementById('spot-desc').textContent = data.desc || '';
+                        if (data.img) {
+                            document.getElementById('spot-img').src = data.img;
+                            document.getElementById('spot-img').alt = data.name;
+                            document.getElementById('spot-img').style.display = 'block';
+                        }
+                        if (data.url) {
+                            document.getElementById('spot-url').href = data.url;
+                            document.getElementById('spot-url').style.display = 'inline';
+                        }
+                        document.getElementById('spot-info').style.display = 'block';
+                        document.title = `Visit Recorded - ${data.name}`;
+                    })
+                    .catch(error => {
+                        console.error('Error fetching spot details:', error);
+                    });
+            });
+        });
+
+        // Handle guide form
+        document.addEventListener('DOMContentLoaded', function() {
+            const guideRadios = document.querySelectorAll('input[name="has_guide"]');
+            const guideUsernameSection = document.getElementById('guide-username-section');
+            const guideForm = document.getElementById('guide-form');
+
+            guideRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    if (this.value === 'yes') {
+                        guideUsernameSection.style.display = 'block';
+                    } else {
+                        guideUsernameSection.style.display = 'none';
+                    }
+                });
+            });
+
+            guideForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const hasGuide = document.querySelector('input[name="has_guide"]:checked').value;
+                
+                if (hasGuide === 'yes') {
+                    const guideUsername = document.getElementById('guide_username').value.trim();
+                    if (!guideUsername) {
+                        alert('Please enter your tour guide\'s username.');
+                        return;
+                    }
+
+                    // First, fetch tour guide info
+                    fetch(`/api/tour_guide/${encodeURIComponent(guideUsername)}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            alert('Tour guide not found: ' + data.error);
+                            return;
+                        }
+
+                        // Show confirmation modal
+                        const photoSrc = data.photo;
+                        if (photoSrc) {
+                            document.getElementById('guide-photo').src = photoSrc;
+                            document.getElementById('guide-photo').style.display = 'block';
+                            document.getElementById('guide-initials').style.display = 'none';
+                        } else {
+                            // Show initials instead
+                            const initials = data.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+                            document.getElementById('guide-initials').textContent = initials;
+                            document.getElementById('guide-initials').style.display = 'flex';
+                            document.getElementById('guide-photo').style.display = 'none';
+                        }
+                        document.getElementById('guide-name').textContent = data.name;
+                        document.getElementById('guide-confirmation').style.display = 'flex';
+
+                        // Handle confirmation
+                        document.getElementById('confirm-guide').onclick = function() {
+                            document.getElementById('guide-confirmation').style.display = 'none';
+                            // Now submit guide information
+                            submitGuide(guideUsername);
+                        };
+
+                        document.getElementById('cancel-guide').onclick = function() {
+                            document.getElementById('guide-confirmation').style.display = 'none';
+                        };
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while fetching tour guide information.');
+                    });
+                }
+            });
+
+            function submitGuide(guideUsername) {
+                const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                fetch('/add_tour_guide/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: `guide_username=${encodeURIComponent(guideUsername)}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Redirect to tour guide profile
+                        window.location.href = `/userProfile/tour-guide/find/${guideUsername}/`;
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while processing your request.');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

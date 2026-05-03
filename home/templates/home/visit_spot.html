@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visit {{ spot.name }}</title>
+    <style>
+        /* Luxurious Landing Page Styles */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Montserrat:wght@300;400;500;600&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Montserrat', sans-serif;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Animated Background Elements */
+body::before {
+  content: '';
+  position: fixed;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(218, 165, 32, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  animation: backgroundScroll 60s linear infinite;
+  z-index: 0;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(ellipse at top, rgba(218, 165, 32, 0.1), transparent 50%),
+              radial-gradient(ellipse at bottom, rgba(218, 165, 32, 0.08), transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes backgroundScroll {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(50px, 50px); }
+}
+
+/* Main Content Container */
+body > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Luxury Heading */
+h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 4rem;
+  font-weight: 900;
+  color: #fff;
+  text-align: center;
+  margin-bottom: 2rem;
+  letter-spacing: 2px;
+  background: linear-gradient(135deg, #FFD700, #FFA500, #DAA520);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 30px rgba(218, 165, 32, 0.3);
+  animation: shimmer 3s ease-in-out infinite;
+  position: relative;
+}
+
+h1::after {
+  content: '';
+  position: absolute;
+  bottom: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #DAA520, transparent);
+  box-shadow: 0 0 20px rgba(218, 165, 32, 0.5);
+}
+
+@keyframes shimmer {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.2); }
+}
+
+/* Paragraph Styling */
+p {
+  color: #e0e0e0;
+  font-size: 1.125rem;
+  line-height: 1.8;
+  text-align: center;
+  max-width: 700px;
+  margin: 1.5rem auto;
+  font-weight: 300;
+  letter-spacing: 0.5px;
+}
+
+/* Image Container */
+img {
+  display: block;
+  margin: 3rem auto;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5),
+              0 0 0 1px rgba(218, 165, 32, 0.2),
+              inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  transition: transform 0.5s ease, box-shadow 0.5s ease;
+  border: 3px solid transparent;
+  background: linear-gradient(#1a1a2e, #1a1a2e) padding-box,
+              linear-gradient(135deg, #DAA520, #FFD700) border-box;
+}
+
+img:hover {
+  transform: scale(1.05) translateY(-10px);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6),
+              0 0 40px rgba(218, 165, 32, 0.4);
+}
+
+/* Form Container */
+form {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  border-radius: 25px;
+  padding: 3rem;
+  max-width: 600px;
+  width: 100%;
+  margin: 3rem auto;
+  border: 1px solid rgba(218, 165, 32, 0.2);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4),
+              inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+form::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #DAA520, transparent);
+  animation: borderSlide 3s ease-in-out infinite;
+}
+
+@keyframes borderSlide {
+  0% { left: -100%; }
+  50%, 100% { left: 100%; }
+}
+
+/* Form Paragraphs (Django form.as_p) */
+form p {
+  margin-bottom: 2rem;
+  text-align: left;
+}
+
+/* Form Labels */
+form label {
+  display: block;
+  color: #DAA520;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+/* Form Inputs */
+form input[type="text"],
+form input[type="email"],
+form input[type="password"],
+form input[type="number"],
+form input[type="tel"],
+form textarea,
+form select {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(218, 165, 32, 0.3);
+  border-radius: 12px;
+  color: #fff;
+  font-size: 1rem;
+  font-family: 'Montserrat', sans-serif;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+form input::placeholder,
+form textarea::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+form input:focus,
+form textarea:focus,
+form select:focus {
+  border-color: #DAA520;
+  background: rgba(218, 165, 32, 0.05);
+  box-shadow: 0 0 20px rgba(218, 165, 32, 0.2),
+              inset 0 0 20px rgba(218, 165, 32, 0.05);
+}
+
+/* Help Text */
+form .helptext {
+  display: block;
+  color: rgba(224, 224, 224, 0.6);
+  font-size: 0.75rem;
+  margin-top: 0.5rem;
+  font-style: italic;
+}
+
+/* Error Messages */
+form .errorlist {
+  list-style: none;
+  color: #ff6b6b;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+/* Luxury Button */
+button[type="submit"] {
+  width: 100%;
+  padding: 1.25rem 3rem;
+  background: linear-gradient(135deg, #DAA520, #FFD700, #DAA520);
+  background-size: 200% 200%;
+  border: none;
+  border-radius: 50px;
+  color: #1a1a2e;
+  font-size: 1.125rem;
+  font-weight: 700;
+  font-family: 'Montserrat', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.4s ease;
+  box-shadow: 0 10px 30px rgba(218, 165, 32, 0.4),
+              inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  position: relative;
+  overflow: hidden;
+  margin-top: 1rem;
+}
+
+button[type="submit"]::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+button[type="submit"]:hover {
+  background-position: 100% 0;
+  transform: translateY(-3px);
+  box-shadow: 0 15px 40px rgba(218, 165, 32, 0.6),
+              inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+button[type="submit"]:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+button[type="submit"]:active {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(218, 165, 32, 0.4);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 2.5rem;
+  }
+  
+  form {
+    padding: 2rem 1.5rem;
+  }
+  
+  p {
+    font-size: 1rem;
+  }
+  
+  button[type="submit"] {
+    padding: 1rem 2rem;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  h1 {
+    font-size: 2rem;
+    letter-spacing: 1px;
+  }
+  
+  body {
+    padding: 1rem;
+  }
+  
+  form {
+    padding: 1.5rem 1rem;
+  }
+}
+
+/* Loading Animation */
+button[type="submit"]:disabled {
+  background: rgba(218, 165, 32, 0.3);
+  cursor: not-allowed;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+    </style>
+</head>
+
+<body>
+    <h1>Visit {{ spot.name }}</h1>
+    <p>{{ spot.desc }}</p>
+    {% if spot.img %}
+    <img src="{{ spot.img }}" alt="{{ spot.name }}" style="max-width: 300px;">
+    {% endif %}
+    <p>To record your visit, please register quickly (contact number required for emergency purposes):</p>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Register and Record Visit</button>
+    </form>
+
+    <script>
+        // Store user credentials in localStorage after form submission
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const username = document.querySelector('input[name="username"]').value;
+            const password = document.querySelector('input[name="password"]').value;
+            const contactNumber = document.querySelector('input[name="contact_number"]').value;
+            const ageRange = document.querySelector('select[name="age_range"]').value;
+            const gender = document.querySelector('select[name="gender"]').value;
+
+            // Store in localStorage (this happens before form submission)
+            try {
+                localStorage.setItem('username', username);
+                localStorage.setItem('password', password); // Note: storing password in localStorage is not secure
+                localStorage.setItem('contact_number', contactNumber);
+                localStorage.setItem('age_range', ageRange);
+                localStorage.setItem('gender', gender);
+            } catch(e) {
+                console.warn('localStorage not available:', e);
+            }
+        });
+
+        // Also try to populate form from localStorage if available
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                const savedUsername = localStorage.getItem('username');
+                const savedPassword = localStorage.getItem('password');
+                const savedContactNumber = localStorage.getItem('contact_number');
+                const savedAgeRange = localStorage.getItem('age_range');
+                const savedGender = localStorage.getItem('gender');
+
+                if (savedUsername) {
+                    document.querySelector('input[name="username"]').value = savedUsername;
+                }
+                if (savedPassword) {
+                    document.querySelector('input[name="password"]').value = savedPassword;
+                }
+                if (savedContactNumber) {
+                    document.querySelector('input[name="contact_number"]').value = savedContactNumber;
+                }
+                if (savedAgeRange) {
+                    document.querySelector('select[name="age_range"]').value = savedAgeRange;
+                }
+                if (savedGender) {
+                    document.querySelector('select[name="gender"]').value = savedGender;
+                }
+            } catch(e) {
+                console.warn('localStorage not available:', e);
+            }
+        });
+    </script>
+</body>
+</html>

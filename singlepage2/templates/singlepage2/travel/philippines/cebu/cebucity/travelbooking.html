@@ -1,0 +1,682 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="auto">
+  <head>
+    <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-MH2W7TQEH3"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-MH2W7TQEH3');
+</script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4843007524416588"
+     crossorigin="anonymous"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="" />
+    <meta name="author" content="John Foreign" />
+    <meta name="generator" content="Hugo 0.118.2" />
+    <title>Cebu Booking</title>
+    <link href="{% static 'bootstrap/assets/dist/css/bootstrap.min.css' %}" rel="stylesheet" />
+    <!-- <link rel="stylesheet" href="{% static 'bootstrap/assets/dist/css/bootstrap.min.css' %}" /> -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@docsearch/css@3">
+
+    <!-- <script src="{% static 'bootstrap/assets/bootstrap.bundle.min.js' %}"></script> -->
+    <script src="{% static 'bootstrap/assets/dist/js/color-modes.js' %}"></script>
+    <script>
+      csrftoken = `{{csrf_token}}`;
+
+    </script>
+    <script type="text/javascript" src="{% static '/SinglePage/src/ChatRoom.js' %}"></script>
+    <script type="text/javascript" src="{% static '/SinglePage/src/revealObjects.js' %}"></script>
+    <!-- Prevent Right Click -->
+    <script>
+      // document.addEventListener('contextmenu', event => event.preventDefault());
+      addEventListener("DOMContentLoaded", (event) => {
+        // setTimeout(() => {
+        //   document.querySelector('.button-to-join-chat').click()
+        // }, 10000);
+        
+      });
+      
+
+    </script>
+    <style>
+.revealObject{
+  position: relative;
+  transform: translateY(150px);
+  opacity: 0;
+  transition: 1s all ease;
+}
+
+.revealObject.active{
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* .shadow-sm {
+	opacity: 1;
+	animation-name: fadeInOpacity;
+	animation-iteration-count: 1;
+	animation-timing-function: ease-in;
+	animation-duration: 2s;
+} */
+
+@keyframes fadeInOpacity {
+	0% {
+		opacity: 0;
+	}
+	100% {
+		opacity: 1;
+	}
+}
+
+
+      @font-face {
+    font-family: 'LaishaFontStyle';
+    
+    src: url("{% static 'bootstrap/css/DynaPuff[wdth,wght].ttf' %}") format('truetype'); /* Chrome 4+, Firefox 3.5, Opera 10+, Safari 3—5 */
+}  
+    .tour-header {
+      font-family: 'LaishaFontStyle';
+    }
+      .tour_type {
+        position: sticky;
+        top: 0;
+        left: 0;
+        margin: 0;
+        padding: 1em;
+        /* background-color: white; */
+        z-index: 2;
+      }
+      svg {
+        background-size: contain !important; /* <------ */
+        background-repeat: no-repeat !important;
+        background-position: center center !important;
+      }
+
+      .bd-placeholder-img {
+        font-size: 1.125rem;
+        text-anchor: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        user-select: none;
+      }
+
+      @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+          font-size: 3.5rem;
+        }
+      }
+
+      .b-example-divider {
+        width: 100%;
+        height: 3rem;
+        background-color: rgba(0, 0, 0, 0.1);
+        border: solid rgba(0, 0, 0, 0.15);
+        border-width: 1px 0;
+        box-shadow: inset 0 0.5em 1.5em rgba(0, 0, 0, 0.1), inset 0 0.125em 0.5em rgba(0, 0, 0, 0.15);
+      }
+
+      .b-example-vr {
+        flex-shrink: 0;
+        width: 1.5rem;
+        height: 100vh;
+      }
+
+      .bi {
+        vertical-align: -0.125em;
+        fill: currentColor;
+      }
+
+      .nav-scroller {
+        position: relative;
+        z-index: 2;
+        height: 2.75rem;
+        overflow-y: hidden;
+      }
+
+      .nav-scroller .nav {
+        display: flex;
+        flex-wrap: nowrap;
+        padding-bottom: 1rem;
+        margin-top: -1px;
+        overflow-x: auto;
+        text-align: center;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .btn-bd-primary {
+        --bd-violet-bg: #712cf9;
+        --bd-violet-rgb: 112.520718, 44.062154, 249.437846;
+
+        --bs-btn-font-weight: 600;
+        --bs-btn-color: var(--bs-white);
+        --bs-btn-bg: var(--bd-violet-bg);
+        --bs-btn-border-color: var(--bd-violet-bg);
+        --bs-btn-hover-color: var(--bs-white);
+        --bs-btn-hover-bg: #6528e0;
+        --bs-btn-hover-border-color: #6528e0;
+        --bs-btn-focus-shadow-rgb: var(--bd-violet-rgb);
+        --bs-btn-active-color: var(--bs-btn-hover-color);
+        --bs-btn-active-bg: #5a23c8;
+        --bs-btn-active-border-color: #5a23c8;
+      }
+
+      .bd-mode-toggle {
+        z-index: 1500;
+      }
+
+      .bd-mode-toggle .dropdown-menu .active .bi {
+        display: block !important;
+      }
+    </style>
+  </head>
+  <body>
+    <svg xmlns="http://www.w3.org/2000/svg" class="d-none">
+      <symbol id="check2" viewBox="0 0 16 16">
+        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" />
+      </symbol>
+      <symbol id="circle-half" viewBox="0 0 16 16">
+        <path d="M8 15A7 7 0 1 0 8 1v14zm0 1A8 8 0 1 1 8 0a8 8 0 0 1 0 16z" />
+      </symbol>
+      <symbol id="moon-stars-fill" viewBox="0 0 16 16">
+        <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z" />
+        <path d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.734 1.734 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.734 1.734 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.734 1.734 0 0 0 1.097-1.097l.387-1.162zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.156 1.156 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.156 1.156 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732L13.863.1z" />
+      </symbol>
+      <symbol id="sun-fill" viewBox="0 0 16 16">
+        <path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z" />
+      </symbol>
+    </svg>
+
+    <div class="dropdown position-fixed bottom-0 end-0 mb-3 me-3 bd-mode-toggle">
+      <button class="btn btn-bd-primary py-2 dropdown-toggle d-flex align-items-center" id="bd-theme" type="button" aria-expanded="true" data-bs-toggle="dropdown" aria-label="Toggle theme (auto)">
+        <svg class="bi my-1 theme-icon-active" width="1em" height="1em"><use href="#circle-half"></use></svg>
+        <span class="visually-hidden" id="bd-theme-text">Toggle theme</span>
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="bd-theme-text">
+        <li>
+          <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="light" aria-pressed="false">
+            <svg class="bi me-2 opacity-50 theme-icon" width="1em" height="1em"><use href="#sun-fill"></use></svg>
+            Light
+            <svg class="bi ms-auto d-none" width="1em" height="1em"><use href="#check2"></use></svg>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="dark" aria-pressed="false">
+            <svg class="bi me-2 opacity-50 theme-icon" width="1em" height="1em"><use href="#moon-stars-fill"></use></svg>
+            Dark
+            <svg class="bi ms-auto d-none" width="1em" height="1em"><use href="#check2"></use></svg>
+          </button>
+        </li>
+        <li>
+          <button type="button" class="dropdown-item d-flex align-items-center active" data-bs-theme-value="auto" aria-pressed="true">
+            <svg class="bi me-2 opacity-50 theme-icon" width="1em" height="1em"><use href="#circle-half"></use></svg>
+            Auto
+            <svg class="bi ms-auto d-none" width="1em" height="1em"><use href="#check2"></use></svg>
+          </button>
+        </li>
+      </ul>
+    </div>
+
+    <header style="position: sticky; z-index: 3;top: 0;" data-bs-theme="dark">
+      <div class="text-bg-dark collapse" id="navbarHeader" >
+        <div class="container">
+          <div class="row">
+            <div class="col-sm-8 col-md-7 py-4">
+              <h4>About</h4>
+              <p class="text-body-secondary">We offer homestay or bedspace and tours around Cebu City. Van rentals, Tour Guides, Camera .<br><br>
+                If you are looking for other Travellers you can use our live chat box below
+              </p>
+              <div id="" class="list-group">
+                <a class="list-group-item list-group-item-action" href="#cebu_city_tour">Cebu City Tour</a>
+                <a class="list-group-item list-group-item-action" href="#Rent_and_Hire">Rent and Hire</a>
+                <a class="list-group-item list-group-item-action" href="#Sleep_and_Stay">Sleep and Stay</a>
+                <br>
+                <a class="list-group-item list-group-item-action" href="{% url 'home:carpool' %}">Carpool </a>
+              </div>
+            </div>
+            <div class="col-sm-4 offset-md-1 py-4">
+              <h4>Contact</h4>
+              <ul class="list-unstyled">
+                <li><a href="#" class="text-white">johnwebsiteprojects@gmail.com</a></li>
+                <li><a href="#" class="text-white">639765514253</a></li>
+                <!-- <li><a href="#" class="text-white">Follow on Twitter</a></li>
+                <li><a href="#" class="text-white">Like on Facebook</a></li>
+                <li><a href="#" class="text-white">Email me</a></li> -->
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="navbar navbar-dark bg-dark shadow-sm">
+        <div class="container">
+          <a href="#" class="navbar-brand d-flex align-items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" aria-hidden="true" class="me-2" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+            <strong>Cebu Tours</strong>
+          </a>
+          <button class="navbar-toggler collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#navbarHeader" aria-controls="navbarHeader" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+
+
+    <main>
+      <section class="py-5 text-center container">
+        <div class="row py-lg-5">
+          <div class="col-lg-6 col-md-8 mx-auto">
+            <h1 class="fw-light" style="font-family: LaishaFontStyle;">Cebu Tours</h1>
+            Strict meeting time and leaving time, 
+              Time will be discussed with the driver.
+
+              <p><small>We give discounts of upto 50% if you avail more tours</small></p>
+            <p class="lead text-body-secondary"></p>
+            <p>
+              <a href="#" class="btn btn-primary my-2">johnwebsiteprojects@gmail.com</a>
+              <a href="#" class="btn btn-secondary my-2">639765514253</a>
+            </p>
+          </div>
+          <div>
+            
+            <p>              
+              <span onclick="this.style.display = 'none';">
+                <a onclick="chat_room_created = new Chat_Roomm(this.innerText)" class=" btn btn-warning button-to-join-chat" href="#">
+                  Cebu Live Chat
+                </a>
+                
+              </span>
+            </p>
+            <main class="main-container" id="main-container-page-3" style="max-width: 1400px;max-height: 80vh; overflow: scroll;">
+          </div>
+        </div>
+      </section>
+
+      <div class="album py-5 bg-body-tertiary">
+        
+        <div class="container">
+          <hr>
+          <h3 class="tour_type" id="Rent_and_Hire">Rent and Hire</h3>        
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
+
+
+          <div class="col">
+            <div class="card shadow-sm revealObjectg">
+              <svg class="bd-placeholder-img card-img-top" width="100%" height="225" style="background: url('https://static.gopro.com/assets/blta2b8522e5372af40/blt27a32dba4f909d79/64f8adcc55996bf68106c41c/GoPro_news_HERO12-Black-lead-camera.jpg')" role="img" aria-label="Placeholder: Thumbnail" preserveAspectRatio="xMidYMid slice" focusable="false"></svg>
+              <div class="card-body">
+                <p class="card-text"> <h3 class="tour-header">Rent Go Gopro 12</h3>
+                Raw Pictures and Videos with camera man
+                </p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="btn-group">
+                    </div>
+                  <!-- <a href="{% url 'SinglePage:get_html' csrf_token 'SinglePage/travel/philippines/cebu/cebucity/bookings/whaleshark.html' 'Whale Shark + Tumalog Falls + Pescador Island with Sardines & Turtle' %}" onclick="chat_room_created.autoMessage(this.parentNode.closest('.card-body').firstElementChild.innerHTML);window.scrollTo({ top: 0, behavior: 'smooth' });">Visit</a> -->
+                    <small class="text-body-secondary">From ₱ 2500 </small>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+          <div class="col">
+            <div class="card shadow-sm revealObjectg">
+              <svg class="bd-placeholder-img card-img-top" width="100%" height="225" style="background: url('https://media.istockphoto.com/id/862619976/vector/traveler-gets-acquainted-with-locality-seeks-route-on-map.jpg?s=612x612&w=0&k=20&c=J0RugN53itQEC54Vom3Lyc_xy06yU8RG4ygIkhHc07o=')" role="img" aria-label="Placeholder: Thumbnail" preserveAspectRatio="xMidYMid slice" focusable="false"></svg>
+              <div class="card-body">
+                <p class="card-text"> <h3 class="tour-header">Get Tour Guide</h3>
+                Make you explore the place easier
+                </p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="btn-group">
+                    </div>
+                  <!-- <a href="{% url 'SinglePage:get_html' csrf_token 'SinglePage/travel/philippines/cebu/cebucity/bookings/whaleshark.html' 'Whale Shark + Tumalog Falls + Pescador Island with Sardines & Turtle' %}" onclick="chat_room_created.autoMessage(this.parentNode.closest('.card-body').firstElementChild.innerHTML);window.scrollTo({ top: 0, behavior: 'smooth' });">Visit</a> -->
+                    <small class="text-body-secondary">From ₱ 500 </small>
+                  </div>
+                </div>
+              </div>
+
+          </div>
+
+
+          <div class="col">
+            <div class="card shadow-sm revealObjectg">
+              <svg class="bd-placeholder-img card-img-top" width="100%" height="225" style="background: url('https://www.cebucitytour.com/wp-content/uploads/2016/10/Cebu-car-rentals.jpg')" role="img" aria-label="Placeholder: Thumbnail" preserveAspectRatio="xMidYMid slice" focusable="false"></svg>
+              <div class="card-body">
+                <p class="card-text"> <h3 class="tour-header">Rent a Car with Driver</h3>
+                Convinent tour in Cebu 
+
+                </p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="btn-group">
+                    </div>
+                  <!-- <a href="{% url 'SinglePage:get_html' csrf_token 'SinglePage/travel/philippines/cebu/cebucity/bookings/whaleshark.html' 'Whale Shark + Tumalog Falls + Pescador Island with Sardines & Turtle' %}" onclick="chat_room_created.autoMessage(this.parentNode.closest('.card-body').firstElementChild.innerHTML);window.scrollTo({ top: 0, behavior: 'smooth' });">Visit</a> -->
+                    <small class="text-body-secondary">From ₱ 3,000 </small>
+                  </div>
+                </div>
+              </div>
+
+          </div>
+
+
+
+
+        </div>
+        </div>
+
+
+        <div class="container">
+          <hr>
+            <h3 class="tour_type" id="cebu_city_tour">Cebu City Tours</h3>        
+          <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
+
+
+
+ 
+
+            <div class="col">
+              <div class="card shadow-sm revealObjectg">
+                <svg class="bd-placeholder-img card-img-top" width="100%" height="225" style="background: url('https://sugbo.ph/wp-content/uploads/2019/07/1cebuoceanpark.jpg')" role="img" aria-label="Placeholder: Thumbnail" preserveAspectRatio="xMidYMid slice" focusable="false"></svg>
+                <div class="card-body">
+                  <h3 class="tour-header">Cebu Ocean Park</h3>
+                  <p class="card-text">
+                    The Cebu Ocean Park & Events Center is a marine theme park in Cebu City, Philippines. It is currently the largest ocean park in the Philippines, tripling the size of the Manila Ocean Park.
+                  </p>
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div class="btn-group">
+                      <a  class="btn btn-sm btn-outline-secondary" onclick="chat_room_created.autoMessage(this.parentNode.closest('.card-body').firstElementChild.innerHTML);window.scrollTo({ top: 0, behavior: 'smooth' });">Visit</a>
+                    </div>
+                    <small class="text-body-secondary">₱250 minimum 4 person</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col">
+              <div class="card shadow-sm revealObjectg">
+                <svg class="bd-placeholder-img card-img-top" width="100%" height="225" style="background: url('https://upload.wikimedia.org/wikipedia/en/3/34/Lapu_Lapu_statue_at_Mactan_Shrine_2013.jpg')" role="img" aria-label="Placeholder: Thumbnail" preserveAspectRatio="xMidYMid slice" focusable="false"></svg>
+                <div class="card-body">
+                  <h3 class="tour-header">Mactan Shrine</h3>
+                  <p class="card-text">
+                    The site is believed to be the approximate location of the historic Battle of Mactan which saw the defeat of the Spaniards led by explorer Ferdinand Magellan against Lapu-Lapu the datu of Mactan and his forces.
+                  </p>
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div class="btn-group">
+                      <a  class="btn btn-sm btn-outline-secondary" onclick="chat_room_created.autoMessage(this.parentNode.closest('.card-body').firstElementChild.innerHTML);window.scrollTo({ top: 0, behavior: 'smooth' });">Visit</a>
+                    </div>
+                    <small class="text-body-secondary">₱300 minimum 4 person</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+            <div class="col">
+              <div class="card shadow-sm revealObjectg">
+                <svg class="bd-placeholder-img card-img-top" width="100%" height="225" style="background: url('https://i0.wp.com/joansfootprints.com/wp-content/uploads/2020/06/10K1.jpg?resize=1400%2C800&ssl=1')" role="img" aria-label="Placeholder: Thumbnail" preserveAspectRatio="xMidYMid slice" focusable="false"></svg>
+                <div class="card-body">
+                  <h3 class="tour-header">10000 Roses Cafe</h3>
+                  <p class="card-text">
+                    The 10,000 Roses Café is a Korean-owned café inspired by South Korea's well-known Dongdaemun Design Plaza. The café has indoor and outdoor dining areas with modern chairs and tables, LED-powdered roses, and a viewing deck surrounded by glass walls, making it an Instagram-worthy location.
+                  </p>
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div class="btn-group">
+                      <a  class="btn btn-sm btn-outline-secondary" onclick="chat_room_created.autoMessage(this.parentNode.closest('.card-body').firstElementChild.innerHTML);window.scrollTo({ top: 0, behavior: 'smooth' });">Visit</a>
+                    </div>
+                    <small class="text-body-secondary">₱500 minimum 4 person</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+
+            <div class="col">
+              <div class="card shadow-sm revealObjectg">
+                <svg class="bd-placeholder-img card-img-top" width="100%" height="225" style="background: url('https://image.vigattin.com/box/optimize/85/118_206077701596891570.jpg')" role="img" aria-label="Placeholder: Thumbnail" preserveAspectRatio="xMidYMid slice" focusable="false"></svg>
+                <div class="card-body">
+                  <h3 class="tour-header">Casa Gorordo Museum</h3>
+                  <p class="card-text">
+                    CASA GORORDO MUSEUM – Experience History
+                    It is owned and managed by the Ramon Aboitiz Foundation Inc. (RAFI) under its Culture & Heritage focus area. The house was acquired by RAFI from the Gorordo family in 1979, renovated and enhanced, and opened to the public as a museum in 1983.</p>
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div class="btn-group">
+                      <a  class="btn btn-sm btn-outline-secondary" onclick="chat_room_created.autoMessage(this.parentNode.closest('.card-body').firstElementChild.innerHTML);window.scrollTo({ top: 0, behavior: 'smooth' });">Visit</a>
+                    </div>
+                    <small class="text-body-secondary">₱150 minimum 4 person</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+            <div class="col">
+              <div class="card shadow-sm revealObjectg">
+                <svg class="bd-placeholder-img card-img-top" width="100%" height="225" style="background: url('https://sugbo.ph/wp-content/uploads/2021/01/1-magellans-cross-cebu-city-history.jpg')" role="img" aria-label="Placeholder: Thumbnail" preserveAspectRatio="xMidYMid slice" focusable="false"></svg>
+                <div class="card-body">
+                  <h3 class="tour-header">Magellan's Cross</h3>
+                  <p class="card-text">Rajah Humabon, his wife and hundreds of his native warriors agreed to accept Christianity and were consequently baptized. Magellan planted a cross to signify this important event about the propagation of the Roman Catholic faith in what is now Cebu, in central Philippines.</p>
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div class="btn-group">
+                      <a  class="btn btn-sm btn-outline-secondary" onclick="chat_room_created.autoMessage(this.parentNode.closest('.card-body').firstElementChild.innerHTML);window.scrollTo({ top: 0, behavior: 'smooth' });">Visit</a>
+                    </div>
+                    <small class="text-body-secondary">₱150 minimum 4 person</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col">
+              <div class="card shadow-sm revealObjectg">
+                <svg class="bd-placeholder-img card-img-top" width="100%" height="225" style="background: url('https://upload.wikimedia.org/wikipedia/commons/a/ae/Fort_San_Pedro%2C_Cebu-City_%2849063919082%29.jpg')" role="img" aria-label="Placeholder: Thumbnail" preserveAspectRatio="xMidYMid slice" focusable="false"></svg>
+                <div class="card-body">
+                  <h3 class="tour-header">Fort San Pedro </h3>
+                  <p class="card-text">Today's structure dates from 1738 and is the oldest triangular bastion fort in the country. It served as the nucleus of the first Spanish settlement in the Philippines. During the Philippine Revolution at the end of the 19th century, it was attacked and taken by Filipino revolutionaries, who used it as a stronghold.</p>
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div class="btn-group">
+                      <a  class="btn btn-sm btn-outline-secondary" onclick="chat_room_created.autoMessage(this.parentNode.closest('.card-body').firstElementChild.innerHTML);window.scrollTo({ top: 0, behavior: 'smooth' });">Visit</a>
+                    </div>
+                    <small class="text-body-secondary">₱180 minimum 4 person</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            
+            <div class="col">
+              <div class="card shadow-sm revealObjectg">
+                <svg class="bd-placeholder-img card-img-top" width="100%" height="225" style="background: url('https://lh5.googleusercontent.com/p/AF1QipN99h7e1w8E40nfIcj11TKq3VPW8Y8BYyn9SltL=s296-w296-h168-n-k-no-v1')" role="img" aria-label="Placeholder: Thumbnail" preserveAspectRatio="xMidYMid slice" focusable="false"></svg>
+                <div class="card-body">
+                  <h3 class="tour-header">Jesuit House Museum</h3>
+                  <p class="card-text">Jesuit missionaries established missions around the world from the 16th to the 18th century and had both successes and failures in Christianizing the native peoples. .</p>
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div class="btn-group">
+                      <a  class="btn btn-sm btn-outline-secondary" onclick="chat_room_created.autoMessage(this.parentNode.closest('.card-body').firstElementChild.innerHTML);window.scrollTo({ top: 0, behavior: 'smooth' });">Visit</a>
+                    </div>
+                    <small class="text-body-secondary">₱250 minimum 4 person</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col">
+              <div class="card shadow-sm revealObjectg">
+                <svg class="bd-placeholder-img card-img-top" width="100%" height="225" style="background: url('https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Taoist_Temple%2C_Cebu.jpg/1200px-Taoist_Temple%2C_Cebu.jpg')" role="img" aria-label="Placeholder: Thumbnail" preserveAspectRatio="xMidYMid slice" focusable="false"></svg>
+                <div class="card-body">
+                  <h3 class="tour-header">Cebu Taoist Temple</h3>
+                  <p class="card-text">The Cebu Taoist Temple was built in 1972 by the Cebu's substantial Chinese community. This temple is composed of two different temples: one is the Phu Sian Temple, built by another Chinese community, which is not open to the public; another is the main temple which is 270 meters above sea level.</p>
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div class="btn-group">
+                      <a  class="btn btn-sm btn-outline-secondary" onclick="chat_room_created.autoMessage(this.parentNode.closest('.card-body').firstElementChild.innerHTML);window.scrollTo({ top: 0, behavior: 'smooth' });">Visit</a>
+                    </div>
+                    <small class="text-body-secondary">₱350 minimum 4 person</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+                        <div class="col">
+                          <div class="card shadow-sm revealObjectg">
+                            <svg class="bd-placeholder-img card-img-top" width="100%" height="225" style="background: url('https://dynamic-media-cdn.tripadvisor.com/media/photo-o/16/e1/aa/73/photo0jpg.jpg?w=1200&h=-1&s=1')" role="img" aria-label="Placeholder: Thumbnail" preserveAspectRatio="xMidYMid slice" focusable="false"></svg>
+                            <div class="card-body">
+                              <h3 class="tour-header">Sirao Garden</h3>
+                              <p class="card-text">Situated in Barangay Sirao, this flower farm is reminiscent of Amsterdam, with all sorts of flowers neatly arranged and in various colors. It was given the moniker “Little Amsterdam of Cebu” because of this. Instead of tulips, the garden's main feature is celosia flowers or cockscombs, or wool flowers.</p>
+                              <div class="d-flex justify-content-between align-items-center">
+                                <div class="btn-group">
+                                  <a  class="btn btn-sm btn-outline-secondary" onclick="chat_room_created.autoMessage(this.parentNode.closest('.card-body').firstElementChild.innerHTML);window.scrollTo({ top: 0, behavior: 'smooth' });">Visit</a>
+                                </div>
+                                <small class="text-body-secondary">₱350 minimum 4 person</small>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+
+
+                        <div class="col">
+                          <div class="card shadow-sm revealObjectg">
+                            <svg class="bd-placeholder-img card-img-top" width="100%" height="225" style="background: url('https://gumlet.assettype.com/sunstar%2Fimport%2Fuploads%2Fimages%2F2020%2F03%2F11%2F218908.jpg')" role="img" aria-label="Placeholder: Thumbnail" preserveAspectRatio="xMidYMid slice" focusable="false"></svg>
+                            <div class="card-body">
+                              <h3 class="tour-header">Temple of Leah</h3>
+                              <p class="card-text"> Nicknamed the “Taj Mahal of Cebu”, Temple of Leah is a humble Roman-style shrine built by Teodorico Soriano Adarna in honor of his late wife, Leah Villa Albino-Adarna. Complete with enthralling Doric columns and arches, it is a sanctuary symbolizing a husband's undying love for his wife.</p>
+                              <div class="d-flex justify-content-between align-items-center">
+                                <div class="btn-group">
+                                  <a  class="btn btn-sm btn-outline-secondary"  onclick="chat_room_created.autoMessage(this.parentNode.closest('.card-body').firstElementChild.innerHTML);window.scrollTo({ top: 0, behavior: 'smooth' });">Visit</a>
+                                </div>
+                                <small class="text-body-secondary">₱350 min 4 person</small>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+
+
+
+                        <div class="col">
+                          <div class="card shadow-sm revealObjectg">
+                            <svg class="bd-placeholder-img card-img-top" width="100%" height="225" style="background: url('/static/where-to-eat-breakfast-and-lunch.jpg')" role="img" aria-label="Placeholder: Thumbnail" preserveAspectRatio="xMidYMid slice" focusable="false"></svg>
+                            <div class="card-body">
+                              <p class="card-text"> Whale Shark + Tumalog Falls + Pescador Island with Sardines & Turtle</p>
+                              <div class="d-flex justify-content-between align-items-center">
+                                <div class="btn-group">
+                                  <a  class="btn btn-sm btn-outline-secondary" href="{% url 'SinglePage:get_html' csrf_token 'SinglePage/travel/philippines/cebu/cebucity/bookings/whaleshark.html' 'Whale Shark + Tumalog Falls + Pescador Island with Sardines & Turtle' %}" onclick="chat_room_created.autoMessage(this.parentNode.closest('.card-body').firstElementChild.innerHTML);window.scrollTo({ top: 0, behavior: 'smooth' });">Visit</a>
+                                </div>
+                                <small class="text-body-secondary">From ₱ 3400 / person</small>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+            
+
+
+
+                        <div class="col">
+                          <div class="card shadow-sm revealObjectg">
+                            <svg class="bd-placeholder-img card-img-top" width="100%" height="225" style="background: url('https://www.cebutours.ph/wp-content/uploads/2022/09/Simala-Shrine.jpg')" role="img" aria-label="Placeholder: Thumbnail" preserveAspectRatio="xMidYMid slice" focusable="false"></svg>
+                            <div class="card-body">
+                              <p class="card-text"> Simala Church & Uphill Tour Package (Sirao Garden, TOPS & Temple of Leah)</p>
+                              <div class="d-flex justify-content-between align-items-center">
+                                <div class="btn-group">
+                                  <a  class="btn btn-sm btn-outline-secondary" href="{% url 'SinglePage:get_html' csrf_token 'SinglePage/travel/philippines/cebu/cebucity/bookings/whaleshark.html' 'Simala Church & Uphill Tour Package (Sirao Garden, TOPS & Temple of Leah)' %}" onclick="chat_room_created.autoMessage(this.parentNode.closest('.card-body').firstElementChild.innerHTML);window.scrollTo({ top: 0, behavior: 'smooth' });">Visit</a>
+                                  <!-- <button type="button" class="btn btn-sm btn-outline-secondary">Book</button> -->
+                                </div>
+                                
+                                <small class="text-body-secondary">From ₱ 1300 / person</small>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+            
+
+            
+            <div class="col">
+              <div class="card shadow-sm revealObjectg">
+                <svg class="bd-placeholder-img card-img-top" width="100%" height="225" style="background: url('https://www.cebutours.ph/wp-content/uploads/2021/11/A-girl-Snorkeling-with-the-Oslob-whale-sharks-1.jpg')" role="img" aria-label="Placeholder: Thumbnail" preserveAspectRatio="xMidYMid slice" focusable="false"></svg>
+              </svg>
+              <div class="card-body">
+                <p class="card-text">Oslob Whale Shark + Tumalog Falls with Lunch & Transfer.</p>
+                <div class="d-flex justify-content-between align-items-center">
+                  <div class="btn-group">
+                    <a type="button" class="btn btn-sm btn-outline-secondary" href="{% url 'SinglePage:get_html' csrf_token 'SinglePage/travel/philippines/cebu/cebucity/bookings/whaleshark.html' 'Oslob Whale Shark + Tumalog Falls Tour Package' %}" onclick="chat_room_created.autoMessage(this.parentNode.closest('.card-body').firstElementChild.innerHTML);window.scrollTo({ top: 0, behavior: 'smooth' });">Visit</a>
+                    
+                    <!-- <button type="button" class="btn btn-sm btn-outline-secondary">Book</button> -->
+                  </div>
+                  <small class="text-body-secondary">From ₱ 3400 / person</small>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card shadow-sm revealObjectg">
+              <svg class="bd-placeholder-img card-img-top" width="100%" height="225" style="background: url('https://www.cebutours.ph/wp-content/uploads/2021/11/osmena-peak-and-kawasan-falls-tour-package.jpg')" role="img" aria-label="Placeholder: Thumbnail" preserveAspectRatio="xMidYMid slice" focusable="false"></svg>
+            </svg>
+            <div class="card-body">
+              <p class="card-text">Hike to Osmeña Peak and Kawasan Falls Day Tour Package</p>
+              <div class="d-flex justify-content-between align-items-center">
+                <div class="btn-group">
+
+                  <a  class="btn btn-sm btn-outline-secondary" href="{% url 'SinglePage:get_html' csrf_token 'SinglePage/travel/philippines/cebu/cebucity/bookings/whaleshark.html' 'Hike to Osmeña Peak and Kawasan Falls Day Tour Package' %}" onclick="chat_room_created.autoMessage(this.parentNode.closest('.card-body').firstElementChild.innerHTML);window.scrollTo({ top: 0, behavior: 'smooth' });">Visit</a>
+                  <!-- <button type="button" class="btn btn-sm btn-outline-secondary">Book</button> -->
+                    </div>
+                    <small class="text-body-secondary">From ₱ 1100 / person</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="container">
+          <hr>
+          <h3 class="tour_type" id="Sleep_and_Stay">Sleep and Stay</h3>        
+
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
+          <div class="col">
+            <div class="card shadow-sm revealObjectg">
+              <svg class="bd-placeholder-img card-img-top" width="100%" height="225" style="background: url('https://a0.muscache.com/im/pictures/ce542155-dd1d-4a50-8918-a1d3e5f657ca.jpg?im_w=720')" role="img" aria-label="Placeholder: Thumbnail" preserveAspectRatio="xMidYMid slice" focusable="false"></svg>
+              <div class="card-body">
+                <p class="card-text"> <h3 class="tour-header">JTB Condotel @Horizons (PoolSideView)DeluxeTwinBed</h3>
+                  Modern Interior * IKEA Bedding * Blackout curtains * International Compatible Outlets * ReDesigned toilet with high end fixtures * Complimentary 50MBPs WiFi Access * 42 inch Samsung Ultra HD TV * Netflix * Hot and Cold Shower *  Safety Box * FREE mini-bar items
+                </p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="btn-group">
+
+                    </div>
+                  <!-- <a href="{% url 'SinglePage:get_html' csrf_token 'SinglePage/travel/philippines/cebu/cebucity/bookings/whaleshark.html' 'Whale Shark + Tumalog Falls + Pescador Island with Sardines & Turtle' %}" onclick="chat_room_created.autoMessage(this.parentNode.closest('.card-body').firstElementChild.innerHTML);window.scrollTo({ top: 0, behavior: 'smooth' });">Visit</a> -->
+                    <small class="text-body-secondary">From ₱ 2500 / night * <small>Subject to change</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+          <div class="col">
+            <div class="card shadow-sm revealObjectg">
+              <svg class="bd-placeholder-img card-img-top" width="100%" height="225" style="background: url('https://lh5.googleusercontent.com/p/AF1QipMm6T9SiRXVI4zjqLT73w6GTGfb0G8DeIb1n2Fs=s296-w296-h168-n-k-no-v1')" role="img" aria-label="Placeholder: Thumbnail" preserveAspectRatio="xMidYMid slice" focusable="false"></svg>
+              <div class="card-body">
+                <p class="card-text"> <h3 class="tour-header">Murals Hostel & Cafe - 2.5 Star</h3>
+                  Located in Cebu City, a 19-minute walk from Ayala Center Cebu, Murals Hostel and Cafe has accommodations with a garden, free private parking, a shared lounge and a terrace. Among the facilities of this property are a restaurant, a 24-hour front desk and a concierge service, along with free WiFi throughout the property. Guests can have a drink at the bar.
+                </p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="btn-group">
+                    </div>
+                  <!-- <a href="{% url 'SinglePage:get_html' csrf_token 'SinglePage/travel/philippines/cebu/cebucity/bookings/whaleshark.html' 'Whale Shark + Tumalog Falls + Pescador Island with Sardines & Turtle' %}" onclick="chat_room_created.autoMessage(this.parentNode.closest('.card-body').firstElementChild.innerHTML);window.scrollTo({ top: 0, behavior: 'smooth' });">Visit</a> -->
+                    <small class="text-body-secondary">From ₱ 1000 / night </small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+      </div>
+    </main>
+
+    <script src="{% static 'bootstrap/assets/dist/js/bootstrap.bundle.min.js' %}"></script>
+  </body>
+</html>

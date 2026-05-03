@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!-- StylesHeet -->
+<link rel="stylesheet" href="/resorts/static/resorts/layout.css">
+<link rel="stylesheet" href="/resorts/static/resorts/bootstrap/css/master.css" />
+<script src="/resorts/static/resorts/bootstrap/js/bootstrap.js"></script>
+<script src="/resorts/static/resorts/scriptsfolder/updateresortdata.js"></script>
+
+<style>
+  .containersPicture :first-child {
+    display: block;
+  }
+  li {
+    list-style: none;
+  }
+ 
+  * {
+    animation: hgh 1s forwards;
+  }
+  @keyframes hgh {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      /* line-height: 1; */
+      /* line-height: 0; */
+    }
+  }
+</style>
+</head>
+<body>
+    
+<aside class="aside aside-1">
+    <!-- TEST Accomodation Test start-->
+    <div class="room-summary">
+      <h3 class="column-sub-title">Experience our</h3>
+      <div style="padding-left: 30%; padding-right: 30%">
+        <hr style="margin: 0; padding: 0" />
+      </div>
+      <h2 class="column-title-">Accomodations</h2>
+      <!-- Accomodation 1  From Here Create a JavaScript-->
+       <div id="resort_Accomodations">
+
+       </div>
+       <div id="resort_Activities">
+
+       </div>
+       <div id="resort_Tour">
+
+       </div>
+
+     <!-- Accomodation 2 -->
+    </div>
+    <!-- TEST Accomodation Test end-->
+</aside>
+
+<script>
+    jsonObject = [
+ {
+  "resort_Accomodations": [
+   {
+    "package_subpackage": [
+     {
+      "package_description": "this is an aircondition room",
+      "package_id": 9,
+      "package_image": [
+       "https://i.ibb.co/sFCQr51/image.jpg",
+       "https://i.ibb.co/G7pZHj4/image.jpg"
+      ],
+      "package_information": "the information ",
+      "package_name": "ConRoom 1",
+      "package_price": 10,
+      "package_resort": "Aircondition"
+     },
+     {
+      "package_description": "the second description of room 2",
+      "package_id": 10,
+      "package_image": [
+       "https://i.ibb.co/7R46wV9/image.jpg",
+       "https://i.ibb.co/BBctYLW/image.jpg"
+      ],
+      "package_information": "the information of room 2",
+      "package_name": "ConRoom 2",
+      "package_price": 20,
+      "package_resort": "Aircondition"
+     }
+    ],
+    "package_title": "Aircondition",
+    "resortpackage_id": 13
+   },
+   {
+    "package_subpackage": [],
+    "package_title": "Electric Fans",
+    "resortpackage_id": 14
+   }
+  ],
+  "resort_Activities": [
+   {
+    "package_subpackage": [
+     {
+      "package_description": "360 teeth",
+      "package_id": 11,
+      "package_image": [
+       "https://i.ibb.co/XFDS8Hj/image.jpg"
+      ],
+      "package_information": "use every day",
+      "package_name": "Hair Brush",
+      "package_price": 70,
+      "package_resort": "Styling"
+     }
+    ],
+    "package_title": "Styling",
+    "resortpackage_id": 15
+   }
+  ],
+  "resort_ID": 0,
+  "resort_QRLink": "http://192.168.101.69:8000/resorts/shangrilacebu/",
+  "resort_RealName": "Shang Rila",
+  "resort_Tour": [
+   {
+    "package_subpackage": [
+     {
+      "package_description": "every day drink",
+      "package_id": 12,
+      "package_image": [
+       "https://i.ibb.co/vxjkqvw/image.jpg"
+      ],
+      "package_information": "boost immune system",
+      "package_name": "Berocca",
+      "package_price": 250,
+      "package_resort": "vitamins"
+     }
+    ],
+    "package_title": "vitamins",
+    "resortpackage_id": 16
+   }
+  ],
+  "resort_address": "lapu lapu mactab",
+  "resort_contactEmail": "shang@yahoo.com",
+  "resort_contactNumber": "09094553999",
+  "resort_description": "resort situated near the coastal area in historical lapu lapu city",
+  "resort_headerImage": "https://i.ibb.co/yqVpYJx/IMG-0033.jpg",
+  "resort_latitude": 11.111,
+  "resort_longitude": 123.123,
+  "resort_name": "shangrilacebu",
+  "resort_promotionalVideo": "",
+  "resort_province": "Cebu",
+  "resort_reviews": 61,
+  "resort_timestamp": "2024-10-11 08:01:44.423967+00:00"
+ }
+]
+    CreateCarouselContainers(jsonObject[0])
+
+
+    function CreateCarouselContainers(main_data) {
+        accomodation_data = main_data.resort_Accomodations
+        accomodations_append = document.getElementById('resort_Accomodations');
+        document.getElementById('resort_Activities');
+        document.getElementById('resort_Tour');
+
+        CreateEachPackages(accomodation_data,accomodations_append);
+
+
+        function CreateEachPackages(data,data_container){
+            data.forEach(package => {
+                CarouselMainContainerDetails = document.createElement('details');
+                CarouselMainContainerDetails.className = 'package-summary'
+                CarouselMainContainerDetails.open = true
+            
+                CarouselSummary = document.createElement('summary') 
+                CarouselSummary.className='sub-package-summary badge'
+        
+                CarouselTitle = document.createElement('span')
+                CarouselTitle.className='sub-package-title';
+                CarouselTitle.textContent=package.package_title;
+                CarouselSummary.append(CarouselTitle)
+                CarouselMainContainerDetails.appendChild(CarouselSummary)
+                data_container.append(CarouselMainContainerDetails)
+
+                package.package_subpackage.forEach(subpackage =>{
+
+
+                    package_item = document.createElement('div')
+                        package_item.className = 'room-item red-red-white'
+    
+                    package_details = document.createElement('details')
+                        package_details.open = true
+                    package_summary = document.createElement('summary')
+                    package_summary.id = 'package-'+subpackage.package_id
+                    package_summary.textContent = subpackage.package_name
+                    package_details.append(package_summary)
+                    package_description = document.createElement('p')
+                    package_description.textContent = subpackage.package_description
+                    package_details.append(package_description)
+                    package_information = document.createElement('span')
+                    package_information.className = 'sub-information'
+                    package_information.textContent = subpackage.package_information
+                    package_details.append(package_information)
+                    package_book_button = document.createElement('button')
+                    package_book_button.className='button-book'
+                    // package_book_button.setAttribute('onclick',alert('Make: ',subpackage.package_name))
+                    package_book_button.textContent = 'Book'
+                    package_details.append(package_book_button)
+
+
+
+
+                    package_item.append(package_details)
+                    CarouselMainContainerDetails.append(package_item)
+                    
+
+                    package_carousel = document.createElement('div')
+                    package_carousel.id = 'carousel_image-'+package.resortpackage_id+subpackage.package_id
+                    package_carousel.className = 'carousel slide'
+                    package_carousel.setAttribute("data-bs-ride", true)
+
+                    CarouselMainContainerDetails.append(package_carousel)
+
+                    
+                    
+                    // Not yet appended
+                    package_inner_carousel = document.createElement('div')
+                    package_inner_carousel.className = 'carousel-inner'
+                    package_carousel.append(package_inner_carousel)
+                    subpackage.package_image.forEach(function callback(eachImage, index) {
+                        carousel_image_container = document.createElement('div')
+                        // if(index==0){
+                            carousel_image_container.className = 'carousel-item active'
+                        // } else {
+                        //     carousel_image_container.className = 'carousel-item'
+                        // }
+                        carousel_image_item = document.createElement('img')
+                        carousel_image_item.setAttribute('src',eachImage)
+                        carousel_image_container.append(carousel_image_item)
+                        package_inner_carousel.append(carousel_image_container)
+                        // CarouselMainContainerDetails.append(package_inner_carousel)
+                    });
+                        button_prev = document.createElement('button')
+                        button_prev.setAttribute('data-bs-target','#carousel_image-'+package.resortpackage_id+subpackage.package_id)
+                        button_prev.className='carousel-control-prev',
+                        button_prev.setAttribute('type','button')
+                        button_prev.setAttribute('data-bs-slide',"prev")
+
+                        button_prev_icon = document.createElement('span')
+                        button_prev_icon.setAttribute('data-bs-target','#carousel_image-'+package.resortpackage_id+subpackage.package_id)
+                        button_prev_icon.className = 'carousel-control-prev-icon'
+                        button_prev_icon.setAttribute('aria-hidden',true)
+                        button_prev.append(button_prev_icon)
+                        button_previous = document.createElement('span')
+                        button_previous.className = 'visually-hidden'
+                        button_previous.textContent = 'Previous'
+                        button_prev.append(button_previous)
+                        package_inner_carousel.append(button_prev)
+                        // 
+                        // 
+                        button_ne = document.createElement('button')
+                        button_ne.setAttribute('data-bs-target','#carousel_image-'+package.resortpackage_id+subpackage.package_id)
+                        button_ne.className='carousel-control-next',
+                        button_ne.setAttribute('type','button')
+                        button_ne.setAttribute('data-bs-slide',"next")
+
+                        button_ne_icon = document.createElement('span')
+                        button_ne_icon.setAttribute('data-bs-target','#carousel_image-'+package.resortpackage_id+subpackage.package_id)
+                        button_ne_icon.className = 'carousel-control-next-icon'
+                        button_ne_icon.setAttribute('aria-hidden',true)
+                        button_ne.append(button_ne_icon)
+                        button_next = document.createElement('span')
+                        button_next.className = 'visually-hidden'
+                        button_next.textContent = 'Previous'
+                        button_prev.append(button_next)
+                        package_inner_carousel.append(button_ne)
+
+                    
+                    // CarouselMainContainerDetails.append(package_inner_carousel)
+
+                })
+
+            });
+
+        }
+
+
+
+
+
+    }
+
+</script>    
+</body>
+</html>

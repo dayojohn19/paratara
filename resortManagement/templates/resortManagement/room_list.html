@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Room List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 2rem;
+            background: #f9f9f9;
+        }
+        .room-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+        .room {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .room img {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+        }
+        .room-content {
+            padding: 1rem;
+        }
+        .room-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .room-meta {
+            font-size: 0.9rem;
+            color: #555;
+            margin-bottom: 0.5rem;
+              display: -webkit-box;
+            -webkit-line-clamp: 2; /* number of lines you want to show */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .status {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            display: inline-block;
+        }
+        .available {
+            background: #d4edda;
+            color: #155724;
+        }
+        .booked {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        button {
+  background-color: #007BFF; /* Blue background */
+  color: white;              /* White text */
+  border: none;              /* No border */
+  padding: 10px 20px;        /* Padding inside the button */
+  border-radius: 5px;        /* Rounded corners */
+  font-size: 16px;           /* Text size */
+  cursor: pointer;           /* Cursor changes on hover */
+  transition: background-color 0.3s ease; /* Smooth hover effect */
+}
+
+button:hover {
+  background-color: #0056b3; /* Darker blue on hover */
+  color: white;
+}
+    </style>
+</head>
+<body> 
+ {% include "resortManagement/navbar.html" %}
+    <div class="room-list">
+        {% for room in resortRooms %}
+        <div class="room">
+            {% for roomImage in room.images|slice:":2" %}
+            <img src="{{roomImage}}" alt="{{ room.name }}">
+            
+            {% endfor %}
+            <div class="room-content">
+
+                <div class="room-name">{{ room.title }}</div>
+                <hr>
+                <div class="room-name">{{ room.packageName }}</div>
+                
+                <div class="room-meta">{{ room.information }}</div>
+                
+                <div class="room-meta">{{ room.description }}</div>
+                <div class="room-meta">₱ {{ room.price }}</div>
+
+                <form method="POST" action="{% url 'resort_management:movemarkedcalendarnamed' resort_id=resortID room_id=room.id month=month year=year whatstep=whatstepvalue %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="room_id" value="{{ room.id }}">
+                    <button class="status available" type="submit">Check Availability</button>
+                </form>
+                <br>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>

@@ -1,0 +1,2301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    
+    <meta property="og:title" content="">
+    <meta property="og:description" content="">
+    <meta property="og:image" content="">  
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@6.0/dist/fancybox/fancybox.css" /> 
+    <script defer type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    
+    <!-- Google tag (gtag.js) -->
+    <script defer src="https://www.googletagmanager.com/gtag/js?id=G-MH2W7TQEH3"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4843007524416588" crossorigin="anonymous"></script>    
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-MH2W7TQEH3');
+    </script> 
+    
+    <title id="resort-name">Loading...</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@400;600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg: #f3f4f6;
+    --surface: #ffffff;
+    --surface-muted: rgba(255, 255, 255, 0.6);
+    --primary: #2563eb;
+    --primary-dark: #1d4ed8;
+    --secondary: #0ea5e9;
+    --accent: #f97316;
+    --dark: #0f172a;
+    --text: #1f2937;
+    --subtle: #64748b;
+    --border: #e2e8f0;
+    --shadow: 0 20px 60px -30px rgba(15, 23, 42, 0.45);
+    --shadow-soft: 0 10px 30px -20px rgba(15, 23, 42, 0.35);
+    --radius-lg: 24px;
+    --radius-md: 18px;
+    --radius-sm: 12px;
+    --gradient: linear-gradient(135deg, rgba(37, 99, 235, 0.96) 0%, rgba(13, 148, 136, 0.92) 100%);
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    color: var(--text);
+    background: radial-gradient(circle at top, rgba(37, 99, 235, 0.08), transparent 50%), var(--bg);
+    line-height: 1.7;
+    min-height: 100vh;
+}
+
+a {
+    color: inherit;
+}
+
+section {
+    scroll-margin-top: 120px;
+}
+
+/* Header Hero */
+.hero-section {
+    position: relative;
+    min-height: clamp(380px, 70vh, 560px);
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    border-bottom-left-radius: var(--radius-lg);
+    border-bottom-right-radius: var(--radius-lg);
+    overflow: hidden;
+    margin: 0 auto;
+    max-width: 1320px;
+    box-shadow: var(--shadow);
+}
+
+.hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.05) 10%, rgba(15, 23, 42, 0.65) 100%);
+}
+
+.hero-content {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    padding: clamp(1.5rem, 4vw, 3.5rem);
+    color: var(--surface);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.hero-chip-tray {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.hero-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(2.4rem, 5vw, 3.8rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    text-shadow: 0 18px 40px rgba(15, 23, 42, 0.3);
+}
+
+.hero-subtitle {
+    font-size: clamp(1rem, 2.2vw, 1.2rem);
+    color: rgba(255, 255, 255, 0.85);
+    max-width: 660px;
+}
+
+.qr-badge {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 1.15rem;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 999px;
+    font-weight: 500;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease;
+    backdrop-filter: blur(12px);
+}
+
+.qr-badge:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Sticky Navigation */
+.sticky-nav {
+    position: sticky;
+    top: 0;
+    z-index: 120;
+    background: rgba(15, 23, 42, 0.92);
+    backdrop-filter: blur(20px);
+    padding: 0.65rem 0;
+    box-shadow: 0 12px 32px -18px rgba(15, 23, 42, 0.4);
+}
+
+.nav-header {
+    max-width: 1220px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: rgba(255, 255, 255, 0.82);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.hamburger {
+    display: none;
+    background: rgba(255, 255, 255, 0.12);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    padding: 0.55rem;
+    transition: background 0.2s ease;
+}
+
+.hamburger:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.hamburger span {
+    display: block;
+    width: 24px;
+    height: 2.5px;
+    background: var(--surface);
+    margin: 5px 0;
+    transition: transform 0.25s ease, opacity 0.25s ease;
+    border-radius: 999px;
+}
+
+.hamburger.active span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+}
+
+.hamburger.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.hamburger.active span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+}
+
+.nav-container {
+    max-width: 1220px;
+    margin: 0 auto;
+    padding: 0.35rem 1.5rem 0.85rem;
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    overflow-y: scroll;
+}
+
+.nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 1.15rem;
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+    border-radius: 999px;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.nav-link:hover,
+.nav-link:focus-visible {
+    background: rgba(255, 255, 255, 0.18);
+    color: #fff;
+    transform: translateY(-1px);
+    outline: none;
+}
+
+/* Mobile: replace hover effects with click (active) states */
+@media (hover: none) {
+    /* Neutralize hover on touch devices */
+    .nav-link:hover,
+    .btn-primary:hover,
+    .btn-secondary:hover,
+    .gallery-item:hover,
+    .package-card:hover {
+        transform: none;
+        box-shadow: none;
+        background: inherit;
+        border-color: inherit;
+    }
+
+    /* Use :active to simulate hover on tap */
+    .nav-link:active {
+        background: rgba(255, 255, 255, 0.18);
+        color: #fff;
+        transform: translateY(-1px);
+    }
+
+    .btn-primary:active {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 38px -18px rgba(37, 99, 235, 0.85);
+    }
+
+    .btn-secondary:active {
+        transform: translateY(-2px);
+        border-color: rgba(37, 99, 235, 0.35);
+    }
+
+    .gallery-item:active {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-soft);
+    }
+    .gallery-item:active img {
+        transform: scale(1.05);
+    }
+
+    .package-card:active {
+        transform: translateY(-6px);
+        box-shadow: var(--shadow);
+    }
+    .package-card:active .card-image {
+        transform: scale(1.06);
+    }
+}
+
+/* Content Container */
+.container {
+    max-width: 1220px;
+    margin: 0 auto;
+    padding: clamp(1.75rem, 4vw, 3.5rem) clamp(1.1rem, 4vw, 2.5rem);
+}
+
+.description-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+    gap: clamp(1.5rem, 3vw, 2.75rem);
+    align-items: stretch;
+    margin-bottom: clamp(2.5rem, 6vw, 3.75rem);
+}
+
+.description-box {
+    background: var(--surface);
+    padding: clamp(1.5rem, 3.5vw, 2.25rem);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-soft);
+    border: 1px solid rgba(226, 232, 240, 0.6);
+}
+
+.description-box h2 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--subtle);
+    margin-bottom: 0.85rem;
+}
+
+.description-box p {
+    color: var(--text);
+}
+
+.amenities-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+
+.amenity-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0.9rem;
+    background: white;
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #475569;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.amenity-tag:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.15);
+    border-color: rgba(102, 126, 234, 0.3);
+}
+
+.amenity-icon {
+    font-size: 1.1rem;
+}
+
+.info-grid {
+    display: grid;
+    gap: 1rem;
+}
+
+.info-card {
+    background: var(--surface);
+    border-radius: var(--radius-md);
+    padding: 1.3rem 1.4rem;
+    border: 1px solid rgba(226, 232, 240, 0.7);
+    box-shadow: var(--shadow-soft);
+    display: grid;
+    gap: 0.35rem;
+}
+
+.info-label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--subtle);
+    font-weight: 600;
+}
+
+.info-value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.5;
+}
+
+.info-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.info-action {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.65rem 1rem;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+    border: 1px solid rgba(37, 99, 235, 0.2);
+    color: var(--primary);
+    background: rgba(37, 99, 235, 0.08);
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.info-action:hover,
+.info-action:focus-visible {
+    background: rgba(37, 99, 235, 0.16);
+    transform: translateY(-1px);
+    outline: none;
+}
+
+/* Subscription Panel */
+
+/* Section Headers */
+.section-header {
+    text-align: center;
+    margin-bottom: clamp(1.8rem, 5vw, 2.8rem);
+    margin-top: clamp(1.8rem, 5vw, 2.8rem);
+}
+
+.section-subtitle {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.35em;
+    color: var(--subtle);
+    margin-bottom: 0.65rem;
+}
+
+.section-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: clamp(1.9rem, 3.6vw, 2.9rem);
+    color: var(--text);
+}
+
+.section-helper {
+    max-width: 580px;
+    margin: 0.75rem auto 0;
+    color: var(--subtle);
+}
+
+/* Package Cards */
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: clamp(1.25rem, 2.5vw, 1.9rem);
+}
+
+.package-card {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 1px solid rgba(226, 232, 240, 0.7);
+    box-shadow: var(--shadow-soft);
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.package-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--shadow);
+}
+
+.card-image-container {
+    position: relative;
+    height: 220px;
+    background: radial-gradient(circle at top, rgba(37, 99, 235, 0.45), rgba(14, 165, 233, 0.35));
+}
+
+.card-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.35s ease;
+    display: block;
+}
+
+.package-card:hover .card-image {
+    transform: scale(1.06);
+}
+
+.card-content {
+    padding: clamp(1.3rem, 3vw, 1.75rem);
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    flex: 1;
+}
+
+.card-title {
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: var(--dark);
+}
+
+.card-description {
+    color: var(--subtle);
+    line-height: 1.6;
+}
+
+.card-features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+
+.feature-tag {
+    background: rgba(37, 99, 235, 0.08);
+    color: var(--primary);
+    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border: 1px solid rgba(37, 99, 235, 0.1);
+    display: inline-flex;
+    gap: 0.35rem;
+    align-items: center;
+}
+
+.feature-tag::before {
+    content: '•';
+    font-size: 0.9rem;
+}
+
+.card-price {
+    font-size: 1.65rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.card-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 0.75rem;
+    margin-top: auto;
+}
+
+.btn {
+    padding: 0.75rem 1.05rem;
+    border-radius: 999px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: var(--gradient);
+    color: var(--surface);
+    box-shadow: 0 14px 30px -20px rgba(37, 99, 235, 0.8);
+}
+
+.btn-primary:hover,
+.btn-primary:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 38px -18px rgba(37, 99, 235, 0.85);
+    outline: none;
+}
+
+.btn-secondary {
+    background: rgba(15, 23, 42, 0.03);
+    color: var(--dark);
+    border: 1px solid rgba(100, 116, 139, 0.25);
+}
+
+.btn-secondary:hover,
+.btn-secondary:focus-visible {
+    transform: translateY(-2px);
+    border-color: rgba(37, 99, 235, 0.35);
+    outline: none;
+}
+
+/* Gallery */
+.gallery-wrapper {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: clamp(1.5rem, 3vw, 2.5rem);
+    box-shadow: var(--shadow-soft);
+    border: 1px solid rgba(226, 232, 240, 0.6);
+}
+
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+}
+
+.gallery-item {
+    position: relative;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    aspect-ratio: 4 / 3;
+    cursor: pointer;
+    background: rgba(15, 23, 42, 0.08);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.35s ease;
+}
+
+.gallery-item:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-soft);
+}
+
+.gallery-item:hover img {
+    transform: scale(1.05);
+}
+
+.gallery-360 {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.9), rgba(14, 165, 233, 0.85));
+    color: var(--surface);
+    font-weight: 600;
+    font-size: 1.05rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Food Carousels */
+.food-section {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: clamp(1.3rem, 3vw, 1.75rem);
+    box-shadow: var(--shadow-soft);
+    border: 1px solid rgba(226, 232, 240, 0.6);
+}
+
+.carousel-wrapper {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.carousel-container {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(250px, 320px);
+    gap: 1rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    scroll-snap-type: x mandatory;
+}
+
+/* Allow non-carousel cards (like activity package cards) to snap too */
+.carousel-container > .package-card {
+    scroll-snap-align: start;
+}
+
+.carousel-container::-webkit-scrollbar {
+    height: 8px;
+}
+.carousel-container::-webkit-scrollbar-thumb {
+    background: rgba(100, 116, 139, 0.3);
+    border-radius: 999px;
+}
+
+.carousel-card {
+    scroll-snap-align: start;
+    background: var(--surface);
+    border: 1px solid rgba(226, 232, 240, 0.7);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-soft);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.carousel-image {
+    height: 180px;
+    background: rgba(15, 23, 42, 0.06);
+}
+.carousel-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.carousel-content {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+.carousel-title {
+    font-weight: 600;
+    color: var(--dark);
+}
+.carousel-desc {
+    color: var(--subtle);
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+.carousel-price {
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: rgba(15, 23, 42, 0.08);
+    color: var(--dark);
+    padding: 0.5rem 0.75rem;
+    border-radius: 999px;
+    cursor: pointer;
+    box-shadow: var(--shadow-soft);
+}
+.carousel-btn.prev { left: -0.5rem; }
+.carousel-btn.next { right: -0.5rem; }
+
+@media (max-width: 720px) {
+    .carousel-btn { display: none; }
+}
+
+/* Footer */
+.footer {
+    margin-top: clamp(3.5rem, 7vw, 5rem);
+    background: rgba(15, 23, 42, 0.94);
+    color: rgba(255, 255, 255, 0.86);
+    padding: clamp(2.5rem, 6vw, 4rem) clamp(1.5rem, 6vw, 3rem);
+}
+
+.footer-content {
+    max-width: 1220px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.75rem;
+}
+
+.footer-item {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+}
+/* Ensure the text in the footer is vertically centered with the icon */
+.footer-item span {
+    display: flex;
+    align-items: center;
+}
+
+.footer-icon {
+    width: 44px;
+    height: 44px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.footer-icon svg {
+    width: 22px;
+    height: 22px;
+    fill: rgba(255, 255, 255, 0.82);
+}
+
+.footer small {
+    display: block;
+    text-align: center;
+    margin-top: 2.5rem;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.54);
+}
+
+/* Contact Modal */
+#contact-form-dialog {
+    display: none;
+    max-width: 520px;
+    width: min(520px, 88vw);
+    background: var(--surface);
+    padding: clamp(1.75rem, 4vw, 2.35rem);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(226, 232, 240, 0.7);
+}
+
+#contact-form h2 {
+    font-family: 'Montserrat', sans-serif;
+    margin-bottom: 1.25rem;
+    color: var(--dark);
+}
+
+#contact-form label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--subtle);
+    margin-bottom: 0.35rem;
+    display: block;
+}
+
+#contact-form input,
+#contact-form textarea {
+    width: 100%;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    border-radius: var(--radius-sm);
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.95rem;
+    color: var(--dark);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#contact-form input:focus,
+#contact-form textarea:focus {
+    outline: none;
+    border-color: rgba(37, 99, 235, 0.4);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+#contact-form textarea {
+    min-height: 130px;
+    resize: vertical;
+}
+
+.button-send {
+    width: 100%;
+    background: var(--gradient);
+    color: var(--surface);
+    padding: 0.85rem;
+    border: none;
+    border-radius: 999px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    margin-top: 0.5rem;
+}
+
+.button-send:hover,
+.button-send:focus-visible {
+    transform: translateY(-1px);
+    box-shadow: 0 16px 32px -20px rgba(37, 99, 235, 0.8);
+    outline: none;
+}
+
+/* Calendar */
+.calendar-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 1.75rem 0 1rem;
+    gap: 1rem;
+}
+
+.calendar-toolbar h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--dark);
+    font-weight: 600;
+}
+
+.calendar-toolbar-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.calendar-toolbar button {
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    background: rgba(148, 163, 184, 0.12);
+    color: var(--dark);
+    padding: 0.45rem 0.85rem;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s ease;
+}
+
+.calendar-toolbar button:hover,
+.calendar-toolbar button:focus-visible {
+    background: rgba(37, 99, 235, 0.12);
+    border-color: rgba(37, 99, 235, 0.2);
+    outline: none;
+}
+
+.calendar-frame {
+    width: 100vw;
+    min-height: 100vh;
+    border: none;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: rgba(15, 23, 42, 0.06);
+}
+
+.calendar-instructions {
+    margin-top: 1.15rem;
+    padding: 1rem 1.1rem;
+    background: rgba(37, 99, 235, 0.08);
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    color: var(--primary);
+    display: none;
+}
+
+.iframe-loader {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 44px;
+    height: 44px;
+    border: 3px solid rgba(148, 163, 184, 0.35);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    z-index: 5;
+}
+
+@keyframes spin {
+    100% {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+/* Calendar Month Table (injected HTML) */
+#calendar_object_month {
+    background: var(--surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-soft);
+    border: 1px solid var(--border);
+    padding: 0.75rem;
+}
+
+#calendar_object_month table.month {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    overflow: hidden;
+    border-radius: var(--radius-sm);
+}
+
+/* Month title header */
+#calendar_object_month th.month {
+    background: rgba(37, 99, 235, 0.08);
+    color: var(--dark);
+    font-weight: 700;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1rem;
+    padding: 0.75rem 0.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+/* Weekday headers */
+#calendar_object_month tr:nth-child(2) th {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.8rem;
+    color: var(--subtle);
+    padding: 0.55rem 0.3rem;
+    background: rgba(15, 23, 42, 0.03);
+    border-bottom: 1px solid var(--border);
+}
+
+/* Day cells */
+#calendar_object_month td {
+    text-align: center;
+    padding: 0.85rem 0.25rem;
+    border: 1px solid rgba(226, 232, 240, 0.6);
+    font-weight: 600;
+    color: var(--text);
+    cursor: pointer;
+    background: #fff;
+    transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Hover/Focus */
+#calendar_object_month td:hover,
+#calendar_object_month td:focus-visible {
+    background: rgba(37, 99, 235, 0.08);
+    outline: none;
+}
+
+/* Weekend subtle tint */
+#calendar_object_month td.sat,
+#calendar_object_month td.sun {
+    background: rgba(15, 23, 42, 0.02);
+}
+
+/* Empty cells */
+#calendar_object_month td.noday {
+    background: rgba(148, 163, 184, 0.1);
+    color: rgba(100, 116, 139, 0.6);
+    cursor: default;
+    pointer-events: none;
+}
+
+/* Selected cell (use a class rather than inline style) */
+#calendar_object_month td.selected-day {
+    background: rgba(16, 185, 129, 0.25) !important;
+    border-color: rgba(16, 185, 129, 0.45);
+    box-shadow: inset 0 0 0 2px rgba(16, 185, 129, 0.35);
+    color: var(--dark);
+}
+
+/* QR Modal */
+#RESORTURLMODAL {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.68);
+    z-index: 140;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+}
+
+.qr_image_container {
+    background: var(--surface);
+    padding: 2.25rem;
+    border-radius: var(--radius-lg);
+    width: min(380px, 88vw);
+    box-shadow: var(--shadow);
+}
+
+.qr_image img {
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-sm);
+    display: block;
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
+    .description-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 900px) {
+    .nav-container {
+        margin: 0;
+            height: 100vh;
+    width: 60vw;
+        position: fixed;
+        inset: 0;
+        padding: 6rem 1.75rem 3rem;
+        background: rgba(15, 23, 42, 0.96);
+        flex-direction: column;
+        justify-content: flex-start;
+        transform: translateX(-100%);
+        opacity: 0;
+        pointer-events: none;
+        transition: transform 0.3s ease, opacity 0.3s ease;
+        z-index: 110;
+    }
+
+    .nav-container.active {
+            height: 100vh;
+    width: 60vw;
+        transform: translateX(0);
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .nav-link {
+        width: 100%;
+        font-size: 1.05rem;
+        justify-content: flex-start;
+        padding: 0.85rem 1.15rem;
+        border-radius: var(--radius-sm);
+        background: rgba(255, 255, 255, 0.08);
+    }
+
+    .hamburger {
+        display: block;
+    }
+
+    body {
+        overflow-x: hidden;
+    }
+}
+
+@media (max-width: 720px) {
+    .nav-container {
+        margin: 0;
+    }
+    .hero-section {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    }
+
+    .container {
+        padding: 2.25rem 1.25rem;
+    }
+
+    .card-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .info-actions {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 540px) {
+    .nav-container {
+        margin: 0;
+    }
+    .hero-chip-tray {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .hero-section {
+            border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+
+
+    }
+}
+
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+#resort-email {
+    display: none;
+}
+#guest_book{
+ margin-top: 1em;   
+}
+
+/* Availability badge for food / packages */
+.carousel-card { position: relative; }
+.availability-badge { position: absolute; top: 0.5rem; right: 0.5rem; padding: 0.25rem 0.6rem; border-radius: 999px; font-size: 0.8rem; font-weight: 700; color: #fff; z-index: 12; box-shadow: 0 2px 6px rgba(0,0,0,0.12); }
+.availability-badge.available { background: #10b981; }
+.availability-badge.unavailable { background: #6b7280; }
+.carousel-card.unavailable { opacity: 0.9; }
+.carousel-card.unavailable img { filter: grayscale(100%) brightness(0.7); }
+.carousel-card.unavailable .btn.btn-primary { background: #9ca3af; border-color: #9ca3af; pointer-events: none; }
+.availability-ts { position: absolute; top: 2.2rem; right: 0.6rem; font-size: 0.72rem; color: rgba(255,255,255,0.95); background: rgba(0,0,0,0.35); padding: 0.15rem 0.45rem; border-radius: 6px; z-index: 11; }
+
+</style>
+</head>
+<body>
+    <!-- Hidden Data -->
+    <div style="display: none;" id="resort-data" data-place="{{ placeName }}"></div>
+
+    <!-- Hero Section -->
+    <section id="resort-header-image" class="hero-section">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <div class="hero-chip-tray">
+                <a class="qr-badge" data-fancybox data-src="#qr-code-viewer">📱 View QR Code</a>
+            </div>
+            <h1 class="hero-title" id="resort-realname">Loading ...</h1>
+            <p class="hero-subtitle" id="resort-address">Loading address...</p>
+            <p class="hero-subtitle" id="resort-last-updated" style="display:none;"></p>
+        </div>
+    </section>
+
+    <!-- Sticky Navigation -->
+    <nav class="sticky-nav">
+        <div class="nav-header">
+            <span id="nav-resort-name">Loading...</span>
+            <button class="hamburger" id="hamburger" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+        <div class="nav-container" id="navContainer">
+            <a href="#promotions" class="nav-link" onclick="closeMenu()">🎉 Promotions</a>
+            <a href="#accommodation" class="nav-link" onclick="closeMenu()">🏨 Accommodation</a>
+            <a href="#activities" class="nav-link" onclick="closeMenu()">🎯 Activity & Service</a>
+            <a href="#food" class="nav-link" onclick="closeMenu()">🍽️ Food</a>
+            <a href="#gallery" class="nav-link" onclick="closeMenu()">📸 Gallery</a>
+            <a id="resort-geolocation" href="" data-fancybox data-type="iframe" class="nav-link" onclick="closeMenu()">📍 Map</a>
+            <a id="resort-directions" href="" target="_blank" class="nav-link" onclick="closeMenu()">🧭 Get Directions</a>
+            <a id="contact-form-link" data-fancybox data-src="#contact-form-dialog" class="nav-link" onclick="closeMenu()">💬 Contact</a>
+            <a href="#" onclick="openWhatsApp(); closeMenu();" class="nav-link">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="margin-right: 0.5rem;">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/>
+                </svg>
+                WhatsApp
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Resort Overview -->
+        <div class="description-layout">
+            <div class="description-box">
+                
+                <!-- Amenities Section -->
+                <div class="amenities-display" id="amenitiesDisplay" style="margin-bottom: 2rem; display: block;">
+                    <h3 style="font-size: 1.1rem; color: #64748b; margin-bottom: 1rem; font-weight: 600;">🏖️ Amenities & Features</h3>
+                    <div class="amenities-tags" id="amenitiesTags">
+                        <!-- Amenities will be dynamically loaded here -->
+                        <span style="color: #94a3b8;">Loading amenities...</span>
+                    </div>
+                </div>
+
+                <!-- Payment Methods Section -->
+                <div class="amenities-display" id="paymentMethodsDisplay" style="margin-bottom: 2rem; display: block;">
+                    <h3 style="font-size: 1.1rem; color: #64748b; margin-bottom: 1rem; font-weight: 600;">💳 Payment Methods</h3>
+                    <div class="amenities-tags" id="paymentMethodsTags">
+                        <!-- Payment methods will be dynamically loaded here -->
+                        <span style="color: #94a3b8;">Loading payment methods...</span>
+                    </div>
+                </div>
+                
+                <p id="resort-description">Loading description...</p>
+            </div>
+            <div class="info-grid">
+                <div class="info-card">
+                    <span class="info-label">Location</span>
+                    <p class="info-value" id="resort-address">Loading address...</p>
+                    <a href="#" class="info-action" onclick="document.getElementById('resort-directions').click(); return false;">🧭 Directions</a>
+                </div>
+                <div class="info-card">
+                    <span class="info-label">Contact</span>
+                    <p class="info-value" id="resort-number">Loading contact...</p>
+                    <div class="info-actions">
+                        <a href="#" class="info-action" onclick="document.getElementById('contact-form-link').click(); return false;">💬 Contact Us</a>
+                        <a href="#" class="info-action" onclick="openWhatsApp(); return false;">📱 WhatsApp</a>
+                    </div>
+                </div>
+                <div class="info-card">
+                    <span class="info-label">Open Hours</span>
+                    <p class="info-value" id="resort-open-hours">Loading hours...</p>
+                    <small class="form-text" style="margin-top: 0.25rem; color: var(--subtle);">Hours may change on holidays.</small>
+                </div>
+                <span id="resort-whatsapp" style="display: none;"></span>
+                <div class="info-card">
+                    <span class="info-label">Share</span>
+                    <p class="info-value">Scan the QR code to share this resort instantly.</p>
+                    <a href="" class="info-action" data-fancybox data-src="#qr-code-viewer">📱 View QR</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Promotions Section -->
+        <section id="promotions">
+            <div class="section-header">
+                <p class="section-subtitle">Limited Time Offers</p>
+                <h2 class="section-title">Special Promotions & Events</h2>
+                <p class="section-helper">Discover curated experiences and exclusive perks available for a short time only.</p>
+            </div>
+            <div id="tour-sub-packages-container" class="card-grid"></div>
+        </section>
+
+        <!-- Accommodation Section -->
+        <section id="accommodation">
+            <div class="section-header">
+                <p class="section-subtitle">Comfortable Stays</p>
+                <h2 class="section-title">Our Accommodation</h2>
+                <p class="section-helper">Browse rooms and villas tailored for every traveler profile.</p>
+            </div>
+            <!-- Dynamic Accommodation Categories (per package set) -->
+            <div id="accommodation-menus-container"></div>
+        </section>
+
+        <!-- Activities Section -->
+        <section id="activities">
+            <div class="section-header">
+                <p class="section-subtitle">Exciting Experiences</p>
+                <h2 class="section-title">Activities & Services</h2>
+                <p class="section-helper">Plan unforgettable memories with curated onsite and nearby activities.</p>
+            </div>
+            <div id="activities-sub-packages-container"></div>
+        </section>
+
+        <!-- Food Section -->
+        <section id="food">
+            <div class="section-header">
+                <p class="section-subtitle">Taste & Dining</p>
+                <h2 class="section-title">Food & Menus</h2>
+                <p class="section-helper">Swipe to explore packages and individual dishes.</p>
+            </div>
+
+            <div class="food-section">
+                <h3 class="card-title" style="margin-bottom: 0.5rem;">Availables</h3>
+                <div class="carousel-wrapper" id="food-packages-wrapper">
+                    <button class="carousel-btn prev" type="button" aria-label="Previous" data-target="food-packages-container">❮</button>
+                    <div class="carousel-container" id="food-packages-container"></div>
+                    <button class="carousel-btn next" type="button" aria-label="Next" data-target="food-packages-container">❯</button>
+                </div>
+
+                
+
+                <!-- Dynamic Menus will be injected here -->
+                <div id="food-menus-container"></div>
+            </div>
+        </section>
+
+        <!-- Gallery Section -->
+        <section id="gallery">
+            <div class="section-header">
+                <p class="section-subtitle">Resort Highlights</p>
+                <h2 class="section-title">Photo Gallery</h2>
+            </div>
+            <div class="gallery-wrapper">
+                <div class="gallery-grid">
+                    <div class="gallery-item gallery-360" id="gallery-360-view" data-fancybox data-src="#three-sixty-picture" style="display: none;">
+                        🔄 360° View
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-item">
+                <div class="footer-icon">
+                    <svg viewBox="0 0 16 16">
+                        <path d="M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A31.493 31.493 0 0 1 8 14.58a31.481 31.481 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94zM8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10z"></path>
+                        <path d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path>
+                    </svg>
+                </div>
+                <span id="resort-address">Loading address...</span>
+            </div>
+
+            <div class="footer-item">
+                <div class="footer-icon">
+                    <svg viewBox="0 0 16 16">
+                        <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11Z"></path>
+                    </svg>
+                </div>
+                <span id="resort-number">Loading contact...</span>
+            </div>
+
+            <div class="footer-item">
+                <div class="footer-icon">
+                    <svg viewBox="0 0 24 16">
+                        <path d="M23.9 1.8h-.2L14 11.5c-1.1 1.1-2.8 1.1-3.9 0L.3 1.9c-.1-.1-.1-.1-.2 0-.1 0-.1 0-.1.1v12c0 1.1.9 2 2 2h20c1.1 0 2-.9 2-2V2c0-.1 0-.1-.1-.2z"></path>
+                        <path d="M11.1 10.6c.5.5 1.3.5 1.8 0L22.6.9c.1-.1.2-.3.1-.5-.1-.4-.4-.4-.7-.4H2c-.3 0-.6 0-.7.4-.1.2 0 .4.1.5z"></path>
+                    </svg>
+                </div>
+                <span id="resort-email">Use Contact to email us</span>
+            </div>
+        </div>
+        <small>© 2022 Company, Inc</small>
+    </footer>
+
+    <!-- Contact Form Modal -->
+    <div id="contact-form-dialog">
+        <form id="contact-form">
+            <h2>Contact Us</h2>
+            <input id="resort-email" hidden type="email" name="to_name" value="{{resortObject.contactEmail}}">
+            
+            <label for="guest_name">Your Name</label>
+            <input name="from_name" type="text" id="guest_name" placeholder="Enter Name here" required />
+            
+            <label for="guest_contact">Your Contact</label>
+            <input name="sender_contact" type="text" id="guest_contact" placeholder="email or phone" required />
+            
+            <input style="display: none;" hidden type="email" name="reply_to" value="johnwebsiteprojects@gmail.com">
+            
+            <label for="guest_message">Message</label>
+            <textarea name="message" placeholder="Your message here..." id="guest_message" required></textarea>
+            
+            <textarea name="booking_inquiry" readonly id="guest_book" style="display: none;"></textarea>
+            
+            <button class="button-send" type="submit">
+                <svg viewBox="0 0 16 16" width="20" style="fill: currentColor">
+                    <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11Z"></path>
+                </svg>
+                Send Message
+            </button>
+            
+            <div>
+                <div class="calendar-toolbar">
+                    <h3 id="calendar-month-display">Loading...</h3>
+                    <div class="calendar-toolbar-buttons">
+                        <button type="button" onclick="changeCalendarMonth(-1)">❮ Prev</button>
+                        <button type="button" onclick="changeCalendarMonth(1)">Next ❯</button>
+                    </div>
+                </div>
+                <div id="calendar_object_month"></div>
+            </div>
+            <div class="calendar-instructions" id="calendar-help">
+                <strong>📅 Select your dates:</strong> Click on the dates above to select your booking period. Selected dates will be highlighted in green.
+            </div>
+        </form>
+    </div>
+
+    <!-- QR Code Modal (Fancybox) -->
+    <div id="qr-code-viewer" style="display:none; max-width:500px;">
+        <div class="card">
+            <div class="card-body" style="text-align:center;">
+                <h3 id="qr-code-title" style="margin-top:0; margin-bottom:1rem;">Resort</h3>
+                <img id="qr-code-img" src="" alt="Resort QR Code" style="max-width:100%; height:auto; border-radius:12px; margin-bottom:1rem;" />
+                <p id="qr-code-link" style="color:rgba(100,116,139,0.9); font-size:0.875rem;"></p>
+                <a id="qr-code-download" href="" download class="btn btn-primary" style="margin-top:1rem;">Download or Share QR Code</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@6.0/dist/fancybox/fancybox.umd.js"></script>
+    <script>
+        Fancybox.bind("[data-fancybox]", {});
+
+        function toggleMenu() {
+            const hamburger = document.getElementById('hamburger');
+            const navContainer = document.getElementById('navContainer');
+            hamburger.classList.toggle('active');
+            navContainer.classList.toggle('active');
+        }
+
+        function closeMenu() {
+            const hamburger = document.getElementById('hamburger');
+            const navContainer = document.getElementById('navContainer');
+            hamburger.classList.remove('active');
+            navContainer.classList.remove('active');
+        }
+
+        window.onload = function() { 
+            document.getElementById('contact-form').addEventListener('submit', function(event) {
+                const originalMessage = this.message.value;
+                const booking_inquiry = this.booking_inquiry.value;
+                const sender_contact = this.sender_contact.value;
+                const sender_name = this.from_name.value;
+                
+                const fullMessage = `\n${originalMessage} \n \n Booking Inquiry ${booking_inquiry} \n\n contact me:\n${sender_name}\n \n  ${sender_contact}`;
+                this.message.value = fullMessage;
+                
+                (function() {
+                    emailjs.init({ publicKey: "kPR5fCmH0j3E0NSyr" });
+                })();
+                
+                event.preventDefault();
+                Fancybox.close([{ src: "#contact-form-dialog" }]);
+                alert('Sending Message');
+                
+                emailjs.sendForm('service_jv335d7', 'template_hzlk188', this)
+                    .then(() => {
+                        console.log('SUCCESS!');
+                        alert('Message Sent!');
+                        this.reset();
+                    }, (error) => {
+                        alert('Message Not Sent!');
+                        console.log('FAILED...', error);
+                    });
+            });
+        };
+
+        function addAndRemoveTag(e) {
+            const cell = e.target;
+            // Ignore non-day cells
+            if (!cell || cell.tagName !== 'TD' || cell.classList.contains('noday')) return;
+
+            const monthHeader = cell.closest('table')?.querySelector('th.month');
+            const targetMonth = monthHeader ? monthHeader.textContent.split(' ')[0] : '';
+            const clickedDate = cell.textContent + ',';
+            const MessageOfGuest = document.querySelector('#guest_book');
+
+            if (!MessageOfGuest) return;
+
+            if (cell.classList.contains('selected-day')) {
+                cell.classList.remove('selected-day');
+                if (MessageOfGuest.value.includes(clickedDate)) {
+                    MessageOfGuest.value = MessageOfGuest.value.replace(clickedDate, '');
+                }
+            } else {
+                // Ensure the first token is the current month name
+                const parts = MessageOfGuest.value.split(' ');
+                if (parts.length > 0) {
+                    MessageOfGuest.value = MessageOfGuest.value.replace(parts[0], targetMonth);
+                } else {
+                    MessageOfGuest.value = targetMonth + ' ' + MessageOfGuest.value;
+                }
+                cell.classList.add('selected-day');
+                const addOnMessageOfGuest = cell.textContent;
+                MessageOfGuest.value = MessageOfGuest.value + addOnMessageOfGuest + ',';
+            }
+        }
+
+        let currentCalendarMonth = new Date().getMonth() + 1;
+        let currentCalendarYear = new Date().getFullYear();
+        
+        async function loadCalendar(month, year) {
+            if (!month) month = currentCalendarMonth;
+            if (!year) year = currentCalendarYear;
+            
+            apiUrl = `${window.location.origin}/apis/get_calendar_view/?month=${month}&year=${year}`;
+            try {
+                const response = await fetch(apiUrl);
+                if (!response.ok) throw new Error(`HTTP error ${response.status}`);
+                const data = await response.json();
+                
+                const calendarContainer = document.getElementById("calendar_object_month");
+                calendarContainer.innerHTML = data.calendarObject;
+                
+                // Update month display
+                const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                                   'July', 'August', 'September', 'October', 'November', 'December'];
+                const monthDisplay = document.getElementById('calendar-month-display');
+                if (monthDisplay) {
+                    monthDisplay.textContent = `${monthNames[month - 1]} ${year}`;
+                }
+                
+                // Add click listeners to date cells
+                const tdList = calendarContainer.querySelectorAll('td');
+                for (let i = 0; i < tdList.length; i++) {
+                    tdList[i].addEventListener('click', function(e) {
+                        addAndRemoveTag(e);
+                    });
+                }
+                
+                // Show calendar instructions
+                const calendarHelp = document.getElementById('calendar-help');
+                if (calendarHelp) {
+                    calendarHelp.style.display = 'block';
+                }
+            } catch (err) {
+                console.error("Failed to load calendar:", err);
+            }
+        }
+        
+        function changeCalendarMonth(offset) {
+            currentCalendarMonth += offset;
+            
+            if (currentCalendarMonth > 12) {
+                currentCalendarMonth = 1;
+                currentCalendarYear++;
+            } else if (currentCalendarMonth < 1) {
+                currentCalendarMonth = 12;
+                currentCalendarYear--;
+            }
+            
+            loadCalendar(currentCalendarMonth, currentCalendarYear);
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            loadCalendar();
+        });
+
+        function bookNow(toBook) {
+            monthName = document.querySelectorAll('.month')[1].textContent;
+            dom = document.querySelector("#contact-form-link");
+            dom.click();
+            bookContainer = document.querySelector("#guest_book");
+            bookContainer.value = monthName + '\n' + toBook + '\n';
+            bookContainer.style.display = "block";
+        }
+
+        function setAllElements(id, value) {
+            const elements = document.querySelectorAll(`#${id}`);
+            elements.forEach(el => {
+                if (el.tagName === "IMG") {
+                    el.src = value;
+                } else if (el.tagName === "A") {
+                    el.href = value;
+                    el.textContent = value;
+                } else {
+                    el.textContent = value;
+                }
+            });
+        }
+
+        function openWhatsApp() {
+            const whatsappNumber = document.getElementById('resort-whatsapp').textContent;
+            if (whatsappNumber && whatsappNumber !== 'Loading...') {
+                const url = `https://wa.me/${whatsappNumber.replace(/\D/g, '')}?text=Hi%20there!%20I%20found%20your%20resort%20on%20Paratara.`;
+                window.open(url, '_blank');
+            } else {
+                alert('WhatsApp number not available');
+            }
+        }
+
+        function loadAmenities(resortData) {
+            const amenitiesContainer = document.getElementById('amenitiesTags');
+            const amenitiesSection = document.getElementById('amenitiesDisplay');
+            
+            console.log('Loading amenities, resort data:', resortData);
+            
+            if (!amenitiesContainer || !resortData) {
+                console.log('Missing container or data');
+                return;
+            }
+
+            function isTrueish(value) {
+                if (value === true || value === 1) return true;
+                if (typeof value === 'string') {
+                    const normalized = value.trim().toLowerCase();
+                    return normalized === 'true' || normalized === '1' || normalized === 'yes' || normalized === 'y' || normalized === 'on';
+                }
+                return false;
+            }
+            
+            const amenitiesMap = {
+                wifi: { icon: '📶', label: 'WiFi' },
+                pool: { icon: '🏊', label: 'Pool' },
+                bidet: { icon: '🚿', label: 'Bidet' },
+                parking: { icon: '🅿️', label: 'Parking' },
+                restaurant: { icon: '🍽️', label: 'Restaurant' },
+                bar: { icon: '🍹', label: 'Bar' },
+                spa: { icon: '💆', label: 'Spa' },
+                gym: { icon: '🏋️', label: 'Gym' },
+                beach_access: { icon: '🏖️', label: 'Beach Access' },
+                air_conditioning: { icon: '❄️', label: 'Air Conditioning' },
+                hot_water: { icon: '♨️', label: 'Hot Water' },
+                breakfast: { icon: '🍳', label: 'Breakfast' },
+                laundry: { icon: '🧺', label: 'Laundry' },
+                pet_friendly: { icon: '🐾', label: 'Pet Friendly' },
+                family_friendly: { icon: '👨‍👩‍👧‍👦', label: 'Family Friendly' },
+                generator: { icon: '⚡', label: 'Generator' }
+            };
+            
+            amenitiesContainer.innerHTML = '';
+            let hasAmenities = false;
+            
+            // Check if amenities object exists
+            const amenitiesData = resortData.amenities || resortData.resort_amenities;
+            
+            if (amenitiesData) {
+                Object.keys(amenitiesMap).forEach(key => {
+                    if (isTrueish(amenitiesData[key])) {
+                        hasAmenities = true;
+                        const amenity = amenitiesMap[key];
+                        const tag = document.createElement('span');
+                        tag.className = 'amenity-tag';
+                        tag.innerHTML = `<span class="amenity-icon">${amenity.icon}</span><span>${amenity.label}</span>`;
+                        amenitiesContainer.appendChild(tag);
+                        console.log(`Added amenity: ${amenity.label}`);
+                    }
+                });
+            }
+            
+            console.log('Has amenities:', hasAmenities);
+            
+            // Always show the section; render a friendly fallback if empty
+            amenitiesSection.style.display = 'block';
+            if (!hasAmenities) {
+                // amenitiesContainer.innerHTML = '<span style="color: #94a3b8;">No amenities listed yet.</span>';
+                amenitiesSection.style.display = 'none';
+            }
+        }
+
+        function loadPaymentMethods(resortData) {
+            const paymentContainer = document.getElementById('paymentMethodsTags');
+            const paymentSection = document.getElementById('paymentMethodsDisplay');
+            
+            console.log('Loading payment methods, resort data:', resortData);
+            
+            if (!paymentContainer || !resortData) {
+                console.log('Missing payment container or data');
+                return;
+            }
+            
+            const paymentMethodsMap = {
+                gcash: { icon: '📱', label: 'GCash' },
+                cash: { icon: '💵', label: 'Cash' },
+                debit_card: { icon: '💳', label: 'Debit Card' },
+                credit_card: { icon: '💳', label: 'Credit Card' }
+            };
+            
+            paymentContainer.innerHTML = '';
+            let hasPaymentMethods = false;
+            
+            // Check if payment_methods object exists
+            const paymentData = resortData.payment_methods || resortData.resort_payment_methods;
+            
+            if (paymentData) {
+                Object.keys(paymentMethodsMap).forEach(key => {
+                    if (paymentData[key] === true || paymentData[key] === 'true' || paymentData[key] === 1) {
+                        hasPaymentMethods = true;
+                        const payment = paymentMethodsMap[key];
+                        const tag = document.createElement('span');
+                        tag.className = 'amenity-tag';
+                        tag.innerHTML = `<span class="amenity-icon">${payment.icon}</span><span>${payment.label}</span>`;
+                        paymentContainer.appendChild(tag);
+                        console.log(`Added payment method: ${payment.label}`);
+                    }
+                });
+            }
+            
+            console.log('Has payment methods:', hasPaymentMethods);
+            
+            // Hide the payment methods section if no payment methods are available
+            if (!hasPaymentMethods) {
+                paymentSection.style.display = 'none';
+            } else {
+                paymentSection.style.display = 'block';
+            }
+        }
+
+        function loadGallery(resort_Gallery) {
+            resort_Gallery.forEach(galleryImage => {
+                const galleryGrid = document.querySelector('.gallery-grid');
+                const anchor = document.createElement('a');
+                anchor.setAttribute('data-fancybox', 'resort-image-gallery');
+                anchor.setAttribute('data-src', galleryImage);
+                anchor.setAttribute('data-caption', 'Gallery Image');
+                anchor.className = 'gallery-item';
+                
+                const img = document.createElement('img');
+                img.loading = 'lazy';
+                img.src = galleryImage;
+                img.alt = 'Gallery Image';
+                
+                anchor.appendChild(img);
+                galleryGrid.appendChild(anchor);
+            });
+        }
+
+        function renderSubPackages(subPackages, resortID, container_box) {
+            currentMonth = '{{currentMonth}}';
+            currentYear = '{{currentYear}}';
+            actID = 0;
+            const isPromotions = container_box === 'tour-sub-packages-container';
+            const isActivities = container_box === 'activities-sub-packages-container';
+            const primaryActionLabel = isPromotions ? 'Register' : 'Book Now';
+            const registerEventUrlTemplate = isPromotions ? "{% url 'resorts:registerEvent' 0 %}" : '';
+            
+            const container = document.getElementById(container_box);
+            container.innerHTML = "";
+            
+            // Map container to section and nav link
+            const sectionMap = {
+                'tour-sub-packages-container': { section: '#promotions', navHref: '#promotions' },
+                'accommodation-sub-packages-container': { section: '#accommodation', navHref: '#accommodation' },
+                'activities-sub-packages-container': { section: '#activities', navHref: '#activities' }
+            };
+            
+            const mapping = sectionMap[container_box];
+            let hasContent = false;
+            
+            // Hide parent section and nav link if no packages available
+            if (!subPackages || subPackages.length === 0) {
+                if (mapping) {
+                    const parentSection = document.querySelector(mapping.section);
+                    const navLink = document.querySelector(`.nav-link[href="${mapping.navHref}"]`);
+                    if (parentSection) parentSection.style.display = 'none';
+                    if (navLink) navLink.style.display = 'none';
+                }
+                return;
+            }
+            
+            // Show parent section and nav link if packages exist
+            if (mapping) {
+                const parentSection = document.querySelector(mapping.section);
+                const navLink = document.querySelector(`.nav-link[href="${mapping.navHref}"]`);
+                if (parentSection) parentSection.style.display = 'block';
+                if (navLink) navLink.style.display = 'inline-flex';
+            }
+            
+            function buildCard(subpackage) {
+                hasContent = true;
+                const hasImages = subpackage.package_image && subpackage.package_image.length > 0;
+                const galleryName = `gallery-${actID}-${subpackage.package_id}`;
+                const dialogID = `dialog-content-${subpackage.package_id}-${resortID}`;
+                const registerAction = isPromotions
+                    ? registerEventUrlTemplate.replace('/0/', `/${subpackage.package_id}/`)
+                    : '';
+
+                const cardDiv = document.createElement("div");
+                cardDiv.className = "package-card";
+                    
+                const imageHTML = hasImages
+                    ? `<a data-fancybox="${galleryName}" href="${subpackage.package_image[0]}">
+                        <img src="${subpackage.package_image[0]}" alt="${subpackage.package_name}" class="card-image" loading="lazy" />
+                       </a>`
+                    : '<div class="card-image" style="display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem;">📷</div>';
+
+                const additionalImages = hasImages && subpackage.package_image.length > 1
+                    ? subpackage.package_image.slice(1).map((img) =>
+                        `<a data-fancybox="${galleryName}" href="${img}" style="display:none;"></a>`
+                      ).join("")
+                    : "";
+
+                const featuresHTML = subpackage.package_information
+                    ? subpackage.package_information.split(",").map(item =>
+                        `<span class="feature-tag">${item.trim()}</span>`
+                      ).join("")
+                    : "";
+
+                const priceHTML = subpackage.package_price && subpackage.package_price > 0
+                    ? `<div class="card-price">₱${subpackage.package_price.toLocaleString()}</div>`
+                    : "";
+
+                    const dialogInnerHTML = isPromotions
+                        ? `
+                            <div style="padding: 1rem;">
+                                <form method="post" action="${registerAction}" style="margin-top:0.75rem;">
+                                    {% csrf_token %}
+                                    <div style="display:grid;gap:0.75rem;grid-template-columns: 1fr 1fr;">
+                                        <div>
+                                            <label style="display:block;font-size:0.85rem;font-weight:600;color:var(--subtle);margin-bottom:0.35rem;">Full name</label>
+                                            <input name="full_name" placeholder="Your full name" required
+                                                style="width:100%;padding:0.65rem 0.75rem;border:1px solid var(--border);border-radius:var(--radius-sm);font:inherit;color:var(--text);background:var(--surface);" />
+                                        </div>
+                                        <div>
+                                            <label style="display:block;font-size:0.85rem;font-weight:600;color:var(--subtle);margin-bottom:0.35rem;">Email</label>
+                                            <input name="email" type="email" placeholder="you@email.com" required
+                                                style="width:100%;padding:0.65rem 0.75rem;border:1px solid var(--border);border-radius:var(--radius-sm);font:inherit;color:var(--text);background:var(--surface);" />
+                                        </div>
+                                    </div>
+                                    <div style="display:grid;gap:0.75rem;grid-template-columns: 1fr 1fr;margin-top:0.75rem;">
+                                        <div>
+                                            <label style="display:block;font-size:0.85rem;font-weight:600;color:var(--subtle);margin-bottom:0.35rem;">Phone (optional)</label>
+                                            <input name="phone" placeholder="+63..."
+                                                style="width:100%;padding:0.65rem 0.75rem;border:1px solid var(--border);border-radius:var(--radius-sm);font:inherit;color:var(--text);background:var(--surface);" />
+                                        </div>
+                                        <div>
+                                            <label style="display:block;font-size:0.85rem;font-weight:600;color:var(--subtle);margin-bottom:0.35rem;">Pax</label>
+                                            <input name="pax" type="number" min="1" value="1"
+                                                style="width:100%;padding:0.65rem 0.75rem;border:1px solid var(--border);border-radius:var(--radius-sm);font:inherit;color:var(--text);background:var(--surface);" />
+                                        </div>
+                                    </div>
+                                    <div style="display:grid;gap:0.75rem;grid-template-columns: 1fr;margin-top:0.75rem;">
+                                        <div>
+                                            <label style="display:block;font-size:0.85rem;font-weight:600;color:var(--subtle);margin-bottom:0.35rem;">Notes (optional)</label>
+                                            <input name="notes" placeholder="Any notes"
+                                                style="width:100%;padding:0.65rem 0.75rem;border:1px solid var(--border);border-radius:var(--radius-sm);font:inherit;color:var(--text);background:var(--surface);" />
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-primary" type="submit" style="width:100%;margin-top:0.9rem;">Register</button>
+                                </form>
+                            </div>
+                        `
+                        : `
+                            <div class="iframe-loader"></div>
+                            <iframe class="calendar-frame" loading="lazy" sandbox="allow-scripts allow-forms allow-popups allow-same-origin" src="/resortManagement/calendar/${resortID}/${subpackage.package_id}/${currentMonth}/${currentYear}/upload"></iframe>
+                        `;
+                    
+                cardDiv.innerHTML = `
+                    <div class="card-image-container">
+                        ${imageHTML}
+                        ${additionalImages}
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">${subpackage.package_name || "Untitled Package"}</h3>
+                        <p class="card-description">${subpackage.package_description || ""}</p>
+                        <div class="card-features">${featuresHTML}</div>
+                        ${priceHTML}
+                        <div class="card-actions">
+                            <a href="" data-fancybox data-src="#${dialogID}" class="btn btn-primary">${primaryActionLabel}</a>
+                            <button class="btn btn-secondary" onclick="bookNow('${subpackage.package_name}\\n₱${(subpackage.package_price || 0).toLocaleString()} per night')">Inquire</button>
+                        </div>
+                    </div>
+                    
+                    <div id="${dialogID}" style="display:none; padding:0; position: relative;">
+                        ${dialogInnerHTML}
+                    </div>
+                `;
+
+                // Add iframe load listener immediately after appending
+                setTimeout(() => {
+                    const dialog = document.getElementById(dialogID);
+                    if (dialog) {
+                        const iframe = dialog.querySelector('.calendar-frame');
+                        const loader = dialog.querySelector('.iframe-loader');
+                        if (iframe && loader) {
+                            iframe.addEventListener('load', () => {
+                                loader.style.display = 'none';
+                            });
+                        }
+                    }
+                }, 100);
+
+                return cardDiv;
+            }
+
+            if (isActivities) {
+                // Render grouped by resort package title
+                subPackages.forEach((pkg, idx) => {
+                    if (!pkg || !Array.isArray(pkg.package_subpackage) || pkg.package_subpackage.length === 0) return;
+
+                    const block = document.createElement('div');
+                    block.className = 'activity-package-block';
+
+                    const title = document.createElement('h3');
+                    title.className = 'card-title';
+                    title.style.margin = '1.25rem 0 0.75rem';
+                    title.textContent = pkg.package_title || 'Activities';
+
+                    const carouselId = `activities-carousel-${idx}`;
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'carousel-wrapper';
+
+                    const prevBtn = document.createElement('button');
+                    prevBtn.className = 'carousel-btn prev';
+                    prevBtn.type = 'button';
+                    prevBtn.setAttribute('aria-label', 'Previous');
+                    prevBtn.dataset.target = carouselId;
+                    prevBtn.textContent = '❮';
+
+                    const nextBtn = document.createElement('button');
+                    nextBtn.className = 'carousel-btn next';
+                    nextBtn.type = 'button';
+                    nextBtn.setAttribute('aria-label', 'Next');
+                    nextBtn.dataset.target = carouselId;
+                    nextBtn.textContent = '❯';
+
+                    const scroller = document.createElement('div');
+                    scroller.className = 'carousel-container';
+                    scroller.id = carouselId;
+
+                    pkg.package_subpackage.forEach((subpackage) => {
+                        scroller.appendChild(buildCard(subpackage));
+                    });
+
+                    wrapper.appendChild(prevBtn);
+                    wrapper.appendChild(scroller);
+                    wrapper.appendChild(nextBtn);
+
+                    block.appendChild(title);
+                    block.appendChild(wrapper);
+                    container.appendChild(block);
+                });
+            } else {
+                // Existing flat rendering (Promotions)
+                subPackages.forEach((sub) => {
+                    if (!sub || !Array.isArray(sub.package_subpackage) || sub.package_subpackage.length === 0) {
+                        return;
+                    }
+                    sub.package_subpackage.forEach((subpackage) => {
+                        container.appendChild(buildCard(subpackage));
+                    });
+                });
+            }
+
+            if (!hasContent && mapping) {
+                const parentSection = document.querySelector(mapping.section);
+                const navLink = document.querySelector(`.nav-link[href="${mapping.navHref}"]`);
+                if (parentSection) parentSection.style.display = 'none';
+                if (navLink) navLink.style.display = 'none';
+            }
+        }
+
+        function buildFoodCard(item) {
+            const name = item?.package_name || item?.food_name || item?.name || "Food Item";
+            const desc = item?.package_description || item?.food_description || item?.description || "";
+            const infoStr = item?.package_information || item?.food_information || "";
+            const priceVal = (item?.package_price ?? item?.food_price ?? item?.price);
+            const images = item?.package_image || item?.food_image || item?.images || [];
+            const firstImage = Array.isArray(images) && images.length ? images[0] : null;
+            const galleryGroup = `food-${name.replace(/\s+/g,'-').toLowerCase()}-${Math.random().toString(36).slice(2,7)}`;
+            const featuresHTML = infoStr ? infoStr.split(',').map(x => `<span class="feature-tag">${x.trim()}</span>`).join('') : '';
+            const priceHTML = (priceVal && Number(priceVal) > 0) ? `<div class="carousel-price">₱${Number(priceVal).toLocaleString()}</div>` : '';
+            const imageHTML = firstImage
+                ? `<a data-fancybox="${galleryGroup}" href="${firstImage}" class="carousel-image"><img src="${firstImage}" alt="${name}" loading="lazy" /></a>`
+                : `<div class="carousel-image" style="display:flex;align-items:center;justify-content:center;font-size:2rem;color:#94a3b8;">🍽️</div>`;
+            const otherImages = Array.isArray(images) && images.length > 1
+                ? images.slice(1).map(img => `<a data-fancybox="${galleryGroup}" href="${img}" style="display:none;"></a>`).join('')
+                : '';
+            const inquireBtn = `<button class="btn btn-secondary" onclick="bookNow('${name}\\n${priceVal ? '₱'+Number(priceVal).toLocaleString() : ''}')">Inquire</button>`;
+
+            // Determine availability using common keys and forgiving checks
+            const availabilityRaw = item?.is_available ?? item?.package_is_available ?? item?.available ?? item?.package_available;
+            const isAvailable = (function(v) {
+                if (v === undefined || v === null) return true; // default to available
+                if (typeof v === 'boolean') return v;
+                if (typeof v === 'number') return v === 1;
+                if (typeof v === 'string') {
+                    const n = v.trim().toLowerCase();
+                    return ['true','1','yes','y','available','in stock','in_stock'].includes(n);
+                }
+                return true;
+            })(availabilityRaw);
+
+            const availabilityHTML = isAvailable
+                ? `<div class="availability-badge available">Available</div>`
+                : `<div class="availability-badge unavailable">Unavailable</div>`;
+
+            // Show updated/expiry timestamp when unavailable (try common fields)
+            const tsRaw = item?.updated_at ?? item?.updatedAt ?? item?.last_updated ?? item?.updated ?? item?.expires_at ?? item?.expiresAt;
+            let tsHTML = '';
+            if (!isAvailable && tsRaw) {
+                const d = new Date(tsRaw);
+                const readable = isNaN(d.getTime()) ? String(tsRaw) : d.toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+                tsHTML = `<div class="availability-ts">Updated: ${readable}</div>`;
+            }
+
+            const card = document.createElement('div');
+            card.className = 'carousel-card' + (isAvailable ? '' : ' unavailable');
+            card.innerHTML = `
+                ${imageHTML}
+                ${otherImages}
+                ${availabilityHTML}
+                ${tsHTML}
+                <div class="carousel-content">
+                    <div class="carousel-title">${name}</div>
+                    <div class="carousel-desc">${desc}</div>
+                    <div class="card-features">${featuresHTML}</div>
+                    ${priceHTML}
+                    <div class="card-actions">${inquireBtn}</div>
+                </div>
+            `;
+            return card;
+        }
+
+        function renderCarousel(containerId, items) {
+            const container = document.getElementById(containerId);
+            if (!container) return false;
+            container.innerHTML = '';
+            if (!items || !items.length) return false;
+            items.forEach(item => {
+                if (Array.isArray(item?.package_subpackage) && item.package_subpackage.length) {
+                    item.package_subpackage.forEach(sub => container.appendChild(buildFoodCard(sub)));
+                } else {
+                    container.appendChild(buildFoodCard(item));
+                }
+            });
+            return true;
+        }
+
+        function setupCarouselButtons() {
+            document.querySelectorAll('.carousel-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const targetId = btn.dataset.target;
+                    const container = document.getElementById(targetId);
+                    if (!container) return;
+                    const card = container.querySelector('.carousel-card, .package-card');
+                    const step = card ? (card.offsetWidth + 16) : 320;
+                    container.scrollBy({ left: btn.classList.contains('next') ? step : -step, behavior: 'smooth' });
+                });
+            });
+        }
+
+        function updateFoodVisibility() {
+            const section = document.getElementById('food');
+            const navLink = document.querySelector('.nav-link[href="#food"]');
+            const pkgHasContent = !!document.getElementById('food-packages-container')?.children.length;
+            const menusHasContent = !!document.querySelector('#food-menus-container .food-menu-block');
+            const anyContent = pkgHasContent || menusHasContent;
+            if (!anyContent) {
+                if (section) section.style.display = 'none';
+                if (navLink) navLink.style.display = 'none';
+            } else {
+                if (section) section.style.display = 'block';
+                if (navLink) navLink.style.display = 'inline-flex';
+                const pkgWrapper = document.getElementById('food-packages-wrapper');
+                if (pkgWrapper) pkgWrapper.style.display = pkgHasContent ? 'block' : 'none';
+            }
+        }
+
+        function renderFoodCarousels(foodPackages) {
+            renderCarousel('food-packages-container', foodPackages);
+            setupCarouselButtons();
+            updateFoodVisibility();
+        }
+
+        function normalizeMenus(rawMenus) {
+            if (!Array.isArray(rawMenus) || !rawMenus.length) return [];
+            // If elements contain nested items arrays, treat each as a menu
+            const nestedKeys = ['items', 'menu_items', 'foods', 'dishes', 'package_subpackage'];
+            const hasNested = rawMenus.some(m => nestedKeys.some(k => Array.isArray(m?.[k]) && m[k].length));
+            if (hasNested) {
+                return rawMenus.map(m => {
+                    const name = m.package_title || m.name || m.menu_name || m.food_menu_name || m.package_name || 'Menu';
+                    const items = nestedKeys.reduce((acc, k) => Array.isArray(m?.[k]) && m[k].length ? m[k] : acc, []);
+                    return { name, items };
+                }).filter(x => Array.isArray(x.items) && x.items.length);
+            }
+            // Otherwise, single unnamed menu of items
+            return [{ name: 'Food Menu', items: rawMenus }];
+        }
+
+        function renderFoodMenus(rawMenus) {
+            const container = document.getElementById('food-menus-container');
+            if (!container) return;
+            container.innerHTML = '';
+            const menus = normalizeMenus(rawMenus);
+            menus.forEach((menu, idx) => {
+                const block = document.createElement('div');
+                block.className = 'food-menu-block';
+                const carouselId = `food-menu-${idx}`;
+                block.innerHTML = `
+                    <h3 class="card-title" style="margin: 1.25rem 0 0.5rem;">${menu.name}</h3>
+                    <div class="carousel-wrapper">
+                        <button class="carousel-btn prev" type="button" aria-label="Previous" data-target="${carouselId}">❮</button>
+                        <div class="carousel-container" id="${carouselId}"></div>
+                        <button class="carousel-btn next" type="button" aria-label="Next" data-target="${carouselId}">❯</button>
+                    </div>`;
+                container.appendChild(block);
+                const hasItems = renderCarousel(carouselId, menu.items);
+                if (!hasItems) block.style.display = 'none';
+            });
+            setupCarouselButtons();
+            updateFoodVisibility();
+        }
+
+
+        function buildAccommodationCard(item, resortID, currentMonth, currentYear) {
+            const name = item?.package_name || 'Accommodation';
+            const desc = item?.package_description || '';
+            const infoStr = item?.package_information || '';
+            const priceVal = item?.package_price ?? 0;
+            const images = item?.package_image || [];
+            const firstImage = Array.isArray(images) && images.length ? images[0] : null;
+            const galleryGroup = `accomm-${name.replace(/\s+/g,'-').toLowerCase()}-${Math.random().toString(36).slice(2,7)}`;
+            const featuresHTML = infoStr ? infoStr.split(',').map(x => `<span class="feature-tag">${x.trim()}</span>`).join('') : '';
+            const priceHTML = (priceVal && Number(priceVal) > 0) ? `<div class="carousel-price">₱${Number(priceVal).toLocaleString()}</div>` : '';
+            const imageHTML = firstImage
+                ? `<a data-fancybox="${galleryGroup}" href="${firstImage}" class="carousel-image"><img src="${firstImage}" alt="${name}" loading="lazy" /></a>`
+                : `<div class="carousel-image" style="display:flex;align-items:center;justify-content:center;font-size:2rem;color:#94a3b8;">🏨</div>`;
+            const otherImages = Array.isArray(images) && images.length > 1
+                ? images.slice(1).map(img => `<a data-fancybox="${galleryGroup}" href="${img}" style="display:none;"></a>`).join('')
+                : '';
+            const dialogID = `dialog-content-accomm-${item.package_id}-${resortID}`;
+            const card = document.createElement('div');
+            card.className = 'carousel-card';
+            card.innerHTML = `
+                ${imageHTML}
+                ${otherImages}
+                <div class="carousel-content">
+                    <div class="carousel-title">${name}</div>
+                    <div class="carousel-desc">${desc}</div>
+                    <div class="card-features">${featuresHTML}</div>
+                    ${priceHTML}
+                    <div class="card-actions">
+                        <a href="" data-fancybox data-src="#${dialogID}" class="btn btn-primary">Book Now</a>
+                        <button class="btn btn-secondary" onclick="bookNow('${name}\\n${priceVal ? '₱'+Number(priceVal).toLocaleString()+' per night' : ''}')">Inquire</button>
+                    </div>
+                </div>
+                <div id="${dialogID}" style="display:none; padding:0; position: relative;">
+                    <div class="iframe-loader"></div>
+                    <iframe class="calendar-frame" loading="lazy" sandbox="allow-scripts allow-forms allow-popups allow-same-origin" src="/resortManagement/calendar/${resortID}/${item.package_id}/${currentMonth}/${currentYear}/upload"></iframe>
+                </div>
+            `;
+            // Hide loader when iframe loads
+            setTimeout(() => {
+                const dialog = card.querySelector(`#${dialogID}`);
+                if (dialog) {
+                    const iframe = dialog.querySelector('.calendar-frame');
+                    const loader = dialog.querySelector('.iframe-loader');
+                    if (iframe && loader) {
+                        iframe.addEventListener('load', () => {
+                            loader.style.display = 'none';
+                        });
+                    }
+                }
+            }, 0);
+            return card;
+        }
+
+        function renderAccommodationMenus(rawMenus, resortID) {
+            const container = document.getElementById('accommodation-menus-container');
+            if (!container) return;
+            container.innerHTML = '';
+            if (!Array.isArray(rawMenus) || !rawMenus.length) return;
+            const currentMonth = '{{currentMonth}}';
+            const currentYear = '{{currentYear}}';
+            rawMenus.forEach((pkg, idx) => {
+                const name = pkg.package_title || 'Accommodation';
+                const items = Array.isArray(pkg.package_subpackage) ? pkg.package_subpackage : [];
+                const carouselId = `accommodation-menu-${idx}`;
+                const block = document.createElement('div');
+                block.className = 'accommodation-menu-block';
+                block.innerHTML = `
+                    <h3 class="card-title" style="margin: 1.25rem 0 0.5rem;">${name}</h3>
+                    <div class="carousel-wrapper">
+                        <button class="carousel-btn prev" type="button" aria-label="Previous" data-target="${carouselId}">❮</button>
+                        <div class="carousel-container" id="${carouselId}"></div>
+                        <button class="carousel-btn next" type="button" aria-label="Next" data-target="${carouselId}">❯</button>
+                    </div>`;
+                container.appendChild(block);
+                const scroller = document.getElementById(carouselId);
+                if (scroller && items.length) {
+                    items.forEach(item => {
+                        scroller.appendChild(buildAccommodationCard(item, resortID, currentMonth, currentYear));
+                    });
+                } else {
+                    block.style.display = 'none';
+                }
+            });
+            setupCarouselButtons();
+        }
+
+        async function loadResort(resortID) {
+            const placeName = document.getElementById("resort-data").dataset.place;
+            apiUrl = `${window.location.origin}/apis/getresortitem/${placeName}/`;
+            
+            try {
+                const response = await fetch(apiUrl);
+                if (!response.ok) throw new Error(`HTTP error! ${response.status}`);
+                const data = await response.json();
+                
+                setAllElements("qr_code_image", data.resort_QRLink || "#");
+                
+                const headerEl = document.getElementById("resort-header-image");
+                headerEl.style.backgroundImage = `url('${data.resort_headerImage}')`;
+                
+                document.getElementById("resort-name").textContent = data.resort_RealName || data.resort_name;
+                document.getElementById("resort-realname").textContent = data.resort_RealName || data.resort_name;
+                setAllElements("nav-resort-name", data.resort_RealName || data.resort_name);
+
+                // Last updated (manager)
+                (function() {
+                    const el = document.getElementById('resort-last-updated');
+                    if (!el) return;
+                    const raw = data.resort_last_visited || data.last_visited || data.resort_lastVisited || '';
+                    if (!raw) {
+                        el.style.display = 'none';
+                        el.textContent = '';
+                        return;
+                    }
+                    const d = new Date(raw);
+                    const readable = isNaN(d.getTime()) ? String(raw) : d.toLocaleString(undefined, {
+                        year: 'numeric', month: 'short', day: 'numeric',
+                        hour: 'numeric', minute: '2-digit'
+                    });
+                    el.textContent = `Last updated by manager: ${readable}`;
+                    el.style.display = '';
+                })();
+                document.getElementById("resort-geolocation").href = `https://maps.google.com/maps?q=${data.resort_latitude},${data.resort_longitude}&t=&z=13&ie=UTF8&iwloc=&output=embed`;
+                document.getElementById("resort-directions").href = `https://www.google.com/maps/dir/?api=1&destination=${data.resort_latitude},${data.resort_longitude}`;
+                
+                setAllElements("resort-description", data.resort_own_description || ".");
+                // setAllElements("resort-email", data.resort_contactEmail || "");
+                setAllElements("resort-address", data.resort_address || "");
+                setAllElements("resort-number", data.resort_contactNumber || "");
+                setAllElements("resort-whatsapp", data.resort_whatsappNumber || "");
+                setAllElements("resort-open-hours", data.resort_open_hours || "Not specified");
+                
+                // Load amenities
+                loadAmenities(data);
+                
+                // Load payment methods
+                loadPaymentMethods(data);
+                
+                // Set the recipient email for the contact form
+                const recipientEmailInput = document.querySelector('input[name="to_name"]');
+                if (recipientEmailInput && data.resort_contactEmail) {
+                    recipientEmailInput.value = data.resort_contactEmail;
+                }
+                
+                document.querySelector('meta[property="og:title"]').setAttribute("content", data.resort_RealName || "");
+                document.querySelector('meta[property="og:description"]').setAttribute("content", data.resort_description || "");
+                document.querySelector('meta[property="og:image"]').setAttribute("content", data.resort_headerImage || "");
+                
+                loadGallery(data.resort_Gallery || []);
+
+                // Prepare QR viewer content based on website URL
+                const resortSlug = data.resort_name || '';
+                const placeSlug = placeName || '';
+                const websiteURL = `https://paratara.com/${placeSlug}/check/${resortSlug}`;
+                const qrImgEl = document.getElementById('qr-code-img');
+                const qrTitleEl = document.getElementById('qr-code-title');
+                const qrLinkEl = document.getElementById('qr-code-link');
+                const qrDownloadEl = document.getElementById('qr-code-download');
+                if (qrImgEl && qrTitleEl && qrLinkEl && qrDownloadEl) {
+                    const qr400 = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(websiteURL)}`;
+                    const qr800 = `https://api.qrserver.com/v1/create-qr-code/?size=800x800&data=${encodeURIComponent(websiteURL)}`;
+                    qrTitleEl.textContent = data.resort_RealName || data.resort_name || 'Resort';
+                    qrImgEl.src = qr400;
+                    qrLinkEl.textContent = ``;
+                    qrDownloadEl.href = qr800;
+                    qrDownloadEl.setAttribute('download', `${resortSlug || 'resort'}-qr-code.png`);
+                }
+                
+                // Show 360 view if available
+                if (data.resort_360View || data.resort_360view || data.resort_360_view) {
+                    const view360Element = document.getElementById('gallery-360-view');
+                    if (view360Element) {
+                        view360Element.style.display = 'flex';
+                        // Update the data-src if there's a specific URL
+                        const view360Url = data.resort_360View || data.resort_360view || data.resort_360_view;
+                        if (view360Url && view360Url !== '#three-sixty-picture') {
+                            view360Element.setAttribute('data-src', view360Url);
+                        }
+                    }
+                }
+                
+                renderSubPackages(data.resort_Tour, data.resort_ID, "tour-sub-packages-container");
+                renderAccommodationMenus(data.resort_Accomodations || [], data.resort_ID);
+                // Hide accommodation section if no content
+                const accContainer = document.getElementById('accommodation-menus-container');
+                const accSection = document.getElementById('accommodation');
+                const accNavLink = document.querySelector('.nav-link[href="#accommodation"]');
+                if (accContainer && accContainer.children.length === 0) {
+                    if (accSection) accSection.style.display = 'none';
+                    if (accNavLink) accNavLink.style.display = 'none';
+                } else {
+                    if (accSection) accSection.style.display = 'block';
+                    if (accNavLink) accNavLink.style.display = 'inline-flex';
+                }
+                renderSubPackages(data.resort_Activities, data.resort_ID, "activities-sub-packages-container");
+                const foodPackages = data.resort_FoodPackages || data.resort_foodPackages || data.resort_food_packages || data.resort_FoodPackage || [];
+                const foodMenus = data.resort_Food || data.resortFood || data.resort_foodMenus || data.resort_food_menus || [];
+                renderFoodCarousels(foodPackages);
+                renderFoodMenus(foodMenus);
+                
+            } catch (err) {
+                console.error("Failed to fetch resort data:", err);
+                document.getElementById("resort-name").textContent = "Error loading resort data.";
+            }
+        }
+        
+        loadResort(4);
+    </script>
+</body>
+</html>

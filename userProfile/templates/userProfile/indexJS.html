@@ -1,0 +1,140 @@
+<script>
+  function sendAmount() {
+    // toSendAmount = prompt(`Remaining Balance: {{pageViewer.currentBalance}} \n\n Enter Advance Payment Amount`);
+    toSendAmount = prompt(`Enter Advance Payment Amount`);
+    csrftoken = `{{csrf_token}}`;
+    remainingBalance = parseInt("{{pageViewer.currentBalance}}");
+    if (parseInt(toSendAmount) >= 1) {
+      if (parseInt(remainingBalance) > toSendAmount) {
+        alert("Sending Please Wait..");
+      } else {
+        return alert("Not enough Balance\n\n Remaining Balance: " + remainingBalance);
+      }
+    } else {
+      //  ? console.log("Cancelled") :
+      if (toSendAmount == null) {
+        return console.log("Cancelled");
+       }
+      else {
+        alert("Not Valid amount");
+      }
+
+      
+      // return;
+    }
+    fetch("/apis/makepayment/{{pageUser.userID}}/", {
+      headers: { "X-CSRFToken": csrftoken, Accept: "application/json", "Content-Type": "application/json" },
+      method: "POST",
+      body: JSON.stringify({
+        amount: toSendAmount,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        alert(data["message"]);
+      });
+  }
+  function confirmTransaction(transactorID, confirmation) {
+    secondThought = confirm("Confirm");
+    console.log(secondThought);
+    if (!secondThought) {
+      return;
+    } else {
+      confirm("Are you sure to Confirm? ");
+    }
+
+    csrftoken = `{{csrf_token}}`;
+    fetch(`/apis/confirmTransaction/` + parseInt(transactorID) + `/`, {
+      headers: { "X-CSRFToken": csrftoken, Accept: "application/json", "Content-Type": "application/json" },
+      method: "PUT",
+      body: JSON.stringify({
+        confirmation: confirmation,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        alert(data["message"]);
+      });
+  }
+
+  console.log("Checking Local Storage: ", localStorage.noFirstVisit);
+  if (!localStorage.noFirstVisit) {
+    alert("Thank you for visiting this is the Official Website of Filipino Traveller's Club, ");
+    // check this flag for escaping this if block next time
+    localStorage.noFirstVisit = 1;
+  } else {
+    localStorage.noFirstVisit++;
+  }
+
+  window.fbAsyncInit = function () {
+    FB.init({
+      appId: "499005982203937",
+      xfbml: true,
+      version: "v16.0",
+      cookie: true,
+    });
+    FB.AppEvents.logPageView();
+  };
+  (function (d, s, id) {
+    var js,
+      fjs = d.getElementsByTagName(s)[0];
+    if (d.getElementById(id)) {
+      return;
+    }
+    js = d.createElement(s);
+    js.id = id;
+    js.src = "https://connect.facebook.net/en_US/sdk.js";
+    fjs.parentNode.insertBefore(js, fjs);
+  })(document, "script", "facebook-jssdk");
+
+  function registerUserThroughJSON(elementData) {
+    // const csrftoken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+    const csrftoken = `{{csrf_token}}`;
+    contactGiven = prompt("Contact Email or Number: ");
+    fetch("{% url 'userProfile:registerUserJSON' %}", {
+      headers: { "X-CSRFToken": csrftoken },
+      method: "POST",
+      body: JSON.stringify({
+        username: elementData.name.split(" ")[0] + elementData.id,
+        contact: elementData.email,
+        password: elementData.id,
+        passwordConfirmation: elementData.id,
+        photoURL: elementData.picture.data.url,
+        putname: elementData.name,
+        contact: contactGiven,
+      }),
+    }).then((response) => {
+      alert("Registered");
+      location.reload();
+    });
+  }
+  function ContinueWithFacebook() {
+    FB.login(function (response) {
+      if (response.status == "connected") {
+        alert("You are now Logged in");
+        FB.api("/me", "GET", { fields: "id,name,picture.type(large)" }, function (response) {
+          ToBePassword = response.id;
+          ToBeName = response.name;
+          FirstName = response.name.split(" ")[0];
+          ToProfile = response.picture.data.url;
+          registerUserThroughJSON(response);
+        });
+      }
+    });
+  }
+
+  function closeThisModal() {
+    try {
+      selfElement = event.srcElement;
+      parentElement = selfElement.parentNode.parentNode.parentNode;
+      // console.log(parentElement);
+      console.log(selfElement.parentElement);
+      selfElement.parentElement.style.display = "none";
+      return;
+      parentElement.style.display = "none";
+      return;
+    } catch {}
+    // target = document.querySelector(`.${ofWhat}`);
+    // target.style.display = "none";
+  }
+</script>

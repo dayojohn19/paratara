@@ -1,0 +1,359 @@
+{% load humanize %}
+{% if managerUser or resortObject.TourList %}
+<section class="section" id="promotions">
+  <div class="section-head">
+    <div>
+      <div class="section-title"></div>
+      <div class="section-sub"></div>
+    </div>
+    {% if managerUser %}
+    {% endif %}
+  </div>
+
+  {% if managerUser %}
+  <div id="modal-add-promotion" style="display:none;">
+    <div class="card">
+      <div class="card-body">
+      <div style="font-weight:600;margin-bottom:0.75rem;">Add promotion</div>
+      <div id="promotionAddSaving" style="display:none;margin-bottom:0.75rem;color:var(--muted);font-weight:600;">Saving…</div>
+      <div id="promotionAddSuccess" style="display:none;margin-bottom:0.75rem;color:var(--primary);font-weight:600;">Saved. You can add another promotion now.</div>
+
+      <form class="promotion-form promotion-add-form" method="post" action="{% url 'resorts:createPackaged' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div style="margin-bottom:1rem;">
+          <label for="promotionPackageSelect">Promotions and Events</label>
+          <select id="promotionPackageSelect" style="margin-bottom:0.5rem;">
+            {% for acc in resortObject.TourList %}
+              <option value="{{ acc.id }}" data-title="{{ acc.PackageTitle }}">{{ acc.PackageTitle }}</option>
+            {% endfor %}
+            <option value="other">Other (specify below)</option>
+          </select>
+          <input id="promotionPackageTitle" name="package_title" type="text" placeholder="Specify eg. Events, Promos, Holiday Specials..." style="display:none;" />
+          <input id="promotionPackageId" name="packageID" type="hidden" />
+          <input name="resort_id" type="hidden" value="{{ resortObject.id }}" />
+          <input name="packageType" type="hidden" value="tour" />
+        </div>
+
+        <div class="form-row">
+          <div>
+            <label for="promotionTitle">Promotion Title</label>
+            <input id="promotionTitle" name="title" placeholder="Promotion title" required />
+          </div>
+          <div>
+            <label for="promotionPrice">Display Price</label>
+            <input id="promotionPrice" name="price" placeholder="Display price" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div>
+            <label for="promotionDescription">Short Description
+              eg. Every first week of 2026 we will going to have free water
+              
+              *Tell us Dates, inclusions, and other important details.
+
+            </label>
+            <input id="promotionDescription" name="description" placeholder="Short Description" />
+          </div>
+          <div>
+            <label for="promotionInformation">Inclusions or Notes</label>
+            <input id="promotionInformation" name="information" placeholder="Inclusions or notes" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div>
+            <label for="promotionExpiresAt">Include Promo End Date</label>
+            <input type="date" id="promotionExpiresAt" name="expires_at" placeholder="Expiration date (optional)" />
+          </div>
+        </div>
+        <div class="form-row" style="grid-template-columns: 1fr;">
+          <div>
+            <label>Upload images</label>
+            <input type="file" name="images" accept="image/*" multiple class="promotion-image-input" />
+          </div>
+        </div>
+        <div class="upload-status"></div>
+        <button type="submit" class="btn primary">Add promotion</button>
+      </form>
+
+      <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          var select = document.getElementById('promotionPackageSelect');
+          var titleInput = document.getElementById('promotionPackageTitle');
+          var idInput = document.getElementById('promotionPackageId');
+          var form = document.querySelector('#promotions .promotion-add-form');
+
+          if (!select || !titleInput || !idInput) return;
+
+          function sync() {
+            if (select.value === 'other') {
+              titleInput.style.display = '';
+              titleInput.value = '';
+              idInput.value = '';
+            } else {
+              titleInput.style.display = 'none';
+              var selectedOption = select.options[select.selectedIndex];
+              titleInput.value = (selectedOption && selectedOption.dataset && selectedOption.dataset.title) ? selectedOption.dataset.title : '';
+              idInput.value = select.value;
+            }
+          }
+
+          select.addEventListener('change', sync);
+          if (!select.value) select.value = 'other';
+          sync();
+
+          if (form) {
+            form.addEventListener('submit', function() {
+              var btn = form.querySelector('button[type="submit"]');
+              var saving = document.getElementById('promotionAddSaving');
+              if (saving) saving.style.display = '';
+              if (btn) {
+                btn.disabled = true;
+                btn.dataset.originalText = btn.dataset.originalText || btn.textContent;
+                btn.textContent = 'Saving…';
+              }
+
+              window.setTimeout(function() {
+                try {
+                  var successNow = new URLSearchParams(window.location.search).get('success') === '1';
+                  if (!successNow && btn && btn.disabled) {
+                    if (saving) saving.style.display = 'none';
+                    btn.disabled = false;
+                    btn.textContent = btn.dataset.originalText || 'Add promotion';
+                  }
+                } catch (e) {}
+              }, 15000);
+            });
+
+            window.addEventListener('pageshow', function() {
+              var saving = document.getElementById('promotionAddSaving');
+              if (saving) saving.style.display = 'none';
+              var btn = form.querySelector('button[type="submit"]');
+              if (btn) {
+                btn.disabled = false;
+                btn.textContent = btn.dataset.originalText || btn.textContent;
+              }
+            });
+          }
+        });
+      </script>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% for acc in resortObject.TourList %}
+  <div class="card package-card">
+    <div class="package-head">
+      <div>
+        <div class="package-label">Promotions and Events</div>
+        <h3 class="package-title">{{ acc.PackageTitle }}</h3>
+      </div>
+
+    </div>
+
+
+
+    <div class="package-items grid">
+      {% for sub in acc.subPackagesList %}
+      <article class="card promo-card">
+        <div>
+          {% for images in sub.images %}
+            {% if forloop.last %}
+            <a data-fancybox="gallery-{{acc.id}}-{{sub.id}}" href="{{images.urlField}}">
+              <img class="img-cover" src="{{images.urlField}}" alt="{{sub.title}} cover" />
+            </a>
+            {% endif %}
+          {% endfor %}
+          <div style="display:none">
+            {% for images in sub.images %}
+            <a data-fancybox="gallery-{{acc.id}}-{{sub.id}}" href="{{images.urlField}}"></a>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="package-item-title">{{ sub.title }}</div>
+          {% if sub.description %}
+          <p class="package-item-sub">{{ sub.description }}</p>
+          {% endif %}
+          {% if sub.price %}
+          <div class="price">₱{{ sub.price|intcomma }}</div>
+          {% endif %}
+
+          <!-- <form method="post" action="{% url 'resorts:registerEvent' sub.id %}" style="margin-top:0.75rem;">
+            {% csrf_token %}
+            <div class="form-row" style="grid-template-columns: 1fr 1fr;">
+              <div>
+                <label>Full name</label>
+                <input name="full_name" placeholder="Your full name" required />
+              </div>
+              <div>
+                <label>Email</label>
+                <input name="email" type="email" placeholder="you@email.com" required />
+              </div>
+            </div>
+            <div class="form-row" style="grid-template-columns: 1fr 1fr;">
+              <div>
+                <label>Phone (optional)</label>
+                <input name="phone" placeholder="+63..." />
+              </div>
+              <div>
+                <label>Pax</label>
+                <input name="pax" type="number" min="1" value="1" />
+              </div>
+            </div>
+            <div class="form-row" style="grid-template-columns: 1fr;">
+              <div>
+                <label>Notes (optional)</label>
+                <input name="notes" placeholder="Any notes" />
+              </div>
+            </div>
+            <button class="btn primary" type="submit">Register</button>
+          </form> -->
+
+          <!-- <div class="actions">
+            <a class="btn primary" data-fancybox data-src="#dialog-content-{{sub.id}}-{{resortObject.id}}">Check availability</a>
+            <button class="btn" onclick="bookNow('{{sub.title}}\n₱{{sub.price|intcomma}} package')">Send inquiry</button>
+          </div> -->
+                    <button class="btn toggle-manager-stack-btn" type="button" style="margin: 0.5rem 0;">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09A1.65 1.65 0 0 0 9 4.6V4a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.09a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    </button>
+          {% if managerUser %}
+          <div class="manager-stack">
+            <a class="btn" href="{% url 'resorts:view_package_registrations' sub.id %}">View all registrations</a>
+            <button class="btn primary edit-promotion-btn" data-item-id="{{ sub.id }}" data-title="{{ sub.title }}" data-description="{{ sub.description }}" data-price="{{ sub.price }}" data-information="{{ sub.information }}" data-expires-at="{{ sub.expires_at|date:'Y-m-d' }}" data-images='[{% for img in sub.images %}{"id":{{ img.id }},"url":"{{ img.urlField }}"}{% if not forloop.last %},{% endif %}{% endfor %}]'>Edit</button>
+            <button class="btn warn delete-item-btn" data-url="{% url 'resorts:removeResortSubPackage' sub.id %}" data-confirm="Are you sure you want to delete {{sub.title}}? This action cannot be undone." data-target="article">Delete item</button>
+            <form class="image-upload-form" enctype="multipart/form-data" method="post" action="{% url 'resorts:createImage' %}">
+              {% csrf_token %}
+              <input hidden readonly name="subID" value="{{sub.id}}" />
+              <input name="imageURL" placeholder="Direct image URL (optional)" />
+              <input type="file" name="image" accept="image/*" required>
+              <button class="btn">Add Image</button>
+              <div id="upload-result-{{sub.id}}"></div>
+            </form>
+
+            <div style="margin-top:0.75rem;">
+              <div style="font-weight:600;margin-bottom:0.5rem;">Registrants ({{ sub.registrations.all|length }})</div>
+              {% for reg in sub.siargaoevents.all %}
+              {{reg.scheduleTitle}} — {{ reg.scheduleTitle }} — {{ reg.email }}{% if reg.phone %} — {{ reg.phone }}{% endif %}{% if reg.pax %} — ×{{ reg.pax }}{% endif %} {{reg}} {% if reg.event_date %} — {{ reg.event_date }}{% endif %}
+              {{reg.r}}
+              {% endfor %}
+              {% for reg in sub.registrations.all %}
+                <div style="font-size:0.95rem;">
+                  {{ reg.full_name }} — {{ reg.email }}{% if reg.phone %} — {{ reg.phone }}{% endif %}{% if reg.pax %} — ×{{ reg.pax }}{% endif %} {{reg}} {% if reg.event_date %} — {{ reg.event_date }}{% endif %}
+                </div>
+              {% empty %}
+                <div class="empty-hint">No registrants yet.</div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+          <div class="iframe-container" id="dialog-content-{{sub.id}}-{{resortObject.id}}">
+            <div class="iframe-loader"></div>
+            <iframe class="calendar-frame" loading="lazy" sandbox="allow-scripts allow-forms allow-popups allow-same-origin" src="{% url 'resort_management:movemarkedcalendarnamed' resortObject.id sub.id currentMonth currentYear 'upload_id' %}"></iframe>
+          </div>
+        </div>
+      </article>
+      {% empty %}
+      <div class="empty-hint">No promotion items yet. Add one above.</div>
+      {% if managerUser %}
+        <div class="package-actions">
+          <button class="btn warn delete-package-btn" data-url="{% url 'resorts:removeResortPackage' acc.id %}" data-confirm="Are you sure you want to delete this package? This will also delete all items under it." data-target=".package-card">Remove {{acc.PackageTitle}}</button>
+        </div>
+      {% endif %}
+
+      
+      {% endfor %}
+    </div>
+  </div>
+  {% empty %}
+  <div class="card">
+  </div>
+  {% endfor %}
+
+  <!-- Edit Promotion Modal -->
+  <div id="editPromotionModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:12px;padding:2rem;max-width:500px;width:90%;max-height:90vh;overflow-y:auto;">
+      <h3 style="margin:0 0 1.5rem 0;font-size:1.25rem;">Edit Promotion</h3>
+      
+      <form id="editPromotionForm">
+        <input type="hidden" id="editPromotionId" />
+        
+        <div style="margin-bottom:1rem;">
+          <label for="editPromotionTitle" style="display:block;margin-bottom:0.5rem;font-weight:600;">Promotion Title</label>
+          <input id="editPromotionTitle" type="text" required style="width:100%;padding:0.5rem;border:1px solid #ddd;border-radius:4px;" />
+        </div>
+        
+        <div style="margin-bottom:1rem;">
+          <label for="editPromotionDescription" style="display:block;margin-bottom:0.5rem;font-weight:600;">Short Description</label>
+          <textarea id="editPromotionDescription" rows="3" style="width:100%;padding:0.5rem;border:1px solid #ddd;border-radius:4px;"></textarea>
+        </div>
+        
+        <div style="margin-bottom:1rem;">
+          <label for="editPromotionInformation" style="display:block;margin-bottom:0.5rem;font-weight:600;">Inclusions or Notes</label>
+          <textarea id="editPromotionInformation" rows="2" style="width:100%;padding:0.5rem;border:1px solid #ddd;border-radius:4px;"></textarea>
+        </div>
+        
+        <div style="margin-bottom:1rem;">
+          <label for="editPromotionPrice" style="display:block;margin-bottom:0.5rem;font-weight:600;">Display Price (₱)</label>
+          <input id="editPromotionPrice" type="number" step="0.01" style="width:100%;padding:0.5rem;border:1px solid #ddd;border-radius:4px;" />
+        </div>
+        
+        <div style="margin-bottom:1rem;">
+          <label for="editPromotionExpiresAt" style="display:block;margin-bottom:0.5rem;font-weight:600;">Promo End Date</label>
+          <input id="editPromotionExpiresAt" type="date" style="width:100%;padding:0.5rem;border:1px solid #ddd;border-radius:4px;" />
+        </div>
+        
+        <div style="margin-bottom:1rem;">
+          <label style="display:block;margin-bottom:0.5rem;font-weight:600;">Current Images</label>
+          <div class="current-images-container" style="min-height:40px;padding:0.5rem;border:1px solid #eee;border-radius:4px;"></div>
+        </div>
+        
+
+        <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+          <button type="button" id="cancelEditPromotion" class="btn" style="padding:0.5rem 1.5rem;">Cancel</button>
+          <button type="submit" class="btn primary" style="padding:0.5rem 1.5rem;">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Check if success parameter is in URL
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('success') === '1' && urlParams.get('success_type') === 'tour') {
+    const successBanner = document.getElementById('promotionAddSuccess');
+    const savingBanner = document.getElementById('promotionAddSaving');
+    if (savingBanner) savingBanner.style.display = 'none';
+    if (successBanner) {
+      successBanner.style.display = '';
+      window.setTimeout(() => {
+        successBanner.style.display = 'none';
+      }, 2500);
+    }
+
+    const form = document.querySelector('#promotions .promotion-add-form');
+    if (form) {
+      form.reset();
+      const btn = form.querySelector('button[type="submit"]');
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = btn.dataset.originalText || 'Add promotion';
+      }
+    }
+
+    const packageSelect = document.getElementById('promotionPackageSelect');
+    if (packageSelect) packageSelect.dispatchEvent(new Event('change'));
+
+    urlParams.delete('success');
+    urlParams.delete('success_type');
+    const qs = urlParams.toString();
+    const newUrl = window.location.pathname + (qs ? ('?' + qs) : '');
+    window.history.replaceState({}, document.title, newUrl);
+  }
+});
+</script>
+
+{% endif %}

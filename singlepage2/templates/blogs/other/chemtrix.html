@@ -1,0 +1,536 @@
+{% load static %}
+<!--
+CHEMTRIX — Single-file static website (HTML/CSS/JS)
+Features:
+ - Strawberry Red theme (#d32f45)
+ - Products & Services listing
+ - Order / Inquiry form (opens mail client prefilled using mailto:) and also creates downloadable JSON order file
+ - Contact section with WhatsApp quick link
+ - Mobile-friendly, accessible
+
+Instructions:
+ - Save this file as `index.html` and upload to your Namecheap hosting (or preview locally).
+ - Replace CONTACT_EMAIL and WHATSAPP_NUMBER placeholders with your real values.
+ - If you later want server-side emailing, replace the `mailto:` technique with a proper backend endpoint.
+-->
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>CHEMTRIX — Industrial Product Trading</title>
+  <meta name="description" content="Industrial chemicals and services — preventive maintenance chemicals, electroplating chemicals, AC services. Cash on Delivery available." />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet"href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@6.0/dist/fancybox/fancybox.css"/>
+  <style>
+
+    :root{
+      --strawberry:#d32f45;
+      --strawberry-dark:#b02638;
+      --bg:#fff7f8;
+      --muted:#5b5b5b;
+      --card:#ffffff;
+      --accent:#111827;
+      --glass: rgba(255,255,255,0.7);
+      --maxwidth:1100px;
+    }
+    *{box-sizing:border-box}
+    body{font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,Arial; margin:0;background:linear-gradient(180deg,var(--bg),#fff);color:var(--accent)}
+    a{color:inherit}
+    #openOrder {
+        color: white;
+    }
+    header{
+        background: linear-gradient(to right, #ff3651, #2b0006);
+        color:white;padding:28px 20px}
+    
+    .container{max-width:var(--maxwidth);margin:0 auto;padding:0 20px}
+    .brand{display:flex;align-items:center;gap:14px}
+    .logo{
+        border-radius:10px;background:rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;font-weight:700;
+
+ width: 200px;                 /* you can increase if needed (e.g., 240px) */
+  height: 60px;
+  background-size: cover;           /* scales image to fit */
+  background-repeat: no-repeat;       /* prevents tiling */
+  background-position: center center; /* centers the image */
+  display: block;                     /* ensures proper layout */
+
+    }
+    .brand h1{font-size:20px;margin:0}
+    .brand p{margin:0;font-size:13px;opacity:0.95}
+
+    nav{margin-top:12px;display:flex;gap:12px;flex-wrap:wrap}
+    .navlink{background:rgba(255,255,255,0.08);padding:8px 12px;border-radius:8px;font-weight:600;font-size:13px}
+
+    .hero{display:flex;align-items:center;gap:24px;padding:36px 0}
+    .hero-left{flex:1}
+    .hero h2{margin:0;font-size:28px}
+    .hero p{color:var(--muted);margin-top:10px;max-width:56ch}
+    .cta{margin-top:18px;display:flex;gap:10px}
+    .btn{background:white;color:var(--strawberry);padding:12px 16px;border-radius:10px;font-weight:700;border:none;cursor:pointer}
+    .btn.ghost{background:transparent;color:white;border:1px solid rgba(255,255,255,0.18)}
+
+    .hero-right{width:360px}
+    .card{background:var(--card);border-radius:12px;padding:14px;box-shadow:0 8px 30px rgba(13,38,63,0.08);border:1px solid rgba(0,0,0,0.04)}
+
+    main{padding:22px 0}
+    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+    .product{background:linear-gradient(180deg,#fff,#fff);padding:18px;border-radius:12px;border:1px solid rgba(0,0,0,0.04)}
+    .product h3{margin:0 0 8px 0}
+    .product p{margin:0;color:var(--muted);font-size:14px}
+    .product .meta{display:flex;justify-content:space-between;align-items:center;margin-top:12px}
+    .pill{background:var(--bg);padding:6px 10px;border-radius:999px;font-weight:600;color:var(--strawberry)}
+    .order{margin-top:12px}
+
+    footer{border-top:1px solid rgba(0,0,0,0.04);padding:18px 0;margin-top:24px}
+    .contact-grid{display:flex;gap:16px;flex-wrap:wrap}
+    .contact-card{background:var(--card);padding:14px;border-radius:10px;min-width:220px;border:1px solid rgba(0,0,0,0.04)}
+
+    /* Modal */
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;padding:18px;
+     overflow-y: auto;
+    }
+    .modal{width:100%;max-width:720px;background:var(--card);border-radius:12px;padding:18px;margin-top: 20rem;}
+    .modal-header{display:flex;align-items:center;justify-content:space-between}
+
+    label{display:block;font-size:13px;margin-bottom:6px}
+    input, select, textarea{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(0,0,0,0.08);margin-bottom:10px;font-size:14px}
+    textarea{min-height:110px}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+    @media (max-width:880px){
+      .grid{grid-template-columns:1fr}
+      .hero{flex-direction:column}
+      .hero-right{width:100%}
+      .row{grid-template-columns:1fr}
+    }
+
+    /* small helpers */
+    .muted{color:var(--muted)}
+    .center{text-align:center}
+
+    @media (max-width: 768px) {
+  .logo {
+    width: 160px;
+    height: 48px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .logo {
+    width: 500px;
+height: 55px;
+  }
+}
+.gallery-section {
+  text-align: center;
+  padding: 20px 10px;
+}
+
+.gallery-section h2 {
+  color: #b3002d; /* Strawberry Red */
+  margin-bottom: 10px;
+  font-size: 1.4rem;
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 12px;
+  max-width: 1000px;
+  margin: 0 auto;
+  justify-items: center;
+}
+
+.gallery-grid a {
+  display: block;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.gallery-image {
+  width: 300px;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.gallery-grid img:hover {
+  transform: scale(1.03);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Mobile responsive fix */
+@media (max-width: 640px) {
+  .gallery-grid img {
+    width: 100%;
+    height: auto;
+    max-width: 300px;
+    aspect-ratio: 3 / 2;
+  }
+}
+
+  </style>
+</head>
+<body>
+    
+  <header>
+    <div class="container">
+      <div class="brand">
+        <div class="logo" aria-hidden="true" style='background-image: url("{% static 'chemtrix/chemtrix.jpeg' %}");'>
+
+
+
+</div>
+        <div>
+          <h1>CHEMTRIX</h1>
+          <p>Industrial Product Trading — All purpose & industrial chemicals</p>
+        </div>
+      </div>
+
+      <nav aria-label="Main navigation">
+        <a class="navlink" href="#products">Products & Services</a>
+        <a class="navlink" href="#about">About</a>
+        <a class="navlink" href="#contact">Contact</a>
+        <button class="navlink" id="openOrder">Request Quote / Order</button>
+      </nav>
+    </div>
+  </header>
+
+  <section class="container hero">
+    <div class="hero-left">
+      <h2>Industrial strength chemicals & services — reliably delivered.</h2>
+      <p>CHEMTRIX supplies preventive maintenance chemicals, electroplating chemicals, basic industrial chemicals and air conditioning services across the Philippines. Fast quotations and Cash on Delivery available.</p>
+      <div class="cta">
+        <button class="btn" id="ctaOrder">Request a Quote</button>
+        <a class="btn ghost" href="#contact">Contact Us</a>
+      </div>
+
+      <div style="margin-top:18px;color:var(--muted); font-size:13px;">
+        Payment Terms: <strong>Cash on Delivery</strong></div>
+    </div>
+    <div class="hero-right">
+      <div class="card center">
+        <h3 style="margin:6px 0">Featured — All Purpose Cleaner</h3>
+        <p class="muted">20L detergent-grade cleaner suitable for heavy-duty degreasing and facility maintenance. Available in bulk.</p>
+        <div style="margin-top:14px">
+          <div class="pill">Starting at: ₱2,700 / 20L</div>
+        </div>
+        <div style="margin-top:12px;display:flex;gap:8px;justify-content:center">
+          <button class="btn" id="orderFeatured">Order Now</button>
+          <a class="btn ghost" href="#products">See products</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main class="container">
+    <section id="products">
+      <h2>Products & Services</h2>
+      <div class="grid" style="margin-top:12px">
+
+        <article class="product">
+          <h3>Industrial Preventive Maintenance Chemicals</h3>
+          <p>Formulated for periodic maintenance, equipment protection, and surface conditioning. Bulk packaging available.</p>
+          <div class="meta">
+            <div class="pill">Bulk</div>
+            <div>
+              <button class="btn" onclick="openOrderWith('Industrial Preventive Maintenance Chemicals')">Request</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="product">
+          <h3>Basic Chemicals</h3>
+          <p>Acids, alkalis, solvents and general-purpose reagents sourced for industry-grade applications.</p>
+          <div class="meta">
+            <div class="pill">Varied</div>
+            <div>
+              <button class="btn" onclick="openOrderWith('Basic Chemicals')">Request</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="product">
+          <h3>Electro Plating Chemicals</h3>
+          <p>High-purity electroplating baths, additives and process chemicals. Technical support available on request.</p>
+          <div class="meta">
+            <div class="pill">Technical</div>
+            <div>
+              <button class="btn" onclick="openOrderWith('Electro Plating Chemicals')">Request</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="product">
+          <h3>Air Conditioning Services</h3>
+          <p>Installation, preventive maintenance, and chemical servicing for commercial HVAC systems.</p>
+          <div class="meta">
+            <div class="pill">Service</div>
+            <div>
+              <button class="btn" onclick="openOrderWith('Air Conditioning Services')">Request</button>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <section id="about" style="margin-top:26px">
+      <h2>About CHEMTRIX</h2>
+      <p class="muted">CHEMTRIX Industrial Product Trading is a supplier of industrial chemicals and maintenance services focusing on quality, safety and timely delivery. We offer technical support, batch traceability and competitive pricing to help your operations run smoothly.</p>
+    </section>
+
+    <section id="contact" style="margin-top:26px">
+      <h2>Contact</h2>
+      <div class="contact-grid" style="margin-top:12px">
+        <div class="contact-card">
+          <strong>Email</strong>
+          <p class="muted"> chemtrixsps@gmail.com </p>
+        </div>
+        <div class="contact-card">
+          <strong>Phone </strong>
+          <p class="muted"> 09859683743 / 09620816983 / 09614171934 </p>
+          
+          
+          <!-- <p style="margin-top:10px"><a href="https://wa.me/639170000000" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">Chat on WhatsApp</a></p> -->
+        </div>
+        <div class="contact-card">
+          <strong>Address</strong>
+          <p class="muted">2196 Pleasant View Drive Bagbagin Caloocan City, Manila, Philippines</p>
+        </div>
+        <div class="contact-card">
+            <section class="gallery-section">
+          <strong>Gallery</strong>
+              <p>
+                 <div class="gallery-grid">
+
+                 </div>
+      <a href="{% static 'chemtrix/1.jpeg' %}" data-fancybox="gallery">
+        <img  class="gallery-image" loading="lazy" src="{% static 'chemtrix/1.jpeg' %}" />
+      </a>
+      <a href="{% static 'chemtrix/2.jpeg' %}" data-fancybox="gallery">
+        <img  class="gallery-image" loading="lazy" src="{% static 'chemtrix/2.jpeg' %}" />
+      </a>
+      <a href="{% static 'chemtrix/3.jpeg' %}" data-fancybox="gallery">
+        <img  class="gallery-image" loading="lazy" src="{% static 'chemtrix/3.jpeg' %}" />
+      </a>
+      <a href="{% static 'chemtrix/4.jpeg' %}" data-fancybox="gallery">
+        <img  class="gallery-image" loading="lazy" src="{% static 'chemtrix/4.jpeg' %}" />
+      </a>
+      <a href="{% static 'chemtrix/5.jpeg' %}" data-fancybox="gallery">
+        <img  class="gallery-image" loading="lazy" src="{% static 'chemtrix/5.jpeg' %}" />
+      </a>
+      <a href="{% static 'chemtrix/7.jpeg' %}" data-fancybox="gallery">
+        <img  class="gallery-image" loading="lazy" src="{% static 'chemtrix/7.jpeg' %}" />
+      </a>
+      <a href="{% static 'chemtrix/8.jpeg' %}" data-fancybox="gallery">
+        <img  class="gallery-image" loading="lazy" src="{% static 'chemtrix/8.jpeg' %}" />
+      </a>
+      <a href="{% static 'chemtrix/9.jpeg' %}" data-fancybox="gallery">
+        <img  class="gallery-image" loading="lazy" src="{% static 'chemtrix/9.jpeg' %}" />
+      </a>
+      <a href="{% static 'chemtrix/10.jpeg' %}" data-fancybox="gallery">
+        <img  class="gallery-image" loading="lazy" src="{% static 'chemtrix/10.jpeg' %}" />
+      </a>
+      <a href="{% static 'chemtrix/11.jpeg' %}" data-fancybox="gallery">
+        <img  class="gallery-image" loading="lazy" src="{% static 'chemtrix/11.jpeg' %}" />
+      </a>
+      <a href="{% static 'chemtrix/12.jpeg' %}" data-fancybox="gallery">
+        <img  class="gallery-image" loading="lazy" src="{% static 'chemtrix/12.jpeg' %}" />
+      </a>
+      <a href="{% static 'chemtrix/13.jpeg' %}" data-fancybox="gallery">
+        <img  class="gallery-image" loading="lazy" src="{% static 'chemtrix/13.jpeg' %}" />
+      </a>
+      <a href="{% static 'chemtrix/14.jpeg' %}" data-fancybox="gallery">
+        <img  class="gallery-image" loading="lazy" src="{% static 'chemtrix/14.jpeg' %}" />
+      </a>
+      <a href="{% static 'chemtrix/15.jpeg' %}" data-fancybox="gallery">
+        <img  class="gallery-image" loading="lazy" src="{% static 'chemtrix/15.jpeg' %}" />
+      </a>
+      <a href="{% static 'chemtrix/16.jpeg' %}" data-fancybox="gallery">
+        <img  class="gallery-image" loading="lazy" src="{% static 'chemtrix/16.jpeg' %}" />
+      </a>
+      <a href="{% static 'chemtrix/17.jpeg' %}" data-fancybox="gallery">
+        <img  class="gallery-image" loading="lazy" src="{% static 'chemtrix/17.jpeg' %}" />
+      </a>
+
+    </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="container">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <div>© <strong>CHEMTRIX</strong> — Industrial Product Trading</div>
+        <div class="muted">Payment Terms: Cash on Delivery</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Order Modal -->
+  <div class="modal-backdrop" id="modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-header">
+        <div>
+          <h3 id="modalTitle">Request Quote / Place Order</h3>
+          <div class="muted">Payment: Cash on Delivery</div>
+        </div>
+        <button id="closeModal" aria-label="Close">✕</button>
+      </div>
+
+      <form id="orderForm">
+        <div style="margin-top:12px">
+          <label for="product">Product / Service</label>
+          <select id="product" required>
+            <option>Industrial Preventive Maintenance Chemicals</option>
+            <option>Basic Chemicals</option>
+            <option>Electro Plating Chemicals</option>
+            <option>Air Conditioning Services</option>
+            <option>All Purpose Cleaner — 20L</option>
+          </select>
+
+          <div class="row">
+            <div>
+              <label for="qty">Quantity</label>
+              <input id="qty" type="number" min="1" value="1" required />
+            </div>
+            <div>
+              <label for="unit">Unit</label>
+              <select id="unit">
+                <option>20 L drum</option>
+                <option>Liter</option>
+                <option>Kg</option>
+                <option>Service Job</option>
+              </select>
+            </div>
+          </div>
+
+          <label for="name">Contact Name</label>
+          <input id="name" required />
+
+          <label for="phone">Phone / Mobile (WhatsApp)</label>
+          <input id="phone" required />
+
+          <label for="email">Email (optional)</label>
+          <input id="email" type="email" />
+
+          <label for="address">Delivery Address / Site</label>
+          <textarea id="address" placeholder="Street, City, Region"></textarea>
+
+          <label for="notes">Notes</label>
+          <textarea id="notes" placeholder="Special instructions, preferred delivery time, etc."></textarea>
+
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button type="submit" class="btn">Send Order (email)</button>
+            <button type="button" id="downloadJson" class="btn ghost">Download Order (JSON)</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Replace placeholders if you want direct changes
+
+    const CONTACT_EMAIL = 'paratara.services@gmail.com'; // change to your real email
+    // const WHATSAPP_NUMBER = '639614171934'; // replace with country code + number (no plus sign)
+    const WHATSAPP_NUMBER = '639488332309'; // replace with country code + number (no plus sign)
+
+    const modal = document.getElementById('modal');
+    const openOrderBtns = document.querySelectorAll('#openOrder, #ctaOrder, #orderFeatured');
+    const closeModal = document.getElementById('closeModal');
+    const orderForm = document.getElementById('orderForm');
+
+    function showModal() { modal.style.display = 'flex'; document.getElementById('product').focus(); }
+    function hideModal() { modal.style.display = 'none'; }
+
+    openOrderBtns.forEach(b=>b.addEventListener('click', showModal));
+    closeModal.addEventListener('click', hideModal);
+    modal.addEventListener('click', (e)=>{ if(e.target===modal) hideModal(); });
+
+    function openOrderWith(product) {
+      document.getElementById('product').value = product;
+      showModal();
+    }
+
+    // prefill variant for product buttons
+    window.openOrderWith = openOrderWith;
+
+    orderForm.addEventListener('submit', function(e){
+      e.preventDefault();
+      const data = collectForm();
+      // open mail client via mailto
+      const subject = encodeURIComponent('Order / Quote Request — ' + data.product);
+      let body = `Product: ${data.product}\nQuantity: ${data.qty} ${data.unit}\nName: ${data.name}\nPhone: ${data.phone}\nEmail: ${data.email}\nAddress: ${data.address}\nNotes: ${data.notes}\n\n--\nThis order was prepared using CHEMTRIX website.`;
+      const mailtoLink = `mailto:${CONTACT_EMAIL}?subject=${subject}&body=${encodeURIComponent(body)}`;
+      window.location.href = mailtoLink;
+
+      // open WhatsApp quick message (optional)
+      const waText = encodeURIComponent(`Order: ${data.product} - ${data.qty} ${data.unit} | ${data.name} | ${data.phone} | ${data.address}`);
+      const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${waText}`;
+      // Open WhatsApp in new tab
+      window.open(waUrl, '_blank');
+
+      hideModal();
+    });
+
+    document.getElementById('downloadJson').addEventListener('click', function(){
+      const data = collectForm();
+      const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `chemtrix-order-${Date.now()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    });
+
+    function collectForm(){
+      return {
+        product: document.getElementById('product').value,
+        qty: document.getElementById('qty').value,
+        unit: document.getElementById('unit').value,
+        name: document.getElementById('name').value,
+        phone: document.getElementById('phone').value,
+        email: document.getElementById('email').value,
+        address: document.getElementById('address').value,
+        notes: document.getElementById('notes').value,
+        payment_terms: 'Cash on Delivery',
+        timestamp: new Date().toISOString()
+      };
+    }
+
+    // quick prefill helpers for demo
+    document.getElementById('orderFeatured').addEventListener('click', function(){
+      openOrderWith('All Purpose Cleaner — 20L');
+    });
+
+    // accessibility: close modal on Esc
+    document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') hideModal(); });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@6.0/dist/fancybox/fancybox.umd.js"></script>
+      <script>
+      Fancybox.bind('[data-fancybox]', {
+        Carousel: {
+          Zoomable: {
+            Panzoom: {
+              clickAction: "iterateZoom",
+              maxScale: 2,
+            },
+          },
+        },
+      });    
+    </script>
+</body>
+</html>

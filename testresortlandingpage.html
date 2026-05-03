@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Join Our Resort Group — Partner with [Your Brand]</title>
+  <meta name="description" content="Grow bookings, share marketing, and connect with proven systems — join our group of curated resorts and unlock more revenue." />
+  <meta property="og:title" content="Join Our Resort Group — Partner with [Your Brand]" />
+  <meta property="og:description" content="Grow bookings, share marketing, and connect with proven systems — join our group of curated resorts and unlock more revenue." />
+  <meta property="og:image" content="/assets/resort-hero.jpg" />
+  <style>
+    :root{--accent:#0ea5a4;--dark:#0f172a;--muted:#6b7280;--card:#ffffff;--bg:#f8fafc}
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;line-height:1.5;background:linear-gradient(180deg,var(--bg),#ffffff);color:var(--dark);margin:0;padding:0}
+    .container{max-width:1100px;margin:0 auto;padding:28px}
+
+    /* HERO */
+    .hero{display:grid;grid-template-columns:1fr;gap:24px;align-items:center;padding:40px 16px}
+    .hero-inner{display:flex;flex-direction:column;gap:18px}
+    .eyebrow{display:inline-block;background:rgba(14,165,164,0.12);color:var(--accent);padding:6px 10px;border-radius:999px;font-weight:600;font-size:13px}
+    h1{font-size:clamp(28px,4vw,44px);margin:0}
+    p.lead{color:var(--muted);font-size:16px;margin:0;max-width:70%}
+    .cta-row{display:flex;gap:12px;flex-wrap:wrap}
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 16px;border-radius:10px;border:0;cursor:pointer;font-weight:600}
+    .btn-primary{background:var(--accent);color:white}
+    .btn-ghost{background:transparent;border:1px solid rgba(15,23,42,0.06);color:var(--dark)}
+
+    .hero-media{border-radius:14px;overflow:hidden;box-shadow:0 6px 24px rgba(15,23,42,0.06)}
+    .hero-media img{display:block;width:100%;height:100%;object-fit:cover}
+
+    /* FEATURES */
+    .features{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:28px}
+    .card{background:var(--card);padding:18px;border-radius:12px;box-shadow:0 6px 18px rgba(15,23,42,0.04)}
+    .card h3{margin:0 0 8px 0}
+    .muted{color:var(--muted)}
+
+    /* TESTIMONIAL */
+    .testimonial{display:flex;gap:16px;align-items:center;padding:18px;margin-top:20px;border-radius:12px;background:linear-gradient(180deg,#ffffff,#fbfbff);box-shadow:0 6px 18px rgba(15,23,42,0.03)}
+    .avatar{width:64px;height:64px;border-radius:999px;overflow:hidden}
+    .stars{color:#f59e0b}
+
+    /* FORM */
+    form{display:grid;gap:12px}
+    label{font-size:13px;color:var(--muted)}
+    input,textarea,select{padding:12px;border-radius:10px;border:1px solid #e6edf0;background:white;font-size:15px}
+    textarea{min-height:120px;resize:vertical}
+    .small{font-size:13px;color:var(--muted)}
+
+    /* FOOTER */
+    footer{margin-top:36px;padding:24px 0;color:var(--muted);font-size:14px;text-align:center}
+
+    /* RESPONSIVE */
+    @media(min-width:900px){
+      .hero{grid-template-columns:1fr 460px}
+      .features{grid-template-columns:repeat(3,1fr)}
+    }
+    @media(max-width:899px){
+      .features{grid-template-columns:repeat(1,1fr)}
+      p.lead{max-width:100%}
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <section class="hero">
+      <div class="hero-inner">
+        <span class="eyebrow">Trusted Hospitality Network</span>
+        <h1>Grow bookings, reduce cost, and stay independent — join our curated resort group</h1>
+        <p class="lead">We help resort owners and managers increase direct bookings, share marketing resources, and access operations playbooks — without losing your brand identity.</p>
+        <div class="cta-row">
+          <button class="btn btn-primary" id="joinBtn">Apply to Join</button>
+          <button class="btn btn-ghost" id="downloadKit">Download Partnership Kit</button>
+        </div>
+
+        <div style="margin-top:14px;display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+          <div class="small">Average partner sees <strong>+28% bookings</strong> in 6 months</div>
+          <div class="small">•</div>
+          <div class="small">No exclusivity required</div>
+        </div>
+
+        <div class="testimonial" style="margin-top:18px;max-width:680px">
+          <div class="avatar"><img src="/assets/avatar1.jpg" alt="avatar" style="width:100%;height:100%;object-fit:cover"></div>
+          <div>
+            <div style="font-weight:700">Maria Santos — Resort Manager, Isla Verde</div>
+            <div class="muted">"Partnering with [Your Brand] increased shoulder-season occupancy and simplified our operations."</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-media" aria-hidden="true">
+        <img src="/assets/resort-hero.jpg" alt="resort hero image">
+      </div>
+    </section>
+
+    <section class="features" aria-label="Benefits">
+      <div class="card">
+        <h3>Marketing & Distribution</h3>
+        <p class="muted">Shared digital campaigns, SEO, email sequences, and featured placements on our partner portal to drive direct bookings.</p>
+      </div>
+
+      <div class="card">
+        <h3>Operations Playbooks</h3>
+        <p class="muted">Standardized checklists, housekeeping efficiencies, revenue tactics and seasonal pricing templates you can adapt.</p>
+      </div>
+
+      <div class="card">
+        <h3>Revenue & Cost Sharing</h3>
+        <p class="muted">Group purchasing discounts, shared vendor contracts, and revenue pathways that preserve your pricing control.</p>
+      </div>
+    </section>
+
+    <section style="margin-top:28px;display:grid;grid-template-columns:1fr 420px;gap:20px;align-items:start">
+      <div>
+        <h2 style="margin-top:0">Who should apply?</h2>
+        <ul class="muted">
+          <li>Independent resort owners who value brand identity</li>
+          <li>Property managers looking for consistent operations support</li>
+          <li>Small resort groups aiming to centralize marketing without losing autonomy</li>
+        </ul>
+
+        <h2 style="margin-top:18px">What we look for</h2>
+        <ul class="muted">
+          <li>Year-round operation or clear seasonal strategy</li>
+          <li>Commitment to guest experience and cleanliness</li>
+          <li>Transparent financials for partnership modelling</li>
+        </ul>
+      </div>
+
+      <aside>
+        <div class="card">
+          <h3>Quick Apply</h3>
+          <form id="applyForm">
+            <div>
+              <label for="name">Resort / Property Name</label>
+              <input id="name" name="name" required placeholder="e.g. Blue Bay Resort">
+            </div>
+            <div>
+              <label for="contact">Primary Contact (Name / Email / Phone)</label>
+              <input id="contact" name="contact" required placeholder="Jane — jane@resort.com — +63...">
+            </div>
+            <div>
+              <label for="location">Location</label>
+              <input id="location" name="location" required placeholder="Province, Country">
+            </div>
+            <div>
+              <label for="rooms"># of rooms / villas</label>
+              <input id="rooms" name="rooms" required placeholder="e.g. 12">
+            </div>
+            <div>
+              <label for="notes">Why do you want to join? (1–2 sentences)</label>
+              <textarea id="notes" name="notes" placeholder="A short note"></textarea>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button type="submit" class="btn btn-primary">Send Application</button>
+              <button type="button" id="contactSales" class="btn btn-ghost">Request a Call</button>
+            </div>
+            <div id="formMsg" class="small" style="margin-top:8px"></div>
+          </form>
+        </div>
+      </aside>
+    </section>
+
+    <footer>
+      <div>© <span id="year"></span> [Your Brand]. Built for independent resorts • <a href="#contact">Privacy</a></div>
+    </footer>
+  </main>
+
+  <script>
+    // small client-side behavior
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    document.getElementById('downloadKit').addEventListener('click', ()=>{
+      // placeholder: link to a PDF partnership kit
+      window.location.href = '/assets/Partnership-Kit.pdf';
+    });
+
+    document.getElementById('joinBtn').addEventListener('click', ()=>{
+      document.getElementById('name').focus();
+      window.scrollTo({top:0,behavior:'smooth'});
+    });
+
+    document.getElementById('contactSales').addEventListener('click', ()=>{
+      // open mail client
+      window.location.href = 'mailto:partnerships@yourbrand.com?subject=Partnership%20Interest';
+    });
+
+    document.getElementById('applyForm').addEventListener('submit', function(e){
+      e.preventDefault();
+      const form = e.target;
+      const data = {
+        name: form.name.value.trim(),
+        contact: form.contact.value.trim(),
+        location: form.location.value.trim(),
+        rooms: form.rooms.value.trim(),
+        notes: form.notes.value.trim()
+      };
+      // Minimal UX: show message - replace with real submission (fetch to your API)
+      const msg = document.getElementById('formMsg');
+      msg.textContent = 'Sending…';
+      setTimeout(()=>{
+        msg.textContent = 'Thanks! Your application has been received. We will contact you within 2 business days.';
+        form.reset();
+      },900);
+    });
+  </script>
+</body>
+</html>

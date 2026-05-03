@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News HTML</title>
+</head>
+
+<body>
+    <!-- <script>
+        assortedNews = 'https://newsapi.org/v2/top-headlines?country=ph&category=business&apiKey=b3f57b413e2942cc94bd6609ed38a52f'
+        businessNews = 'https://newsapi.org/v2/top-headlines?country=ph&category=business&apiKey=b3f57b413e2942cc94bd6609ed38a52f'
+        fetch(assortedNews)
+            .then((response) => response.json())
+            .then((data) => console.log(data))
+        fetch(businessNews)
+            .then((response) => response.json())
+            .then((data) => console.log(data))
+
+        console.log('DONE')
+
+    </script> -->
+    <h1>All News</h1>
+    <hr>
+    {% for anews in assortedNews %}
+    {{anews.title}}
+    <br>
+    {{anews.source.name}}
+    <br>
+    {{anews.description}}
+    <hr>
+    <br>
+    {% endfor %}
+    <hr>
+    <h1>Business</h1>
+    <hr>
+    {% for bNews in businessNews %}
+    {{bNews.title}}
+    <br>
+    {{bNews.source.name}}
+    <br>
+    {{bNews.description}}
+    <hr>
+    <br>
+    {% endfor %}
+    <hr>
+    <h1>Technology</h1>
+    <hr>
+    {% for tNews in techNews %}
+    {{tNews.title}}
+    <br>
+    {{tNews.source.name}}
+    <br>
+    {{tNews.description}}
+    <hr>
+    <br>
+    {% endfor %}
+
+</body>
+
+</html>

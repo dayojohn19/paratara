@@ -1,0 +1,164 @@
+{% if managerUser %}
+<section class="section" id="manager-tools">
+  <div class="section-head">
+    <div>
+      <div class="section-title">Manager Tools</div>
+      <div class="section-sub">Control imagery, links, categories, and destinations</div>
+    </div>
+  </div>
+  
+  <div class="tool-grid">
+    <article class="card tool-card">
+      <div class="tool-icon">🖼️</div>
+      <div class="card-body">
+        <div class="tool-title">Background Picture</div>
+        <p class="tool-copy">Upload a hero image then save it to the resort header.</p>
+        <form class="image-upload-form" id="imageform" enctype="multipart/form-data">
+          {% csrf_token %}
+          <label for="image">Upload new photo</label>
+          <input type="file" id="image" name="image" accept="image/*" />
+          <input type="hidden" id="url_status" name="image_url" />
+          <button type="button" id="upload-btn" class="btn" style="margin: 1em;">Apply Image as Background</button>
+          <p id="status" class="tool-status"></p>
+        </form>
+        <form class="image-upload-form" method="post" action="{{matterURL}}" enctype="multipart/form-data">
+          {% csrf_token %}
+          {{masterURLform.thismatter2}}
+          <input name="whatsmatter" value="headerImage" hidden>
+          <button style="margin-top: 1em;" class="btn primary">Apply Image as Background</button>
+        </form>
+      </div>
+    </article>
+
+    <article class="card tool-card">
+      <div class="tool-icon">🎥</div>
+      <div class="card-body">
+        <div class="tool-title">Promotional Video</div>
+        <p class="tool-copy">Update the promo video URL embedded on the resort page.</p>
+        <form method="post" action="{{matterURL}}" enctype="multipart/form-data" class="stacked-form">
+          {% csrf_token %}
+          {{masterURLform.thismatter2}}
+          <input value="promotionalVideo" name="whatsmatter" hidden>
+          <button class="btn primary">Save video link</button>
+        </form>
+      </div>
+    </article>
+
+    <article class="card tool-card">
+      <div class="tool-icon">🌍</div>
+      <div class="card-body">
+        <div class="tool-title">Virtual Picture</div>
+        <p class="tool-copy">Paste the Momento360 link so guests can explore the property virtually.</p>
+        <form method="post" action="{{matterURL}}" enctype="multipart/form-data" class="stacked-form">
+          {% csrf_token %}
+          {{masterURLform.thismatter2}}
+          <input value="virtualpicture" name="whatsmatter" hidden>
+          <button class="btn primary">Save 360° tour</button>
+        </form>
+      </div>
+    </article>
+
+    <article class="card tool-card">
+      <div class="tool-icon">➕</div>
+      <div class="card-body">
+        <div class="tool-title">Add a Category</div>
+        <p class="tool-copy">Create new accommodation, activity, or promotion collections.</p>
+        <form method="POST" action="{% url 'resorts:createResortPackage' resortID=resortObject.id %}" class="stacked-form">
+          {% csrf_token %}
+          <div class="form-row">
+            <select name="packageType" id="managerPackageType">
+              <option value="accomodation">Accommodation</option>
+              <option value="activity">Activity</option>
+              <option value="tour">Special Event, Promotion</option>
+            </select>
+
+            <!-- Accommodation: pick an existing package title or create a new one -->
+            <select id="managerAccommodationTitleSelect" style="display:none;">
+              {% for acc in resortObject.AccomodationsList %}
+                <option value="{{ acc.PackageTitle }}">{{ acc.PackageTitle }}</option>
+              {% endfor %}
+              <option value="other">Other (specify below)</option>
+            </select>
+
+            <!-- Used by backend for all types (and for Accommodation when select changes) -->
+            <input name="title" id="managerCategoryTitle" placeholder="Category name" />
+          </div>
+          <button class="btn primary">Create category</button>
+        </form>
+
+        <script>
+          document.addEventListener('DOMContentLoaded', function() {
+            var typeSelect = document.getElementById('managerPackageType');
+            var accSelect = document.getElementById('managerAccommodationTitleSelect');
+            var titleInput = document.getElementById('managerCategoryTitle');
+
+            if (!typeSelect || !accSelect || !titleInput) return;
+
+            function syncUI() {
+              var isAccommodation = typeSelect.value === 'accomodation';
+
+              if (!isAccommodation) {
+                accSelect.style.display = 'none';
+                titleInput.style.display = '';
+                return;
+              }
+
+              accSelect.style.display = '';
+
+              if (accSelect.value === 'other') {
+                titleInput.style.display = '';
+                titleInput.value = '';
+              } else {
+                titleInput.style.display = 'none';
+                titleInput.value = accSelect.value || '';
+              }
+            }
+
+            typeSelect.addEventListener('change', syncUI);
+            accSelect.addEventListener('change', syncUI);
+
+            // Initial state
+            if (!accSelect.value) {
+              // If no existing options were rendered, default to 'other'
+              accSelect.value = 'other';
+            }
+            syncUI();
+          });
+        </script>
+      </div>
+    </article>
+
+    <!-- <article class="card tool-card">
+      <div class="tool-icon">📍</div>
+      <div class="card-body">
+        <div class="tool-title">Include in Destinations</div>
+        <p class="tool-copy">Link the resort to destinations or create a new one for discovery.</p>
+        <form method="post" action="{% url 'resorts:putPlace' %}" class="stacked-form">
+          {% csrf_token %}
+          <div class="form-row" style="grid-template-columns: 1fr;">
+            <input name="placeID" list="destinationSearch" type="text" placeholder="Search place" />
+            <input name="other" placeholder="Other" />
+            <datalist id="destinationSearch">
+              {% for place in places %}
+              <option data-value="{{place.id}}" value="{{place.placename}}">{{place}}</option>
+              {% endfor %}
+            </datalist>
+            <input value="{{resortObject.id}}" readonly hidden name="resortID" />
+          </div>
+          <button class="btn primary">Link destination</button>
+        </form>
+      </div>
+    </article> -->
+
+    <article class="card tool-card">
+      <div class="tool-icon">🔖</div>
+      <div class="card-body">
+        <div class="tool-title">Resort QR Code</div>
+        <p class="tool-copy">Share or print the check-in QR code with arriving guests.</p>
+        <button class="btn primary" data-fancybox data-src="#qr-code-viewer">Open QR code</button>
+      </div>
+    </article>
+  </div>
+</section>
+
+{% endif %}

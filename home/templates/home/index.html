@@ -1,0 +1,80 @@
+{% extends "home/layout.html" %} {% load static %} 
+    
+
+{% block body %}
+<link rel="stylesheet" href="{% static 'home/itemcontainer.css' %}" />
+<link rel="stylesheet" href="{% static 'home/index.css' %}" />
+<script src="{% static 'home/index.js' %}" defer></script>
+<!--  -->
+      <div class="dropdown" style="padding: 2em;">
+        
+        <div class="where-to-go-container" style="display:flex; align-items:center; background:#f7f9fc; border-radius:8px; box-shadow:0 2px 8px rgba(60,80,120,0.07); padding:0.5em 1em;">
+          <svg class="search-icon" viewBox="-3 -3 24 24" style="margin-right: 10px; width:1.3em; height:1.3em; fill:#7a8bb7;">
+            <path d="M13.347 11.85l4.343 4.342a1.059 1.059 0 11-1.498 1.498l-4.342-4.343a7.377 7.377 0 01-4.438 1.476A7.415 7.415 0 010 7.412 7.415 7.415 0 017.412 0a7.415 7.415 0 017.411 7.412c0 1.664-.549 3.2-1.476 4.438zM7.412 2.118a5.297 5.297 0 00-5.294 5.294 5.297 5.297 0 005.294 5.294 5.297 5.297 0 005.294-5.294 5.297 5.297 0 00-5.294-5.294z"></path>
+          </svg>
+          <input class="where-to-go" type="text" placeholder="Place to Visit..." id="place_input_id_for_filter" aria-label="Choose place to go" onchange="console.log('ye',this.value)" onkeyup="FilterPlacesEachType();" onclick="OpenDropDownForPlaces()" style="flex:1; border:none; background:transparent; outline:none; font-size:1em; color:#2a3556;" />
+          <svg viewBox="-1 -1 18 18" onclick="createViaje()" style="margin-left: 10px; width:1.3em; height:1.3em; cursor:pointer; fill:#4e7ad2; transition:fill 0.2s;" onmouseover="this.style.fill='#2a3556'" onmouseout="this.style.fill='#4e7ad2'">
+            <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"></path>
+            <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"></path>
+          </svg>
+        </div>
+        <div id="place_id_for_drop_down_filter" class="dropdown-menu" style="border-radius:0 0 8px 8px; box-shadow:0 4px 16px rgba(60,80,120,0.10); background:#fff; margin-top:2px;"> </div>
+      </div>
+
+
+
+
+
+<div class="container-center">
+  
+  {% if message %}
+  <h1 onclick="createViaje()" style="margin: 1em; text-align: center; color: rgb(135, 159, 226)"
+    >Create Schedule to {{message}}
+    <svg viewBox="-1 -1 18 18" style="margin-left: 10px">
+      <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"></path>
+      <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"></path>
+    </svg>
+  </h1>
+  {% endif %}
+  
+
+  <!-- Where Place Item Appear -->
+  <ul class="container-list">
+  <!-- Landing message -->
+<div id="landing-message" style="
+  text-align:center;
+  padding:3em 1em;
+  color:#3a4a7c;
+  max-width:600px;
+  margin:0 auto;
+">
+  <h1 style="font-size:2.2em; margin-bottom:0.5em;">
+    Loading best places to visit <span class="globe-animate" style="display:inline-block;">🌍</span>
+  </h1>
+  <p style="font-size:1.1em; line-height:1.6; color:#5c6fa6;">
+    Start by choosing a destination above and let this app be your guide —
+    helping you discover spots, plan schedules, and explore with ease.
+  </p>
+</div>
+
+<style>
+  .globe-animate {
+    animation: globe-pulse 1.2s infinite cubic-bezier(0.4,0,0.6,1);
+    transform-origin: 50% 60%;
+  }
+  @keyframes globe-pulse {
+    0% { transform: scale(1) rotate(0deg); }
+    30% { transform: scale(1.18) rotate(-8deg); }
+    60% { transform: scale(1.08) rotate(8deg); }
+    100% { transform: scale(1) rotate(0deg); }
+  }
+</style>
+
+
+    <div class="progress-fill" id="progressFill"></div>
+     </ul>
+</div>
+
+{% endblock %}
+
+

@@ -1,0 +1,78 @@
+{% extends "commerce/invest/layout.html" %}
+{% load humanize %}
+{% load static %}
+{% block body %}
+<link rel="stylesheet" href="{% static 'commerce/invest/table.css' %}">
+{{allInterestTypes}}
+
+<h1>allInterestTypes</h1>
+{% for intType in allInterestTypes %}
+{{intType.FixInvestors}}
+
+<br>
+
+
+{% endfor %}
+<hr>
+{% if request.user.is_superuser %}
+<!-- FORM OF ADDING INVESTOR -->
+<form id="form" method="POST" action="{% url 'invest:add_investor' csrf_token %}"
+    style="margin: 10px; border: solid 2px orange; padding: 10px;">
+    {% csrf_token %}
+    <h2> Add Investor </h2>
+
+    <input name="investor_name">
+
+    <input name="investment_amount" type="number" placeholder="Amount">
+    <input name="contact" placeholder="Contact">
+    <div style="padding: 5px; margin: 5px; border: solid 3px yellow;">
+        <select name="interestType">
+            <option value="ratio">Ratio Interest</option>
+            <option value="fix">Fix Interest</option>
+            <option value="growth">Growth Interest</option>
+        </select>
+        <input placeholder="Interest Percentage" type="float" name="interestPercentage">
+        <input placeholder="Interest Duration" type="text" name="interestDuration">
+    </div>
+    <br>
+    <button type="submit">Submit</button>
+</form>
+<!-- END FORM ADDING INVESTOR -->
+
+{% endif %}
+
+
+{% for eachInvestor in allInvestors %}
+<hr>
+<div>
+    <div>
+        Name: {{eachInvestor.investor_name}}
+    </div>
+    <div>
+        Type: {{eachInvestor.interestType.type}}<br>
+        percentage: {{eachInvestor.interestType.percentage}}<br>
+        Duration: {{eachInvestor.interestType.duration}}
+    </div>
+    <div>
+        dividendsReceived:
+        {% for divRcv in eachInvestor.dividendReceivedList %}
+
+        <div>
+            {{divRcv}}
+        </div>
+        {% endfor %}
+    </div>
+    <form method="POST" action="{% url 'invest:reports' %}">
+        {% csrf_token %}
+        <input name="investorID" value="{{eachInvestor.id}}">
+        <button>Add Dividend</button>
+    </form>
+</div>
+
+
+
+
+{% endfor %}
+
+
+{% endblock %}

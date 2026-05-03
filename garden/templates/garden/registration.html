@@ -1,0 +1,495 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="{% static 'bootstrap/css/master.css' %}" />
+    <script src="{% static 'bootstrap/js/bootstrap.js' %}"></script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f7f7f7;
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+        }
+
+        h1, h2, h3 {
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+        }
+
+        h2 {
+            font-size: 1.4rem;
+        }
+
+        h3 {
+            font-size: 1.1rem;
+        }
+
+        form {
+            background: #fff;
+            width: 100%;
+            max-width: 700px;
+            margin: 25px auto;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        form h2 {
+            color: #444;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        label, div {
+            font-weight: 600;
+            margin-top: 10px;
+            display: block;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            margin-top: 8px;
+            margin-bottom: 16px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        /* Better mobile touch targets */
+        input[type="text"],
+        input[type="number"],
+        input[type="file"],
+        select,
+        textarea {
+            min-height: 44px;
+        }
+
+        input[type="submit"] {
+            padding: 14px 28px;
+            font-size: 16px;
+            border-radius: 6px;
+            margin-top: 20px;
+            min-height: 44px;
+            cursor: pointer;
+            border: none;
+            font-weight: 600;
+            width: 100%;
+        }
+
+        /* Button styling for mobile */
+        .btn {
+            transition: 0.2s ease;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        hr {
+            margin: 40px 0;
+            border-top: 1px solid #ddd;
+        }
+
+        .note {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.5;
+            margin: 12px 0;
+        }
+
+        .small-link {
+            font-size: 14px;
+            color: #0d6efd;
+            text-decoration: none;
+        }
+
+        .small-link:hover {
+            text-decoration: underline;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            margin: auto;
+            padding: 0;
+        }
+
+        /* WRAPPER HOLDS SELECT + COLOR CIRCLE */
+        .color-select-wrapper {
+            position: relative;
+            display: block;
+            width: 100%;
+        }
+
+        /* THE SELECT DROPDOWN */
+        .color-select {
+            padding-left: 45px;
+            height: 44px;
+            border-radius: 8px;
+            font-size: 16px;
+            appearance: none;
+            -webkit-appearance: none;
+            background-color: white;
+            width: 100%;
+            border: 1px solid #ccc;
+            cursor: pointer;
+        }
+
+        /* CIRCLE COLOR PREVIEW */
+        .color-preview {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            width: 20px;
+            height: 20px;
+            background: #ccc;
+            border-radius: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Tablet and larger screens */
+        @media (min-width: 768px) {
+            body {
+                padding: 40px;
+            }
+
+            form {
+                padding: 30px;
+            }
+
+            input[type="submit"] {
+                width: auto;
+            }
+
+            h1 {
+                font-size: 2.2rem;
+            }
+        }
+
+        /* Desktop and larger screens */
+        @media (min-width: 1024px) {
+            .container {
+                width: 90%;
+            }
+
+            form {
+                width: 70%;
+            }
+        }
+
+        /* Extra small screens (phones in portrait) */
+        @media (max-width: 480px) {
+            body {
+                padding: 12px;
+            }
+
+            form {
+                margin: 15px auto;
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            h2 {
+                font-size: 1.2rem;
+            }
+
+            label {
+                margin-top: 8px;
+            }
+
+            .note {
+                font-size: 13px;
+            }
+        }
+    </style>
+
+</head>
+<body>
+
+<div class="container">
+
+<h1 style="text-align:center;">{{message}}</h1>
+
+
+<!-- Province Form -->
+<form method="post" action="{% url 'garden:registrationpage' %}" id="placeProfileForm">
+    <h2>Create New Province</h2>
+    {% csrf_token %}
+    <input type="hidden" name="form_type" value="province">
+    <label>Province Name</label>
+    {{ProvinceForm.provinceName}}
+    <input type="submit" value="Submit" class="btn btn-primary">
+</form>
+
+<hr>
+
+
+<!-- Place Profile Form -->
+<form method="post" action="{% url 'garden:registrationpage' %}">
+    <h2>New Place</h2>
+    {% csrf_token %}
+    <input type="hidden" name="form_type" value="place">
+    <label>Place Name</label>
+    {{PlaceProfileForm.placeName}}
+        <label>Place Picture</label>
+        <!-- File input for image upload -->
+        <input type="file" id="placePictureFile" accept="image/*">
+        <!-- Hidden input to store Cloudinary URL -->
+        <input type="hidden" name="placePicture" id="placePictureUrl">
+        <div id="uploadStatus" class="note"></div>
+    <label>Place Province</label>
+    {{PlaceProfileForm.placeProvince}}
+    <input type="submit" value="Submit" class="btn btn-success" id="placeProfileSubmit">
+</form>
+
+<hr>
+
+<!-- Collection Form -->
+<form method="post" action="{% url 'garden:registerImagesFromImageBank' %}" enctype="multipart/form-data">
+    <h2>Add Collection</h2>
+    {% csrf_token %}
+    
+    <label>Custom Title</label>
+    <input name="collectioncustomTitle" type="text">
+
+
+
+    <label>Collection Name</label>
+    <input class="form-select" name="collectionName" type="text" list="cnames">
+    <datalist id="cnames">
+        {% for i in CollectionForm.collectionName %}
+            <option>{{i}}</option>
+        {% endfor %}
+    </datalist>
+
+    <label>Collection Group (choose existing)</label>
+    <select name="collectionGroup" class="form-select">
+        <option value="">-- Select existing group --</option>
+        {% for g in collectionGroups %}
+            <option value="{{ g.id }}">{{ g.name }}</option>
+        {% endfor %}
+    </select>
+
+    <label>Or New Group Name</label>
+    <input name="collectionGroupName" type="text" placeholder="New group name (optional)">
+
+    <hr>
+
+    <h3>Creating a Title</h3>
+    <p class="note">
+        Create a logo title from 
+        <a class="small-link" target="_blank" href="https://www.textstudio.com/logo/vaporwave-text-effect-2183">textstudio.com</a>
+        then upload to 
+        <a class="small-link" target="_blank" href="https://imgbb.com">imgbb.com</a>.
+    </p>
+
+ 
+
+    <label>Collection Description</label>
+    {{CollectionForm.collectionDescription}}
+
+    <label>Tourist Spots</label>
+    {{CollectionForm.touristSpot}}
+
+    <hr>
+
+
+
+
+<h3>Collection Theme</h3>
+
+<!-- WRAPPER -->
+<div class="color-select-wrapper">
+    <!-- COLOR CIRCLE -->
+    <span class="color-preview"></span>
+
+    <!-- SELECT MENU -->
+    <select name="collectionTheme" id="collectionTheme" class="color-select">
+        <option value="">Select Theme</option>
+        <option value="black" data-color="#000000">Black</option>
+        <option value="gold" data-color="#D4AF37">Gold</option>
+        <option value="champagne" data-color="#F7E7CE">Champagne</option>
+        <option value="emerald" data-color="#50C878">Emerald</option>
+        <option value="sapphire" data-color="#0F52BA">Sapphire</option>
+        <option value="ruby" data-color="#E0115F">Ruby</option>
+        <option value="rose-gold" data-color="#B76E79">Rose Gold</option>
+        <option value="platinum" data-color="#E5E4E2">Platinum</option>
+        <option value="pearl" data-color="#F0EDE5">Pearl</option>
+        <option value="bronze" data-color="#CD7F32">Bronze</option>
+    </select>
+</div>
+
+
+    <label>Collection Place</label>
+    {{CollectionForm.collectionPlace}}
+
+    <label>Collection Place Direct</label>
+    {{CollectionForm.collectionPlaceDirect}}
+
+    <label>Collection Images</label>
+    <input type="file" name="images" accept="image/*" multiple required>
+
+    <div style="margin: 1em 0;">
+        <label>
+            {{ CollectionForm.include_heading_title }} Include Heading Title
+        </label>
+        <br>
+        <label>
+            {{ CollectionForm.include_qr_code }} Include QR Code
+        </label>
+    </div>
+    <input type="submit" value="Submit Collection" class="btn btn-warning">
+</form>
+
+<hr>
+
+
+<!-- Visitor Form -->
+<form method="post" action="{% url 'garden:registrationpage' %}">
+    <h2>Make Visitor</h2>
+    {% csrf_token %}
+    <input type="hidden" name="form_type" value="visitor">
+    <label>Visitor Name</label>
+    {{VisitorForm.visitorName}}
+    <label>Visitor ID</label>
+    {{VisitorForm.visitorID}}
+    <input type="submit" value="Submit" class="btn btn-secondary">
+</form>
+
+<hr>
+
+</div>
+<script>
+/* UPDATE COLOR CIRCLE WHEN USER SELECTS A THEME */
+document.getElementById("collectionTheme").addEventListener("change", function() {
+    const color = this.options[this.selectedIndex].dataset.color;
+    document.querySelector(".color-preview").style.background = color || "#ccc";
+});
+
+// Cloudinary upload for Place Picture
+const placePictureFileInput = document.getElementById('placePictureFile');
+const placePictureUrlInput = document.getElementById('placePictureUrl');
+const uploadStatus = document.getElementById('uploadStatus');
+const placeProfileForm = document.getElementById('placeProfileForm');
+const placeProfileSubmit = document.getElementById('placeProfileSubmit');
+
+// Cloudinary config values
+const CLOUDINARY_UPLOAD_PRESET = 'ml_default'; // Default unsigned preset, change if you have a custom one
+const CLOUDINARY_CLOUD_NAME = 'dg6xfou1t';
+
+placePictureFileInput.addEventListener('change', async function() {
+    const file = this.files[0];
+    if (!file) return;
+    console.log('Selected file:', file.name, 'size:', file.size);
+    // 9MB = 9 * 1024 * 1024 bytes
+    const MAX_SIZE = 9 * 1024 * 1024;
+    let uploadFile = file;
+    if (file.size > MAX_SIZE) {
+        uploadStatus.textContent = 'Downsizing image...';
+        console.log('File is larger than 9.5MB, downsizing...');
+        // Downsize using canvas
+        try {
+            const img = new Image();
+            img.src = URL.createObjectURL(file);
+            await new Promise((resolve, reject) => {
+                img.onload = resolve;
+                img.onerror = reject;
+            });
+            // Calculate scale factor
+            let scale = 1.0;
+            let quality = 0.92;
+            let blob = null;
+            // Try reducing quality and size until under 9.5MB or quality is too low
+            while (quality > 0.5) {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width * scale;
+                canvas.height = img.height * scale;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', quality));
+                console.log(`Tried scale=${scale.toFixed(2)}, quality=${quality.toFixed(2)}, size=${blob.size}`);
+                if (blob.size <= MAX_SIZE) break;
+                // Reduce quality and scale
+                quality -= 0.1;
+                scale -= 0.1;
+                if (scale < 0.2) scale = 0.2;
+            }
+            if (blob.size > MAX_SIZE) {
+                uploadStatus.textContent = 'Image too large, could not downsize below 9.5MB.';
+                placeProfileSubmit.disabled = false;
+                console.log('Downsizing failed: still too large.');
+                return;
+            }
+            uploadFile = new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), {type: 'image/jpeg'});
+            console.log('Downsized file:', uploadFile.name, 'size:', uploadFile.size);
+        } catch (err) {
+            uploadStatus.textContent = 'Failed to downsize image.';
+            placeProfileSubmit.disabled = false;
+            console.log('Downsizing error:', err);
+            return;
+        }
+    }
+    uploadStatus.textContent = 'Uploading image...';
+    placeProfileSubmit.disabled = true;
+    console.log('Uploading to Cloudinary...');
+    const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+    const formData = new FormData();
+    formData.append('file', uploadFile);
+    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            body: formData
+        });
+        const data = await response.json();
+        console.log('Cloudinary response:', data);
+        if (data.secure_url) {
+            placePictureUrlInput.value = data.secure_url;
+            uploadStatus.textContent = 'Image uploaded successfully!';
+            placeProfileSubmit.disabled = false;
+            console.log('Upload successful:', data.secure_url);
+        } else {
+            uploadStatus.textContent = 'Upload failed.';
+            placeProfileSubmit.disabled = false;
+            console.log('Upload failed:', data);
+        }
+    } catch (err) {
+        uploadStatus.textContent = 'Upload error.';
+        placeProfileSubmit.disabled = false;
+        console.log('Upload error:', err);
+    }
+});
+</script>
+</body>
+</html>

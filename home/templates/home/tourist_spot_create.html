@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create New Tourist Spot</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Montserrat:wght@300;400;500;600&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 3rem;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.95rem;
+        }
+
+        input[type="text"],
+        input[type="url"],
+        input[type="file"],
+        textarea,
+        select {
+            padding: 0.75rem;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: 'Montserrat', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        select[multiple] {
+            min-height: 120px;
+        }
+
+        .help-text {
+            color: #95a5a6;
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+        }
+
+        .required {
+            color: #e74c3c;
+            margin-left: 0.25rem;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        button {
+            flex: 1;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .back-btn {
+            background: #e1e8ed;
+            color: #2c3e50;
+        }
+
+        .back-btn:hover {
+            background: #d0dbe0;
+        }
+
+        .error-message {
+            background: #fee;
+            border: 2px solid #f56565;
+            color: #742a2a;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .success-message {
+            background: #f0fdf4;
+            border: 2px solid #48bb78;
+            color: #22543d;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .qr-preview {
+            display: block;
+            margin-top: 0.75rem;
+            width: 160px;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 1px solid rgba(34, 84, 61, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 2rem 1.5rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗺️ Create New Tourist Spot</h1>
+        <p class="subtitle">Add a new tourist destination to our platform</p>
+        <h2><a href="{% url 'userProfile:tour_guide_register' %}">Create Tourist Guide</a></h2>
+        {% if error %}
+        <div class="error-message">
+            <strong>Error:</strong> {{ error }}
+        </div>
+        {% endif %}
+
+        {% if success_message %}
+        <div class="success-message">
+            <strong>Success:</strong> {{ success_message }}
+            
+            {% if spot_qr_url %}
+            <p style="margin-top: 0.5rem;"><a href="{{ spot_qr_url }}" target="_blank" rel="noreferrer" style="color: #2c3e50; text-decoration: underline;">Open the visitor link</a></p>
+            {% endif %}
+                {% if qr_cloud_url %}
+                <p style="margin-top: 0.25rem; font-size: 0.9rem;"><a href="{{ qr_cloud_url }}" target="_blank" rel="noreferrer" style="color: #2c3e50; text-decoration: underline;">Cloudinary QR download</a></p>
+                {% elif qr_upload_error %}
+                <p style="margin-top: 0.25rem; color: #b03636; font-size: 0.85rem;">QR upload warning: {{ qr_upload_error }}</p>
+                {% endif %}
+            {% if qr_image_data %}
+            <img src="{{ qr_image_data }}" alt="QR code for {{ spot_qr_url }}" class="qr-preview">
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <form method="post" action="{% url 'home:create_tourist_spot' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="place">Destination Place <span class="required">*</span></label>
+                <select id="place" name="place" required>
+                    <option value="">-- Select a Place --</option>
+                    {% for place in places %}
+                        <option value="{{ place.id }}">{{ place.placename }}</option>
+                    {% endfor %}
+                </select>
+                <div class="help-text">Select which destination this tourist spot belongs to</div>
+            </div>
+
+            <div class="form-group">
+                <label for="name">Spot Name <span class="required">*</span></label>
+                <input type="text" id="name" name="name" maxlength="100" placeholder="e.g., Cloud 9 Surfing Beach" required>
+                <div class="help-text">The name of the tourist spot</div>
+            </div>
+
+            <div class="form-group">
+                <label for="desc">Description</label>
+                <textarea id="desc" name="desc" placeholder="Describe the spot, what to expect, best time to visit, etc."></textarea>
+                <div class="help-text">Provide detailed information about the tourist spot</div>
+            </div>
+
+            <div class="form-group">
+                <label for="img">Image URL</label>
+                <input type="url" id="img" name="img" maxlength="500" placeholder="https://example.com/image.jpg">
+                <div class="help-text">URL to a representative image of the spot</div>
+            </div>
+
+            <div class="form-group">
+                <label for="image_upload">Upload Image File</label>
+                <input type="file" id="image_upload" name="image_upload" accept="image/*">
+                <div class="help-text">Upload to auto-host on Cloudinary; this overrides the Image URL field.</div>
+            </div>
+
+            <div class="form-group">
+                <label for="url">Reference URL</label>
+                <input type="url" id="url" name="url" maxlength="500" placeholder="https://en.wikipedia.org/wiki/...">
+                <div class="help-text">Link to more information (Wikipedia, TripAdvisor, etc.)</div>
+            </div>
+
+            <div class="form-group">
+                <label for="coords">Coordinates (Lat, Lng)</label>
+                <input type="text" id="coords" name="coords" placeholder="e.g., 9.764394771046732, 126.12490724582939">
+                <div class="help-text">Paste "lat, lng" and it auto-fills Latitude and Longitude.</div>
+            </div>
+
+            <div class="form-group">
+                <label for="latitude">Latitude</label>
+                <input type="number" id="latitude" name="latitude" step="any" placeholder="e.g., 9.8606">
+                <div class="help-text">Latitude coordinate (optional; you can paste "lat, lng" here too)</div>
+            </div>
+
+            <div class="form-group">
+                <label for="longitude">Longitude</label>
+                <input type="number" id="longitude" name="longitude" step="any" placeholder="e.g., 126.17">
+                <div class="help-text">Longitude coordinate (optional; auto-filled when pasting combined coordinates)</div>
+            </div>
+
+            <div class="form-group">
+                <label for="resortItem">Related Resorts</label>
+                <select id="resortItem" name="resortItem" multiple>
+                    {% for resort in resorts %}
+                        <option value="{{ resort.id }}">{{ resort.name }}</option>
+                    {% endfor %}
+                </select>
+                <div class="help-text">Hold Ctrl/Cmd to select multiple resorts. Leave blank if not applicable.</div>
+            </div>
+
+            <div class="button-group">
+                <button type="submit" class="submit-btn">✓ Create Tourist Spot</button>
+                <a href="{% url 'home:all_tourist_spots' %}" class="back-btn" style="display: flex; align-items: center; justify-content: center; text-decoration: none;">← Back</a>
+            </div>
+        </form>
+    </div>
+    <script>
+        (function () {
+            function parseCoords(input) {
+                if (!input) return null;
+                const cleaned = String(input)
+                    .trim()
+                    .replace(/[\t\n\r]+/g, ' ')
+                    .replace(/[^0-9.,\-\s]/g, '');
+                const parts = cleaned.split(/[\s,]+/).filter(Boolean);
+                if (parts.length < 2) return null;
+                const lat = parseFloat(parts[0]);
+                const lng = parseFloat(parts[1]);
+                if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+                if (lat < -90 || lat > 90) return null;
+                if (lng < -180 || lng > 180) return null;
+                return { lat, lng };
+            }
+
+            const form = document.querySelector('form');
+            const latInput = document.getElementById('latitude');
+            const lngInput = document.getElementById('longitude');
+            const coordsInput = document.getElementById('coords');
+
+            function applyCoordsToInputs(coords) {
+                if (!coords) return;
+                if (latInput) latInput.value = coords.lat;
+                if (lngInput) lngInput.value = coords.lng;
+                if (coordsInput) coordsInput.value = `${coords.lat}, ${coords.lng}`;
+            }
+
+            function handleCombinedText(text, eventTarget) {
+                const parsed = parseCoords(text);
+                if (!parsed) return false;
+                applyCoordsToInputs(parsed);
+                if (eventTarget && typeof eventTarget.value === 'string') {
+                    // Ensure the target input holds the correct single value after paste
+                    if (eventTarget === latInput) eventTarget.value = parsed.lat;
+                    if (eventTarget === lngInput) eventTarget.value = parsed.lng;
+                }
+                return true;
+            }
+
+            // React when typing in the combined field
+            if (coordsInput) {
+                coordsInput.addEventListener('input', (e) => {
+                    const ok = handleCombinedText(e.target.value, coordsInput);
+                    // Do not clear if invalid; allow user to continue typing
+                });
+            }
+
+            // Support pasting combined "lat, lng" directly into latitude
+            if (latInput) {
+                latInput.addEventListener('paste', (e) => {
+                    const text = (e.clipboardData || window.clipboardData).getData('text');
+                    if (handleCombinedText(text, latInput)) {
+                        e.preventDefault();
+                    }
+                });
+                latInput.addEventListener('input', (e) => {
+                    // If user typed a comma-separated pair into latitude, split it
+                    if (e.target.value && /[,\s]/.test(e.target.value)) {
+                        handleCombinedText(e.target.value, latInput);
+                    }
+                });
+            }
+
+            // Support pasting combined "lat, lng" directly into longitude
+            if (lngInput) {
+                lngInput.addEventListener('paste', (e) => {
+                    const text = (e.clipboardData || window.clipboardData).getData('text');
+                    if (handleCombinedText(text, lngInput)) {
+                        e.preventDefault();
+                    }
+                });
+                lngInput.addEventListener('input', (e) => {
+                    if (e.target.value && /[,\s]/.test(e.target.value)) {
+                        handleCombinedText(e.target.value, lngInput);
+                    }
+                });
+            }
+
+            // Before submit, normalize values if only combined coords were provided
+            if (form) {
+                form.addEventListener('submit', () => {
+                    const latVal = latInput && latInput.value.trim();
+                    const lngVal = lngInput && lngInput.value.trim();
+                    const coordsVal = coordsInput && coordsInput.value.trim();
+                    if ((!latVal || !lngVal) && coordsVal) {
+                        const parsed = parseCoords(coordsVal);
+                        if (parsed) applyCoordsToInputs(parsed);
+                    }
+                });
+            }
+        })();
+    </script>
+</body>
+</html>

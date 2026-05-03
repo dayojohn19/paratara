@@ -1,0 +1,48 @@
+
+
+  .hide-this {
+    display: none;
+  }
+  .navbar-toggler {
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  }
+  .rounded-circle {
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  }
+
+  * {
+    max-width: 100vw;
+  }
+  .nav-link {
+    color: black !important;
+  }
+
+
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f6f6f6;
+  min-width: 230px;
+  overflow: auto;
+  border: 1px solid #ddd;
+  z-index: 1;
+}
+
+.show {
+  display: block;
+}
+@font-face {
+    font-family: 'Montserrat';
+    src: url('ttf/Montserrat/Montserrat-VariableFont_wght.ttf') format('truetype');
+    font-weight: 100 900; /* If variable font supports range */
+    font-style: normal;
+    font-display: swap; /* Prevent invisible text while loading */
+}
+@font-face {
+    font-family: 'Wreckout';
+    src: url('ttf/Wreckout.ttf') format('truetype');
+    font-weight: 100 900; /* If variable font supports range */
+    font-style: normal;
+    font-display: swap; /* Prevent invisible text while loading */
+}

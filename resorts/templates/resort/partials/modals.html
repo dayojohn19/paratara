@@ -1,0 +1,71 @@
+<!-- ============================================================ -->
+<!-- MODAL: 360° Virtual Picture Viewer -->
+<!-- ============================================================ -->
+{% if resortObject.virtualpicture %}
+<div id="three-sixty-picture" style="display:none; height: 100%; width: 100%;">
+  <div class="f-html" style="height: 100%;">
+    <iframe class="f-iframe" src="{{resortObject.virtualpicture}}" allowfullscreen="true"></iframe>
+  </div>
+</div>
+{% endif %}
+
+<!-- ============================================================ -->
+<!-- MODAL: QR Code Viewer -->
+<!-- ============================================================ -->
+<div id="qr-code-viewer" style="display:none; max-width:500px;">
+  <div class="card">
+    <div class="card-body" style="text-align:center;">
+      <h3 style="margin-top:0; margin-bottom:1rem;">{{resortObject.RealName}}</h3>
+      {% if resortObject.websiteURL %}
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data={{resortObject.websiteURL}}" 
+           alt="Resort QR Code" 
+           style="max-width:100%; height:auto; border-radius:var(--radius); margin-bottom:1rem;" />
+      <p style="color:var(--muted); font-size:0.875rem;">Scan this QR code to visit {{resortObject.websiteURL}}</p>
+      <a href="https://api.qrserver.com/v1/create-qr-code/?size=800x800&data={{resortObject.websiteURL}}" 
+         download="{{resortObject.name}}-qr-code.png" 
+         class="btn primary" 
+         style="margin-top:1rem;">Download QR Code</a>
+      {% else %}
+      <p style="color:var(--warn);">Website URL not configured for this resort</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MODAL: Contact Form Dialog -->
+<!-- Allows customers to send inquiries via EmailJS -->
+<!-- ============================================================ -->
+<div id="contact-form-dialog" style="display:none; max-width:600px;">
+  <div class="card">
+    <div class="card-body">
+      <h3 style="margin-top:0;">Contact Us</h3>
+      <form id="contact-form">
+        <!-- Hidden field: Resort email recipient -->
+        <input style="display:none;" hidden type="email" name="to_name" value="{{resortObject.contactEmail}}">
+        
+        <div class="form-row" style="grid-template-columns: 1fr;">
+          <label for="guest_name">Your Name</label>
+          <input name="from_name" type="text" id="guest_name" placeholder="Manager or Staff Name" required />
+
+          <label for="guest_contact">Your Contact</label>
+          <input name="sender_contact" type="text" id="guest_contact" placeholder="email or phone" required />
+
+          <!-- Hidden reply-to email -->
+          <input style="display:none;" hidden type="email" name="reply_to" value="johnwebsiteprojects@gmail.com">
+
+          <label for="guest_message">Message</label>
+          <textarea name="message" placeholder="Your message" id="guest_message" required></textarea>
+
+          <!-- Booking inquiry details (filled by JavaScript) -->
+          <textarea name="booking_inquiry" readonly id="guest_book" style="display:none;"></textarea>
+        </div>
+
+        <button class="btn primary" type="submit">Send Message</button>
+        
+        <!-- Calendar object for current month -->
+        <div id="calendar_object_month-{{currentMonth}}">{{calendarObject | safe}}</div>
+      </form>
+    </div>
+  </div>
+</div>

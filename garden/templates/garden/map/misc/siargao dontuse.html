@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Security-Policy" content="frame-ancestors 'self' http://localhost:*">
+
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Siargao — Animated Interactive Map</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+      .image-desc {
+          max-width:200px;
+          max-height:200px;
+      }
+      .leaflet-popup-content {
+          text-align: center;
+          overflow: hidden;
+      }
+    html,body {height:100%;margin:0}
+    #map {height:100vh; width:100%;}
+    .sidebar {
+      position: absolute; bottom: 80px; left: 40px; z-index: 999; background: rgba(255,255,255,0.95); padding:10px; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.2); max-width:260px; font-family: sans-serif;
+      transition: transform 0.3s ease-in-out;
+    }
+    .sidebar.closed {
+      transform: translateX(-480px);
+        z-index: 9999;
+    }
+    .toggle-btn {
+      position:absolute; bottom:40px; left:30px; z-index:500; background:#007bff; color:#fff; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-family:sans-serif;
+      transition: background 0.2s;
+    }
+    .toggle-btn:hover{background:#0056b3}
+    .place {cursor:pointer;padding:6px 8px;border-radius:6px;margin-bottom:6px}
+    .place:hover{background:#f0f0f0}
+
+    /* Pulsing marker */
+    .pulse {
+      position:relative;
+    }
+    #places {
+        max-height: 300px;
+        overflow: scroll;
+        background-color: #e9e9e9;
+    }
+    @keyframes pulse {0% {transform:translate(-50%,-50%) scale(.6); opacity:1} 100% {transform:translate(-50%,-50%) scale(3.4); opacity:0}}
+
+    .controls {display:flex; gap:6px; margin-top:6px}
+    .btn{border:0;padding:8px 10px;border-radius:6px;cursor:pointer;background:#6c757d;color:white}
+    .btn.secondary{background:#6c757d}
+
+    .attribution {font-size:11px;opacity:0.8;margin-top:6px}
+  </style>
+</head>
+<body>
+    <button id="toggleSidebar" class="toggle-btn">☰ Menu</button>
+    <div class="sidebar" id="sidebar">
+    <h2><strong>Destinations places</strong></h2>
+    <div id="places">
+    </div>
+
+    <div class="controls">
+      <button id="flyAll" class="btn">View to All</button>
+      <!-- <a id="carpool-btn" href="https://paratara.com" class="btn">Carpool</a> -->
+      <!-- <button id="toggleAnim" class="btn secondary">Pause Boat</button> -->
+    </div>
+
+    
+  </div>
+
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    function closeQuickPlaces(){
+      toggleBtn = document.getElementById('toggleSidebar');
+      sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('closed');
+      toggleBtn.textContent = sidebar.classList.contains('closed') ? '☰ Open' : '✖ Close';
+    }
+
+
+    toggleBtn = document.getElementById('toggleSidebar');
+    toggleBtn.addEventListener('click', ()=>{
+      closeQuickPlaces()
+    });
+
+    const siargaoCenter = [9.756545906356644, 126.11749390487918];
+    const map = L.map('map', {zoomControl:true}).setView(siargaoCenter, 11);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'© OpenStreetMap'}).addTo(map);
+
+    const surfing_spots = [
+      {
+    name: 'Cloud 9 – General Luna, Siargao Island',
+    coords: [9.814122537439955, 126.16603815940445], // iconic reef break area near Catangnan Beach (Cloud 9) :contentReference[oaicite:0]{index=0}
+},
+{
+    name: 'Jacking Horse – Siargao Island',
+    coords: [9.815861013100585, 126.16420448695715], // beginner-friendly break near Cloud 9 area :contentReference[oaicite:1]{index=1}
+},
+{
+    name: 'Quicksilver Surf Spot',
+    coords: [9.814681639305713, 126.16626794390966], // right-hand reef break just off the Cloud 9 boardwalk area (approximate) :contentReference[oaicite:2]{index=2}
+},
+{
+    name: 'Cemetery – Siargao Island',
+    coords: [9.785416942356362, 126.17769394935351], // surf area off General Luna near the local cemetery (approx) :contentReference[oaicite:3]{index=3}
+},
+{
+    name: 'Pacifico – North Siargao Island',
+    coords: [9.944458687195885, 126.10536970025947], // left-hand beach/reef break area in Pacifico village (approx) :contentReference[oaicite:4]{index=4}
+},
+{
+    name: 'Tuason Point – Siargao Island',
+    coords: [9.810123595825537, 126.17051188883079], // point reef just south of the Cloud 9 area (approx near Tuason Point) :contentReference[oaicite:5]{index=5}
+},
+{
+    name: 'Stimpy’s – Siargao Island',
+    coords: [9.844260240666923, 126.15810900583924], // classic left-hander break requiring boat access (approx) :contentReference[oaicite:6]{index=6}
+},
+{
+    name: 'Rock Island – Siargao Island',
+    coords: [9.839009532277313, 126.16111978482675], // advanced reef break off Rock Island (approx) :contentReference[oaicite:7]{index=7}
+},
+{
+    name: 'Giwan / Union / Secret Spot – North of General Luna',
+    coords: [9.749345393476315, 126.09221407253548], // group of closely-located beginner/intermediate breaks (approx) :contentReference[oaicite:8]{index=8}
+},
+
+    ]
+    const places = [
+{% for spot in tourist_spots %}
+{
+url: '{{ spot.url }}',
+id: '{{ spot.spot_id }}',
+name: '{{ spot.name }}',
+desc: '{{ spot.desc }}',
+coords: {{ spot.coords|safe }},
+img: '{{ spot.img }}',
+visit_count: {{ spot.visit_count }}
+}{% if not forloop.last %},{% endif %}
+{% endfor %}
+    ];
+
+    const markers = {};
+    // Calculate max visit count for proportional sizing
+    const maxVisitCount = Math.max(...places.map(p => p.visit_count || 0));
+    const baseSize = 1;
+    const maxSize = 50;
+    const scaleFactor = maxVisitCount > 0 ? (maxSize - baseSize) / maxVisitCount : 0;
+    
+    places.forEach(p => {
+      let [lat, lng] = p.coords;
+      // const size = baseSize + (p.visit_count || 0) * scaleFactor;
+      const size = 0;
+      console.log(`${p.name}: visits ${p.visit_count}, size ${size}`);
+      const icon = L.divIcon({className:'', html:`<div class="pulse" style="width:${size}px; height:${size}px; border-radius:${size/2}px; background:#ff0000; box-shadow:0 0 6px rgba(255,0,0,0.8); position:relative;"></div>`, iconSize:[size,size], iconAnchor:[size/2,size/2]});
+      const m = L.marker(p.coords, {icon}).addTo(map).bindPopup(`<strong>${p.name}</strong><br>${p.desc}
+      <div><a style="text-decoration:none" href="${p.url}" target="_blank" >Read Here</a> </div>
+      
+
+      <img class="image-desc" src="${p.img}" alt="${p.name}">
+      
+      <div><a style="text-decoration:none" href="https://www.google.com/maps/dir/?api=1&origin=Current+Location&destination=${lat},${lng}" target="_blank">📍 Get Directions</a></div>
+      `);
+      markers[p.id] = m;
+    });
+
+    const placesDiv = document.getElementById('places');
+    places.forEach(p => {
+      const el = document.createElement('div'); el.className='place'; el.textContent = p.name;
+      el.onclick = () => { map.flyTo(p.coords, 14, {duration:1.2}); markers[p.id].openPopup(); document.getElementById("toggleSidebar").click(); };
+      placesDiv.appendChild(el);
+    });
+
+    document.getElementById('flyAll').onclick = ()=>{const group=L.featureGroup(Object.values(markers)); map.fitBounds(group.getBounds().pad(0.3));closeQuickPlaces()}
+    const coordDiv=L.control({position:'bottomleft'});
+    coordDiv.onAdd=function(){const d=L.DomUtil.create('div','');d.style.padding='6px 10px';d.style.background='rgba(255,255,255,0.9)';d.style.borderRadius='6px';d.style.fontSize='12px';d.innerHTML='Lat: — , Lng: —';return d}
+    coordDiv.addTo(map);
+    map.on('mousemove',function(e){coordDiv.getContainer().innerHTML=`Lat: ${e.latlng.lat.toFixed(4)}, Lng: ${e.latlng.lng.toFixed(4)}`});
+
+
+
+
+
+    const surfing_items = {}
+    surfing_spots.forEach(spot => {
+      let [lat, lng] = spot.coords;
+      const icon = L.divIcon({className:'', html:`<div class="pulse" style="width:10px;height:10px;background:#1e90ff; box-shadow:0 0 6px rgba(30,144,255,0.8)"></div>`, iconSize:[18,18], iconAnchor:[9,9]});
+      const m = L.marker(spot.coords, {icon}).addTo(map).bindPopup(`<strong>${spot.name}</strong>
+      
+      <div><a style="text-decoration:none" href="https://www.google.com/maps/dir/?api=1&origin=Current+Location&destination=${lat},${lng}" target="_blank">📍 Get Directions</a></div>
+      `);
+      surfing_items[spot.name] = m;
+    });
+
+
+  </script>
+</body>
+</html>

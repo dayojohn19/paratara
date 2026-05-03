@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous" />
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <title>Transactions</title>
+  </head>
+  <style type="text/css">
+    body {
+      /* height: 0;
+      width: 100%;
+      position: absolute;
+      box-sizing: border-box;
+      transform-origin: 0 0;
+      -moz-transform-origin: 0 0;
+      -o-transform-origin: 0 0;
+      -webkit-transform-origin: 0 0; */
+    }
+    .tg {
+      border-collapse: collapse;
+      border-spacing: 0;
+      font-family: Georgia, "Times New Roman", Times, serif;
+    }
+    .tg caption {
+      border-bottom: 1px black solid;
+      padding: 10px 5px;
+    }
+    .tg td {
+      /* border-color: black;
+      border-style: solid;
+      border-width: 1px; */
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      overflow: hidden;
+      padding: 10px 5px;
+      word-break: normal;
+    }
+    .tg th {
+      /* border-color: black;
+      border-style: solid;
+      border-width: 1px; */
+      border-bottom: black solid 1px;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      font-weight: normal;
+      overflow: hidden;
+      padding: 10px 5px;
+      word-break: normal;
+    }
+    .tg .tg-0lax {
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .time-stamp {
+      color: red;
+    }
+    .receipt-no {
+      color: grey;
+    }
+    .view-button {
+      background-color: rgb(0, 183, 255);
+      border: none;
+      border-radius: 4px;
+      color: white;
+    }
+    .user-svg {
+      padding-right: 4px;
+      height: 16px;
+      padding-left: 4px;
+      padding-right: 4px;
+      fill: #428bca;
+    }
+  </style>
+  <body>
+    <div class="container">
+      <table class="tg table">
+        <caption>Transaction Records</caption>
+        <thead>
+          <tr>
+            <th class="tg-0lax">Time Stamp</th>
+            <th class="tg-0lax">Receipt No.</th>
+            <th class="tg-0lax">Amount</th>
+            <th class="tg-0lax">View</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="time-stamp">a</td>
+            <td class="receipt-no">b</td>
+            <td>b</td>
+            <td><button class="view-button">Confirm</button></td>
+          </tr>
+          <tr>
+            <td class="time-stamp">a</td>
+            <td class="receipt-no">b</td>
+            <td>b</td>
+            <td>
+              <svg viewBox="0 0 16 16" class="user-svg" onclick="alert('User is Verified')">
+                <path d="M10.067.87a2.89 2.89 0 0 0-4.134 0l-.622.638-.89-.011a2.89 2.89 0 0 0-2.924 2.924l.01.89-.636.622a2.89 2.89 0 0 0 0 4.134l.637.622-.011.89a2.89 2.89 0 0 0 2.924 2.924l.89-.01.622.636a2.89 2.89 0 0 0 4.134 0l.622-.637.89.011a2.89 2.89 0 0 0 2.924-2.924l-.01-.89.636-.622a2.89 2.89 0 0 0 0-4.134l-.637-.622.011-.89a2.89 2.89 0 0 0-2.924-2.924l-.89.01-.622-.636zm.287 5.984-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7 8.793l2.646-2.647a.5.5 0 0 1 .708.708z"></path>
+              </svg>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <!--  -->
+    <!--  -->
+    <div class="container">
+      <table class="tg table">
+        <caption>Transaction Records</caption>
+        <thead>
+          <tr>
+            <th class="tg-0lax">Time Stamp</th>
+            <th class="tg-0lax">Receipt No.</th>
+            <th class="tg-0lax">Amount</th>
+            <th class="tg-0lax">View</th>
+            <th class="tg-0lax">Name</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="time-stamp">a</td>
+            <td class="receipt-no">b</td>
+            <td>b</td>
+            <td><button class="view-button">Confirm</button></td>
+            <td>
+              <div class="user-info">
+                <div class="user-info__img">
+                  <img src="img/user1.jpg" alt="User Img" />
+                </div>
+                <div class="user-info__basic">
+                  <h5 class="mb-0">Kiran Acharya</h5>
+                  <p class="text-muted mb-0">₱ 300</p>
+                </div>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td class="time-stamp">a</td>
+            <td class="receipt-no">b</td>
+            <td>b</td>
+            <td>
+              <svg viewBox="0 0 16 16" class="user-svg" onclick="alert('User is Verified')">
+                <path d="M10.067.87a2.89 2.89 0 0 0-4.134 0l-.622.638-.89-.011a2.89 2.89 0 0 0-2.924 2.924l.01.89-.636.622a2.89 2.89 0 0 0 0 4.134l.637.622-.011.89a2.89 2.89 0 0 0 2.924 2.924l.89-.01.622.636a2.89 2.89 0 0 0 4.134 0l.622-.637.89.011a2.89 2.89 0 0 0 2.924-2.924l-.01-.89.636-.622a2.89 2.89 0 0 0 0-4.134l-.637-.622.011-.89a2.89 2.89 0 0 0-2.924-2.924l-.89.01-.622-.636zm.287 5.984-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7 8.793l2.646-2.647a.5.5 0 0 1 .708.708z"></path>
+              </svg>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!--  -->
+    <style>
+      @import url("https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap");
+      body {
+        background: #f9f9f9;
+        font-family: "Roboto", sans-serif;
+      }
+
+      .main-content {
+        padding-top: 100px;
+        padding-bottom: 100px;
+      }
+
+      .table {
+        border-spacing: 0 15px;
+        border-collapse: separate;
+      }
+      .table thead tr th,
+      .table thead tr td,
+      .table tbody tr th,
+      .table tbody tr td {
+        vertical-align: middle;
+        border: none;
+      }
+      .table thead tr th:nth-last-child(1),
+      .table thead tr td:nth-last-child(1),
+      .table tbody tr th:nth-last-child(1),
+      .table tbody tr td:nth-last-child(1) {
+        text-align: center;
+      }
+      .table tbody tr {
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        border-radius: 5px;
+      }
+      .table tbody tr td {
+        background: #fff;
+      }
+      .table tbody tr td:nth-child(1) {
+        border-radius: 5px 0 0 5px;
+      }
+      .table tbody tr td:nth-last-child(1) {
+        border-radius: 0 5px 5px 0;
+      }
+
+      .user-info {
+        display: flex;
+        align-items: center;
+      }
+      .user-info__img img {
+        margin-right: 15px;
+        height: 55px;
+        width: 55px;
+        border-radius: 45px;
+        border: 3px solid #fff;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+    </style>
+    <section class="main-content">
+      <div class="container">
+        <h1>Appointment Table UI</h1>
+        <br />
+        <br />
+
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Patient</th>
+              <th>Status</th>
+              <th>Appointment</th>
+              <th>Phone</th>
+              <th>Transaction No.</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="user-info">
+                  <div class="user-info__img">
+                    <img src="img/user1.jpg" alt="User Img" />
+                  </div>
+                  <div class="user-info__basic">
+                    <h5 class="mb-0">Kiran Acharya</h5>
+                    <p class="text-muted mb-0">₱ 300</p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="btn btn-success">Paid</span>
+              </td>
+              <td>
+                <h6 class="mb-0">06:00 PM</h6>
+                <small>2 Feb 2021</small>
+              </td>
+              <td>
+                <h6 class="mb-0">+91 9876543215</h6>
+                <a href="#!"><small>Contact</small></a>
+              </td>
+              <td>
+                <h6 class="mb-0">BC023123P</h6>
+              </td>
+              <td>
+                <div class="dropdown open">
+                  <a href="#!" class="px-2" id="triggerId1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="fa fa-ellipsis-v"></i> </a>
+                  <div class="dropdown-menu" aria-labelledby="triggerId1" x-placement="bottom-start" style="position: absolute; transform: translate3d(17px, 20px, 0px); top: 0px; left: 0px; will-change: transform">
+                    <a class="dropdown-item" href="#"><i class="fa fa-pencil mr-1"></i> Edit</a>
+                    <a class="dropdown-item text-danger" href="#"><i class="fa fa-trash mr-1"></i> Delete</a>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="user-info">
+                  <div class="user-info__img">
+                    <img src="img/user1.jpg" alt="User Img" />
+                  </div>
+                  <div class="user-info__basic">
+                    <h5 class="mb-0">Kiran Acharya</h5>
+                    <p class="text-muted mb-0">₱ 300</p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="btn btn-primary">Pending</span>
+              </td>
+              <td>
+                <h6 class="mb-0">06:00 PM</h6>
+                <small>2 Feb 2021</small>
+              </td>
+              <td>
+                <h6 class="mb-0">+91 9876543215</h6>
+                <a href="#!"><small>Contact</small></a>
+              </td>
+              <td>
+                <h6 class="mb-0">BC03291P</h6>
+              </td>
+              <td>
+                <div class="dropdown open">
+                  <a href="#!" class="px-2" id="triggerId1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fa fa-ellipsis-v"></i>
+                  </a>
+                  <div class="dropdown-menu" aria-labelledby="triggerId1">
+                    <a class="dropdown-item" href="#"><i class="fa fa-pencil mr-1"></i> Edit</a>
+                    <a class="dropdown-item text-danger" href="#"><i class="fa fa-trash mr-1"></i> Delete</a>
+                  </div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <div class="user-info">
+                  <div class="user-info__img">
+                    <img src="img/user1.jpg" alt="User Img" />
+                  </div>
+                  <div class="user-info__basic">
+                    <h5 class="mb-0">Kiran Acharya</h5>
+                    <p class="text-muted mb-0">₱ 300</p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="btn btn-danger">Canceled</span>
+              </td>
+              <td>
+                <h6 class="mb-0">06:00 PM</h6>
+                <small>2 Feb 2021</small>
+              </td>
+              <td>
+                <h6 class="mb-0">+91 9876543215</h6>
+                <a href="#!"><small>Contact</small></a>
+              </td>
+              <td>
+                <h6 class="mb-0">BC03219P</h6>
+              </td>
+              <td>
+                <div class="dropdown open">
+                  <a href="#!" class="px-2" id="triggerId1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fa fa-ellipsis-v"></i>
+                  </a>
+                  <div class="dropdown-menu" aria-labelledby="triggerId1">
+                    <a class="dropdown-item" href="#"><i class="fa fa-pencil mr-1"></i> Edit</a>
+                    <a class="dropdown-item text-danger" href="#"><i class="fa fa-trash mr-1"></i> Delete</a>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </body>
+</html>

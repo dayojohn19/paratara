@@ -1,0 +1,1165 @@
+{% load static %} {% block body %}
+
+{% include "home/placeJS.html" %}
+
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+    color: #333;
+  }
+
+  .page-container {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* Hero Header Section */
+  .hero-header {
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    margin-bottom: 30px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .hero-title {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex: 1;
+  }
+
+  .hero-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hero-icon svg {
+    width: 28px;
+    height: 28px;
+    fill: white;
+  }
+
+  .hero-title h1 {
+    font-size: 2.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: 800;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    padding: 12px 28px;
+    border-radius: 12px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+  }
+
+  .btn-secondary {
+    background: white;
+    color: #667eea;
+    border: 2px solid #667eea;
+  }
+
+  .btn-secondary:hover {
+    background: #667eea;
+    color: white;
+  }
+
+  .btn svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* Grid Layout */
+  .main-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 25px;
+    margin-bottom: 25px;
+  }
+
+  .card {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.12);
+  }
+
+  .card-full {
+    grid-column: span 12;
+  }
+
+  .card-half {
+    grid-column: span 6;
+  }
+
+  .card-third {
+    grid-column: span 4;
+  }
+
+  /* Calendar Styles */
+  .calendar-wrapper {
+    grid-column: span 7;
+  }
+
+  .calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+  }
+
+  .calendar-header h2 {
+    font-size: 1.8rem;
+    color: #2d3748;
+    font-weight: 700;
+  }
+
+  .nav-buttons {
+    display: flex;
+    gap: 10px;
+  }
+
+  .nav-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    border: none;
+    background: #f7fafc;
+    color: #667eea;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .nav-btn:hover {
+    background: #667eea;
+    color: white;
+  }
+
+  #calendar-container table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  #calendar-container th {
+    padding: 15px;
+    text-align: center;
+    font-weight: 600;
+    color: #667eea;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  #calendar-container td {
+    padding: 15px;
+    text-align: center;
+    border: 1px solid #e2e8f0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    color: #4a5568;
+  }
+
+  #calendar-container td:hover {
+    background: #f7fafc;
+    color: #667eea;
+  }
+
+  /* Chat Styles */
+  .chat-wrapper {
+    grid-column: span 5;
+  }
+
+  .chat-container {
+    display: flex;
+    flex-direction: column;
+    height: 550px;
+  }
+
+  .section-header {
+    margin-bottom: 20px;
+  }
+
+  .section-header h2 {
+    font-size: 1.8rem;
+    color: #2d3748;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .section-header p {
+    color: #718096;
+    font-size: 15px;
+  }
+
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    background: #f7fafc;
+    border-radius: 15px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column-reverse;
+  }
+
+  .chat-messages::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .chat-messages::-webkit-scrollbar-track {
+    background: #edf2f7;
+    border-radius: 10px;
+  }
+
+  .chat-messages::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+    border-radius: 10px;
+  }
+
+  .user-message {
+    margin-bottom: 15px;
+    animation: slideIn 0.3s ease;
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .message-bubble {
+    background: white;
+    padding: 15px 18px;
+    border-radius: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    max-width: 100%;
+  }
+
+  .message-bubble span {
+    font-weight: 700;
+    color: #667eea;
+    margin-right: 5px;
+  }
+
+  .message-time {
+    font-size: 12px;
+    color: #a0aec0;
+    margin-top: 8px;
+  }
+
+  .chat-input-area {
+    display: flex;
+    gap: 12px;
+  }
+
+  .chat-input {
+    flex: 1;
+    padding: 15px 18px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 15px;
+    resize: none;
+    font-family: inherit;
+    transition: border-color 0.2s ease;
+  }
+
+  .chat-input:focus {
+    outline: none;
+    border-color: #667eea;
+  }
+
+  .chat-send-btn {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+  }
+
+  .chat-send-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  }
+
+  .chat-send-btn svg {
+    width: 20px;
+    height: 20px;
+    fill: white;
+  }
+
+  /* Events Grid */
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+  }
+
+  .calendar-event-card {
+    position: relative;
+    height: 220px;
+    border-radius: 15px;
+    overflow: hidden;
+    background-size: cover;
+    background-position: center;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+  }
+
+  .calendar-event-card:hover {
+    transform: scale(1.03);
+  }
+
+  .card-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.8) 0%, transparent 100%);
+  }
+
+  .card-content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 20px;
+    color: white;
+    z-index: 1;
+  }
+
+  .card-content h4 {
+    font-size: 1.2rem;
+    margin-bottom: 8px;
+    font-weight: 700;
+  }
+
+  .card-content p {
+    font-size: 13px;
+    opacity: 0.9;
+    margin-bottom: 4px;
+  }
+
+  /* Blog Grid */
+  .blog-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 25px;
+  }
+
+  .blog-post {
+    background: #f7fafc;
+    padding: 25px;
+    border-radius: 15px;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+  }
+
+  .blog-post:hover {
+    border-color: #667eea;
+    transform: translateY(-3px);
+  }
+
+  .blog-category {
+    display: inline-block;
+    padding: 6px 14px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 15px;
+  }
+
+  .blog-title {
+    font-size: 1.3rem;
+    color: #2d3748;
+    margin-bottom: 12px;
+    font-weight: 700;
+    line-height: 1.4;
+  }
+
+  .blog-excerpt {
+    color: #718096;
+    line-height: 1.6;
+    margin-bottom: 15px;
+    font-size: 14px;
+  }
+
+  .blog-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .blog-meta-left {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+
+  .blog-meta-item {
+    font-size: 13px;
+    color: #a0aec0;
+  }
+
+  .blog-card {
+    color: #667eea;
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.2s ease;
+  }
+
+  .blog-card:hover {
+    color: #764ba2;
+  }
+
+  /* Resort List */
+  .resort-tab h2 {
+    font-size: 1.8rem;
+    color: #2d3748;
+    margin-bottom: 20px;
+    font-weight: 700;
+  }
+
+  .resort-tab ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .resort-tab li {
+    padding: 18px;
+    background: #f7fafc;
+    margin-bottom: 12px;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+    border-left: 4px solid transparent;
+  }
+
+  .resort-tab li:hover {
+    background: white;
+    border-left-color: #667eea;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  .resort-tab a {
+    text-decoration: none;
+    color: #667eea;
+    font-weight: 600;
+    font-size: 16px;
+  }
+
+  .resort-tab small {
+    display: block;
+    margin-top: 6px;
+    color: #718096;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  /* Map Modal */
+  .hidden {
+    display: none !important;
+  }
+
+  #mapModal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1500;
+    backdrop-filter: blur(5px);
+  }
+
+  #mapModal > div {
+    width: min(1100px, 96%);
+    height: min(80vh, 900px);
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  }
+
+  #closeMapBtn {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    background: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 28px;
+    cursor: pointer;
+    color: #2d3748;
+    z-index: 10;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s ease;
+  }
+
+  #closeMapBtn:hover {
+    background: #667eea;
+    color: white;
+    transform: rotate(90deg);
+  }
+
+  /* Additional Details Modal */
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+  }
+
+  .modal-content {
+    background-color: white;
+    margin: 5% auto;
+    padding: 0;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 700px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: modalSlideIn 0.3s ease;
+  }
+
+  @keyframes modalSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-50px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .modal-header {
+    padding: 25px 30px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 20px 20px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .modal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+  }
+
+  .close {
+    color: white;
+    font-size: 32px;
+    font-weight: 300;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    line-height: 1;
+  }
+
+  .close:hover {
+    transform: rotate(90deg);
+  }
+
+  .modal-body {
+    padding: 30px;
+  }
+
+  .modal-image img {
+    width: 100%;
+    height: auto;
+  }
+
+  .modal-footer {
+    padding: 25px 30px;
+    background: #f7fafc;
+    border-radius: 0 0 20px 20px;
+  }
+
+  /* Loading Symbol */
+  .loading-symbol {
+    width: 50px;
+    height: 50px;
+    border: 4px solid #e2e8f0;
+    border-top-color: #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 40px auto;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* Responsive Design */
+  @media (max-width: 1024px) {
+    .calendar-wrapper {
+      grid-column: span 12;
+    }
+
+    .chat-wrapper {
+      grid-column: span 12;
+    }
+
+    .card-half {
+      grid-column: span 12;
+    }
+
+    .hero-header {
+      padding: 30px;
+    }
+
+    .hero-title h1 {
+      font-size: 2rem;
+    }
+  }
+
+  @media (max-width: 768px) {
+    body {
+      padding: 10px;
+    }
+
+    .hero-header {
+      padding: 20px;
+    }
+
+    .hero-title {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .hero-title h1 {
+      font-size: 1.6rem;
+    }
+
+    .hero-actions {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      font-size: 14px;
+    }
+
+    .card {
+      padding: 20px;
+    }
+
+    .calendar-grid,
+    .blog-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .section-header h2 {
+      font-size: 1.4rem;
+    }
+
+    .chat-container {
+      height: 450px;
+    }
+  }
+</style>
+
+<script>
+  function discussionViewer(placeID, method) {
+    discussionNode = document.querySelector("#allDiscussion");
+    element = document.querySelector("#container-placeDiscussion");
+
+    fetch(`/discuss/${placeID}`, {
+      method: method,
+      body: JSON.stringify({
+        message: "",
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        for (d in data.response) {
+          discussionBuilder(data.response[d]);
+        }
+      });
+  }
+
+  function discussionFetcher(placeID, method) {
+    message = document.querySelector("#discuss-message").value;
+    if (message == "") {
+      return;
+    }
+    document.querySelector("#discuss-message").value = "";
+    fetch(`/discuss/${placeID}`, {
+      method: method,
+      body: JSON.stringify({
+        message: message,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data);
+        discussionBuilder(data.response[1]);
+        discussionBuilder(data.response[0]);
+      });
+  }
+
+  function discussionBuilder(element) {
+    let discussContainer = document.createElement("div");
+    let newDate = new Date(element.timestamp);
+    let options = {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    };
+    let formattedDate = newDate.toLocaleString("en-US", options);
+
+    discussContainer.classList.add("other-message");
+    discussContainer.classList.add("user-message");
+
+    let discuss = document.createElement("div");
+    discuss.classList.add("message-bubble")
+    discuss.innerHTML = `<span>${element.discusserName}:</span> ${element.discuss} <div class="message-time">${formattedDate}</div>`;
+
+    discussContainer.appendChild(discuss);
+    const discusslists = document.querySelector("#allDiscussion");
+    const firstDiscussionMessage = discusslists.firstChild;
+    discusslists.insertBefore(discussContainer, firstDiscussionMessage);
+  }
+</script>
+
+<!-- Additional Details Modal -->
+<div class="additionalDetailsModal modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="AdditionalDetailsHeader">Additional Details</h2>
+      <span onclick="closeThisModal(id)" class="close">&times;</span>
+    </div>
+    <div class="modal-body" id="AdditionalDetailsContainer">
+      <p>This is modal-body put ID on this modal</p>
+    </div>
+    <div class="modal-image">
+      <img id="AdditionalDetailsImage" style="width: inherit" />
+    </div>
+    <div class="modal-footer" id="AdditionalDetailsFooter"></div>
+  </div>
+</div>
+
+<!-- Map Modal -->
+<div id="mapModal" class="hidden">
+  <div>
+    <button id="closeMapBtn" aria-label="Close map">&times;</button>
+    <iframe id="map-modal" src="" style="width:100%;height:100%;border:0;"></iframe>
+  </div>
+</div>
+
+<div class="page-container">
+  <!-- Hero Header -->
+  <div class="hero-header">
+    <div class="hero-title">
+      <div class="hero-icon">
+        <svg viewBox="0 0 16 16">
+          <path d="M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A31.493 31.493 0 0 1 8 14.58a31.481 31.481 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94zM8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10z"></path>
+          <path d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path>
+        </svg>
+      </div>
+      <h1 id="place-name">Loading...</h1>
+    </div>
+    <div class="hero-actions">
+      <button class="btn btn-primary" onclick="createViaje()">
+        <svg viewBox="0 0 16 16" style="fill: currentColor">
+          <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"></path>
+          <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"></path>
+        </svg>
+        Create Trip
+      </button>
+      <button id="openMapBtn" class="btn btn-secondary">
+        <svg viewBox="0 0 16 16" style="fill: currentColor">
+          <path fill-rule="evenodd" d="M15.817.113A.5.5 0 0 1 16 .5v14a.5.5 0 0 1-.402.49l-5 1a.502.502 0 0 1-.196 0L5.5 15.01l-4.902.98A.5.5 0 0 1 0 15.5v-14a.5.5 0 0 1 .402-.49l5-1a.5.5 0 0 1 .196 0L10.5.99l4.902-.98a.5.5 0 0 1 .415.103zM10 1.91l-4-.8v12.98l4 .8V1.91zm1 12.98 4-.8V1.11l-4 .8v12.98zm-6-.8V1.11l-4 .8v12.98l4-.8z"/>
+        </svg>
+        Open Map
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Grid -->
+  <div class="main-grid">
+    <!-- Calendar Section -->
+    <div class="card calendar-wrapper">
+      <div id="calendar-container">
+        {{calendar|safe}}
+      </div>
+    </div>
+
+    <!-- Chat Section -->
+    <div class="card chat-wrapper">
+      <div class="section-header">
+        <h2>Discussion</h2>
+        <p>Ask questions and share your thoughts</p>
+      </div>
+      <div class="chat-container" id="container-placeDiscussion">
+        <div class="chat-messages" id="allDiscussion"></div>
+        <div class="chat-input-area">
+          <textarea maxlength="200" class="chat-input" id="discuss-message" placeholder="Type your message..."></textarea>
+          <button class="chat-send-btn" onclick="discussionFetcher(`{{placeid}}`,'POST', this)">
+            <svg viewBox="0 0 16 16">
+              <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Events Section -->
+  <div class="card card-full">
+    <div class="section-header">
+      <h2>Events</h2>
+      <p>Join us on our shared events</p>
+    </div>
+    <div id="event-objects-list" class="calendar-grid"></div>
+  </div>
+
+  <!-- Calendar Objects Section -->
+  <div class="card card-full">
+    <div id="calendar-objects-list">
+      <div class="loading-symbol"></div>
+    </div>
+  </div>
+
+  <!-- Resorts Section -->
+  <div class="card card-full">
+    <div id="resort-list-container"></div>
+  </div>
+
+  <!-- Blog Section -->
+  <div class="card card-full">
+    <div class="section-header">
+      <h2>Recent Blog Posts</h2>
+      <p>Latest articles and insights</p>
+    </div>
+    <div class="blog-grid" id="blog-grid"></div>
+  </div>
+</div>
+
+<script>
+  function formatModelDate(datestr) {
+    let d = new Date(datestr)
+    return d.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    })
+  }
+
+  async function loadBlogs(placeName) {
+    const base = window.location.origin;
+    const res = await fetch(`${base}/apis/getPlaceBlogs/${placeName}/`);
+    if (!res.ok) return;
+
+    const blogs = await res.json();
+    const container = document.getElementById("blog-grid");
+    container.innerHTML = "";
+
+    blogs.forEach(blog => {
+      container.innerHTML += `
+        <div class="blog-post">
+          <span class="blog-category">${blog.category}</span>
+          <h3 class="blog-title">${blog.title}</h3>
+          <p class="blog-excerpt">${blog.summarize}</p>
+          <div class="blog-meta">
+            <div class="blog-meta-left">
+              <span class="blog-meta-item">📅 ${formatModelDate(blog.timestamp)}</span>
+              <span class="blog-meta-item">⏱️ ${blog.readtime} min read</span>
+            </div>
+            <a href="${blog.localurlpath}" target="_blank" class="blog-card">
+              <span>Read here →</span>
+            </a>
+          </div>
+        </div>
+      `;
+    });
+  }
+</script>
+
+<script>
+  allDates = [];
+  allTD = document.querySelectorAll(".wed,.mon,.tue,.thu,.fri,.sat,.sun");
+  allTD.forEach((element) => {
+    if (element.innerHTML != "&nbsp") {
+      allDates.push(element);
+    }
+  });
+</script>
+
+<script>
+  function getPlan(whatPlan) {
+    todaysMonth = parseInt(`{{currentMonth}}`);
+    fetch(whatPlan, {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        document.querySelector("#place-name").innerText = data['placeName'];
+        xx = "/garden/map/"
+        y = `${data['placeName'].toLowerCase().replace(/\s+/g, "-")}`
+        c = xx + y
+        document.querySelector("#map-modal").src = c;
+        loadBlogs(data['placeName'])
+        
+        resorts = data['placeResorts']
+        events = data['placeEvents']
+        
+        if (typeof resorts === 'string') {
+          resorts = JSON.parse(resorts);
+        }
+
+        // Normalize resorts from either legacy Django-serializer format ({fields: {...}})
+        // or the newer lightweight format ({name, link}).
+        const normalizedResorts = (Array.isArray(resorts) ? resorts : []).map(item => {
+          if (item && item.fields) {
+            const r = item.fields;
+            return {
+              name: (r.RealName || r.name || '').toString() || 'Resort',
+              link: r.website || r.websiteURL || r.websiteUrl || null,
+              address: (r.address || '').toString(),
+            };
+          }
+          return {
+            name: (item && item.name ? item.name : 'Resort').toString(),
+            link: (item && (item.link || item.url) ? (item.link || item.url) : null),
+            address: (item && item.address ? item.address : '').toString(),
+          };
+        });
+
+        container = document.querySelector("#resort-list-container");
+        if (normalizedResorts && normalizedResorts.length > 0) {
+          let html = `
+            <div class="resort-tab">
+              <h2>Places to Stay</h2>
+              <div style="max-height: 40vh; overflow-y: auto;">
+                <ul>
+                  ${normalizedResorts
+                    .map(r => {
+                      const href = r.link ? r.link : '#';
+                      const target = r.link ? ' target="_blank"' : '';
+                      return `
+                        <li>
+                          <a href="${href}"${target}>
+                            ${r.name}
+                            ${r.address ? `<small>${r.address}</small>` : ''}
+                          </a>
+                        </li>
+                      `;
+                    })
+                    .join('')}
+                </ul>
+              </div>
+            </div>
+          `;
+          container.innerHTML = html;
+        } else {
+          container.innerHTML = '<p style="color:#999;">No resorts available.</p>';
+        }
+
+        placeEventItems = data['placeEvents'];
+        ii = 0;
+
+        for (d in placeEventItems) {
+          if (placeEventItems[d].fields.monthN == todaysMonth) {
+            new dateObjects(placeEventItems[d].fields).createObject(placeEventItems[d].fields);
+            ii += 1;
+          }
+        }
+        
+        event_container = document.getElementById('event-objects-list');
+        placeEventItems.forEach(event => {
+          const e = event.fields;
+          const card = document.createElement('div');
+          card.className = 'calendar-event-card';
+          card.style.backgroundImage = `url('${e.backgroundURL}')`;
+
+          const overlay = document.createElement('div');
+          overlay.className = 'card-overlay';
+          card.appendChild(overlay);
+
+          const content = document.createElement('div');
+          content.className = 'card-content';
+          content.innerHTML = `
+            <h4>${e.scheduleTitle}</h4>
+            <p>📅 ${e.exactDate}</p>
+            <p>📍 ${e.schedulePlace || 'N/A'}</p>
+          `;
+          card.appendChild(content);
+          event_container.appendChild(card);
+        });
+
+        placeScheduleItems = data['placeSchedule'];
+        ii = 0;
+        for (d in placeScheduleItems) {
+          if (placeScheduleItems[d].fields.monthN == todaysMonth) {
+            new dateObjects(placeScheduleItems[d].fields).createObject(placeScheduleItems[d].fields);
+            ii += 1;
+          }
+        }
+      })
+      .then(() => {
+        setTimeout(() => {
+          showObjectListDIv();
+        }, 500);
+      });
+  }
+
+  function el(id) {
+    return document.getElementById(id);
+  }
+
+  document.addEventListener("DOMContentLoaded", function() {
+    putCalendarHeader = document.querySelector("#calendar-container")
+    navButtons = document.createElement("div");
+    navButtons.innerHTML = `
+      <div class="calendar-header">
+        <h2 id="month-year">December 2025</h2>
+        <div class="nav-buttons">
+          <a href="{% url 'home:place' id=placeid currentMonth=previousMonth currentYear=currentYear%}">
+            <button class="nav-btn">❮</button>
+          </a>
+          <a href="{% url 'home:place' id=placeid currentMonth=nextMonth currentYear=currentYear%}">
+            <button class="nav-btn">❯</button>
+          </a>
+        </div>
+      </div>
+    `
+    getElementInsertBeforeit = putCalendarHeader.firstChild
+    putCalendarHeader.insertBefore(navButtons, getElementInsertBeforeit);
+    makeItHeader = document.querySelector("#calendar-container > table > tbody > tr:nth-child(1) > th")
+    currentHeader = document.querySelector("#month-year")
+    currentHeader.innerHTML = makeItHeader.innerHTML
+    makeItHeader.remove()
+
+    currentPageUser = '{{request.user}}'
+    if (currentPageUser == "AnonymousUser") {
+      console.log('No User')
+      currentPageUser = localStorage.getItem('username')
+      currentPagePasscode = localStorage.getItem('userID')
+      console.log('User: ', currentPageUser)
+      console.log('Passcode: ', currentPagePasscode)
+      if (currentPageUser) {
+        fetch(`/userProfile/registerjson`, {
+            method: "POST",
+            body: JSON.stringify({
+              username: currentPageUser,
+              password: currentPagePasscode,
+              passwordConfirmation: currentPagePasscode,
+              email: 'na@gmail.com'
+            }),
+          })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log("returned Data: ", data)
+          })
+      }
+    }
+
+    discussionViewer(`{{placeid}}`, 'POST')
+    thisPlan = `{% url 'home:placeCalendarJSONMonth' placeid currentMonth currentYear %}`;
+    getPlan(thisPlan);
+
+    const closeMapBtn = el('closeMapBtn');
+    if (closeMapBtn) closeMapBtn.addEventListener('click', () => {
+      el('mapModal').style.display = 'none';
+    });
+    
+    const modal = el('mapModal');
+    if (modal) modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.style.display = 'none';
+    });
+    
+    const openBtn = el('openMapBtn');
+    if (openBtn && modal) {
+      openBtn.addEventListener('click', () => {
+        modal.style.display = 'flex';
+        modal.setAttribute('aria-hidden', 'false');
+      });
+    }
+  });
+</script>
+
+{% endblock %}

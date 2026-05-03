@@ -1,0 +1,610 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Calendar, Chat & Blog</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(to bottom right, #f8fafc, #e2e8f0);
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 2rem;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: #64748b;
+        }
+
+        .layout-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (min-width: 1024px) {
+            .layout-grid {
+                grid-template-columns: 2fr 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+        }
+
+        /* Calendar Styles */
+        #calendar-container .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        #calendar-container .nav-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        #calendar-container .nav-btn {
+            background: transparent;
+            border: none;
+            padding: 0.5rem;
+            cursor: pointer;
+            border-radius: 0.5rem;
+            transition: background 0.2s;
+        }
+
+        #calendar-container .nav-btn:hover {
+            background: #f1f5f9;
+        }
+
+        #calendar-container table.month {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        #calendar-container table.month th,
+        #calendar-container table.month td {
+            text-align: center;
+            padding: 0.75rem 0.25rem;
+            border: none;
+        }
+
+        #calendar-container table.month th {
+            color: #64748b;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        #calendar-container table.month td {
+            cursor: pointer;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        #calendar-container table.month td:hover:not(.noday) {
+            background: #dbeafe;
+        }
+
+        #calendar-container table.month td.noday {
+            cursor: default;
+        }
+
+        #calendar-container table.month td.today {
+            background: #3b82f6;
+            color: white;
+            font-weight: bold;
+        }
+
+        #calendar-container .badge {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: #3b82f6;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        /* Chat Styles */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 500px;
+        }
+
+        .chat-header {
+            margin-bottom: 1rem;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .chat-messages > div {
+            display: flex;
+        }
+
+        .chat-messages > div.user-message {
+            justify-content: flex-end;
+        }
+
+        .chat-messages > div.other-message {
+            justify-content: flex-start;
+        }
+
+        .message-bubble {
+            max-width: 80%;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            word-wrap: break-word;
+        }
+
+        .user-message .message-bubble {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .other-message .message-bubble {
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            margin-top: 0.25rem;
+        }
+
+        .chat-input-area {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            resize: none;
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .chat-send-btn {
+            padding: 0.75rem 1rem;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .chat-send-btn:hover {
+            background: #2563eb;
+        }
+
+        .chat-send-btn svg {
+            width: 1rem;
+            height: 1rem;
+            fill: currentColor;
+        }
+
+        /* Blog Styles */
+        .blog-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .blog-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .blog-post {
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1.25rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .blog-post:hover {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .blog-category {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: #dbeafe;
+            color: #1e40af;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .blog-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+            transition: color 0.2s;
+        }
+
+        .blog-post:hover .blog-title {
+            color: #3b82f6;
+        }
+
+        .blog-excerpt {
+            color: #64748b;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+        }
+
+        .blog-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #94a3b8;
+            font-size: 0.875rem;
+        }
+
+        .blog-meta-left {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .blog-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        @media (max-width: 640px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            h2 {
+                font-size: 1.25rem;
+            }
+
+            .card {
+                padding: 1rem;
+            }
+
+            .chat-container {
+                height: 450px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>My Dashboard</h1>
+            <p class="subtitle">Stay organized and connected</p>
+        </header>
+
+        <div class="layout-grid">
+            <!-- Calendar Section -->
+            <div class="card">
+                <div id="calendar-container">
+                    <div class="calendar-header">
+                        <h2 id="month-year">December 2025</h2>
+                        <div class="nav-buttons">
+                            <button class="nav-btn" onclick="previousMonth()">❮</button>
+                            <button class="nav-btn" onclick="nextMonth()">❯</button>
+                        </div>
+                    </div>
+                    <table border="0" cellpadding="0" cellspacing="0" class="month">
+                        <thead>
+                            <tr>
+                                <th class="sun">Sun</th>
+                                <th class="mon">Mon</th>
+                                <th class="tue">Tue</th>
+                                <th class="wed">Wed</th>
+                                <th class="thu">Thu</th>
+                                <th class="fri">Fri</th>
+                                <th class="sat">Sat</th>
+                            </tr>
+                        </thead>
+                        <tbody id="calendar-body">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Chat Section -->
+            <div class="card">
+                <div class="chat-container">
+                    <div class="chat-header">
+                        <h2>Messages</h2>
+                    </div>
+
+                    <div class="chat-messages" id="allDiscussion">
+
+                        <div class="other-message">
+                            <div class="message-bubble">
+                                Hey! How are you?
+                                <div class="message-time">1 hour ago</div>
+                            </div>
+                        </div>
+                        
+                        <div class="user-message">
+                            <div class="message-bubble">
+                                I'm doing great! Just working on some projects.
+                                <div class="message-time">50 minutes ago</div>
+                            </div>
+                        </div>
+                        <div class="other-message">
+                            <div class="message-bubble">
+                                That sounds awesome! Let me know if you need any help.
+                                <div class="message-time">40 minutes ago</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chat-input-area">
+                        <textarea maxlength="200" class="chat-input" id="discuss-message" placeholder="Type a message..."></textarea>
+                        <button class="chat-send-btn" onclick="sendMessage()">
+                            <svg viewBox="0 0 16 16">
+                                <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Blog Section -->
+        <div class="card">
+            <div style="margin-bottom: 1.5rem;">
+                <h2>Recent Blog Posts</h2>
+                <p class="subtitle">Latest articles and insights</p>
+            </div>
+
+            <div class="blog-grid">
+                <div class="blog-post">
+                    <span class="blog-category">Development</span>
+                    <h3 class="blog-title">Getting Started with React and TypeScript</h3>
+                    <p class="blog-excerpt">Learn how to set up a modern React project with TypeScript for better type safety and developer experience.</p>
+                    <div class="blog-meta">
+                        <div class="blog-meta-left">
+                            <span class="blog-meta-item">📅 Dec 12, 2024</span>
+                            <span class="blog-meta-item">⏱️ 5 min read</span>
+                        </div>
+                        <span>→</span>
+                    </div>
+                </div>
+
+                <div class="blog-post">
+                    <span class="blog-category">Design</span>
+                    <h3 class="blog-title">Mastering Tailwind CSS: Tips and Tricks</h3>
+                    <p class="blog-excerpt">Discover advanced techniques and best practices for building beautiful UIs with Tailwind CSS.</p>
+                    <div class="blog-meta">
+                        <div class="blog-meta-left">
+                            <span class="blog-meta-item">📅 Dec 10, 2024</span>
+                            <span class="blog-meta-item">⏱️ 7 min read</span>
+                        </div>
+                        <span>→</span>
+                    </div>
+                </div>
+
+                <div class="blog-post">
+                    <span class="blog-category">Architecture</span>
+                    <h3 class="blog-title">Building Scalable Web Applications</h3>
+                    <p class="blog-excerpt">A comprehensive guide to architecture patterns and best practices for creating scalable web apps.</p>
+                    <div class="blog-meta">
+                        <div class="blog-meta-left">
+                            <span class="blog-meta-item">📅 Dec 8, 2024</span>
+                            <span class="blog-meta-item">⏱️ 10 min read</span>
+                        </div>
+                        <span>→</span>
+                    </div>
+                </div>
+
+                <div class="blog-post">
+                    <span class="blog-category">Trends</span>
+                    <h3 class="blog-title">The Future of Web Development in 2025</h3>
+                    <p class="blog-excerpt">Exploring upcoming trends, technologies, and frameworks that will shape web development.</p>
+                    <div class="blog-meta">
+                        <div class="blog-meta-left">
+                            <span class="blog-meta-item">📅 Dec 5, 2024</span>
+                            <span class="blog-meta-item">⏱️ 6 min read</span>
+                        </div>
+                        <span>→</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Calendar functionality
+        let currentDate = new Date();
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                           'July', 'August', 'September', 'October', 'November', 'December'];
+
+        // Sample events (day: event count)
+        const events = {
+            12: 1,
+            14: 2,
+            15: 2,
+            16: 3,
+            17: 1,
+            18: 2,
+            19: 2
+        };
+
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const today = new Date();
+            
+            document.getElementById('month-year').textContent = monthNames[month] + ' ' + year;
+            
+            const calendarBody = document.getElementById('calendar-body');
+            calendarBody.innerHTML = '';
+            
+            let row = document.createElement('tr');
+            
+            // Empty cells before first day
+            for (let i = 0; i < firstDay; i++) {
+                const cell = document.createElement('td');
+                cell.className = 'noday';
+                cell.innerHTML = '&nbsp;';
+                row.appendChild(cell);
+            }
+            
+            // Days of month
+            for (let day = 1; day <= daysInMonth; day++) {
+                if ((firstDay + day - 1) % 7 === 0 && day !== 1) {
+                    calendarBody.appendChild(row);
+                    row = document.createElement('tr');
+                }
+                
+                const cell = document.createElement('td');
+                const dayOfWeek = (firstDay + day - 1) % 7;
+                const dayNames = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+                cell.className = dayNames[dayOfWeek];
+                
+                // Check if today
+                if (day === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
+                    cell.classList.add('today');
+                }
+                
+                cell.textContent = day;
+                
+                // Add event badge if exists
+                if (events[day]) {
+                    const badge = document.createElement('span');
+                    badge.className = 'badge';
+                    badge.textContent = events[day];
+                    badge.onclick = () => showEvent(day);
+                    cell.appendChild(badge);
+                }
+                
+                row.appendChild(cell);
+            }
+            
+            // Fill remaining cells
+            const remainingCells = 7 - ((firstDay + daysInMonth) % 7);
+            if (remainingCells < 7) {
+                for (let i = 0; i < remainingCells; i++) {
+                    const cell = document.createElement('td');
+                    cell.className = 'noday';
+                    cell.innerHTML = '&nbsp;';
+                    row.appendChild(cell);
+                }
+            }
+            
+            calendarBody.appendChild(row);
+        }
+
+        function previousMonth() {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar();
+        }
+
+        function nextMonth() {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+        }
+
+        function showEvent(day) {
+            alert('Events on day ' + day + ': ' + events[day] + ' event(s)');
+        }
+
+        // Chat functionality
+        function sendMessage() {
+            const input = document.getElementById('discuss-message');
+            const message = input.value.trim();
+            
+            if (message) {
+                const chatMessages = document.getElementById('allDiscussion');
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'user-message';
+                messageDiv.innerHTML = `
+                    <div class="message-bubble">
+                        ${message}
+                        <div class="message-time">Just now</div>
+                    </div>
+                `;
+                chatMessages.appendChild(messageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                input.value = '';
+            }
+        }
+
+        // Allow Enter to send message
+        document.getElementById('discuss-message').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Initialize calendar
+        renderCalendar();
+    </script>
+</body>
+</html>

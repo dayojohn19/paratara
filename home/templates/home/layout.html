@@ -1,0 +1,248 @@
+{% load static %}
+<!doctype html>
+<html lang=en>
+<head>
+    <title>Paratara — Carpool and Resorts</title>
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="48x48" href="{% static 'home/images/favicon-48x48.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'home/images/favicon-16x16.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'home/images/favicon-32x32.png' %}">
+        <!-- Cookies consent: load Cookiebot only on non-localhosts to avoid dev errors -->
+<script>
+(function(){
+    var host = (window.location.hostname || '').toLowerCase();
+    var allowed = [
+        'paratara.com',
+        'www.paratara.com',
+        'dayojohn19.pythonanywhere.com'
+    ];
+    function hostIsAllowed(h){
+        if (!h) return false;
+        for (var i=0;i<allowed.length;i++){
+            if (h === allowed[i]) return true;
+        }
+        return false;
+    }
+    if (hostIsAllowed(host)) {
+        var s = document.createElement('script');
+        s.id = 'Cookiebot';
+        s.src = 'https://consent.cookiebot.com/uc.js';
+        s.setAttribute('data-cbid', 'f333d02c-4b9d-44bf-90a8-648b9ac87ab2');
+        s.setAttribute('data-blockingmode', 'auto');
+        s.type = 'text/javascript';
+        document.head.appendChild(s);
+    }
+})();
+</script>
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-MNDNQVRF');</script>
+<!-- End Google Tag Manager -->
+
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4843007524416588" crossorigin="anonymous"></script>
+<meta name="facebook-domain-verification" content="ipbhywz4h0d53irtzu1edqioym14dj" />
+<meta name="description" content="{{ place.placename }}">
+<meta name="keywords" content="the best and the Great Application Assisting in Carpool transportation travel to go in {{ place.placename }}">
+<link rel="canonical" href="https://paratara.com{{ request.path }}">
+<meta property="og:title" content="Paratara meta title">
+<meta property="og:description" content="the best and the Great Application Assisting in Carpool transportation travel to go in {{ place.placename }}">
+<meta property="og:url" content="https://paratara.com{{ request.path }}">
+<meta property="og:image" content="https://511nyrideshare.org/documents/13062580/13063312/5cf107d7-1710-4076-b902-1aa0e6f554ea.jpg/f64aa95e-0a8c-6aca-470d-eef4ca2002ff?t=1562101484722">
+<meta property="og:description" content="the best and the Great Application Assisting in Carpool transportation travel to go in {{ place.placename }} Website for carpooling, bike cycling traveller, passengers looking for a car service, driver looking for cost share, place to stay recommendation">
+<meta name="author" content="johnwebsietprojects@gmail.com">
+<meta name="twitter:card" content="summary_large_image">
+
+
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="{% static 'home/layout.css' %}">
+<script src="{% static 'home/layoutScheduleModal.js' %}"></script>
+<meta name="canonical" content="{{ request.build_absolute_uri }}">
+</head>
+<!-- ############################################################ -->
+<!-- ############### BELOW FORM FOR CREATE SCHEDULE #############-->
+<!-- ############################################################ -->
+<body>
+    <!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MNDNQVRF"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+
+<script src="https://smtpjs.com/v3/smtp.js"></script>
+<script src="{% static 'home/layout.js' %}"></script>
+<div class="modal-container-main">
+{% if user.is_authenticated %}
+<form id="schedule_form" action="{% url 'home:viaje' %}" method="POST">
+{% csrf_token %}
+<div class="schedule-modal">
+<div>
+<span class="modal-close" onclick="closeViaje()">×</span>
+<div class="modal-header">
+<div class="form-title">Schedule</div>
+</div>
+<div class="progressbar-container">
+<div class="progressbar">
+<div class="progress-fill" id="progressFill"></div>
+<div class="progress-steps">
+<span class="progress-step active" data-step="1">1</span>
+<span class="progress-step" data-step="2">2</span>
+<span class="progress-step" data-step="3">3</span>
+<span class="progress-step" data-step="4">4</span>
+</div>
+</div>
+</div>
+<div class="modal-body">
+<div class="step active" data-step="1">
+<div class="field-group">
+<div class="form-toggle">
+<div class="toggle-group">
+<label class="toggle-option">
+<input required type="radio" name="MakerOrLooker" id="imFind" value="Find" onchange="MakeOrFindSchedule('find')" checked>
+<span>Look</span>
+</label>
+<span class="toggle-separator">or</span>
+<label class="toggle-option">
+<input required type="radio" name="MakerOrLooker" id="imMake" value="Make" onchange="MakeOrFindSchedule('make')">
+<span>Create</span>
+</label>
+</div>
+<div class="form-title">Schedule</div>
+</div>
+<textarea hidden class="schedule-textarea" name="theDetails" placeholder="Looking for ..."></textarea>
+<div id="additionalItineraryContainer"></div>
+</div>
+<div class="step-buttons">
+<button type="button" class="btn-next" onclick="nextStep()">Next →</button>
+</div>
+</div>
+<div class="step" data-step="2">
+<div class="field-group">
+<input name="meetPlace" class="schedule-input" placeholder="From:" required>
+<input name="placenameschedule" value="{{place.placename}}" class="schedule-input" placeholder="To:" list="destinationSearch" maxlength="32" required>
+</div>
+<div class="field-group">
+<div class="container-meetDate">
+<div class="date-input-container">
+<span class="date-icon">
+<svg viewBox="0 0 24 24" class="calendar-icon">
+<path d="M21.5 3h-2.75a.25.25 0 01-.25-.25V1a1 1 0 00-2 0v4.75a.75.75 0 01-.75.75.75.75 0 01-.75-.75V3.5a.5.5 0 00-.5-.5H8.25A.25.25 0 018 2.751V1a1 1 0 10-2 0v4.75a.75.75 0 01-.75.75.75.75 0 01-.75-.75V3.5A.5.5 0 004 3H2.5a2 2 0 00-2 2v17a2 2 0 002 2h19a2 2 0 002-2V5a2 2 0 00-2-2zM21 22H3a.5.5 0 01-.5-.5v-12A.5.5 0 013 9h18a.5.5 0 01.5.5v12a.5.5 0 01-.5.5z"></path>
+</svg>
+</span>
+<input type="datetime-local" name="meetDate" required class="date-input" value="2025-10-07T14:00">
+<span onclick="addMoreDates()" class="add-date-btn">+</span>
+</div>
+</div>
+</div>
+<div class="field-group">
+<input name="scheduleCost" class="schedule-input" placeholder="Budget (optional)">
+</div>
+<div class="field-group">
+<input name="detailsContact" value="{{request.user.email}}" class="schedule-input" placeholder="Contact Details" required>
+</div>
+<div class="step-buttons">
+<button type="button" class="btn-back" onclick="prevStep()">← Back</button>
+<button type="button" class="btn-next" onclick="nextStep()">Next →</button>
+</div>
+</div>
+<div class="step" data-step="3">
+<div class="field-group">
+<select class="schedule-select" name="scheduleTravelType" onchange="schedule_Additional_Input(value)">
+<option value="RIDE" selected>Car Pool</option>
+<optgroup label="Tour Types">
+<option value="BIKE">Bike</option>
+<option value="HIKE">Hike</option>
+<option value="DIVE">Dive</option>
+<option value="CAMP">Camp</option>
+</optgroup>
+</select>
+<div id="InputContainer">
+<div id="div-RideContainer">
+<div class="radio-options-custom flexBox-for-SVG">
+<span class="flexBox-for-Title">I'm</span>
+<span>
+<div class="flexBox-option1">
+<input required value="Driver" name="scheduleTypeAndMode" type="radio" id="Driver">
+<label for="Driver">Driver</label>
+</div>
+<div class="flexBox-option1">
+<input required value="Passenger" name="scheduleTypeAndMode" type="radio" id="Passenger">
+<label for="Passenger">Passenger</label>
+</div>
+</span>
+</div>
+</div>
+</div>
+</div>
+<div class="step-buttons">
+<button type="button" class="btn-back" onclick="prevStep()">← Back</button>
+<button type="button" class="btn-next" onclick="nextStep()">Next →</button>
+</div>
+</div>
+<div class="step" data-step="4">
+<div class="submit-group">
+<button type="button" class="btn-back" onclick="prevStep()">← Back</button>
+<button type="submit" class="btn-back btn-submit">Submit</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</form>
+{% else %}
+<div class="modal modal-sheet position-static d-block bg-body-secondary p-4 py-md-5" tabindex="-1" role="dialog" id="modalChoice">
+<span class="button-close" onclick="closeViaje()">&times;</span>
+<div class="modal-dialog" role="document">
+<div class="modal-content rounded-3 shadow">
+<div class="modal-body p-4 text-center">
+<h5 class="mb-0">Please Login</h5>
+<p class="mb-0">Easy Sign up with our App</p>
+</div>
+<a href="{% url 'userProfile:registerUser' %}" style="text-decoration:none">
+<div class="modal-footer flex-nowrap p-0" style="min-height:4em">
+<button type="button" class="btn btn-lg btn-link fs-6 text-decoration-none col-6 m-0 rounded-0 border-end"><strong>Sign In</strong></button>
+<button type="button" class="btn btn-lg btn-link fs-6 text-decoration-none col-6 m-0 rounded-0" data-bs-dismiss="modal">Register</button>
+</div>
+</a>
+</div>
+</div>
+</div>
+{% endif %}
+</div>
+<div>
+<div> {% include "home/navBar.html" %} </div>
+</div>
+<div class="center-body">{% block body %}{% endblock %}</div>
+<div>
+<footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
+    <p></p>
+    <a href="/" class="col-md-4 d-flex align-items-center justify-content-center mb-3 mb-md-0 me-md-auto link-dark text-decoration-none">
+    <svg class="bi me-2" width="40" height="32"><use xlink:href="#bootstrap"></use></svg>
+    </a>
+    <ul class="nav col-md-4 justify-content-end">
+    <li class="nav-item">
+    <a href="#" class="nav-link px-2 text-muted"><small>{% now ' h:i a F j' %}</small></a>
+    </li>
+    {% if user.is_authenticated %}
+    <li class="nav-item">
+    <a href="{% url 'userProfile:logoutUserJSON' %}" class="nav-link px-2 text-muted">Log Out</a>
+    </li>
+    {% else %}
+    <li class="nav-item">
+    <button id="button-login"><a href="{% url 'userProfile:registerUser' %}">Login or Register</a></button>
+    </li>
+    {% endif %}
+    <li class="nav-item">
+    <button id="get-loc">Get Location</button>
+    <p id="status"></p>
+    </li>
+    </ul>
+</footer>
+</div>
+</body>
+<script>const statusEl=document.getElementById("status"),btn=document.getElementById("get-loc");btn.addEventListener("click",(()=>{"geolocation"in navigator?navigator.geolocation.getCurrentPosition((t=>{const e=t.coords.latitude,o=t.coords.longitude;statusEl.textContent=`Latitude: ${e}, Longitude: ${o}`}),(t=>{statusEl.textContent=`Error: ${t.message}`}),{enableHighAccuracy:!0,timeout:1e4,maximumAge:0}):statusEl.textContent="Geolocation is not supported by your browser."}))</script>
+</html>

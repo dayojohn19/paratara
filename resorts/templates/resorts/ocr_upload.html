@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Resorts — OCR Upload</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;max-width:980px;margin:28px auto;padding:0 18px}
+    h1{font-size:20px;margin-bottom:6px}
+    .row{display:flex;gap:12px;align-items:center}
+    .file-list{margin-top:14px}
+    .item{border:1px solid #ddd;padding:12px;margin-bottom:12px;border-radius:8px}
+    .thumb{max-width:320px;max-height:240px;display:block;margin-bottom:8px}
+    .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    button{padding:8px 10px;border-radius:6px;border:1px solid #bbb;background:#f8f8f8;cursor:pointer}
+    button.confirm{background:#4CAF50;color:white;border-color:#45a049}
+    progress{width:100%}
+    pre{white-space:pre-wrap;background:#f6f6f6;padding:8px;border-radius:6px}
+    .menu-items{background:#eef;padding:12px;border-radius:6px;margin-top:8px;}
+    .menu-item{background:white;padding:10px;margin-bottom:8px;border-radius:4px;border:1px solid #ddd;}
+    .menu-item label{display:block;font-size:11px;color:#666;margin-bottom:2px;font-weight:bold;}
+    .menu-item input{width:100%;padding:6px;border:1px solid #ddd;border-radius:4px;margin-bottom:6px;font-size:13px;}
+    .menu-item input[type="number"]{width:120px;}
+    .menu-item-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+    .remove-item{background:#ff4444;color:white;border:none;padding:4px 8px;font-size:11px;cursor:pointer;border-radius:3px;}
+    textarea.openai-result{width:100%;min-height:200px;font-family:monospace;font-size:12px;padding:8px;border:1px solid #ddd;border-radius:6px;background:#eef;margin-top:8px}
+  </style>
+</head>
+<body>
+  <h1>Resorts — OCR: Upload Images</h1>
+  <p>Select multiple images below; OCR runs in your browser using Tesseract.js (no server required).</p>
+
+  <!-- Resort Selection Section -->
+  <div class="row" style="margin-bottom:12px;padding:12px;background:#f9f9f9;border-radius:8px;">
+    <div style="flex:1;">
+      <label for="resortSelect" style="display:block;margin-bottom:4px;font-weight:bold;">Select Resort:</label>
+      <select id="resortSelect" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;">
+        <option value="">-- Choose a resort --</option>
+        {% for resort in resorts %}
+        <option value="{{ resort.id }}" {% if preselected_resort_id and resort.id|stringformat:"s" == preselected_resort_id %}selected{% endif %}>
+          {{ resort.RealName }} ({{ resort.place.placename }})
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div style="flex:1;margin-left:12px;">
+      <label for="packageTitle" style="display:block;margin-bottom:4px;font-weight:bold;">Package Title:</label>
+      <input id="packageTitle" type="text" placeholder="e.g., Food Menu, Beverages" value="Food Menu" style="width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;" />
+    </div>
+  </div>
+
+  <div class="row">
+    <input id="fileInput" type="file" accept="image/*" multiple />
+    <button id="processAll">Process All</button>
+    <button id="clearAll">Clear</button>
+  </div>
+
+  <div class="file-list" id="fileList"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@2.1.5/dist/tesseract.min.js"></script>
+  <script>
+    const input = document.getElementById('fileInput');
+    const fileList = document.getElementById('fileList');
+    const processAllBtn = document.getElementById('processAll');
+    const clearAllBtn = document.getElementById('clearAll');
+
+    let entries = [];
+
+    function humanBytes(n){
+      if(n<1024) return n+' B';
+      if(n<1024*1024) return (n/1024).toFixed(1)+' KB';
+      return (n/(1024*1024)).toFixed(1)+' MB';
+    }
+
+    input.addEventListener('change', (ev)=>{
+      const files = Array.from(ev.target.files || []);
+      entries = files.map(f=>({file:f, text:'', status:'idle', progress:0}));
+      renderList();
+    });
+
+    clearAllBtn.addEventListener('click', ()=>{
+      entries = [];
+      input.value = '';
+      renderList();
+    });
+
+    processAllBtn.addEventListener('click', async ()=>{
+      processAllFiles();
+    });
+
+    async function processAllFiles(){
+      // process sequentially to avoid memory spikes; change to parallel if you want concurrency
+      for(const e of entries){
+        if(e.status === 'done' || e.status === 'sent' || e.status === 'saved') continue;
+        await processEntry(e);
+      }
+    }
+
+    function renderList(){
+      fileList.innerHTML = '';
+      if(entries.length===0){
+        fileList.innerHTML = '<p>No images selected.</p>';
+        return;
+      }
+      entries.forEach((e, idx)=>{
+        const div = document.createElement('div');
+        div.className = 'item';
+        const info = document.createElement('div');
+        info.innerHTML = `<strong>${e.file.name}</strong> &nbsp; <small>${humanBytes(e.file.size)}</small>`;
+        const img = document.createElement('img');
+        img.className='thumb';
+        img.src = URL.createObjectURL(e.file);
+        img.onload = ()=> URL.revokeObjectURL(img.src);
+
+        const prog = document.createElement('progress');
+        prog.max = 1; prog.value = e.progress || 0;
+
+        const controls = document.createElement('div');
+        controls.className = 'controls';
+        const processBtn = document.createElement('button');
+        processBtn.textContent = 'Process';
+        processBtn.onclick = ()=> processEntry(e);
+        const status = document.createElement('span'); status.style.marginLeft='8px'; status.textContent = e.status;
+        
+        // Add "Manual Entry" button to skip OCR
+        const manualBtn = document.createElement('button');
+        manualBtn.textContent = 'Skip OCR / Manual Entry';
+        manualBtn.onclick = ()=> {
+          if(!e.openaiResult){
+            e.openaiResult = {items: [], offers: [], notes: 'Manual entry'};
+          }
+          e.status = 'manual';
+          e.skipOpenAI = true;  // Flag to skip OpenAI processing
+          renderList();
+        };
+
+        controls.appendChild(processBtn);
+        controls.appendChild(manualBtn);
+        controls.appendChild(status);
+
+        div.appendChild(info);
+        div.appendChild(img);
+        div.appendChild(prog);
+        div.appendChild(controls);
+        
+        // Debug: Log the entry data
+        console.log('Entry status:', e.status, 'Has openaiResult:', !!e.openaiResult, 'Has items:', e.openaiResult?.items?.length);
+        
+        // Always show the manual input form once OCR is done or status is 'done', 'sent', 'manual', or 'error'
+        // Initialize openaiResult if it doesn't exist
+        if((e.status === 'done' || e.status === 'sent' || e.status === 'manual' || e.status === 'error') && !e.openaiResult){
+          e.openaiResult = {items: [], offers: [], notes: 'Manual entry'};
+        }
+        
+        // OpenAI result as individual input fields for each item
+        // Show the form even if items array is empty or has 0 items
+        if(e.openaiResult && e.openaiResult.items){
+          const menuContainer = document.createElement('div');
+          menuContainer.className = 'menu-items';
+          
+          // If no items, show a message but still allow adding items
+          if(e.openaiResult.items.length === 0){
+            const noItemsMsg = document.createElement('p');
+            noItemsMsg.textContent = 'No items detected. Click "+ Add Item Manually" to add items.';
+            noItemsMsg.style.color = '#666';
+            noItemsMsg.style.fontStyle = 'italic';
+            noItemsMsg.style.marginBottom = '12px';
+            menuContainer.appendChild(noItemsMsg);
+          }
+          
+          e.openaiResult.items.forEach((item, itemIdx) => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'menu-item';
+            
+            const itemHeader = document.createElement('div');
+            itemHeader.className = 'menu-item-header';
+            const itemTitle = document.createElement('strong');
+            itemTitle.textContent = `Item ${itemIdx + 1}`;
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'remove-item';
+            removeBtn.textContent = 'Remove';
+            removeBtn.onclick = () => {
+              e.openaiResult.items.splice(itemIdx, 1);
+              renderList();
+            };
+            itemHeader.appendChild(itemTitle);
+            itemHeader.appendChild(removeBtn);
+            itemDiv.appendChild(itemHeader);
+            
+            // Name field
+            const nameLabel = document.createElement('label');
+            nameLabel.textContent = 'Name:';
+            const nameInput = document.createElement('input');
+            nameInput.type = 'text';
+            nameInput.value = item.name || '';
+            nameInput.onchange = (ev) => { item.name = ev.target.value; };
+            itemDiv.appendChild(nameLabel);
+            itemDiv.appendChild(nameInput);
+            
+            // Description field
+            const descLabel = document.createElement('label');
+            descLabel.textContent = 'Description:';
+            const descInput = document.createElement('input');
+            descInput.type = 'text';
+            descInput.value = item.description || '';
+            descInput.onchange = (ev) => { item.description = ev.target.value; };
+            itemDiv.appendChild(descLabel);
+            itemDiv.appendChild(descInput);
+            
+            // Price field
+            const priceLabel = document.createElement('label');
+            priceLabel.textContent = 'Price (₱):';
+            const priceInput = document.createElement('input');
+            priceInput.type = 'number';
+            priceInput.value = item.price || 0;
+            priceInput.onchange = (ev) => { item.price = parseInt(ev.target.value) || 0; };
+            itemDiv.appendChild(priceLabel);
+            itemDiv.appendChild(priceInput);
+            
+            menuContainer.appendChild(itemDiv);
+          });
+          
+          const addItemBtn = document.createElement('button');
+          addItemBtn.textContent = '+ Add Item Manually';
+          addItemBtn.style.marginTop = '8px';
+          addItemBtn.style.marginRight = '8px';
+          addItemBtn.onclick = ()=> {
+            e.openaiResult.items.push({name: '', description: '', price: 0});
+            renderList();
+          };
+          
+          const confirmBtn = document.createElement('button');
+          confirmBtn.className = 'confirm';
+          confirmBtn.textContent = 'Confirm & Save All Items';
+          confirmBtn.style.marginTop = '8px';
+          confirmBtn.onclick = ()=> confirmResult(e);
+          
+          menuContainer.appendChild(addItemBtn);
+          menuContainer.appendChild(confirmBtn);
+          div.appendChild(menuContainer);
+        }
+        
+        fileList.appendChild(div);
+      });
+    }
+
+    async function processEntry(entry){
+      entry.status = 'loading'; entry.progress = 0; renderList();
+      const { createWorker } = Tesseract;
+      const worker = createWorker({
+        logger: m => {
+          if(m.status === 'recognizing text' && m.progress) {
+            entry.progress = m.progress; renderList();
+          }
+        }
+      });
+      try{
+        await worker.load();
+        await worker.loadLanguage('eng');
+        await worker.initialize('eng');
+        entry.status = 'recognizing'; renderList();
+        const { data: { text } } = await worker.recognize(entry.file);
+        entry.text = text.trim();
+        entry.status = 'done'; entry.progress = 1; renderList();
+          // Auto-send to OpenAI after successful OCR (only if not flagged as manual entry)
+          if(!entry.skipOpenAI){
+            try{ await sendToOpenAI(entry); }catch(e){}
+          }
+      }catch(err){
+        entry.text = 'Error: '+ (err.message || err);
+        entry.status = 'error'; renderList();
+      }finally{
+        try{ await worker.terminate(); }catch(e){}
+      }
+    }
+
+    function downloadText(entry){
+      const blob = new Blob([entry.text||""], {type:'text/plain;charset=utf-8'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = (entry.file.name.replace(/\.[^.]+$/, '') || 'output') + '_ocr.txt';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(a.href), 5000);
+    }
+
+    async function sendToOpenAI(entry){
+      if(!entry.text) return alert('No OCR text to send');
+      entry.status = 'sending'; renderList();
+      try{
+        function getCookie(name) {
+          const value = `; ${document.cookie}`;
+          const parts = value.split(`; ${name}=`);
+          if (parts.length === 2) return parts.pop().split(';').shift();
+          return '';
+        }
+        const csrftoken = getCookie('csrftoken');
+        const res = await fetch('/resorts/ocr-process-openai/', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: {
+            'Content-Type':'application/json',
+            'X-CSRFToken': csrftoken
+          },
+          body: JSON.stringify({text: entry.text, filename: entry.file.name})
+        });
+        const json = await res.json();
+        if(json.success && json.data){
+          entry.openaiResult = json.data;
+          entry.openaiResultText = JSON.stringify(json.data, null, 2);
+        } else if(json.raw){
+          entry.openaiResultText = json.raw;
+        } else if(json.error){
+          entry.openaiResultText = 'Error: ' + json.error;
+        } else {
+          entry.openaiResultText = JSON.stringify(json, null, 2);
+        }
+        entry.status = 'sent';
+        renderList();
+      }catch(err){
+        entry.openaiResultText = 'Error: '+(err.message||err);
+        entry.status = 'error';
+        renderList();
+      }
+    }
+
+    function confirmResult(entry){
+      // User confirmed the edited OpenAI result
+      if(!entry.openaiResult || !entry.openaiResult.items){
+        alert('No menu items found!');
+        return;
+      }
+      
+      const items = entry.openaiResult.items;
+      console.log('Confirmed data:', items);
+      
+      // Get selected resort and package title
+      const resortId = document.getElementById('resortSelect').value;
+      const packageTitle = document.getElementById('packageTitle').value.trim();
+      
+      if(!resortId){
+        alert('Please select a resort first!');
+        return;
+      }
+      
+      if(!packageTitle){
+        alert('Please enter a package title (e.g., Food Menu)');
+        return;
+      }
+      
+      if(items.length === 0){
+        alert('No items to save!');
+        return;
+      }
+      
+      // Save to database
+      saveMenuToDatabase(resortId, packageTitle, items, entry);
+    }
+    
+    async function saveMenuToDatabase(resortId, packageTitle, items, entry){
+      try{
+        const res = await fetch('/resorts/ocr-save-menu/', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({
+            resort_id: parseInt(resortId),
+            package_title: packageTitle,
+            items: items
+          })
+        });
+        
+        const json = await res.json();
+        
+        if(json.success){
+          const itemsList = json.items.map(item => `  • ${item.title} - ₱${item.price}`).join('\n');
+          const packageInfo = json.package_existed 
+            ? `Added to existing package "${json.package_title}"` 
+            : `Created new package "${json.package_title}"`;
+          alert(`✅ Success!\n\n${packageInfo}\n\nCreated ${json.items.length} menu items:\n\n${itemsList}`);
+          
+          // Clear the entry data to prevent double save
+          entry.openaiResultText = '';
+          entry.openaiResult = null;
+          entry.status = 'saved';
+          renderList();
+        } else if(json.error){
+          alert('❌ Error: ' + json.error);
+        } else {
+          alert('Saved but received unexpected response:\n' + JSON.stringify(json, null, 2));
+        }
+      }catch(err){
+        alert('❌ Network error while saving: ' + err.message);
+      }
+    }
+  </script>
+</body>
+</html>

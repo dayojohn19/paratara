@@ -1,0 +1,47 @@
+{% extends "home/layout.html" %}
+{% load static %}
+
+{% block body %}
+<link rel="stylesheet" href="{% static 'home/index.css' %}" />
+
+<div class="container-center" style="margin-top: 1.5rem;">
+  <h2 style="text-align:center;">Facebook Posts</h2>
+
+  {% if posts %}
+    <div style="max-width: 900px; margin: 0 auto;">
+      {% for p in posts %}
+        <div style="border: 1px solid rgba(0,0,0,0.1); border-radius: 12px; padding: 14px; margin: 14px 0; background: #fff;">
+          <div style="display:flex; justify-content:space-between; gap:12px; align-items:baseline;">
+            <div style="font-weight:600;">Post</div>
+            <div style="opacity:0.7; font-size: 0.9em;">
+              {% if p.created_time %}{{ p.created_time|date:"M d, Y h:i A" }}{% else %}{{ p.imported_at|date:"M d, Y h:i A" }}{% endif %}
+            </div>
+          </div>
+
+          {% if p.message %}
+            <div style="margin-top: 8px; white-space: pre-wrap;">{{ p.message }}</div>
+          {% endif %}
+
+          {% if p.permalink_url %}
+            <div style="margin-top: 8px;">
+              <a href="{{ p.permalink_url }}" target="_blank" rel="noopener">Open on Facebook</a>
+            </div>
+          {% endif %}
+
+          {% if p.media_json and p.media_json.media_urls %}
+            <div style="margin-top: 10px; display:flex; flex-wrap: wrap; gap: 10px;">
+              {% for img in p.media_json.media_urls %}
+                <a href="{{ img }}" target="_blank" rel="noopener">
+                  <img src="{{ img }}" alt="" style="width: 160px; height: 160px; object-fit: cover; border-radius: 10px;" />
+                </a>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p style="text-align:center; opacity:0.8; margin-top: 1rem;">No Facebook posts imported yet. Run <code>python manage.py sync_facebook_page_posts</code>.</p>
+  {% endif %}
+</div>
+{% endblock %}

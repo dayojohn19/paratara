@@ -1,0 +1,711 @@
+{% extends "home/layout.html" %}
+{% load static %}
+
+{% block body %}
+<!-- INFORMATION !! -->
+<!-- INFORMATION !! -->
+<!-- INFORMATION !! -->
+<!-- INFORMATION !! -->
+<!-- INFORMATION !! -->
+<!-- INFORMATION !! -->
+
+<!-- ALL THE LATES UPDATES ARE ON LAYOUT.HTML FILE -->
+<!-- JULY 24 2022 -->
+
+
+
+
+
+<style>
+    .modal-container-main {
+        /* DISPLAYING FORM */
+        /* display: none; */
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgb(0, 0, 0);
+        background-color: rgba(0, 0, 0, 0.4);
+        animation-name: slideIn;
+        animation-duration: 0.4s;
+        font-family: Poppins, sans-serif;
+    }
+
+    .modal-container-sub {
+        width: fit-content;
+        margin: 5% auto;
+        /* text-align: center; */
+        /* background-color: #d9ffda; */
+        /* background-color: #fff9d9; */
+        background-color: rgb(251, 237, 235);
+        position: relative;
+        border-radius: 8px;
+        padding: 0;
+        /* padding: 0; */
+        max-width: 90%;
+
+    }
+
+    .button-close {
+        position: absolute;
+        right: 1px !important;
+        margin: 1rem;
+        font-size: x-large;
+        color: grey;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        font-family: Raleway, sans-serif;
+    }
+
+    .button-close:hover {
+        color: #000;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .modal-item-head {
+        border-radius: 8px 8px 0 0;
+        padding: 4px;
+        padding-left: 0;
+        padding-right: 0;
+        /* background-color: #f8eca5; */
+        background-color: rgb(249, 214, 167);
+        padding-bottom: 0;
+        /* background-color: #cbdbfd; */
+        /* background-color: #d9ffda; */
+    }
+
+    .custom-header {
+        font-family: poppins-semibold, poppins, sans-serif;
+        font-weight: 200;
+        letter-spacing: calc(0.2vh + 0.2vw);
+    }
+
+    .button-add {
+        background-color: #4CAF50;
+    }
+
+    .button-remove {
+        background-color: rgb(252, 84, 91);
+    }
+
+    .button-single {
+        color: white;
+        border: none;
+        border-radius: 6px;
+
+    }
+
+    .flexBox-for-SVG {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        /* line-height: 1px; */
+    }
+
+    .flexBox-for-Title {
+        /* background-color: #4CAF50;
+        height: max-content;
+        font-size: xx-large;
+        padding: 6px; */
+        /*  */
+        font-family: system-ui, sans-serif;
+        /* font-size: 2rem; */
+        font-weight: 500;
+        line-height: 1.1;
+        font-size: calc(4vh + 2vw);
+    }
+
+    input[type="radio"] {
+        transform: translateY(-0.075em);
+        -webkit-appearance: none;
+        appearance: none;
+        /* For iOS < 15 to remove gradient background */
+        background-color: #fff;
+        margin: 0;
+        /*  */
+        font: inherit;
+        color: currentColor;
+        width: 1.15em;
+        height: 1.15em;
+        border: 0.1em solid currentColor;
+        border-radius: 50%;
+        /*  */
+        display: grid;
+        place-content: center;
+
+    }
+
+    input[type="radio"]::before {
+        content: "";
+        width: 0.65em;
+        height: 0.65em;
+        border-radius: 50%;
+        transform: scale(0);
+        transition: 120ms transform ease-in-out;
+        box-shadow: inset 1em 1em var(--form-control-color);
+        /* background-color: CanvasText; */
+        /*  */
+    }
+
+    input[type="radio"]:checked::before {
+        transform: scale(1);
+        background-color: CanvasText;
+    }
+
+    .flexBox-option1 {
+        padding: 8px;
+        /* font-size: x-large; */
+        /*  */
+        font-family: system-ui, sans-serif;
+        /* font-size: 2rem; */
+        /* font-size: calc(1vh + 5vw); */
+        font-size: calc(3vh + 1vw);
+        font-weight: 500;
+        line-height: 1.1;
+        display: grid;
+        grid-template-columns: 1em auto;
+        gap: 0.5em;
+        /*  */
+        font-family: var(--brand-font-alt);
+    }
+
+
+    .user-svg-top {
+        max-height: 16px;
+        padding-right: 3px;
+        padding-left: 10px;
+    }
+
+    .custom-field-container {
+        background-color: white;
+        padding-left: 20px;
+        padding-right: 20px;
+        padding-bottom: 20px;
+    }
+
+    .custom-field {
+        /* background-color: azure; */
+        font-size: calc(3vh + 1vw);
+        text-align: center;
+        background-color: rgba(178, 34, 34, 0);
+        margin-top: 15px;
+        border-top: none;
+        border-left: none;
+        border-right: none;
+        max-width: 80%;
+        /* border-bottom: #4CAF50 solid 5px; */
+
+    }
+
+
+
+
+
+    .radio-options-custom {
+        list-style: none;
+    }
+
+
+
+    .TourOption-textarea {
+        /* VERSION 1 */
+        /* width: 600px;
+        height: 300px;
+        font: normal 14px verdana;
+        line-height: 25px;
+        padding: 2px 10px;
+        border: solid 1px #ddd; */
+
+        /* VERSION 2 */
+        /* border: 1px solid #EEEEEE;
+        box-shadow: 1px 1px 0 #DDDDDD;
+        display: block;
+        font-family: 'Marck Script', cursive;
+        font-size: 22px;
+        line-height: 50px;
+        margin: 2% auto;
+        padding: 11px 20px 0 70px;
+        resize: none;
+        height: 689px;
+        width: 530px;
+        background-image: -moz-linear-gradient(top, transparent, transparent 49px, #E7EFF8 0px), -moz-radial-gradient(4% 50%, circle closest-corner, #f5f5f5, #f5f5f5 39%, transparent 0%), -moz-radial-gradient(3.9% 46%, circle closest-corner, #CCCCCC, #CCCCCC 43.5%, transparent 0%);
+        background-image: -webkit-linear-gradient(top, transparent, transparent 49px, #E7EFF8 0), -webkit-radial-gradient(4% 50%, circle closest-corner, #f5f5f5, #f5f5f5 39%, transparent 0%), -webkit-radial-gradient(3.9% 46%, circle closest-corner, #cccccc, #cccccc 43.5%, transparent 0%);
+        -webkit-background-size: 100% 50px;
+        background-size: 100% 50px; */
+
+        /* VERSION 3 */
+        /*font-family: 'Marck Script', cursive;*/
+        /* color: #000000;
+        border: 1px solid #EEEEEE;
+        box-shadow: 1px 1px 0 #DDDDDD;
+        display: inline-block;
+        vertical-align: top;
+        font-family: 'Reenie Beanie', cursive;
+        font-size: 24px;
+        line-height: 20px;
+        margin: 2% auto;
+        padding: 22px 20px 3px 40px;
+        resize: none;
+        min-height: 200px;
+        width: 300px;
+        background-color: #FFFFFF;
+        background-image: -moz-linear-gradient(top, transparent, transparent 19px, #E7EFF8 0px), -moz-radial-gradient(4% 50%, circle closest-corner, #f5f5f5, #f5f5f5 39%, transparent 0%), -moz-radial-gradient(3.9% 46%, circle closest-corner, #CCCCCC, #CCCCCC 43.5%, transparent 0%);
+        background-image: -webkit-linear-gradient(top, transparent, transparent 19px, #E7EFF8 0), -webkit-radial-gradient(4% 50%, circle closest-corner, #f5f5f5, #f5f5f5 39%, transparent 0%), -webkit-radial-gradient(3.9% 46%, circle closest-corner, #CCCCCC, #CCCCCC 43.5%, transparent 0%);
+        -webkit-background-size: 100% 20px;
+        background-size: 100% 20px; */
+
+        /* VERSION 4 */
+        /* border: 1px solid #EEEEEE;
+        box-shadow: 1px 1px 0 #DDDDDD;
+        display: block;
+        font-family: 'Marck Script', cursive;
+        font-size: 22px;
+        line-height: 50px;
+        margin: 2% auto;
+        padding: 11px 20px 0 70px;
+        resize: none;
+        height: 390px;
+        width: 530px;
+
+        background-image: -moz-linear-gradient(top, transparent, transparent 49px, #E7EFF8 0px), -moz-radial-gradient(4% 50%, circle closest-corner, #f5f5f5, #f5f5f5 39%, transparent 0%), -moz-radial-gradient(3.9% 46%, circle closest-corner, #CCCCCC, #CCCCCC 43.5%, transparent 0%);
+        background-image: -webkit-linear-gradient(top, transparent, transparent 49px, #E7EFF8 0), -webkit-radial-gradient(4% 50%, circle closest-corner, #f5f5f5, #f5f5f5 39%, transparent 0%), -webkit-radial-gradient(3.9% 46%, circle closest-corner, #cccccc, #cccccc 43.5%, transparent 0%);
+
+        -webkit-background-size: 100% 50px;
+        background-size: 100% 50px; */
+    }
+
+    .button-custom1 {
+        font-size: calc(1.8vh + 0.3vw);
+
+        padding: calc(1vh + 0.5vw);
+        border-radius: 7px;
+        border: none;
+        background-color: rgb(243, 209, 165);
+        text-shadow: white 0 0 2px;
+        box-shadow: #9e9e9e 2.1px 2.3px 2px;
+        margin: calc(0.5vh + 0.5vw);
+        bottom: 1px !important;
+    }
+
+    .small-item1 {
+        font-size: smaller;
+    }
+
+    .div-instagramContainer {
+        display: flex;
+        align-items: center;
+        Justify-content: center
+    }
+
+    .select-custom {
+        padding: 30px;
+        background-color: antiquewhite;
+        font-size: 15px;
+    }
+
+    .textarea-otherDetails {
+        width: 80%;
+        min-height: 76px;
+        border: none;
+        border-radius: 4px;
+        padding: 9px;
+        box-shadow: 0 0 5px grey;
+
+    }
+
+    .custom-field-item {
+        margin-bottom: 10px;
+        text-align: center;
+    }
+
+    .additionalInputContainer {
+        width: inherit;
+    }
+</style>
+<script>
+
+    // For Additional Inputs on Schedule Type
+    function schedule_Additional_Input(what_Type) {
+        // TEST
+        console.log(what_Type)
+        // TODO QUERY SELECT BY NAME VALUE FROM MAKER OR LOOKER THEN REMOVE THE ITINERARY TEXT FIELD
+        // youre = document.querySelector("#MakerOrLooker")
+        // console.log('YOURE: ', youre)
+
+        // TEST
+        console.log(what_Type)
+        InputContainer = document.querySelector('.additionalInputContainer')
+        InputContainer.innerHTML = ''
+        OptionContainer = document.createElement('div')
+        if (what_Type == 'RIDE') {
+            console.log('IST RIRED')
+            OptionContainer.innerHTML = `
+                        <div id="div-RideContainer">
+                            <div class="radio-options-custom flexBox-for-SVG">
+                                <span class="flexBox-for-Title">I'm</span>
+                                <span>
+                                    <div class="flexBox-option1">
+                                        <input value="Driver" name="scheduleTypeAndMode" type="radio" id="Driver">
+                                        <label for="Driver">Driver</label>
+                                    </div>
+                                    <div class="flexBox-option1">
+                                        <input value="Passenger" name="scheduleTypeAndMode" type="radio"
+                                            id="Passenger"><label for="Passenger">Passenger</label>
+                                    </div>
+                                </span>
+                            </div>
+                            <div class="flexBox-for-SVG">Meet
+                                <input type="time">
+                                <span>
+                                    <svg viewBox="0 0 24 24" class="user-svg-top">
+                                        <path
+                                            d="M12 0a12 12 0 1012 12A12.013 12.013 0 0012 0zm5.2 17.221a1.016 1.016 0 01-1.413.062l-4.959-4.546A1 1 0 0110.5 12V6.5a1 1 0 012 0v5.06l4.634 4.248a1 1 0 01.066 1.414z">
+                                        </path>
+                                    </svg>
+                                </span>
+                            </div>
+                        </div>            
+            
+            `
+            // END RETURN SINCE IT IS JUST A RIDE
+            InputContainer.appendChild(OptionContainer)
+
+            return
+        }
+        if (what_Type == 'DIVE') {
+            OptionContainer.innerHTML = `
+                        <div id="div-DiveContainer">
+                            <div class="radio-options-custom flexBox-for-SVG">
+                                <span class="flexBox-for-Title">
+                                    <!-- INSERT DIVE SVG HERE -->
+                                </span>
+                                <div class="flexBox-for-SVG" style="flex-wrap: wrap;">
+                                    <span class="flexBox-option1">
+                                        <input value="Scuba Dive" name="scheduleTypeAndMode" type="radio"
+                                            id="Scuba Dive"><label for="Scuba Dive">Scuba
+                                            Dive</label>
+                                    </span>
+                                    <span class="flexBox-option1">
+                                        <input id="Free Dive" value="Free Dive" name="scheduleTypeAndMode"
+                                            type="radio"><label for="Free Dive">Free
+                                            Dive</label>
+                                    </span>
+                                    <span class="flexBox-option1">
+                                        <input id="Scuba and Free Dive" value="Scuba and Free Dive"
+                                            name="scheduleTypeAndMode" type="radio"><label
+                                            for="Scuba and Free Dive">Scuba
+                                            and Free Dive</label>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>            
+            `
+        }
+        if (what_Type == 'HIKE') {
+            OptionContainer.innerHTML = `
+                        <div class="div-HikeContainer">
+                            <div class="flexBox-for-SVG" style="flex-wrap: wrap;">
+                                <span class="flexBox-option1"><input id="Chill Hike" name="scheduleTypeAndMode"
+                                        type="radio" value="Chill Hike"><label for="Chill Hike">
+                                        Chill Hike
+                                    </label>
+                                </span>
+                                <span class="flexBox-option1"><input id="Beginner Hike" name="scheduleTypeAndMode"
+                                        type="radio" value="Beginner Hike"><label for="Beginner Hike">Beginner
+                                        Hike</label>
+                                </span>
+                                <span class="flexBox-option1"><input id="Hard Hike" name="scheduleTypeAndMode"
+                                        type="radio" value="Hard Hike"><label for="Hard Hike">Hard Hike</label>
+                                </span>
+                                <span class="flexBox-option1"><input name="scheduleTypeAndMode" type="radio"
+                                        id="Camp Hike" value="Camp Hike"><label for="Camp Hike">Camp Hike</label>
+                                </span>
+                            </div>
+                        </div>            
+            
+            `
+        }
+        if (what_Type == 'BIKE') {
+            OptionContainer.innerHTML = `
+                        <div class="div-BikeContainer">
+                            <div class="flexBox-for-SVG" style="flex-wrap: wrap;">
+                                <span class="flexBox-option1">
+                                    <input type="radio" name="scheduleTypeAndMode" value="Chill Bike"
+                                        id="Chill Bike"><label for="Chill Bike">Chill
+                                        Bike</label>
+                                </span>
+                                <span class="flexBox-option1">
+                                    <input type="radio" name="scheduleTypeAndMode" value="Hard Bike"
+                                        id="Hard Bike"><label for="Hard Bike">Hard
+                                        Bike</label>
+                                </span>
+                                <span class="flexBox-option1">
+                                    <input type="radio" name="scheduleTypeAndMode" value="Long Bike"
+                                        id="Long Bike"><label for="Long Bike">Long
+                                        Bike</label>
+                                </span>
+
+                                <span class="flexBox-option1">
+                                    <input type="radio" name="scheduleTypeAndMode" value="Camp Bike"
+                                        id="Camp Bike"><label for="Camp Bike">Camp
+                                        Bike</label>
+                                </span>
+                            </div>
+                        </div>            
+            `
+        }
+        if (what_Type == 'CAMP') {
+            OptionContainer.innerHTML = `
+                     <div class="div-CampContainer">
+                            <div class="flexBox-for-SVG" style="flex-wrap: wrap;">
+                                <span class="flexBox-option1">
+                                    <input type="radio" name="scheduleTypeAndMode" value="Individual Camp"
+                                        id="Individual Camp"><label for="Individual Camp">Individual Camp</label>
+                                </span>
+                                <span class="flexBox-option1">
+                                    <input type="radio" name="scheduleTypeAndMode" value="Group Camp"
+                                        id="Group Camp"><label for="Group Camp">Group Camp</label>
+                                </span>
+                                <span class="flexBox-option1">
+                                    <input type="radio" name="scheduleTypeAndMode" value="Event Camp"
+                                        id="Event Camp"><label for="Event Camp">Event Camp</label>
+                                </span>
+                            </div>
+                        </div>            
+            `
+        }
+
+
+        InputContainer.appendChild(OptionContainer)
+        return
+
+
+
+
+
+    }
+    function MakeOrFindSchedule(makeOfind) {
+        additionalItineraryContainer = document.querySelector('.additionalItineraryContainer')
+        if (makeOfind == 'make') {
+            ItineraryContainer = document.createElement('div')
+            ItineraryContainer.innerHTML = `
+                            <div class="custom-field-item">
+                                <textarea class="TourOption-textarea textarea-otherDetails" name="additionalDetails"
+                                    placeholder="Itinerary or other Information"></textarea>
+                            </div>        
+        `
+            additionalItineraryContainer.appendChild(ItineraryContainer)
+            return
+        }
+        additionalItineraryContainer.innerHTML = '';
+
+    }
+
+
+</script>
+<script>
+    function deleteDates() {
+        selfElement = event.srcElement
+        parentElement = selfElement.parentNode
+        // pDoc.parentNode
+        console.log(parentElement)
+        parentElement.remove()
+
+    }
+    function addMoreDates() {
+        console.log('AddingMore Dates')
+        // calendarIcon = document.createElement('svg')
+        // calendarIcon.setAttribute('viewBox', '0 0 24 24')
+        // calendarIcon.setAttribute('class', 'user-svg-top')
+        // calendarIcon.innerHTML = `      
+        //                                     <svg viewBox="0 0 24 24" class="user-svg-top">
+        //     <path
+        //         d="M21.5 3h-2.75a.25.25 0 01-.25-.25V1a1 1 0 00-2 0v4.75a.75.75 0 01-.75.75.75.75 0 01-.75-.75V3.5a.5.5 0 00-.5-.5H8.25A.25.25 0 018 2.751V1a1 1 0 10-2 0v4.75a.75.75 0 01-.75.75.75.75 0 01-.75-.75V3.5A.5.5 0 004 3H2.5a2 2 0 00-2 2v17a2 2 0 002 2h19a2 2 0 002-2V5a2 2 0 00-2-2zM21 22H3a.5.5 0 01-.5-.5v-12A.5.5 0 013 9h18a.5.5 0 01.5.5v12a.5.5 0 01-.5.5z">
+        //     </path>
+        // </svg>
+
+        //     `
+        // console.log('CALENDAR ICON', calendarIcon)
+        dateContainer = document.createElement('div')
+        dateContainer.setAttribute('class', 'flexBox-for-SVG')
+        dateCalendarIcon = document.createElement('span')
+        dateCalendarIcon.innerHTML = `
+                                                                <svg viewBox = "0 0 24 24" class="user-svg-top" >
+                                                                     <path
+                                                                        d="M21.5 3h-2.75a.25.25 0 01-.25-.25V1a1 1 0 00-2 0v4.75a.75.75 0 01-.75.75.75.75 0 01-.75-.75V3.5a.5.5 0 00-.5-.5H8.25A.25.25 0 018 2.751V1a1 1 0 10-2 0v4.75a.75.75 0 01-.75.75.75.75 0 01-.75-.75V3.5A.5.5 0 004 3H2.5a2 2 0 00-2 2v17a2 2 0 002 2h19a2 2 0 002-2V5a2 2 0 00-2-2zM21 22H3a.5.5 0 01-.5-.5v-12A.5.5 0 013 9h18a.5.5 0 01.5.5v12a.5.5 0 01-.5.5z">
+                                                                    </path>
+                                                                </svg>`
+        // HERE PUT CALENDAR
+
+
+        dateElement = document.createElement('input')
+        dateElement.setAttribute('type', 'date')
+        dateElement.setAttribute('name', 'meetDate')
+        dateRemoveButton = document.createElement('button')
+        dateRemoveButton.setAttribute('onclick', 'deleteDates()')
+        dateRemoveButton.innerHTML = '-'
+        dateRemoveButton.setAttribute('class', 'button-single button-remove')
+        dateAddButton = document.createElement('button')
+        dateAddButton.setAttribute('onclick', 'addMoreDates()')
+        dateAddButton.setAttribute('class', 'button-single button-add')
+        dateAddButton.innerHTML = '+'
+
+        dateContainer.appendChild(dateCalendarIcon)
+        dateContainer.appendChild(dateElement)
+        dateContainer.appendChild(dateRemoveButton)
+        dateContainer.appendChild(dateAddButton)
+
+        document.querySelector(".container-meetDate").appendChild(dateContainer)
+        console.log('Date Added')
+
+    }
+</script>
+<script>
+    function closeViaje() {
+        dom.style.display = 'none'
+    }
+</script>
+
+
+<form action="{% url 'app_car:viaje'%}" method="POST">
+    {% csrf_token %}
+    <div>
+        <div class="modal-container-main">
+            <div class="modal-container-sub">
+                <span class="button-close" onclick="closeViaje()">x</span>
+
+                <div class="modal-item-head">
+                    <div class="flexBox-for-SVG" style="margin-top: 50px;        background-color: rgb(255, 247, 237);
+">
+                        <!-- TODO REMOVE ITINERARY INPUT WHEN SELECT Find -->
+                        <span>
+                            <div class="flexBox-option1">
+                                <input onchange="MakeOrFindSchedule('find')" required value="Find" type="radio"
+                                    name="MakerOrLooker" id="imFind"><label for="imFind">Find</label>
+                            </div>
+                            <div class="flexBox-option1">
+                                <input onchange="MakeOrFindSchedule('make')" required value="Make" type="radio"
+                                    name="MakerOrLooker" id="imMake"><label for="imMake">Make</label>
+                            </div>
+                        </span>
+                        <span class="flexBox-for-Title">Schedule</span>
+
+                    </div>
+                </div>
+
+                <div class="modal-item-body">
+                    <div class="custom-field-container">
+                        <div class="custom-field-item">
+                            <input name="place" required class="where-to-go custom-field" placeholder="Destination"
+                                list="destinationSearch">
+                        </div>
+                        <div class="custom-field-item">
+                            <input name="meetPlace" required class="where-to-go custom-field"
+                                placeholder="Meet up where?">
+                        </div>
+                        <div class="custom-field-item container-meetDate">
+                            <div style="display:flex; align-items: center; text-align: center; Justify-content: center">
+                                <svg viewBox="0 0 24 24" class="user-svg-top">
+                                    <path
+                                        d="M21.5 3h-2.75a.25.25 0 01-.25-.25V1a1 1 0 00-2 0v4.75a.75.75 0 01-.75.75.75.75 0 01-.75-.75V3.5a.5.5 0 00-.5-.5H8.25A.25.25 0 018 2.751V1a1 1 0 10-2 0v4.75a.75.75 0 01-.75.75.75.75 0 01-.75-.75V3.5A.5.5 0 004 3H2.5a2 2 0 00-2 2v17a2 2 0 002 2h19a2 2 0 002-2V5a2 2 0 00-2-2zM21 22H3a.5.5 0 01-.5-.5v-12A.5.5 0 013 9h18a.5.5 0 01.5.5v12a.5.5 0 01-.5.5z">
+                                    </path>
+                                </svg>
+
+                                <input name="meetDate" required type="date">
+                                <button class="button-single button-add" onclick="addMoreDates()">+
+                                </button>
+                            </div>
+                        </div>
+                        <div class="custom-field-item">
+                            <input required type="text" name="detailsContact" class="custom-field"
+                                placeholder="Contact Details">
+                        </div>
+
+                        <div class="custom-field-item">
+                            <input name="scheduleCost" required class="custom-field"
+                                placeholder="Cost in Php: (optional)" style="max-width: 90%;">
+                        </div>
+                        <!-- DONT CHANGE THE name = scheduleTravelType -->
+                        <!-- <select onchange="console.log(value);" onfocus="this.selectedIndex = -1;"></select> -->
+                        <div class="custom-field-item" style="text-align: center;">
+                            <select class="select-custom" name="scheduleTravelType"
+                                onchange="schedule_Additional_Input(value)">
+                                <option selected="selected">Select...</option>
+                                <option onselect="console.log(value)" value="RIDE">RIDE</option>
+                                <optgroup label="Tour Types">
+                                    <option onclick="console.log(value)">BIKE
+
+
+                                    </option>
+                                    <option onclick="console.log(value)">HIKE</option>
+                                    <option onclick="console.log(value)">DIVE</option>
+                                    <option onclick="console.log(value)">CAMP</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div class="custom-field-item">
+                            <textarea class="textarea-otherDetails" name="theDetails" required
+                                placeholder="Details Here"></textarea>
+                        </div>
+                    </div>
+
+
+
+
+
+
+
+
+                    <div class="additionalInputContainer"></div>
+                    <div class="additionalItineraryContainer"></div>
+
+                    <div>
+                        <div style="text-align: center; padding-top: 15px;">
+                            <button class="button-custom1" type="submit">Submit</button>
+                        </div>
+                        <div style="padding-bottom: 50px; padding-top: 15px;">
+                            <div style="text-align: center; padding-left: 50px;padding-right: 50px;">
+
+                                <div style="padding: 14px;">
+                                    <input style="width: 100%;" name="scheduleWebsite" type="link"
+                                        placeholder="https://yourwebsite.com">
+                                </div>
+                                <small class="small-item1">
+                                    No Website? <button
+                                        onclick="alert('text us +640 231 231 or visit https.website.com')">Contact</button>
+                                    Us for
+                                    a Website!
+                                </small>
+                            </div>
+                            <div style="padding: 20px;">
+                                <div class="div-instagramContainer">
+                                    <input type="text" placeholder=" Instagram Username" name="instagramUsername">
+                                    <svg class="u-svg-content" viewBox="0 0 112 112" x="0" y="0" id="svg-42cf">
+                                        <circle fill="rgb(182	25	147	)" cx="56.1" cy="56.1" r="55"></circle>
+                                        <path fill="#FFFFFF"
+                                            d="M55.9,38.2c-9.9,0-17.9,8-17.9,17.9C38,66,46,74,55.9,74c9.9,0,17.9-8,17.9-17.9C73.8,46.2,65.8,38.2,55.9,38.2
+                                                            z M55.9,66.4c-5.7,0-10.3-4.6-10.3-10.3c-0.1-5.7,4.6-10.3,10.3-10.3c5.7,0,10.3,4.6,10.3,10.3C66.2,61.8,61.6,66.4,55.9,66.4z">
+                                        </path>
+                                        <path fill="#FFFFFF"
+                                            d="M74.3,33.5c-2.3,0-4.2,1.9-4.2,4.2s1.9,4.2,4.2,4.2s4.2-1.9,4.2-4.2S76.6,33.5,74.3,33.5z">
+                                        </path>
+                                        <path fill="#FFFFFF" d="M73.1,21.3H38.6c-9.7,0-17.5,7.9-17.5,17.5v34.5c0,9.7,7.9,17.6,17.5,17.6h34.5c9.7,0,17.5-7.9,17.5-17.5V38.8
+                                                            C90.6,29.1,82.7,21.3,73.1,21.3z M83,73.3c0,5.5-4.5,9.9-9.9,9.9H38.6c-5.5,0-9.9-4.5-9.9-9.9V38.8c0-5.5,4.5-9.9,9.9-9.9h34.5
+                                                            c5.5,0,9.9,4.5,9.9,9.9V73.3z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+{% endblock %}

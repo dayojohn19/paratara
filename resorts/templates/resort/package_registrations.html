@@ -1,0 +1,77 @@
+{% extends 'resort/base_manager.html' %}
+{% load humanize %}
+
+{% block title %}Registrations • {{ resortObject.RealName }}{% endblock %}
+
+{% block content %}
+
+
+  <main class="container">
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <div class="section-title">Registrations for </div>
+          <div class="section-sub">{{ package.title }}</div>
+        </div>
+          <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+            <a class="btn" href="{% url 'resorts:view_accommodation_guestlist' resortObject.id %}">Accommodation guestlist</a>
+            <a class="btn" href="{% url 'resorts:getResort' resortObject.name %}#promotions">Back to promotions</a>
+          </div>
+      </div>
+
+      <div class="card" style="margin-bottom:1rem;">
+        <div class="card-body">
+          <div style="font-weight:600;margin-bottom:0.5rem;">Linked event schedules ({{ siargaoevents|length }})</div>
+          {% for ev in siargaoevents %}
+            <div style="margin:0.75rem 0;padding:0.85rem;border:1px solid var(--border-strong);border-radius:var(--radius-md);background:var(--surface-soft);">
+              <div style="font-weight:600;">{{ ev.scheduleTitle|default:"(Untitled schedule)" }}</div>
+              <div style="color:var(--ink-500);font-size:0.95rem;">
+                {% if ev.exactDate %}{{ ev.exactDate }}{% endif %}
+                {% if ev.schedulePlace %}{% if ev.exactDate %} — {% endif %}{{ ev.schedulePlace }}{% endif %}
+              </div>
+              {% if ev.scheduleTypeAndMode %}
+                <!-- <div style="color:var(--ink-500);font-size:0.9rem;">{{ ev.scheduleTypeAndMode }}</div> -->
+              {% endif %}
+
+              <div style="margin-top:0.65rem;font-weight:600;">Registrants ({{ ev.registrants.count }})</div>
+              {% for r in ev.registrants.all %}
+                <div style="font-size:0.95rem;">
+                  {{ r.full_name }} — {{ r.email }}{% if r.phone %} — {{ r.phone }}{% endif %}{% if r.pax %} — ×{{ r.pax }}{% endif %}
+                </div>
+                {% if r.notes %}
+                  <div style="font-size:0.9rem;color:var(--ink-500);margin-left:0.25rem;">{{ r.notes }}</div>
+                {% endif %}
+              {% empty %}
+                <div class="empty-hint">No registrants yet.</div>
+              {% endfor %}
+            </div>
+          {% empty %}
+            <div class="empty-hint">No linked schedules yet.</div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <div style="font-weight:600;margin-bottom:0.5rem;">Direct registrations ({{ registrations.count }})</div>
+          {% for reg in registrations %}
+            <div style="font-size:0.95rem;">
+              {{ reg.full_name }} — {{ reg.email }}{% if reg.phone %} — {{ reg.phone }}{% endif %}{% if reg.pax %} — ×{{ reg.pax }}{% endif %}
+            </div>
+            {% if reg.notes %}
+              <div style="font-size:0.9rem;color:var(--ink-500);margin-left:0.25rem;">{{ reg.notes }}</div>
+            {% endif %}
+          {% empty %}
+            <div class="empty-hint">No direct registrations yet.</div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+  </main>
+
+  {% include 'resort/partials/footer.html' %}
+{% endblock %}
+
+{% block scripts %}
+  {% include 'resort/partials/scripts.html' %}
+{% endblock %}

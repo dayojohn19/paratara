@@ -1,0 +1,1090 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --gray: #6b7280;
+            --light-gray: #f3f4f6;
+            --border: #e5e7eb;
+            --white: #ffffff;
+            --shadow: 0 1px 3px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 1rem;
+            min-height: 100vh;
+            color: var(--dark);
+        }
+        
+        /* Loader */
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.4s ease;
+        }
+        
+        #loader.hidden {
+            opacity: 0;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Main Container */
+        .calendar-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+        }
+        
+        /* Header */
+        .month-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .month-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+        
+        .month-nav {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .new-button {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .new-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .new-button svg {
+            width: 20px;
+            height: 20px;
+        }
+        
+        /* Message Box */
+        #message-box {
+            text-align: center;
+            padding: 1.5rem;
+            background: var(--light-gray);
+            margin: 1.5rem;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        #message-box small {
+            display: block;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--gray);
+            font-weight: 400;
+        }
+        
+        /* Calendar Table */
+        .table-container {
+            padding: 1.5rem;
+        }
+        
+        .calendar {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 8px;
+        }
+        
+        .weekdays th {
+            padding: 0.75rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .calendar td {
+            padding: 0;
+            text-align: center;
+            position: relative;
+            height: 50px;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+        
+        .calendar td span {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+        }
+        
+        .calendar td:not(.other-month):not(.stay) span {
+            /* background: var(--light-gray); */
+        }
+        
+        .calendar td:not(.other-month):not(.stay):hover span {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.1);
+        }
+        
+        .calendar td.other-month {
+            opacity: 0.5;
+        }
+        
+        .calendar td.other-month span {
+            font-style: italic;
+            font-size: 0.85em;
+        }
+        
+        /* Calendar Status Colors */
+        .calendar td.stay span {
+            background: #fee2e2;
+            color: var(--danger);
+            cursor: not-allowed;
+            position: relative;
+        }
+        
+        .calendar td.stay span::after {
+            content: '✕';
+            position: absolute;
+            font-size: 0.7rem;
+            opacity: 0.5;
+        }
+        
+        .calendar td.checkin span {
+            background: #dbeafe;
+            color: var(--primary);
+        }
+        
+        .calendar td.checkout span {
+            background: #fef3c7;
+            color: var(--warning);
+        }
+        
+        .calendar td.selected span {
+            background: var(--success);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .calendar td.range-start span {
+            background: var(--primary);
+            color: white;
+            font-weight: 700;
+            position: relative;
+        }
+        
+        .calendar td.range-start span::after {
+            content: '→';
+            position: absolute;
+            right: -8px;
+            font-size: 0.7rem;
+        }
+        
+        .calendar td.range-end span {
+            background: var(--primary-dark);
+            color: white;
+            font-weight: 700;
+            position: relative;
+        }
+        
+        .calendar td.range-end span::before {
+            content: '←';
+            position: absolute;
+            left: -8px;
+            font-size: 0.7rem;
+        }
+        
+        /* Book Button */
+        .open-btn {
+            display: block;
+            width: calc(100% - 3rem);
+            margin: 1.5rem auto;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .open-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+        
+        .modal:target {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .form-container {
+            padding: 2rem;
+        }
+        
+        .close {
+            float: right;
+            font-size: 2rem;
+            font-weight: 300;
+            color: #81cc1f;
+            text-decoration: none;
+            line-height: 1;
+            transition: color 0.2s ease;
+        }
+        
+        .close:hover {
+            color: var(--danger);
+        }
+        
+        /* Form Styles */
+        #booking-form {
+            margin-top: 2rem;
+        }
+        
+        #booking-form p {
+            margin-bottom: 1.5rem;
+        }
+        
+        #booking-form label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        #booking-form input[type="text"],
+        #booking-form input[type="email"],
+        #booking-form input[type="tel"],
+        #booking-form input[type="datetime-local"],
+        #booking-form textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+        
+        #booking-form input:focus,
+        #booking-form textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        #booking-form textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .read-only-class input {
+            background: var(--light-gray);
+            cursor: not-allowed;
+        }
+        
+        #submit-checkin-btn {
+            width: 100%;
+            padding: 1rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        #submit-checkin-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        #paypal-button-container {
+            margin-top: 1rem;
+        }
+        
+        /* Legend */
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            padding: 1rem 1.5rem;
+            background: var(--light-gray);
+            margin: 1.5rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .legend-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 6px;
+        }
+        
+        /* Alerts */
+        .alert {
+            padding: 1rem 1.5rem;
+            margin: 1.5rem;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 4px solid var(--success);
+        }
+        
+        .alert-warning {
+            background: #fef3c7;
+            color: #92400e;
+            border-left: 4px solid var(--warning);
+        }
+        
+        .alert-danger {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid var(--danger);
+        }
+        
+        .btn-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            opacity: 0.5;
+        }
+        
+        .btn-close:hover {
+            opacity: 1;
+        }
+        
+        /* Amenities/Features Tags */
+        .amenities-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            justify-content: center;
+        }
+        
+        .feature-tag {
+            background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 100%);
+            color: var(--primary);
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            border: 1px solid rgba(59, 130, 246, 0.15);
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+            cursor: default;
+        }
+        
+        .feature-tag::before {
+            content: '✓';
+            display: inline-block;
+            margin-right: 0.5rem;
+            font-weight: 700;
+            color: var(--success);
+            transition: color 0.3s ease;
+        }
+        
+        .feature-tag::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .feature-tag:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .feature-tag:hover::before {
+            color: white;
+        }
+        
+        .feature-tag:hover::after {
+            left: 100%;
+        }
+        
+        .feature-tag:nth-child(even) {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            color: var(--success);
+            border-color: rgba(16, 185, 129, 0.15);
+        }
+        
+        .feature-tag:nth-child(even):hover {
+            background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+            border-color: var(--success);
+        }
+        
+        .feature-tag:nth-child(3n) {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            color: var(--warning);
+            border-color: rgba(245, 158, 11, 0.15);
+        }
+        
+        .feature-tag:nth-child(3n):hover {
+            background: linear-gradient(135deg, var(--warning) 0%, #d97706 100%);
+            border-color: var(--warning);
+        }
+        
+        /* Loading animation inside message box */
+        .loader {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-left: 0.5rem;
+            vertical-align: middle;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 0.5rem;
+            }
+            
+            .month-header {
+                padding: 1.5rem 1rem;
+            }
+            
+            .month-title {
+                font-size: 1.25rem;
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+            
+            .calendar {
+                border-spacing: 4px;
+            }
+            
+            .calendar td {
+                height: 40px;
+                font-size: 0.9rem;
+            }
+            
+            .weekdays th {
+                font-size: 0.75rem;
+                padding: 0.5rem 0.25rem;
+            }
+            
+            .form-container {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loader -->
+    <div id="loader">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="page-content" style="display:none;">
+        <div class="calendar-container">
+            <!-- Messages -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        <h3 id="message-box" style="margin: 0; flex: 1;">{{ message|safe }}</h3>
+                        <button type="button" class="btn-close" onclick="this.parentElement.remove()">×</button>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <h3 id="message-box">
+                    Select dates to book
+                    <small>{{ room_item.title }}</small>
+                    <small style="display: block; margin-top: 0.5rem; font-size: 0.85rem; color: var(--gray); font-weight: 400;">{{ room_item.description }}</small>
+                    {% if room_item.information %}
+                    <div class="amenities-container" id="amenities-container" data-features="{{ room_item.information }}">
+                    </div>
+                    {% endif %}
+                    {% if room_item.price %}
+                    <div style="margin-top: 1rem; font-size: 1.5rem; font-weight: 700; color: var(--primary);">
+                        ₱{{ room_item.price|floatformat:0 }} <span style="font-size: 0.9rem; font-weight: 400; color: var(--gray);"></span>
+                    </div>
+                    {% endif %}
+                </h3>
+            {% endif %}            
+            <!-- Header -->
+            <div class="month-header">
+                <div class="month-title">
+                    <div style="display: none;" class="package-price">₱ {{ room_item.price }}</div>
+                    <span>{{ month_name }} {{ year }}</span>
+                    <div class="month-nav">
+                        <form id="last-month" method="POST" action="{% url 'resort_management:movemarkedcalendarnamed' resortID room_id month year 'previous' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="type" value="subtract">
+                            <button class="new-button" type="submit" aria-label="Previous month">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M16 4L8 12L16 20" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </button>
+                        </form>
+                        
+                        <form id="next-month" method="POST" action="{% url 'resort_management:movemarkedcalendarnamed' resortID room_id month year 'next' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="type" value="add">
+                            <button class="new-button" type="submit" aria-label="Next month">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M8 4L16 12L8 20" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- Legend -->
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-box" style="background: var(--light-gray);"></div>
+                    <span>Available</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box" style="background: #d1fae5;"></div>
+                    <span>Selected</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box" style="background: #fee2e2;"></div>
+                    <span>Unavailable</span>
+                </div>
+                    <div style="width:100%;margin-top:0.5rem;color:#b91c1c;font-weight:600;font-size:0.95rem;text-align:left;">
+                        Note: <span style="font-weight:400;">If booking an activity or event, please book only one day. The first day you select will be the day of the activity/event.</span>
+                    </div>
+            </div>
+       
+                <a class="open-btn" href="#contact-form" id="open-btn" style="display: none;">
+                    📅 Book These Dates
+                </a>
+            <!-- Calendar -->
+            <div class="table-container">
+                <table class="calendar">
+                    <tr class="weekdays">
+                        <th>Sun</th><th>Mon</th><th>Tue</th><th>Wed</th>
+                        <th>Thu</th><th>Fri</th><th>Sat</th>
+                    </tr>
+
+                    {% for week in weeks %}
+                        <tr>
+                        {% for day in week %}
+                            <td
+                            data-date="{{ day.date|date:'Y-m-d' }}"
+                            class="
+                                {% if not day.in_month %}other-month{% endif %}
+                                {% if day.status == 'checkin' %} checkin
+                                {% elif day.status == 'checkout' %} checkout
+                                {% elif day.status == 'stay' %} stay
+                                {% endif %}
+                            ">
+                                <span>{{ day.date.day }}</span>
+                            </td>
+                        {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </table>
+         
+            </div>
+        </div>
+
+        <!-- Booking Form Modal -->
+        <div id="contact-form" class="modal">
+            <div class="modal-content">
+                <div class="form-container">
+                    <a href="#" class="close">&times;</a>
+                    <h2 style="margin-bottom: 1rem; color: var(--dark);">Complete Your Booking</h2>
+                    
+                    <form id="booking-form" method="POST" action="{% url 'resort_management:room_checkin' %}">
+                        {% csrf_token %}
+                        
+                        <!-- Hidden Fields -->
+                        <input hidden name="room_package" value="{{room_item.packageName.PackageTitle}}">
+                        <input hidden name="room_name" value="{{room_item.title}}">
+                        <input hidden type="number" id="room_price" name="room_price" value="{{room_item.price}}">
+                        <input hidden id="to_send_email" name="to_send_email" value="{{resortObject.contactEmail}}">
+                        <input hidden name="resort_id" value="{{resortObject.id}}">
+                        <input hidden name="room_id" value="{{room_item.id}}">
+                        <input hidden type="text" name="startdate" id="startdateinput">
+                        <input hidden type="text" name="enddate" id="enddateinput">
+                        <input hidden type="text" name="totalcost" value="100" id="totalcostinput">
+                        <input hidden name="month" value="{{month}}">
+                        <input hidden name="year" value="{{year}}">
+                        {{ form.room }}
+                        {{ form.resort }}
+                        
+                        <!-- Visible Fields -->
+                        <p>
+                            {{ form.guest_name.label_tag }}
+                            {{ form.guest_name }}
+                        </p>
+                        
+                        <p>
+                            {{ form.guest_email.label_tag }}
+                            {{ form.guest_email }}
+                        </p>
+                        
+                        <p>
+                            {{ form.guest_phone.label_tag }}
+                            {{ form.guest_phone }}
+                        </p>
+                        
+                        <p class="read-only-class">
+                            <label for="{{ form.checkin_date.id_for_label }}">Check-in Date & Time</label>
+                            {{ form.checkin_date }}
+                        </p>
+                        
+                        <p class="read-only-class">
+                            <label for="{{ form.checkout_date.id_for_label }}">Check-out Date & Time</label>
+                            {{ form.checkout_date }}
+                        </p>
+                        
+                        <p>
+                            {{ form.special_requests.label_tag }}
+                            {{ form.special_requests }}
+                        </p>
+                        
+                        <p>
+                            {% if isManager %}
+                                <input type="submit" id="submit-checkin-btn" value="Submit Booking">
+                                <div id="paypal-button-container"></div>
+                            {% else %}
+                                <div id="paypal-button-container"></div>
+                                <small style="color: var(--gray); display: block; margin-top: 0.5rem;">Processing fees included</small>
+                            {% endif %}
+                        </p>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id }}&currency=PHP&locale=en_PH"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    
+    <script>
+        // Loader
+        window.addEventListener("load", () => {
+            const loader = document.getElementById("loader");
+            loader.classList.add("hidden");
+            setTimeout(() => loader.style.display = "none", 400);
+            document.getElementById("page-content").style.display = "block";
+            
+            // Split and render amenities
+            const amenitiesContainer = document.getElementById('amenities-container');
+            if (amenitiesContainer) {
+                const features = amenitiesContainer.dataset.features;
+                if (features) {
+                    const featureList = features.split(',');
+                    amenitiesContainer.innerHTML = featureList.map(feature => 
+                        `<span class="feature-tag">${feature.trim()}</span>`
+                    ).join('');
+                }
+            }
+        });
+
+        // Calendar Selection Logic
+        document.addEventListener('DOMContentLoaded', () => {
+            renderButton();
+            let totalCostDiff = 1;
+            
+            const checkinInput = document.getElementById('id_checkin_date');
+            const checkoutInput = document.getElementById('id_checkout_date');
+            
+            const options = { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric', 
+                hour: 'numeric', 
+                minute: 'numeric', 
+                hour12: true
+            };
+            
+            let firstDate = null;
+            const tds = [...document.querySelectorAll('td')];
+            
+            const selectable = tds.filter(td => {
+                if (td.classList.contains('checkin')) {
+                    if (td.previousElementSibling?.classList.contains('checkin') || 
+                        td.previousElementSibling?.classList.contains('stay')) {
+                        td.className = 'stay';
+                    }
+                } else if (td.classList.contains('checkout')) {
+                    if (td.nextElementSibling?.classList.contains('checkout')) {
+                        td.className = 'stay';
+                    }
+                }
+                
+                if (td.classList.contains('stay')) {
+                    td.addEventListener('click', () => {
+                        alert('This date is unavailable.');
+                    });
+                }
+                
+                const forbidden = td.classList.contains('stay');
+                return !forbidden && td.dataset.date;
+            });
+            
+            const unselectable = tds.filter(td => {
+                const forbidden = td.classList.contains('stay');
+                return forbidden && td.dataset.date;
+            });
+            
+            function clearSelection() {
+                selectable.forEach(td => td.classList.remove('selected', 'range-start', 'range-end'));
+                checkinInput.value = '';
+                checkoutInput.value = '';
+                firstDate = null;
+            }
+            
+            function highlightRange(start, end) {
+                selectable.some(td => {
+                    const d = new Date(td.dataset.date);
+                    
+                    if (d >= start && d <= end) {
+                        td.classList.add('selected');
+                        
+                        if (td.classList.contains('checkin') && 
+                            td.nextElementSibling?.classList.contains('checkout')) {
+                            if (d.getTime() === end.getTime()) {
+                                return true;
+                            }
+                            alert('Cannot book this schedule');
+                            clearSelection();
+                            return true;
+                        }
+                    }
+                    
+                    if (d.getTime() === start.getTime()) {
+                        if (td.nextElementSibling?.classList.contains('checkout') && 
+                            td.nextElementSibling?.classList.contains('stay')) {
+                            alert('Cannot book this start time');
+                            clearSelection();
+                            return true;
+                        }
+                        if (td.classList.contains('checkin') && 
+                            (td.nextElementSibling?.classList.contains('checkin') || 
+                             td.nextElementSibling?.classList.contains('checkout'))) {
+                            alert('Cannot book this start time');
+                            clearSelection();
+                            return true;
+                        }
+                        td.classList.add('range-start');
+                    }
+                    
+                    if (d.getTime() === end.getTime()) {
+                        if (td.classList.contains('checkout') && 
+                            td.nextElementSibling?.classList.contains('checkin')) {
+                            alert('Cannot book this end time');
+                            clearSelection();
+                            return true;
+                        }
+                        if (td.previousElementSibling?.classList.contains('checkin')) {
+                            alert('Cannot book this end time');
+                            clearSelection();
+                            return true;
+                        }
+                        td.classList.add('range-end');
+                    }
+                    
+                    return false;
+                });
+                
+                let startDate = new Date(checkinInput.value);
+                let endDate = new Date(checkoutInput.value);
+                let roomPrice = Number(document.querySelector("#room_price").value);
+                
+                document.querySelector("#startdateinput").value = startDate.toLocaleString('en-US', options);
+                document.querySelector("#enddateinput").value = endDate.toLocaleString('en-US', options);
+                
+                let diffMs = endDate - startDate;
+                let diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+                totalCostDiff = Number(roomPrice) * Number(diffDays);
+                totalCostDiff = totalCostDiff * 1.053;
+                
+                document.querySelector("#totalcostinput").value = totalCostDiff.toLocaleString('en-US');
+                payWith(totalCostDiff);
+            }
+            
+            selectable.forEach(td => {
+                td.addEventListener('click', () => {
+                    const clickedDate = new Date(td.dataset.date);
+                    
+                    if (firstDate && checkoutInput.value) {
+                        clearSelection();
+                        document.querySelector("#open-btn").style.display = 'none';
+                    }
+                    
+                    if (!firstDate) {
+                        firstDate = clickedDate;
+                        td.classList.add('selected', 'range-start');
+                        checkinInput.value = td.dataset.date + "T15:00";
+                    } else {
+                        let start = firstDate;
+                        let end = clickedDate;
+                        
+                        if (firstDate.getTime() == clickedDate.getTime()) {
+                            clearSelection();
+                            return;
+                        }
+                        
+                        checkoutInput.value = end.toISOString().split('T')[0] + "T12:00";
+                        
+                        if (end < start) {
+                            [start, end] = [end, start];
+                            [checkinInput.value, checkoutInput.value] = [checkoutInput.value, checkinInput.value];
+                        }
+                        
+                        const hasOverlap = unselectable.some(cell => {
+                            const cellDate = new Date(cell.dataset.date);
+                            return cellDate >= start && cellDate <= end;
+                        });
+                        
+                        if (hasOverlap) {
+                            alert('Already booked between these dates!');
+                            clearSelection();
+                            return;
+                        }
+                        
+                        document.querySelector("#open-btn").style.display = 'block';
+                        highlightRange(start, end);
+                    }
+                });
+            });
+        });
+        
+        // PayPal Integration
+        let selectedAmount = 5;
+        
+        function payWith(amount) {
+            selectedAmount = amount;
+            document.getElementById("paypal-button-container").innerHTML = "";
+            renderButton();
+        }
+        
+        function renderButton() {
+            paypal.Buttons({
+                createOrder: function(data, actions) {
+                    return actions.order.create({
+                        purchase_units: [{
+                            amount: { value: selectedAmount.toFixed(2) }
+                        }]
+                    });
+                },
+                onApprove: function(data, actions) {
+                    return actions.order.capture().then(function(details) {
+                        fetch(window.location.origin + "/apis/payments/create/", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                event_type: "PAYMENT.CAPTURE.COMPLETED",
+                                resource: {
+                                    id: data.orderID,
+                                    payer: { email_address: details.payer.email_address },
+                                    amount: { value: selectedAmount },
+                                    resort_id: `{{resortObject.id}}`,
+                                    room_id: `{{room_item.id}}`,
+                                    full_details: details
+                                }
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            document.getElementById("booking-form").submit();
+                            let anchorCloseBtn2 = document.querySelector('a.close');
+                            if (anchorCloseBtn2) anchorCloseBtn2.click();
+                            document.getElementById("message-box").innerHTML =
+                                'Just a moment — we\'re confirming your booking.<div class="loader"></div>';
+                            let openBtn = document.querySelector("#open-btn");
+                            openBtn.style.display = "none";
+                        })
+                        .catch(error => {
+                            console.error("❌ Payment save failed:", error);
+                            alert("Payment succeeded but saving failed!");
+                        });
+                    });
+                }
+            }).render("#paypal-button-container");
+        }
+        
+        // EmailJS Integration
+        window.onload = function() {
+            document.getElementById('booking-form').addEventListener('submit', function(event) {
+                event.preventDefault();
+                
+                const anchorCloseBtn = document.querySelector('a.close');
+                if (anchorCloseBtn) anchorCloseBtn.click();
+                
+                document.getElementById("message-box").innerHTML =
+                    'Just a moment — we\'re confirming your booking.<div class="loader"></div>';
+                let openBtn = document.querySelector("#open-btn");
+                openBtn.style.display = "none";
+                
+                (function() {
+                    emailjs.init({ publicKey: "kPR5fCmH0j3E0NSyr" });
+                })();
+                
+                alert('Sending confirmation email...');
+                
+                emailjs.sendForm('service_jv335d7', 'template_q8aw1ni', this)
+                    .then(() => {
+                        let to_guest_email = document.querySelector("#id_guest_email");
+                        let to_send_email = document.querySelector("#to_send_email");
+                        to_send_email.value = to_guest_email.value;
+                        
+                        emailjs.sendForm('service_jv335d7', 'template_q8aw1ni', this)
+                            .then(() => {
+                                alert('Message Sent!');
+                                this.submit();
+                            }, (error) => {
+                                alert('Message Not Sent!');
+                                console.log('FAILED...', error);
+                            });
+                    }, (error) => {
+                        alert('Email Not Valid!');
+                        console.log('FAILED...', error);
+                    });
+            });
+        };
+    </script>
+</body>
+</html>

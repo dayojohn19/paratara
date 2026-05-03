@@ -1,0 +1,771 @@
+          <div class="card-body">
+              <div class="d-flex flex-column align-items-center text-center">
+                 if pageUser.photo 
+                <img src="pageUser.photo" alt="user-photo" class="rounded-circle" width="150">
+                <!-- <a style="text-decoration: none;" href="pageUser.photo" >View Photo </a> -->
+                 endif 
+                 if user.id == pageUser.userID  
+                  <div class="" id="changePasswordModal" tabindex="-1" role="dialog" style="display: none; ">
+                    <div class="modal-dialog">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                        </div>
+                        <div class="modal-body">
+                          <!-- Your form here -->
+                          <form method="post" action=" url 'userProfile:changepsw' ">
+                             csrf_token 
+                          <input style="margin-bottom:0.5em;" name="currentPassword" type="password" placeholder="Old password" class="form-control">
+                          <input style="margin-bottom:0.5em;" name="newPassword" type="password" placeholder="New password" class="form-control">
+                          <input style="margin-bottom:0.5em;" name="newPasswordConfirmation" type="password" placeholder="New password" class="form-control">
+                          <button id="" type="submit" action="submit" class="btn btn-primary">
+                            Change Password
+                          </button>
+                          <hr>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+                  </div>                
+                   if pageUser.photo == '' 
+                    <div>
+                      <span >
+                        <form class="was-validated" method="POST" action=" url 'userProfile:uploadPhoto' " enctype="multipart/form-data">
+                           csrf_token 
+                          <input hidden readonly name="purpose" value="profilePhoto" />
+                          <!-- <input name="fileobject" type="file" /> -->
+                          <div class="custom-file">
+                             csrf_token  form.image
+                            <label style="font-size: 16px" class="custom-file-label btn btn-secondary btn-lg btn-block" for="validatedCustomFile">Upload Picture</label>
+                            <!-- <label style="font-size: 16px" class="custom-file-label" for="validatedCustomFile"></label> -->
+                          </div>
+                          <!-- <button type="submit">Change Profile Picture</button> -->
+                        </form>
+                      </span>
+                      <!-- <button type="submit">Submit</button> -->
+                    </div>
+                   endif 
+
+                 endif 
+                <div class="mt-3">
+                  <div class="" style="line-height: 1%; margin: 0 auto;">
+                    
+
+
+                    <hr>
+
+<!--  -->
+
+                    <div>
+                       if pageUser.verified 
+                      
+                      <span style=" display: inline-flex; align-items: center; gap: 6px;">
+                          <svg viewBox="0 0 16 16" class="user-svg" onclick="alert('User is Verified')">
+                            <path d="M10.067.87a2.89 2.89 0 0 0-4.134 0l-.622.638-.89-.011a2.89 2.89 0 0 0-2.924 2.924l.01.89-.636.622a2.89 2.89 0 0 0 0 4.134l.637.622-.011.89a2.89 2.89 0 0 0 2.924 2.924l.89-.01.622.636a2.89 2.89 0 0 0 4.134 0l.622-.637.89.011a2.89 2.89 0 0 0 2.924-2.924l-.01-.89.636-.622a2.89 2.89 0 0 0 0-4.134l-.637-.622.011-.89a2.89 2.89 0 0 0-2.924-2.924l-.89.01-.622-.636zm.287 5.984-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7 8.793l2.646-2.647a.5.5 0 0 1 .708.708z"></path>
+                          </svg>
+                        <span>pageUser.name</span>
+                        </span>
+                       else 
+                      pageUser.name
+                       if user.id == pageUser.userID 
+                      
+                       if pageUser.photo != '' 
+                      <span>
+                        <div>
+                          
+                        </div>
+                        <form class="was-validated" method="POST" action=" url 'userProfile:uploadPhoto' " enctype="multipart/form-data">
+                          <div class="custom-file w-100 py-2 mb-2">
+                            <input hidden readonly name="purpose" value="verification" />
+                             csrf_token  form.image
+                            <label style="font-size: 16px" class="custom-file-label btn btn-secondary btn-lg btn-block" for="validatedCustomFile">Upload selfie with Valid ID</label>
+                          </div>
+                      
+                        </form>
+                      </span>
+                       endif 
+                       endif   endif 
+ 
+                    </div>
+                    
+                    <div>
+                       if user.id == pageUser.userID   if pageUser.name == 'Facebook not Connected' 
+                      <button onclick="ContinueWithFacebook()" class="w-100 py-2 btn btn-outline-primary rounded-3" type="submit">
+                        <svg class="" width="1" height="1"><use xlink:href="#facebook"></use></svg>
+                        Connect with Facebook
+                      </button>
+                       else   endif   else   endif 
+                    </div>
+                  </div>
+                    <button id="openModalBtn" type="button" class="btn btn-primary" style="margin-top: 1em;">
+                      Change Password
+                    </button>
+                  <p class="text-secondary mb-1"><div class="svg-container"> <small style="color: rgb(159, 165, 172) ; text-shadow: 0px;">Member since:  </small> <br>pageUser.registeredTimeStamp</div></p>
+                  <div class="svg-container">
+                    <div>pageUser.contact </div>
+                  </div>                  
+                   if not createBalance_FORM 
+
+                  <!-- Advance Payment FORM -->
+                   if pageUser.name != request.user.username 
+
+                  <!-- <div class="btn btn-primary" >
+                    <span onclick="sendAmount()" class="btn btn-primary">Advance Pay</span>
+                  </div> -->
+                    
+
+                   else 
+                  <div hidden>₱ pageUser.currentBalance | intcomma  Balance </div>
+                  <!-- FOR PAYMENT -->
+                  <div class="block-image" onclick="hide(this)" style="display:none;background-color: #d0d0d0; width: 100vw;height: 100vh; position: fixed;top: 0;left: 0; z-index: 2;">
+                    <div>
+                      <p style="padding-top: 50px;">Scan the QRCode and Send Gcash to add Balance
+                        <br>
+                        and email to <input type="text" readonly value="johnwebsiteproject@gmail.com" style="width: 300px; text-align: center;"> <br>the print screen and receipt
+                      </p>
+                      <p>
+                        or Message us <input type="text" readonly value="+639568543802" style="width: 300px; text-align: center;">
+                      </p>
+                      <img style="max-height: 400px;margin: 0 auto;" src=" static 'pictures/gcash.jpg' "> 
+                    </div>
+                  </div>
+                  <!-- <button style="border: none;border-radius: 4px;" onclick="document.querySelector('.block-image').style.display = 'block' ">+</button> -->
+                   endif 
+                   endif 
+                   if pageUser 
+                  <div class="svg-container" onclick="alert('Visitor Count')">
+                    <svg class="user-svg" viewBox="0 0 16 16">
+                      <path d="m8 0 1.669.864 1.858.282.842 1.68 1.337 1.32L13.4 6l.306 1.854-1.337 1.32-.842 1.68-1.858.282L8 12l-1.669-.864-1.858-.282-.842-1.68-1.337-1.32L2.6 6l-.306-1.854 1.337-1.32.842-1.68L6.331.864 8 0z" />
+                      <path d="M4 11.794V16l4-1 4 1v-4.206l-2.018.306L8 13.126 6.018 12.1 4 11.794z" />
+                    </svg>
+                    pageUser.reputations | intcomma
+                  </div>
+                  <div class="svg-container" onclick="alert('Transactions Count')">
+                    <svg class="user-svg" viewBox="0 0 256 256" >
+                      <defs>
+                      </defs>
+                      <g style="stroke: none; stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill-rule: nonzero; opacity: 1;" transform="translate(1.4065934065934016 1.4065934065934016) scale(2.81 2.81)" >
+                        <path d="M 88.828 41.622 L 78.775 31.569 c -0.002 -0.002 -0.003 -0.003 -0.005 -0.004 c -0.185 -0.184 -0.388 -0.349 -0.605 -0.494 c -0.095 -0.064 -0.199 -0.107 -0.298 -0.162 c -0.129 -0.071 -0.254 -0.149 -0.391 -0.206 c -0.127 -0.052 -0.26 -0.082 -0.39 -0.121 c -0.119 -0.035 -0.233 -0.081 -0.356 -0.105 c -0.242 -0.048 -0.488 -0.071 -0.734 -0.074 c -0.017 0 -0.032 -0.005 -0.048 -0.005 s -0.032 0.005 -0.048 0.005 c -0.246 0.003 -0.492 0.026 -0.734 0.074 c -0.123 0.024 -0.237 0.07 -0.355 0.105 c -0.131 0.039 -0.264 0.069 -0.391 0.121 c -0.137 0.057 -0.261 0.134 -0.39 0.205 c -0.1 0.055 -0.204 0.099 -0.299 0.162 c -0.218 0.145 -0.421 0.31 -0.605 0.494 c -0.002 0.002 -0.003 0.003 -0.005 0.004 L 63.065 41.622 c -1.563 1.562 -1.563 4.095 0 5.657 c 1.561 1.563 4.094 1.563 5.656 0 l 3.226 -3.225 V 58.44 c 0 6.409 -5.215 11.624 -11.624 11.624 h -46.27 c -2.209 0 -4 1.791 -4 4 s 1.791 4 4 4 h 46.27 c 10.82 0 19.624 -8.804 19.624 -19.624 V 44.055 l 3.225 3.225 c 0.78 0.781 1.805 1.171 2.828 1.171 s 2.048 -0.39 2.828 -1.171 C 90.391 45.717 90.391 43.185 88.828 41.622 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(0,0,0); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+                        <path d="M 11.225 58.431 c 0.184 0.184 0.387 0.349 0.604 0.495 c 0.056 0.038 0.12 0.062 0.178 0.096 c 0.165 0.099 0.33 0.197 0.509 0.272 c 0.083 0.034 0.172 0.051 0.257 0.08 c 0.161 0.055 0.32 0.115 0.49 0.149 c 0.259 0.052 0.523 0.08 0.791 0.08 s 0.533 -0.028 0.791 -0.08 c 0.171 -0.034 0.33 -0.094 0.492 -0.15 c 0.084 -0.029 0.172 -0.045 0.255 -0.079 c 0.179 -0.075 0.345 -0.173 0.51 -0.272 c 0.058 -0.035 0.121 -0.058 0.177 -0.096 c 0.217 -0.146 0.42 -0.311 0.604 -0.495 c 0 0 0 0 0 0 l 10.053 -10.053 c 1.562 -1.563 1.562 -4.095 0 -5.657 c -1.562 -1.562 -4.094 -1.562 -5.657 0 l -3.224 3.224 V 31.56 c 0 -6.41 5.214 -11.624 11.624 -11.624 h 46.271 c 2.209 0 4 -1.791 4 -4 s -1.791 -4 -4 -4 H 29.677 c -10.82 0 -19.624 8.803 -19.624 19.624 v 14.386 l -3.225 -3.225 c -1.563 -1.562 -4.095 -1.562 -5.657 0 c -1.562 1.563 -1.562 4.095 0 5.657 L 11.225 58.431 C 11.225 58.431 11.225 58.431 11.225 58.431 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(0,0,0); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+                      </g>
+                      </svg>
+                    pageUser.TransactionCount | intcomma
+                  </div>
+                  <div class="svg-container" onclick="alert('ask Blog register')">
+                  <!-- <span><a href="/apis/blog">My Blog</a></span> -->
+ 
+                  </div>
+                  <hr>
+                  <div>
+                     if pageUser.MyVisitors 
+                    <div>
+                      <small style="color: #909090;">Visitors:</small>
+                      pageUser.MyVisitors.count
+                    </div>
+                    <!--  -->
+
+                     for eachUser in pageUser.MyVisitors|slice:":5" 
+                    <span>
+                      <a title="View Profile" href="/userProfile/view/csrf_token/eachUser.userID" style="text-decoration: none;">
+                      <!-- <img title="eachUser.name" src="eachUser.photo|default:'https://st3.depositphotos.com/3581215/18899/v/600/depositphotos_188994514-stock-illustration-vector-illustration-male-silhouette-profile.jpg'" alt="Admin" style="object-fit: cover;"  class="rounded-circle" width="30px" height="30px" > -->
+                      <div style="display:block;">
+                        eachUser.name
+                      </div>
+                      
+                      </a>
+                    </span>
+                     endfor 
+                     endif 
+                     endif 
+                  </div>
+
+
+
+                  <!-- <p class="text-muted font-size-sm">Bay Area, San Francisco, CA</p>
+                  <button class="btn btn-primary">Follow</button>
+                  <button class="btn btn-outline-primary">Message</button> -->
+                </div>
+              </div>
+            </div>
+
+<style>
+
+
+.profile-card {
+    padding: 2rem;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.profile-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+/* Profile Image */
+.profile-image {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #f0f0f0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1.5rem;
+}
+
+/* Password Modal */
+.password-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.password-modal .modal-dialog {
+    width: 90%;
+    max-width: 500px;
+}
+
+.password-modal .modal-content {
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.password-modal .modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #e9ecef;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.password-modal .modal-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+.password-modal .modal-body {
+    padding: 1.5rem;
+}
+
+.password-form .form-control {
+    padding: 0.75rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: border-color 0.3s;
+    margin-bottom: 0.5em;
+}
+
+.password-form .form-control:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+/* Upload Photo Section */
+.upload-photo-section {
+    margin: 1rem 0;
+}
+
+.custom-file {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.custom-file-label {
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-block;
+    text-align: center;
+}
+
+.custom-file-label:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* Profile Info */
+.profile-info {
+    width: 100%;
+    margin-top: 1rem;
+}
+
+/* Username Badge */
+.username-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.5rem 1.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50px;
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.username-plain {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #212529;
+    margin-bottom: 1rem;
+}
+
+.user-svg {
+    width: 20px;
+    height: 20px;
+    fill: #fff;
+    cursor: pointer;
+}
+
+/* Facebook Connect Button */
+.facebook-connect-btn {
+    width: 100%;
+    padding: 0.75rem;
+    margin: 1rem 0;
+    border: 2px solid #1877f2;
+    background: #fff;
+    color: #1877f2;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.facebook-connect-btn:hover {
+    background: #1877f2;
+    color: #fff;
+}
+
+/* Change Password Button */
+.btn-change-password {
+    padding: 0.75rem 2rem;
+    background: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 1em;
+}
+
+.btn-change-password:hover {
+    background: #0056b3;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+/* Member Info */
+.member-info {
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.member-info small {
+    color: #6c757d;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.contact-info {
+    padding: 0.5rem 1rem;
+    background: #e9ecef;
+    border-radius: 20px;
+    font-weight: 600;
+    color: #495057;
+    display: inline-block;
+    margin: 0.5rem 0;
+}
+
+/* Payment Overlay */
+.block-image {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.payment-content {
+    background: #fff;
+    padding: 2rem;
+    border-radius: 12px;
+    max-width: 500px;
+    text-align: center;
+}
+
+.payment-content input[type="text"] {
+    margin: 0.5rem 0;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    text-align: center;
+    width: 300px;
+    max-width: 100%;
+}
+
+.payment-content img {
+    max-height: 400px;
+    margin: 1rem auto;
+    border-radius: 8px;
+    display: block;
+}
+
+/* Stats Section */
+.stats-section {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin: 1.5rem 0;
+    padding-top: 1.5rem;
+    border-top: 2px solid #e9ecef;
+    flex-wrap: wrap;
+}
+
+.svg-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+    background: #f8f9fa;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+    min-width: 80px;
+}
+
+.svg-container:hover {
+    background: #e9ecef;
+    transform: translateY(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.svg-container svg {
+    width: 32px;
+    height: 32px;
+    fill: #007bff;
+}
+
+.svg-container div,
+.svg-container > span {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #212529;
+}
+
+/* Visitors Section */
+.visitors-section {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid #e9ecef;
+}
+
+.visitors-section small {
+    color: #909090;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.visitor-item {
+    display: inline-block;
+    margin: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #212529;
+    transition: all 0.3s;
+}
+
+.visitor-item:hover {
+    background: #007bff;
+    color: #fff;
+    transform: translateY(-2px);
+    text-decoration: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .profile-card {
+        padding: 1.5rem;
+    }
+    
+    .profile-image {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .stats-section {
+        gap: 1rem;
+    }
+    
+    .svg-container {
+        min-width: 70px;
+        padding: 0.75rem 1rem;
+    }
+    
+    .payment-content input[type="text"] {
+        width: 100%;
+    }
+}
+
+/* Additional Utility Classes */
+hr {
+    border: 0;
+    height: 1px;
+    background: #e9ecef;
+    margin: 1.5rem 0;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.mt-3 {
+    margin-top: 1rem;
+}
+
+.mb-1 {
+    margin-bottom: 0.25rem;
+}
+
+.w-100 {
+    width: 100%;
+}
+
+.py-2 {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+}
+
+.mb-2 {
+    margin-bottom: 0.5rem;
+}
+
+.btn-block {
+    display: block;
+    width: 100%;
+}
+</style>
+
+<div class="card-body profile-card">
+    <div class="profile-header">
+         if pageUser.photo 
+        <img src="pageUser.photo" alt="user-photo" class="profile-image">
+         endif 
+        
+         if user.id == pageUser.userID  
+        <!-- Password Change Modal -->
+        <div class="password-modal" id="changePasswordModal" tabindex="-1" role="dialog" style="display: none;">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Change Password</h5>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Your form here -->
+                        <form method="post" action=" url 'userProfile:changepsw' " class="password-form">
+                             csrf_token 
+                            <input name="currentPassword" type="password" placeholder="Old password" class="form-control">
+                            <input name="newPassword" type="password" placeholder="New password" class="form-control">
+                            <input name="newPasswordConfirmation" type="password" placeholder="New password" class="form-control">
+                            <button type="submit" action="submit" class="btn btn-primary">
+                                Change Password
+                            </button>
+                            <hr>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+         if pageUser.photo == '' 
+        <div class="upload-photo-section">
+            <form class="was-validated" method="POST" action=" url 'userProfile:uploadPhoto' " enctype="multipart/form-data">
+                 csrf_token 
+                <input hidden readonly name="purpose" value="profilePhoto" />
+                <div class="custom-file">
+                    form.image
+                    <label class="custom-file-label" for="validatedCustomFile">Upload Picture</label>
+                </div>
+            </form>
+        </div>
+         endif 
+         endif 
+        
+        <div class="profile-info">
+            <hr>
+            
+            <!-- Username Section -->
+            <div>
+                 if pageUser.verified 
+                <span class="username-badge">
+                    <svg viewBox="0 0 16 16" class="user-svg" onclick="alert('User is Verified')">
+                        <path d="M10.067.87a2.89 2.89 0 0 0-4.134 0l-.622.638-.89-.011a2.89 2.89 0 0 0-2.924 2.924l.01.89-.636.622a2.89 2.89 0 0 0 0 4.134l.637.622-.011.89a2.89 2.89 0 0 0 2.924 2.924l.89-.01.622.636a2.89 2.89 0 0 0 4.134 0l.622-.637.89.011a2.89 2.89 0 0 0 2.924-2.924l-.01-.89.636-.622a2.89 2.89 0 0 0 0-4.134l-.637-.622.011-.89a2.89 2.89 0 0 0-2.924-2.924l-.89.01-.622-.636zm.287 5.984-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7 8.793l2.646-2.647a.5.5 0 0 1 .708.708z"></path>
+                    </svg>
+                    <span>pageUser.name</span>
+                </span>
+                 else 
+                <div class="username-plain">pageUser.name</div>
+                
+                 if user.id == pageUser.userID 
+                 if pageUser.photo != '' 
+                <div class="upload-photo-section">
+                    <form class="was-validated" method="POST" action=" url 'userProfile:uploadPhoto' " enctype="multipart/form-data">
+                        <input hidden readonly name="purpose" value="verification" />
+                        <div class="custom-file w-100 py-2 mb-2">
+                             csrf_token  form.image
+                            <label class="custom-file-label" for="validatedCustomFile">Upload selfie with Valid ID</label>
+                        </div>
+                    </form>
+                </div>
+                 endif 
+                 endif 
+                 endif 
+            </div>
+            
+            <!-- Facebook Connect -->
+            <div>
+                 if user.id == pageUser.userID 
+                 if pageUser.name == 'Facebook not Connected' 
+                <button onclick="ContinueWithFacebook()" class="facebook-connect-btn" type="submit">
+                    <svg width="1" height="1"><use xlink:href="#facebook"></use></svg>
+                    Connect with Facebook
+                </button>
+                 endif 
+                 endif 
+            </div>
+            
+            <!-- Change Password Button -->
+            <button id="openModalBtn" type="button" class="btn btn-primary btn-change-password">
+                Change Password
+            </button>
+            
+            <!-- Member Info -->
+            <div class="member-info">
+                <small>Member since:</small>
+                <div>pageUser.registeredTimeStamp</div>
+            </div>
+            
+            <div class="contact-info">pageUser.contact</div>
+            
+             if not createBalance_FORM 
+            <!-- Advance Payment FORM -->
+             if pageUser.name != request.user.username 
+            <!-- Advance payment options can go here -->
+             else 
+            <div hidden>₱ pageUser.currentBalance | intcomma  Balance</div>
+            
+            <!-- FOR PAYMENT -->
+            <div class="block-image" onclick="hide(this)" style="display:none;">
+                <div class="payment-content">
+                    <p style="padding-top: 50px;">Scan the QRCode and Send Gcash to add Balance
+                        <br>
+                        and email to <input type="text" readonly value="johnwebsiteproject@gmail.com"> 
+                        <br>the print screen and receipt
+                    </p>
+                    <p>or Message us <input type="text" readonly value="+639568543802"></p>
+                    <img src=" static 'pictures/gcash.jpg' ">
+                </div>
+            </div>
+             endif 
+             endif 
+            
+            <!-- Stats Section -->
+             if pageUser 
+            <div class="stats-section">
+                <div class="svg-container" onclick="alert('Visitor Count')">
+                    <svg class="user-svg" viewBox="0 0 16 16">
+                        <path d="m8 0 1.669.864 1.858.282.842 1.68 1.337 1.32L13.4 6l.306 1.854-1.337 1.32-.842 1.68-1.858.282L8 12l-1.669-.864-1.858-.282-.842-1.68-1.337-1.32L2.6 6l-.306-1.854 1.337-1.32.842-1.68L6.331.864 8 0z" />
+                        <path d="M4 11.794V16l4-1 4 1v-4.206l-2.018.306L8 13.126 6.018 12.1 4 11.794z" />
+                    </svg>
+                    <div>pageUser.reputations | intcomma</div>
+                </div>
+                
+                <div class="svg-container" onclick="alert('Transactions Count')">
+                    <svg class="user-svg" viewBox="0 0 256 256">
+                        <g style="stroke: none; stroke-width: 0; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill-rule: nonzero; opacity: 1;" transform="translate(1.4065934065934016 1.4065934065934016) scale(2.81 2.81)">
+                            <path d="M 88.828 41.622 L 78.775 31.569 c -0.002 -0.002 -0.003 -0.003 -0.005 -0.004 c -0.185 -0.184 -0.388 -0.349 -0.605 -0.494 c -0.095 -0.064 -0.199 -0.107 -0.298 -0.162 c -0.129 -0.071 -0.254 -0.149 -0.391 -0.206 c -0.127 -0.052 -0.26 -0.082 -0.39 -0.121 c -0.119 -0.035 -0.233 -0.081 -0.356 -0.105 c -0.242 -0.048 -0.488 -0.071 -0.734 -0.074 c -0.017 0 -0.032 -0.005 -0.048 -0.005 s -0.032 0.005 -0.048 0.005 c -0.246 0.003 -0.492 0.026 -0.734 0.074 c -0.123 0.024 -0.237 0.07 -0.355 0.105 c -0.131 0.039 -0.264 0.069 -0.391 0.121 c -0.137 0.057 -0.261 0.134 -0.39 0.205 c -0.1 0.055 -0.204 0.099 -0.299 0.162 c -0.218 0.145 -0.421 0.31 -0.605 0.494 c -0.002 0.002 -0.003 0.003 -0.005 0.004 L 63.065 41.622 c -1.563 1.562 -1.563 4.095 0 5.657 c 1.561 1.563 4.094 1.563 5.656 0 l 3.226 -3.225 V 58.44 c 0 6.409 -5.215 11.624 -11.624 11.624 h -46.27 c -2.209 0 -4 1.791 -4 4 s 1.791 4 4 4 h 46.27 c 10.82 0 19.624 -8.804 19.624 -19.624 V 44.055 l 3.225 3.225 c 0.78 0.781 1.805 1.171 2.828 1.171 s 2.048 -0.39 2.828 -1.171 C 90.391 45.717 90.391 43.185 88.828 41.622 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(0,0,0); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+                            <path d="M 11.225 58.431 c 0.184 0.184 0.387 0.349 0.604 0.495 c 0.056 0.038 0.12 0.062 0.178 0.096 c 0.165 0.099 0.33 0.197 0.509 0.272 c 0.083 0.034 0.172 0.051 0.257 0.08 c 0.161 0.055 0.32 0.115 0.49 0.149 c 0.259 0.052 0.523 0.08 0.791 0.08 s 0.533 -0.028 0.791 -0.08 c 0.171 -0.034 0.33 -0.094 0.492 -0.15 c 0.084 -0.029 0.172 -0.045 0.255 -0.079 c 0.179 -0.075 0.345 -0.173 0.51 -0.272 c 0.058 -0.035 0.121 -0.058 0.177 -0.096 c 0.217 -0.146 0.42 -0.311 0.604 -0.495 c 0 0 0 0 0 0 l 10.053 -10.053 c 1.562 -1.563 1.562 -4.095 0 -5.657 c -1.562 -1.562 -4.094 -1.562 -5.657 0 l -3.224 3.224 V 31.56 c 0 -6.41 5.214 -11.624 11.624 -11.624 h 46.271 c 2.209 0 4 -1.791 4 -4 s -1.791 -4 -4 -4 H 29.677 c -10.82 0 -19.624 8.803 -19.624 19.624 v 14.386 l -3.225 -3.225 c -1.563 -1.562 -4.095 -1.562 -5.657 0 c -1.562 1.563 -1.562 4.095 0 5.657 L 11.225 58.431 C 11.225 58.431 11.225 58.431 11.225 58.431 z" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(0,0,0); fill-rule: nonzero; opacity: 1;" transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
+                        </g>
+                    </svg>
+                    <div>pageUser.TransactionCount | intcomma</div>
+                </div>
+                
+                <div class="svg-container" onclick="alert('ask Blog register')">
+                    <!-- <span><a href="/apis/blog">My Blog</a></span> -->
+                </div>
+            </div>
+            
+            <hr>
+            
+            <!-- Visitors Section -->
+            <div class="visitors-section">
+                 if pageUser.MyVisitors 
+                <div>
+                    <small>Visitors: pageUser.MyVisitors.count</small>
+                </div>
+                
+                <div style="margin-top: 1rem;">
+                     for eachUser in pageUser.MyVisitors|slice:":5" 
+                    <a title="View Profile" href="/userProfile/view/csrf_token/eachUser.userID" class="visitor-item">
+                        eachUser.name
+                    </a>
+                     endfor 
+                </div>
+                 endif 
+            </div>
+             endif 
+        </div>
+    </div>
+</div>
+
+<script>
+// Modal functionality
+document.getElementById('openModalBtn').addEventListener('click', function() {
+    document.getElementById('changePasswordModal').style.display = 'flex';
+});
+
+// Close modal when clicking outside
+document.getElementById('changePasswordModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        this.style.display = 'none';
+    }
+});
+
+// Hide function for payment overlay
+function hide(element) {
+    element.style.display = 'none';
+}
+</script>

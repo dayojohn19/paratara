@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Current Visitors - {{ place.placename }}</title>
+    <style>
+        {% include 'home/place_current_visitors.css' %}
+    </style>
+</head> 
+<body>
+    <div class="header">
+        <div class="container">
+            <a href="{% url 'home:checkPlaceSlug' place.slug %}" class="back-link">← Back to {{ place.placename }}</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1 class="page-title">Current Visitors in {{ place.placename }}</h1>
+
+        <div class="stats-bar">
+            <div class="stat">
+                <div class="stat-number">{{ total_visitors }}</div>
+                <div class="stat-label">Active Visitors</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number">{{ tourists_by_spot|length }}</div>
+                <div class="stat-label">Tourist Spots</div>
+            </div>
+        </div>
+
+        <div class="info-note">
+            <strong>Note:</strong> Showing visitors who checked in within the last {{ cutoff_hours }} hours.
+            This represents tourists currently exploring {{ place.placename }}.
+        </div>
+
+        {% if tourists_by_spot %}
+            {% for spot_name, tourists in tourists_by_spot.items %}
+            <div class="content-section">
+                <h2 class="section-title">
+    {{ spot_name }} 
+    <span class="spot-count">{{ tourists|length }} visitor{{ tourists|length|pluralize }}</span>
+</h2>
+                <div class="tourist-list">
+                    {% for tourist_data in tourists %}
+                    <div class="tourist-item {% if tourist_data.is_overdue %}overdue{% endif %}">
+                        <div class="tourist-info">
+                            <div class="tourist-name">{{ tourist_data.tourist.username }}
+                            {% if tourist_data.tourist.additionalCreds.age_range or tourist_data.tourist.additionalCreds.gender %}
+                            <div class="tourist-demographics">
+                                {% if tourist_data.tourist.additionalCreds.age_range and tourist_data.tourist.additionalCreds.age_range != 'prefer_not_to_disclose' %}
+                                <span class="age-badge {% if tourist_data.tourist.additionalCreds.gender == 'female' %}female{% elif tourist_data.tourist.additionalCreds.gender == 'male' %}male{% endif %}">{{ tourist_data.tourist.additionalCreds.get_age_range_display }}</span>
+                                {% endif %}
+                                {% if tourist_data.tourist.additionalCreds.gender and tourist_data.tourist.additionalCreds.gender != 'prefer_not_to_disclose' %}
+                                <span class="gender-badge {{ tourist_data.tourist.additionalCreds.gender }}">{{ tourist_data.tourist.additionalCreds.get_gender_display }}</span>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+
+                            </div>
+                            
+                            <div class="tourist-email">
+                                
+                                {% if tourist_data.tourist.email %}
+                                    <input disabled value="{{ tourist_data.tourist.email }}" class="mobile-input">
+                                {% elif tourist_data.tourist.additionalCreds.contact %}
+                                <input disabled value="{{ tourist_data.tourist.additionalCreds.contact }}" class="mobile-input">  
+                                {% else %}
+                                    No contact info
+                                {% endif %}
+                            </div>
+
+                        </div>
+                        <div class="visit-time">
+                            {% if tourist_data.tour_guide %}
+                                <div class="tour-guide-info">
+                                    <a href="{% url 'userProfile:tour_guide_profile' tourist_data.tour_guide.user.username %}" class="tour-guide-link">
+                                        Guide: {{ tourist_data.tour_guide.user }} 
+                                    </a>
+                                    <input disabled value="{{ tourist_data.tour_guide.mobile_number }}" class="mobile-input">
+                                </div>
+                            {% endif %}                            
+                            {% if tourist_data.is_overdue %}
+                                <span class="overdue-indicator">OVER 24H</span>
+                            {% endif %}
+                            Checked in: {{ tourist_data.visit_time_local|date:"M j, Y g:i A" }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="content-section">
+                <div class="no-visitors">
+                    <p>No active visitors found in {{ place.placename }} within the last {{ cutoff_hours }} hours.</p>
+                    <p>Visitors will appear here when they check in at tourist spots.</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get place slug from URL
+    const pathParts = window.location.pathname.split('/').filter(p => p);
+    const placeSlug = pathParts.find(part => part !== 'home' && part !== 'place' && part !== 'current-visitors');
+    
+    if (!placeSlug) return;
+    
+    let lastTimestamp = null;
+    let checkInterval = null;
+    
+    // Function to check for updates
+    function checkForUpdates() {
+        fetch(`/api/place/${placeSlug}/latest-visit/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) return;
+                
+                const currentTimestamp = data.latest_timestamp;
+                
+                // If this is the first check, store the timestamp
+                if (lastTimestamp === null) {
+                    lastTimestamp = currentTimestamp;
+                    return;
+                }
+                
+                // If timestamp changed, refresh the page
+                if (currentTimestamp !== lastTimestamp) {
+                    console.log('New visits detected, refreshing page...');
+                    window.location.reload();
+                }
+            })
+            .catch(error => {
+                console.warn('Error checking for updates:', error);
+            });
+    }
+    
+    // Start checking for updates every 30 seconds
+    checkInterval = setInterval(checkForUpdates, 30000);
+    
+    // Initial check after 10 seconds
+    setTimeout(checkForUpdates, 10000);
+    
+    // Clean up interval when page is unloaded
+    window.addEventListener('beforeunload', function() {
+        if (checkInterval) {
+            clearInterval(checkInterval);
+        }
+    });
+});
+</script>

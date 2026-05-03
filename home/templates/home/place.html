@@ -1,0 +1,3538 @@
+{% load static %} {% block body %}
+
+{% include "home/placeJS.html" %}
+
+<script>
+  function openBulletinImageModal(imageUrl) {
+    const modal = document.getElementById('bulletinImageModal');
+    const imageElement = document.getElementById('bulletinModalImage');
+    if (!modal || !imageElement) return;
+    imageElement.src = imageUrl;
+    modal.style.display = 'block';
+    modal.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeBulletinImageModal() {
+    const modal = document.getElementById('bulletinImageModal');
+    const imageElement = document.getElementById('bulletinModalImage');
+    if (imageElement) imageElement.src = '';
+    if (modal) {
+
+      modal.style.display = 'none';
+      modal.setAttribute('aria-hidden', 'true');
+    }
+  }
+
+  document.addEventListener('click', function(event) {
+    const link = event.target && event.target.closest ? event.target.closest('a.bulletin-image-link') : null;
+    if (!link) return;
+    event.preventDefault();
+    const imageUrl = link.getAttribute('data-image-url') || link.getAttribute('href');
+    if (!imageUrl) return;
+    openBulletinImageModal(imageUrl);
+  });
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const button = document.getElementById('bulletinPostButton');
+    const form = document.getElementById('bulletinPostForm');
+    if (!button || !form) return;
+
+    button.addEventListener('click', function() {
+      const isHidden = form.style.display === 'none' || form.style.display === '';
+      form.style.display = isHidden ? 'flex' : 'none';
+    });
+  });
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const navToggle = document.getElementById('placeNavToggle');
+    const navMenu = document.getElementById('placeNavMenu');
+    if (!navToggle || !navMenu) return;
+
+    const navOpenMap = document.getElementById('placeNavOpenMap');
+
+    function closeMenu() {
+      navMenu.classList.remove('is-open');
+      navToggle.setAttribute('aria-expanded', 'false');
+    }
+
+    navToggle.addEventListener('click', function () {
+      const isOpen = navMenu.classList.toggle('is-open');
+      navToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+
+    navMenu.addEventListener('click', function (event) {
+      const actionable = event.target && event.target.closest ? event.target.closest('a, button') : null;
+      if (!actionable) return;
+      closeMenu();
+    });
+
+    if (navOpenMap) {
+      navOpenMap.addEventListener('click', function (event) {
+        if (event && event.preventDefault) event.preventDefault();
+        const existing = document.getElementById('openMapBtn');
+        if (existing) existing.click();
+      });
+    }
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') closeMenu();
+    });
+  });
+</script>
+
+<style>
+  :root {
+    --surface: #ffffff;
+    --surface-alt: #f7f9fc;
+    --page-bg: #f0f2f8;
+    --accent: #667eea;
+    --accent-dark: #4c51bf;
+    --accent-light: #764ba2;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+     --text: #2d3748;
+    --text-muted: #718096;
+    --border: #e2e8f0;
+    --shadow-sm: 0 8px 24px rgba(15, 41, 107, 0.08);
+    --shadow-md: 0 14px 44px rgba(15, 41, 107, 0.12);
+    --radius-lg: 18px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+    --transition: 0.2s ease;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", sans-serif;
+    background: var(--page-bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  .page-container {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: clamp(18px, 4vw, 40px);
+  }
+
+  .hero {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: clamp(24px, 4vw, 32px);
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* .hero__info {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex: 1 1 280px;
+    min-width: 0;
+  } */
+
+  .hero__icon {
+    width: 60px;
+    height: 60px;
+    border-radius: var(--radius-md);
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .hero__icon svg {
+    width: 28px;
+    height: 28px;
+    fill: #ffffff;
+  }
+
+  .hero__text {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .hero__heading {
+    font-size: clamp(1.9rem, 4vw, 2.6rem);
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.05;
+  }
+
+  .hero__subtitle {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+  }
+
+  .hero__actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .ask-box {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .ask-input {
+    width: 100vw;
+    padding: 0.6rem 0.8rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    font-size: 1rem;
+    max-width: 700px;
+    transition: border-color var(--transition), box-shadow var(--transition);
+  }
+
+  .ask-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+
+  .ask-send-btn {
+    padding: 0.6rem;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+    color: #ffffff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform var(--transition), box-shadow var(--transition);
+  }
+
+  .ask-send-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0.7rem 1.3rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    font-weight: 600;
+    font-size: 0.95rem;
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    transition: transform var(--transition), box-shadow var(--transition), background var(--transition), color var(--transition), border-color var(--transition);
+  }
+
+  .button svg {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+  }
+
+  .button--primary {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+    color: #ffffff;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .button--primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .button--ghost {
+    background: var(--surface);
+    border-color: var(--border);
+    color: var(--accent);
+  }
+
+  .button--ghost:hover {
+    background: #edf2ff;
+    border-color: #c3d1ff;
+  }
+
+  .primary-grid {
+    display: grid;
+    gap: 24px;
+    margin-top: 32px;
+  }
+
+  @media (min-width: 992px) {
+    .primary-grid {
+      grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+    }
+  }
+
+  .panel {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: clamp(22px, 3vw, 30px);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .panel__body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .page-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    margin-top: 28px;
+  }
+
+  .section-header {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .section-header h2 {
+    font-size: clamp(1.35rem, 3vw, 1.8rem);
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .section-header p {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+  }
+
+  #calendar-container {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+
+  #calendar-container table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--surface);
+  }
+
+  #calendar-container th,
+  #calendar-container td {
+    padding: 14px;
+    text-align: center;
+    font-size: 0.9rem;
+  }
+
+  #calendar-container th {
+    background: #eef2ff;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  #calendar-container td {
+    border: 1px solid var(--border);
+    font-weight: 500;
+    color: #4a5568;
+    cursor: pointer;
+    transition: background var(--transition), color var(--transition), transform var(--transition);
+  }
+
+  #calendar-container td:hover {
+    background: #f3f6ff;
+    color: var(--accent);
+    transform: translateY(-2px);
+  }
+
+  .calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 18px 20px;
+    background: var(--surface-alt);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .calendar-header h2 {
+    font-size: 1.35rem;
+    color: var(--text);
+    font-weight: 700;
+  }
+
+  .nav-buttons {
+    display: flex;
+    gap: 10px;
+  }
+
+  .calendar-header-left {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .nav-buttons a {
+    text-decoration: none;
+  }
+
+  .nav-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: #eef2ff;
+    color: var(--accent);
+    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background var(--transition), color var(--transition), transform var(--transition);
+  }
+
+  .nav-btn:hover {
+    background: var(--accent);
+    color: #ffffff;
+    transform: translateY(-1px);
+  }
+
+  .add-schedule-btn {
+    padding: 0.55rem 0.9rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--accent);
+    background: #ffffff;
+    color: var(--accent);
+    font-weight: 700;
+    cursor: pointer;
+    transition: background var(--transition), color var(--transition), box-shadow var(--transition), transform var(--transition);
+  }
+
+  .add-schedule-btn:hover {
+    background: #eef2ff;
+    color: var(--accent-dark);
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-1px);
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 6px;
+    background: var(--accent);
+    color: #ffffff;
+    border-radius: 9999px;
+    font-size: 0.6rem;
+    font-weight: 600;
+    transition: transform var(--transition), background var(--transition);
+    position: absolute;
+    top: 6px;
+    cursor: pointer;
+  }
+
+  td.has-badge {
+    position: relative;
+  }
+
+  .badge:hover {
+    transform: scale(1.05);
+    background: var(--accent-dark);
+  }
+
+  .chat-container {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    height: 100%;
+  }
+
+  .chat-messages {
+    flex: 1;
+    min-height: 320px;
+    max-height: 560px;
+    overflow-y: auto;
+    padding: 5px;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 14px;
+
+  }
+
+  .chat-messages::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .chat-messages::-webkit-scrollbar-track {
+    background: #edf2f7;
+    border-radius: 999px;
+  }
+
+  .chat-messages::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+    border-radius: 999px;
+  }
+
+  .message-bubble {
+    background: #ffffff;
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    box-shadow: 0 4px 16px rgba(13, 27, 62, 0.08);
+    font-size: 0.95rem;
+    line-height: 1.55;
+    word-break: break-word;
+  }
+
+  .message-bubble span {
+    font-weight: 700;
+    color: var(--accent);
+    margin-right: 6px;
+  }
+
+  .message-time {
+    margin-top: 8px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  .chat-input-area {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+    padding: 15px;
+  }
+
+  .chat-input {
+    flex: 1;
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    border: 2px solid var(--border);
+    font-size: 0.95rem;
+    resize: none;
+    min-height: 56px;
+    transition: border-color var(--transition), box-shadow var(--transition);
+    font-family: inherit;
+  }
+
+  .chat-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.18);
+  }
+
+  .chat-send-btn {
+    width: 54px;
+    height: 54px;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: transform var(--transition), box-shadow var(--transition), opacity var(--transition);
+  }
+
+  .chat-send-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .chat-send-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .chat-send-btn svg {
+    width: 20px;
+    height: 20px;
+    fill: #ffffff;
+  }
+
+  .chat-send-btn .spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  .calendar-grid {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  }
+
+  .calendar-event-card {
+    position: relative;
+    min-height: 220px;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background-size: cover;
+    background-position: center;
+    transition: transform var(--transition), box-shadow var(--transition);
+    cursor: pointer;
+  }
+
+  .calendar-event-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .card-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(14, 23, 53, 0.2) 0%, rgba(14, 23, 53, 0.85) 100%);
+  }
+
+  .card-content {
+    position: absolute;
+    inset: auto 0 0 0;
+    padding: 20px;
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    z-index: 1;
+  }
+
+  .card-content h4 {
+    font-size: 1.15rem;
+    font-weight: 700;
+  }
+
+  .card-content p {
+    font-size: 0.9rem;
+    opacity: 0.9;
+  }
+
+  .calendar-list {
+    display: flex;
+    align-items: center;
+    border-top: 1px solid #e9ecef;
+    gap: 1rem;
+    flex-wrap: wrap;
+    overflow: scroll;
+  }
+
+  .calendar-list > * {
+    flex-shrink: 0;
+    min-width: max-content;
+  }
+
+  .loading-symbol {
+    width: 54px;
+    height: 54px;
+    border: 4px solid rgba(103, 120, 219, 0.25);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 32px auto;
+  }
+
+  .resort-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .resort-list__scroller {
+    max-height: 40vh;
+    overflow-y: auto;
+    padding-right: 6px;
+  }
+
+  .resort-list__scroller::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .resort-list__scroller::-webkit-scrollbar-track {
+    background: #edf2f7;
+    border-radius: 999px;
+  }
+
+  .resort-list__scroller::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+    border-radius: 999px;
+  }
+
+  .resort-list ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .resort-list li {
+    background: var(--surface-alt);
+    border-radius: var(--radius-md);
+    padding: 16px 18px;
+    border: 1px solid transparent;
+    transition: transform var(--transition), border-color var(--transition), background var(--transition);
+  }
+
+  .resort-list li:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent);
+    background: #eef2ff;
+  }
+
+  .resort-list a {
+    text-decoration: none;
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 1rem;
+    display: inline-flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .resort-list small {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+
+  .blog-grid {
+    display: grid;
+    gap: 24px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+
+  .blog-post {
+    background: var(--surface-alt);
+    border-radius: var(--radius-md);
+    padding: 22px;
+    border: 1px solid rgba(9, 9, 9, 1);
+    transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
+  }
+
+  .blog-post:hover {
+    transform: translateY(-3px);
+    border-color: var(--accent);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .blog-category {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #ffffff;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+    margin-bottom: 14px;
+  }
+
+  .blog-title {
+    font-size: 1.25rem;
+    color: var(--text);
+    margin-bottom: 12px;
+    font-weight: 700;
+    line-height: 1.4;
+  }
+
+  .blog-excerpt {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 18px;
+  }
+
+  .blog-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .blog-meta-left {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+
+  .blog-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .blog-card {
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: color var(--transition);
+  }
+
+  .blog-card:hover {
+    color: var(--accent-dark);
+  }
+
+  .empty-state {
+    text-align: center;
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    padding: 24px;
+    background: var(--surface-alt);
+    border-radius: var(--radius-md);
+    border: 1px dashed #cbd5f5;
+  }
+
+  #mapModal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(13, 27, 62, 0.45);
+    align-items: center;
+    justify-content: center;
+    z-index: 1500;
+  }
+
+  #mapModal.show {
+    display: flex;
+  }
+
+  #mapModal > div {
+    /* width: min(95vw, 100%);
+    height: min(95vh, 860px); */
+    width: 100%;
+    height: 100%;
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    position: relative;
+    box-shadow: var(--shadow-md);
+  }
+
+  #closeMapBtn {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.9);
+    font-size: 26px;
+    cursor: pointer;
+    color: var(--text);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background var(--transition), transform var(--transition);
+    z-index: 2;
+  }
+
+  #closeMapBtn:hover {
+    background: #f0f4ff;
+    transform: scale(1.05);
+  }
+
+  .modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(13, 27, 62, 0.65);
+    backdrop-filter: blur(6px);
+    z-index: 2000;
+    padding-top: 24px;
+    overflow-y: auto;
+  }
+
+  .modal-content {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    max-width: 700px;
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+    animation: modalSlideIn 0.3s ease;
+    margin: 0 auto;
+  }
+
+  .modal-header {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+    color: #ffffff;
+    padding: 13px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .modal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+  }
+
+  .close {
+    font-size: 32px;
+    font-weight: 300;
+    cursor: pointer;
+    transition: transform var(--transition), opacity var(--transition);
+    line-height: 1;
+  }
+
+  .close:hover {
+    transform: rotate(90deg);
+    opacity: 0.8;
+  }
+
+  .modal-body {
+    padding: 0;
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  .modal-image img {
+    width: 100%;
+    display: block;
+  }
+
+  .modal-footer {
+    padding: 20px 24px;
+    background: var(--surface-alt);
+  }
+
+  /* Add Schedule modal form styling */
+  #addScheduleModal .modal-content {
+    max-width: 720px;
+  }
+
+  #addScheduleForm {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .add-schedule-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+  }
+
+  #addScheduleForm label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  #addScheduleForm input,
+  #addScheduleForm select {
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 0.95rem;
+    background: var(--surface);
+    transition: border var(--transition), box-shadow var(--transition);
+  }
+
+  #addScheduleForm input:focus,
+  #addScheduleForm select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+  }
+
+  #addScheduleStatus {
+    min-height: 20px;
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  .add-schedule-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 6px;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes modalSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-40px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (max-width: 680px) {
+    .hero {
+      padding: 22px;
+    }
+/* 
+    .hero__info {
+      flex-direction: row;
+      align-items: center;
+    } */
+
+    .hero__icon {
+      width: 52px;
+      height: 52px;
+    }
+
+    .hero__actions {
+      width: 100%;
+      justify-content: flex-start;
+    }
+
+    .ask-box {
+      width: 100%;
+      margin-bottom: 12px;
+    }
+
+    .ask-input {
+      width: 100%;
+      min-width: auto;
+    }
+
+    .chat-messages {
+      max-height: 480px;
+    }
+
+    .chat-input-area {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .chat-send-btn {
+      width: 100%;
+      height: 48px;
+    }
+
+    .calendar-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .nav-buttons {
+      width: 100%;
+      justify-content: flex-start;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .page-container {
+      padding: 16px;
+    }
+
+    .panel {
+      padding: 20px;
+    }
+
+    #calendar-container th,
+    #calendar-container td {
+      padding: 10px 8px;
+      font-size: 0.8rem;
+    }
+
+    .calendar-event-card {
+      min-height: 200px;
+    }
+
+    .card-content h4 {
+      font-size: 1.05rem;
+    }
+
+    .chat-messages {
+      padding: 16px;
+    }
+
+    .chat-input {
+      font-size: 0.9rem;
+    }
+
+    #allDiscussion {
+      max-height: 35vh !important;
+    }
+
+    #mobileChatModal .modal-content {
+      max-height: 90vh;
+    }
+  }
+
+  #mobileChatBtn {
+    display: none;
+  }
+
+  #mobileChatBtn:hover {
+    transform: scale(1.1);
+  }
+
+  @media (max-width: 680px) {
+    .panel--chat {
+      display: none;
+    }
+
+    #mobileChatBtn {
+      display: flex;
+    }
+
+    #mobileChatModal .modal-content {
+      position: fixed;
+      left: 0;
+      right: 0;
+      top: auto;
+      margin: 0 auto;
+      /* max-height: 80vh; */
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    }
+  }
+
+  #mobileChatModal .chat-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    height: auto;
+  }
+
+  #mobileChatModal .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  #mobileChatModal .chat-input-area {
+    flex-shrink: 0;
+  }
+  #allDiscussion {
+    max-height: 50vh !important;
+  }
+  #eventDetailsBody{
+  padding: 1em;
+  }
+
+   /* Schedule Card Styles */
+    .schedule-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 1.5rem;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .schedule-card {
+      margin-top: 1.5em;
+    }
+
+
+
+
+
+    .date-month {
+      /* font-size: 0.75rem; */
+      font-weight: 600;
+      text-transform: uppercase;
+      color: #667eea;
+    }
+
+
+
+
+    .schedule-type-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      /* font-size: 0.875rem; */
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      width: fit-content;
+    }
+
+
+
+    .schedule-description {
+      margin: 0 0 1.5rem 0;
+      color: #555;
+      line-height: 1.6;
+    }
+
+    .schedule-details-grid {
+      display: grid;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+
+
+    .detail-label {
+      font-weight: 600;
+      color: #333;
+      min-width: 120px;
+    }
+
+    .detail-value {
+      color: #666;
+    }
+
+    .schedule-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .poster-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .poster-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #667eea;
+    }
+
+    .poster-avatar-placeholder {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #e9ecef;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      /* font-size: 1.5rem; */
+    }
+
+    .poster-details {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .poster-name {
+      font-weight: 600;
+      color: #333;
+    }
+
+    .poster-contact {
+      /* font-size: 0.875rem; */
+      color: #666;
+    }
+
+    .schedule-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .review-count {
+      /* font-size: 0.875rem; */
+      color: #666;
+    }
+
+    .btn-join {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 0.625rem 1.5rem;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-join:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-join:active {
+      transform: scale(0.98);
+    }
+
+    .btn-view-joiners {
+      background: linear-gradient(135deg, #4c9aff 0%, #0078d4 100%);
+      color: white;
+      border: none;
+      padding: 0.625rem 1.5rem;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-view-joiners:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(76, 154, 255, 0.4);
+    }
+
+    .btn-view-joiners:active {
+      transform: scale(0.98);
+    }
+
+    .btn-delete-schedule {
+      background: linear-gradient(135deg, #ff4d4f 0%, #cf1322 100%);
+      color: white;
+      border: none;
+      padding: 0.625rem 1.5rem;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-delete-schedule:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(255, 77, 79, 0.35);
+    }
+
+    .btn-delete-schedule:active {
+      transform: scale(0.98);
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    .top-nav {
+      position: sticky;
+      top: 0;
+      z-index: 1200;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 18px;
+    }
+
+    .top-nav__inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 12px 14px;
+    }
+
+    .top-nav__brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .top-nav__brand-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .top-nav__brand-badge svg {
+      width: 18px;
+      height: 18px;
+      fill: #ffffff;
+    }
+
+    .top-nav__toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 42px;
+      height: 42px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      cursor: pointer;
+    }
+
+    .top-nav__toggle svg {
+      width: 18px;
+      height: 18px;
+      fill: var(--text);
+    }
+
+    .top-nav__links {
+      display: none;
+      padding: 0 14px 14px;
+      gap: 10px;
+      flex-direction: column;
+    }
+
+    .top-nav__links.is-open {
+      display: flex;
+    }
+
+    .top-nav__links a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.7rem 1rem;
+      border-radius: var(--radius-sm);
+      text-decoration: none;
+      color: var(--accent-dark);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      font-weight: 700;
+    }
+
+
+    .top-nav__links a:hover {
+      background: #edf2ff;
+      border-color: #c3d1ff;
+    }
+
+    #events,
+    #community-bulletin,
+    #schedules,
+    #blogs {
+      scroll-margin-top: 92px;
+    }
+
+    @media (min-width: 768px) {
+      .top-nav__toggle {
+        display: none;
+      }
+
+      .top-nav__inner {
+        padding: 12px 18px;
+      }
+
+      .top-nav__links {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-end;
+        padding: 0 18px 12px;
+        flex-wrap: wrap;
+      }
+    }
+
+    /* Resort Activities List Styles */
+
+/* Loading Spinner */
+.loading-symbol {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 40px auto;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 32px 16px;
+  color: #6b7280;
+  font-size: 15px;
+  background-color: #f9fafb;
+  border-radius: 8px;
+  border: 1px dashed #d1d5db;
+}
+
+/* Resort Activities Block */
+.resort-activities-block {
+  background-color: #ffffff;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.2s ease;
+}
+
+.resort-activities-block li {
+  margin-bottom: 1.4em;
+  list-style: none;
+}
+
+.resort-activities-block h4 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 12px 0;
+}
+
+/* Visit Website Button */
+.btn-join {
+  display: inline-block;
+  padding: 8px 16px;
+  background-color: #3b82f6;
+  color: #ffffff;
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.btn-join:hover {
+  background-color: #2563eb;
+  transform: translateY(-1px);
+}
+
+.btn-join:active {
+  transform: translateY(0);
+}
+
+/* Activities List */
+.activities-list {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 0 0;
+}
+
+
+
+/* Sub-packages List (nested) */
+.activities-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0 0;
+
+}
+
+.activities-list ul li {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  margin-bottom: 8px;
+  background-color: #ffffff;
+  border-radius: 6px;
+
+  font-size: 14px;
+  color: #374151;
+  transition: background-color 0.2s ease;
+}
+
+.activities-list ul li:hover {
+  background-color: #f3f4f6;
+}
+
+.activities-list ul li:last-child {
+  margin-bottom: 0;
+}
+
+/* Sub-package Images */
+.activities-list ul li img {
+  flex-shrink: 0;
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-right: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+/* Price Styling */
+.activities-list ul li::after {
+  margin-left: auto;
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .resort-activities-block {
+    padding: 16px;
+  }
+
+  .resort-activities-block h4 {
+    font-size: 18px;
+  }
+
+
+  .activities-list ul li {
+    font-size: 13px;
+  }
+
+  .activities-list ul li img {
+    width: 50px;
+    height: 50px;
+    margin-right: 10px;
+  }
+}
+
+/* Container Spacing */
+#resort-activities-list-js {
+  max-width: 100%;
+  margin: 0 auto;
+    display: flex;
+  flex-direction: row;
+  gap: 1.1rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  position: relative;
+}
+
+/* Temporary: hide all major sections except the calendar and Accommodations */
+/* Keeps .primary-grid (calendar) visible and only the #accommodations section inside .page-stack */
+/* .page-container > *:not(.primary-grid):not(.page-stack) {
+  display: none !important;
+}
+
+.page-stack > section:not(#accommodations) {
+  display: none !important;
+}
+
+.page-container .primary-grid {
+  display: block !important;
+}
+.page-container #accommodations {
+  display: block !important;
+} */
+/* END HIDING  */
+
+</style>
+
+<script>
+    // Generate math challenge
+    let mathA, mathB, mathCorrectAnswer;
+    function generateMathChallenge() {
+      mathA = Math.floor(Math.random() * 10) + 1;
+      mathB = Math.floor(Math.random() * 10) + 1;
+      mathCorrectAnswer = mathA + mathB;
+      const mathQuestion = document.getElementById('mathQuestion');
+      if (mathQuestion) {
+        mathQuestion.textContent = `${mathA} + ${mathB}`;
+      }
+    }  
+  // Get CSRF token from cookie for Django POST requests
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+  const csrftoken = getCookie('csrftoken');
+
+  // Get user's geolocation
+  function getUserLocation() {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Geolocation is not supported by this browser'));
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const coords = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy
+          };
+          resolve(coords);
+        },
+        (error) => {
+          console.warn('Geolocation error:', error);
+          // Don't reject - allow joining without location
+          resolve(null);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        }
+      );
+    });
+  }
+
+  // Handle schedule join with confirmation and geolocation
+  async function joinSchedule(scheduleId, scheduleTitle) {
+    // Show confirmation dialog
+    const isConfirmed = confirm(`Are you sure you want to join "${scheduleTitle}"?`);
+    
+    if (!isConfirmed) {
+      return;
+    }
+
+    // Check if user is logged in first
+    const currentPageUser = '{{request.user}}';
+    if (currentPageUser === "AnonymousUser") {
+      alert('You must be logged in to join a schedule. Please log in first.');
+      window.location.href = '/userProfile/login/';
+      return;
+    }
+
+    // Request user's location
+    let userLocation = null;
+    let manualPickLocation = '';
+    try {
+      userLocation = await getUserLocation();
+      if (userLocation) {
+        console.log('Location obtained:', userLocation);
+      } else {
+        console.log('Location permission denied or unavailable');
+      }
+    } catch (error) {
+      console.error('Error getting location:', error);
+      // Continue without location
+    }
+
+    // If we don't have GPS coordinates, prompt the user to enter a pickup location
+    if (!userLocation) {
+      manualPickLocation = (prompt('We could not access your location. Please enter your pick-up location address') || '').trim();
+
+      if (!manualPickLocation) {
+        alert('Pickup location is required to join this schedule.');
+        return;
+      }
+
+      // If user entered "lat,lng", also populate pickCoordinate
+      const match = manualPickLocation.match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/);
+      if (match) {
+        const latitude = Number(match[1]);
+        const longitude = Number(match[2]);
+
+        if (Number.isFinite(latitude) && Number.isFinite(longitude)) {
+          userLocation = { latitude, longitude };
+        }
+      }
+    }
+
+    // Prepare form data
+    const formData = new FormData();
+    manualContact = (prompt('Enter your Contact Details') || '').trim();
+    formData.append('pickContact', manualContact);
+    if (userLocation) {
+      formData.append('pickCoordinate', JSON.stringify(userLocation));
+      formData.append('pickLocation', `${userLocation.latitude},${userLocation.longitude}`);
+    } else if (manualPickLocation) {
+      formData.append('pickLocation', manualPickLocation);
+    }
+
+    // Send request to join
+    fetch(`/schedule/${scheduleId}/join/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': csrftoken,
+      },
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success || data.already_joined) {
+        alert(data.message || 'Successfully joined the schedule!');
+        // Optionally refresh the page or update UI
+        // window.location.reload();
+      } else if (response.status === 401) {
+        alert('Please log in to join this schedule');
+        window.location.href = '/userProfile/login/';
+      } else {
+        alert(data.error || 'Failed to join schedule');
+      }
+    })
+    .catch(error => {
+      console.error('Error joining schedule:', error);
+      alert('An error occurred while joining. Please try again.');
+    });
+  }
+
+  async function viewJoiners(scheduleId, scheduleTitle) {
+    // Check if user is logged in
+    const currentPageUser = '{{request.user}}';
+    if (currentPageUser === "AnonymousUser") {
+      alert('You must be logged in to view joiners.');
+      window.location.href = '/userProfile/login/';
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/schedule/${scheduleId}/joiners/`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrftoken
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.joiners && data.joiners.length > 0) {
+          // Display joiners in a modal or alert
+          let joinersHTML = `<h3>Joiners for "${scheduleTitle}"</h3><ul style="text-align: left;">`;
+          data.joiners.forEach(joiner => {
+            joinersHTML += `<li>
+              <strong>${joiner.userName || 'Anonymous'}</strong><br>
+              📍 Pick Location: ${pickLocationToHtml(joiner.pickLocation)}<br>
+              📞 Contact: ${joiner.contact || 'N/A'}<br>
+              <small>Joined: ${new Date(joiner.timestamp).toLocaleString()}</small>
+            </li>`;
+          });
+          joinersHTML += '</ul>';
+          
+          // Create and show modal
+          const modal = document.createElement('div');
+          modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+          `;
+          modal.innerHTML = `
+            <div style="background: white; padding: 30px; border-radius: 12px; max-width: 500px; max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+              ${joinersHTML}
+              <button onclick="this.closest('div').parentElement.remove()" style="margin-top: 20px; padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer;">Close</button>
+            </div>
+          `;
+          document.body.appendChild(modal);
+        } else {
+          alert('No one has joined this schedule yet.');
+        }
+      } else {
+        alert('Failed to load joiners. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error fetching joiners:', error);
+      alert('An error occurred while loading joiners. Please try again.');
+    }
+  }
+
+  async function deleteSchedule(scheduleId, scheduleTitle, clickedButton) {
+    const isConfirmed = confirm(`Are you sure you want to delete "${scheduleTitle}"? This cannot be undone.`);
+    if (!isConfirmed) {
+      return;
+    }
+
+    // Check if user is logged in
+    const currentPageUser = '{{request.user}}';
+    if (currentPageUser === "AnonymousUser") {
+      alert('You must be logged in to delete a schedule.');
+      window.location.href = '/userProfile/login/';
+      return;
+    }
+
+    try {
+      const response = await fetch(`/schedule/${scheduleId}/delete/`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrftoken,
+        },
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (response.ok && data.success) {
+        alert(data.message || 'Schedule deleted');
+        const card = clickedButton && clickedButton.closest ? clickedButton.closest('.schedule-card') : null;
+        if (card) {
+          card.remove();
+        } else {
+          window.location.reload();
+        }
+        return;
+      }
+
+      if (response.status === 401) {
+        alert('Please log in to delete this schedule.');
+        window.location.href = '/userProfile/login/';
+        return;
+      }
+
+      alert((data && (data.error || data.message)) || 'Failed to delete schedule');
+    } catch (error) {
+      console.error('Error deleting schedule:', error);
+      alert('An error occurred while deleting. Please try again.');
+    }
+  }
+
+  function escapeHtml(value) {
+    return String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function parseLatLng(text) {
+    const match = String(text || '').match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/);
+    if (!match) return null;
+
+    const latitude = Number(match[1]);
+    const longitude = Number(match[2]);
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+    if (latitude < -90 || latitude > 90) return null;
+    if (longitude < -180 || longitude > 180) return null;
+
+    return { latitude, longitude };
+  }
+
+  function googleMapsDirectionsUrl(latitude, longitude) {
+    const destination = encodeURIComponent(`${latitude},${longitude}`);
+    return `https://www.google.com/maps/dir/?api=1&destination=${destination}`;
+  }
+
+  function pickLocationToHtml(pickLocation) {
+    if (!pickLocation) return 'Not specified';
+
+    const parsed = parseLatLng(pickLocation);
+    if (!parsed) return escapeHtml(pickLocation);
+
+    const coordsLabel = escapeHtml(`${parsed.latitude},${parsed.longitude}`);
+    const href = googleMapsDirectionsUrl(parsed.latitude, parsed.longitude);
+    return `${coordsLabel} — <a href="${href}" target="_blank" rel="noopener noreferrer" style="color: #667eea; text-decoration: underline;">Get directions</a>`;
+  }
+
+  function convertMarkdownLinks(text) {
+    // Convert markdown links [text](url) to HTML anchor tags
+    return text.replace(/\[([^\]]+)\]\(([^\)]+)\)/g, '<a href="$2" target="_blank" style="color: #667eea; text-decoration: underline;">$1</a>');
+  }
+
+  function discussionViewer(placeID, method) {
+    discussionNode = document.querySelector("#allDiscussion");
+    element = document.querySelector("#container-placeDiscussion");
+
+    const username = localStorage.getItem('username') || '';
+    const userID = localStorage.getItem('userID') || '';
+
+    fetch(`/discuss/${placeID}`, {
+      method: method,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken
+      },
+      body: JSON.stringify({
+        message: "",
+        username: username,
+        userID: userID
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        for (d in data.response) {
+          discussionBuilder(data.response[d]);
+        }
+      });
+  }
+
+  // Spam protection variables
+  let lastMessageTime = 0;
+  let messageCount = 0;
+  const MESSAGE_COOLDOWN = 10000; // 10 seconds between messages
+  const RATE_LIMIT_WINDOW = 60000; // 1 minute
+  const MAX_MESSAGES_PER_MINUTE = 5;
+
+  function discussionFetcher(placeID, method, button) {
+    const messageInput = document.querySelector("#discuss-message");
+    const message = messageInput.value.trim();
+    
+    // Validation
+    if (message === "") {
+      return Promise.resolve();
+    }
+    
+    if (message.length < 2) {
+      alert("Message is too short. Please write at least 2 characters.");
+      return Promise.resolve();
+    }
+    
+    // Check cooldown
+    const now = Date.now();
+    const timeSinceLastMessage = now - lastMessageTime;
+    
+    if (timeSinceLastMessage < MESSAGE_COOLDOWN) {
+      const remainingSeconds = Math.ceil((MESSAGE_COOLDOWN - timeSinceLastMessage) / 1000);
+      alert(`Please wait ${remainingSeconds} seconds before sending another message.`);
+      return Promise.resolve();
+    }
+    
+    // Check rate limit
+    const storedData = localStorage.getItem('messageTimestamps');
+    let timestamps = storedData ? JSON.parse(storedData) : [];
+    timestamps = timestamps.filter(t => now - t < RATE_LIMIT_WINDOW);
+    
+    if (timestamps.length >= MAX_MESSAGES_PER_MINUTE) {
+      alert("Rate limit exceeded. Please wait a minute before sending more messages.");
+      return Promise.resolve();
+    }
+    
+    // Clear input and disable button
+    messageInput.value = "";
+    button.disabled = true;
+    
+    // Replace button content with spinner
+    const originalContent = button.innerHTML;
+    button.innerHTML = '<div class="spinner"></div>';
+    
+    const username = localStorage.getItem('username') || '';
+    const userID = localStorage.getItem('userID') || '';
+    
+    return fetch(`/discuss/${placeID}`, {
+      method: method,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken
+      },
+      body: JSON.stringify({
+        message: message,
+        username: username,
+        userID: userID
+      }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          return response.json().then(err => {
+            throw new Error(err.error || 'Failed to send message');
+          });
+        }
+        return response.json();
+      })
+      .then((data) => {
+
+        discussionBuilder(data.response[1]);
+        discussionBuilder(data.response[0]);
+        
+        // Update spam protection tracking
+        lastMessageTime = now;
+        timestamps.push(now);
+        localStorage.setItem('messageTimestamps', JSON.stringify(timestamps));
+        
+        // Re-enable button and restore content
+        button.disabled = false;
+        button.innerHTML = originalContent;
+      })
+      .catch((error) => {
+        console.error('Error sending message:', error);
+        alert(error.message || 'Failed to send message. Please try again.');
+        
+        // Restore input value on error
+        messageInput.value = message;
+        
+        // Re-enable button
+        button.disabled = false;
+        button.innerHTML = originalContent;
+      });
+  }
+
+  function discussionBuilder(element) {
+    let discussContainer = document.createElement("div");
+    let newDate = new Date(element.timestamp);
+    let options = {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    };
+    let formattedDate = newDate.toLocaleString("en-US", options);
+
+    discussContainer.classList.add("other-message");
+    discussContainer.classList.add("user-message");
+
+    let discuss = document.createElement("div");
+    discuss.classList.add("message-bubble")
+    // Convert markdown links to HTML before inserting
+    const messageWithLinks = convertMarkdownLinks(element.discuss);
+    discuss.innerHTML = `<span>${element.discusserName}:</span> ${messageWithLinks} <div class="message-time">${formattedDate}</div>`;
+
+    discussContainer.appendChild(discuss);
+    const discusslists = document.querySelector("#allDiscussion");
+    const firstDiscussionMessage = discusslists.firstChild;
+    discusslists.insertBefore(discussContainer, firstDiscussionMessage);
+  }
+</script>
+
+<!-- Additional Details Modal -->
+<div class="additionalDetailsModal modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="AdditionalDetailsHeader">Additional Details</h2>
+      <span onclick="closeThisModal(id)" class="close">&times;</span>
+    </div>
+    <div class="modal-body" id="AdditionalDetailsContainer">
+      <p>This is modal-body put ID on this modal</p>
+    </div>
+    <div class="modal-image">
+      <img id="AdditionalDetailsImage" style="width: inherit" />
+    </div>
+    <div class="modal-footer" id="AdditionalDetailsFooter"></div>
+  </div>
+</div>
+
+<!-- Add Schedule Modal -->
+<div class="modal" id="addScheduleModal">
+  <div class="modal-content" style="max-width: 680px;">
+    <div class="modal-header">
+      <h2>Add Schedule</h2>
+      <span class="close" id="addScheduleClose">&times;</span>
+    </div>
+    <div class="modal-body" style="padding: 20px;">
+      <form id="addScheduleForm" style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px;">
+          <label style="display:flex; flex-direction:column; gap:6px; font-weight:600;">
+            Schedule Type
+            <select name="scheduleTypeAndMode" id="scheduleTypeAndMode" required style="padding:10px; border:1px solid var(--border); border-radius:10px;">
+              <option value="carpool">Carpool</option>
+            </select>
+          </label>
+          <label style="display:flex; flex-direction:column; gap:6px; font-weight:600;">
+            Day
+            <input type="number" name="dateN" id="dateN" min="1" max="31" required style="padding:10px; border:1px solid var(--border); border-radius:10px;" />
+          </label>
+          <label style="display:flex; flex-direction:column; gap:6px; font-weight:600;">
+            Month
+            <select name="monthN" id="monthN" required style="padding:10px; border:1px solid var(--border); border-radius:10px;">
+              <option value="" selected disabled>Select month</option>
+              <option value="1">January</option>
+              <option value="2">February</option>
+              <option value="3">March</option>
+              <option value="4">April</option>
+              <option value="5">May</option>
+              <option value="6">June</option>
+              <option value="7">July</option>
+              <option value="8">August</option>
+              <option value="9">September</option>
+              <option value="10">October</option>
+              <option value="11">November</option>
+              <option value="12">December</option>
+            </select>
+          </label>
+          <label style="display:flex; flex-direction:column; gap:6px; font-weight:600;">
+            Year
+            <input type="number" name="yearN" id="yearN" min="2000" required style="padding:10px; border:1px solid var(--border); border-radius:10px;" />
+          </label>
+        </div>
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:12px;">
+
+            <input type="text" name="meetPlace" id="meetPlace" placeholder="Where to meet" required  />
+
+          
+          
+            <input type="text" name="endPlace" id="endPlace" placeholder="Destination" required  />
+
+
+          <input type="time" name="meetTime" id="meetTime" placeholder="Meet time" style="padding:10px; border:1px solid var(--border); border-radius:10px;" />
+          
+        </div>
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:12px;">
+          <label style="display:flex; flex-direction:column; gap:6px; font-weight:600;">
+            Contact Details
+            <input type="text" name="detailsContact" id="detailsContact" placeholder="Phone / Messenger / Email" style="padding:10px; border:1px solid var(--border); border-radius:10px;" />
+          </label>
+          <label style="display:flex; flex-direction:column; gap:6px; font-weight:600;">
+            Maker or Looker
+            <select name="MakerOrLooker" id="MakerOrLooker" style="padding:10px; border:1px solid var(--border); border-radius:10px;">
+              <option value="Make" selected>Maker (I have a ride)</option>
+              <option value="Look">Looker (I need a ride)</option>
+            </select>
+          </label>
+        </div>
+        <div id="addScheduleStatus" style="min-height:20px; font-weight:600; color: var(--accent);"></div>
+        <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:4px;">
+          <button type="button" class="button button--ghost" id="cancelAddSchedule">Cancel</button>
+          <button type="submit" class="button button--primary" id="addScheduleSubmit">Create schedule</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Map Modal -->
+<div id="mapModal">
+  <div>
+    <button id="closeMapBtn" aria-label="Close map">&times;</button>
+    <iframe id="map-modal" src="" style="width:100%;height:100%;border:0;"></iframe>
+  </div>
+</div>
+
+<!-- Event Details Modal -->
+<div class="modal" id="eventDetailsModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="eventDetailsTitle">Event Details</h2>
+      <span class="close" onclick="closeEventModal()">&times;</span>
+    </div>
+    <div class="modal-body">
+      <div id="eventDetailsBody">
+        <p><strong>📅  <span id="eventDate"></span></strong></p>
+        <p><strong>📍 <a id="eventLocationLink" href="" target="_blank"><span id="eventLocation"></span></a></strong> </p>
+        <!-- <p><strong>👤 Host:</strong> <span id="eventHost"></span></p> -->
+        <p id="eventInstagramContainer" style="display:none;"><strong>📷 Instagram:</strong> <a id="eventInstagram" href="" target="_blank"></a></p>
+        <p id="eventWebsiteContainer" style="display:none;"><strong>🔗 Website:</strong> <a id="eventWebsite" href="" target="_blank">Visit Website</a></p>
+        <div id="eventDescriptionContainer" style="display:none; margin-top: 15px;">
+          <p><strong>📝 Description:</strong></p>
+          <p id="eventDescription" style="line-height: 1.6; color: #4a5568;"></p>
+        </div>
+        <div id="eventAdditionalDetailsContainer" style="display:none; margin-top: 15px;">
+          <p><strong>ℹ️ Additional Details:</strong></p>
+          <p id="eventAdditionalDetails" style="line-height: 1.6; color: #4a5568;"></p>
+        </div>
+        <p id="eventDetailsText" style="margin-top: 15px; line-height: 1.6; color: #4a5568;"></p>
+
+        <div style="margin-top: 18px; padding-top: 12px; border-top: 1px solid #e2e8f0;">
+          <h3 style="margin: 0 0 10px 0; font-size: 1.05rem;">Register for this event</h3>
+          <form id="siargaoEventRegisterForm" method="post" data-action-template="{% url 'home:register_siargao_event' 0 %}">
+            {% csrf_token %}
+            <input hidden  name="event_date" id="siargaoEventDate" value="" />
+            <!-- Honeypot field (hidden from users, catches bots) -->
+            <input type="text" name="website" id="website_field" style="display:none;" tabindex="-1" autocomplete="off" />
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div>
+                <label style="display:block; font-weight:600; margin-bottom:6px;">Name</label>
+                <input name="full_name" required placeholder="Your Name" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:10px;" />
+              </div>
+              <div>
+                <label style="display:block; font-weight:600; margin-bottom:6px;">Email</label>
+                <input name="email" type="email" required placeholder="you@email.com" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:10px;" />
+              </div>
+              <div>
+                <label style="display:block; font-weight:600; margin-bottom:6px;">Phone (optional)</label>
+                <input name="phone" placeholder="+63..." style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:10px;" />
+              </div>
+              <div>
+                <label style="display:block; font-weight:600; margin-bottom:6px;">Pax</label>
+                <input name="pax" type="number" min="1" value="1" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:10px;" />
+              </div>
+            </div>
+            <div style="margin-top:10px;">
+              <label style="display:block; font-weight:600; margin-bottom:6px;">Notes (optional)</label>
+              <input name="notes" placeholder="Any notes" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:10px;" />
+            </div>
+            <!-- Math challenge for human verification -->
+            <div style="margin-top:10px;">
+              <label style="display:block; font-weight:600; margin-bottom:6px;">Quick check: <span id="mathQuestion"></span> = ?</label>
+              <input id="mathAnswer" type="number" required placeholder="Your answer" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:10px;" />
+            </div>
+            <div id="siargaoEventRegisterStatus" style="margin-top: 10px; font-weight: 600;"></div>
+            <button id="siargaoEventRegisterSubmit" type="submit" data-default-label="Register" style="margin-top: 10px; padding: 10px 14px; border: 0; border-radius: 10px; background: #667eea; color: #fff; font-weight: 700; cursor: pointer;">Register</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="modal-image" id="eventImageContainer" style="display:none;">
+      <img id="eventDetailsImage" style="width: 100%; max-height: 400px; object-fit: cover;" />
+    </div>
+  </div>
+</div>
+
+<!-- Community Bulletin Image Modal -->
+<div class="modal" id="bulletinImageModal" aria-hidden="true" aria-label="Community bulletin photo" role="dialog">
+  <div class="modal-content" style="max-width: 92vw; max-height: 88vh;">
+    <div class="modal-header">
+      <h2 style="font-size: 1.1rem;">Photo</h2>
+      <span class="close" onclick="closeBulletinImageModal()">&times;</span>
+    </div>
+    <div class="modal-body" style="padding: 0;">
+      <img id="bulletinModalImage" alt="Community bulletin photo" style="width: 100%; height: auto; max-height: 78vh; object-fit: contain; display: block;" />
+    </div>
+  </div>
+</div>
+
+<!-- Mobile Chat Modal -->
+<div id="mobileChatModal" class="modal">
+  <div class="modal-content" style="max-width: 90vw; max-height: 100vh;">
+    <div class="modal-header">
+      <h2>Discussions</h2>
+      <span class="close" onclick="closeMobileChatModal()">&times;</span>
+    </div>
+    <div class="modal-body" style="display: flex; flex-direction: column;">
+      <div class="chat-container" id="container-placeDiscussion">
+        <div class="chat-messages" id="allDiscussion"></div>
+        <div class="chat-input-area">
+          <textarea maxlength="200" class="chat-input" id="discuss-message" placeholder="Type your message..."></textarea>
+          <button id="modal-send-btn" class="chat-send-btn" type="button" onclick="discussionFetcher(`{{placeid}}`,'POST', this)">
+            <svg viewBox="0 0 16 16">
+              <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page-container" id="top">
+  <header class="top-nav" aria-label="Page navigation">
+    <div class="top-nav__inner">
+      <a class="top-nav__brand" href="#top">
+        <span class="top-nav__brand-badge" aria-hidden="true">
+          <svg viewBox="0 0 16 16">
+            <path d="M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A31.493 31.493 0 0 1 8 14.58a31.481 31.481 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94zM8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10z"></path>
+            <path d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path>
+          </svg>
+        </span>
+        <span id="place-name">Loading</span>
+      </a>
+
+      <button class="top-nav__toggle" id="placeNavToggle" type="button" aria-controls="placeNavMenu" aria-expanded="false" aria-label="Toggle navigation">
+        <svg viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M1 3.5A.5.5 0 0 1 1.5 3h13a.5.5 0 0 1 0 1h-13A.5.5 0 0 1 1 3.5zm0 4A.5.5 0 0 1 1.5 7h13a.5.5 0 0 1 0 1h-13A.5.5 0 0 1 1 7.5zm.5 3.5a.5.5 0 0 0 0 1h13a.5.5 0 0 0 0-1h-13z" />
+        </svg>
+      </button>
+    </div>
+
+    <nav class="top-nav__links" id="placeNavMenu">
+      <a href="#things-to-do">Activities and Services</a>
+      <a href="#events-schedule-heading">Events</a>
+      <a href="#community-bulletin">Community Bulletin</a>
+      <a href="#schedules">Schedules</a>
+      <a href="#blogs">Blogs</a>
+      <a href="#" id="placeNavOpenMap" aria-label="Open map" role="button">
+        <span>Check Spots</span>
+      </a>
+      <br><br><br>
+      {% if request.user.is_authenticated %}
+      <a href="/est/resort/createnewresort">Add your Business Here</a>
+      {% endif %}
+    </nav>
+  </header>
+
+  <div class="hero">
+    <!-- <div class="hero__info">
+      <div class="hero__icon">
+        <svg viewBox="0 0 16 16">
+          <path d="M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A31.493 31.493 0 0 1 8 14.58a31.481 31.481 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94zM8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10z"></path>
+          <path d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path>
+        </svg>
+      </div>
+      <div class="hero__text">
+        <h1 class="hero__heading" >Loading...</h1>
+      </div>
+    </div> -->
+    <div class="hero__actions">
+      <div class="ask-box">
+        <input type="text" id="quick-ask-input" placeholder="Ask us" class="ask-input">
+        <button id="quick-ask-send" class="button button--primary ask-send-btn">
+          <svg viewBox="0 0 16 16" width="16" height="16">
+            <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z"></path>
+          </svg>
+        </button>
+      </div>
+      <button id="openMapBtn" class="button button--ghost" type="button">
+        <svg viewBox="0 0 16 16">
+          <path fill-rule="evenodd" d="M15.817.113A.5.5 0 0 1 16 .5v14a.5.5 0 0 1-.402.49l-5 1a.502.502 0 0 1-.196 0L5.5 15.01l-4.902.98A.5.5 0 0 1 0 15.5v-14a.5.5 0 0 1 .402-.49l5-1a.5.5 0 0 1 .196 0L10.5.99l4.902-.98a.5.5 0 0 1 .415.103zM10 1.91l-4-.8v12.98l4 .8V1.91zm1 12.98 4-.8V1.11l-4 .8v12.98zm-6-.8V1.11l-4 .8v12.98l4-.8z"/>
+        </svg>
+        <span>Find Tourist Spot</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="primary-grid">
+    <section class="" aria-labelledby="calendar-heading">
+      <div class="panel__body">
+        <div id="calendar-container">
+          {{calendar|safe}}
+        </div>
+      </div>
+    </section>
+  </div>
+
+
+  <div class="page-stack">
+
+    <!-- Resort Activities Section -->
+    <section class="panel panel--resort-activities" id="things-to-do" aria-labelledby="resort-activities-heading">
+      <div class="section-header">
+        <h2 id="resort-activities-heading" >Place Activities and Services</h2>
+      </div>
+      <div id="resort-activities-list-js"></div>
+      <script>
+        async function fetchAndRenderResortActivities(placeId) {
+          const container = document.getElementById('resort-activities-list-js');
+          container.innerHTML = '<div class="loading-symbol"></div>';
+          try {
+            // Adjust the URL to your API endpoint for fetching activities by place
+            const res = await fetch(`/apis/getPlaceActivities/${placeId}/`);
+            if (!res.ok) throw new Error('Failed to fetch activities');
+            const resorts = await res.json();
+            if (!resorts || resorts.length === 0) {
+              container.innerHTML = '<div class="empty-state">No resorts found for this place.</div>';
+              return;
+            }
+            let html = '';
+            resorts.forEach(resort => {
+              html += `<div class="resort-activities-block" style="margin-bottom: 24px;">`;
+              // html += `<h4 style="margin-bottom: 6px;">${resort.RealName || resort.name || 'Resort'}</h4>`;
+
+              if (resort.ActivitiesList && resort.ActivitiesList.length > 0) {
+              //   html += '<ul class="activities-list">';
+              //                   if (resort.websiteURL) {
+              //   html += `<a href="${resort.websiteURL}" class="btn-join" target="_blank" rel="noopener" style="margin-bottom:8px;display:inline-block;">Visit Website</a>`;
+              // }
+                resort.ActivitiesList.forEach(activity => {
+                    html += `<li><strong>${activity.PackageTitle || activity.package_title || 'Activity'}</strong>`;
+                    if (activity.subPackagesList && activity.subPackagesList.length > 0) {
+                      html += '<div class="sub-card-grid">';
+                      activity.subPackagesList.forEach(sub => {
+                        let subImgTag = '';
+                        const subImages = sub.package_image || sub.imageURL || [];
+                        if (subImages && subImages.length > 0) {
+                          const imgSrc = Array.isArray(subImages) ? subImages[0] : subImages;
+                          subImgTag = `<img src="${imgSrc}" alt="${sub.title || sub.package_title || ''}" class="sub-card-img" />`;
+                        }
+                        const visitUrl = sub.websiteURL || sub.website || activity.websiteURL || activity.website || resort.websiteURL || resort.website || '';
+                        const visitBtn = visitUrl ? `<a href="${visitUrl}" class="btn-join" target="_blank" rel="noopener" style="margin-top:8px; display:inline-block;">Visit Website</a>` : '';
+                        html += `<div class="sub-card">${subImgTag}<div class="sub-card-body"><div class="sub-card-title">${sub.title || ''}</div><div class="sub-card-price">${sub.price ? '₱' + sub.price : ''}</div>${visitBtn}</div></div>`;
+                      });
+                      html += '</div>';
+                    } else {
+                      const visitUrlActivity = activity.websiteURL || activity.website || resort.websiteURL || resort.website || '';
+                      const visitBtnActivity = visitUrlActivity ? `<a href="${visitUrlActivity}" class="btn-join" target="_blank" rel="noopener" style="margin-top:8px; display:inline-block;">Visit Website</a>` : '';
+                      html += visitBtnActivity;
+                    }
+                    html += '</li>';
+                });
+                html += '</ul>';
+              } else {
+                html += '<div class="empty-state">No activities listed for this resort.</div>';
+              }
+              html += '</div>';
+          // Add sub-card CSS if not already present
+          if (!document.getElementById('sub-card-style')) {
+            const style = document.createElement('style');
+            style.id = 'sub-card-style';
+            style.textContent = `
+              .sub-card-grid {
+                display: flex;
+                flex-wrap: wrap;
+                gap:0.2rem;
+                margin: 1.2rem 0 0 0;
+              }
+              .sub-card {
+                background: #fff;
+                box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+                overflow: hidden;
+                width: 220px;
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+                transition: transform 0.18s;
+              }
+              .sub-card:hover {
+                transform: translateY(-4px) scale(1.03);
+                box-shadow: 0 6px 18px rgba(0,0,0,0.13);
+              }
+              .sub-card-img {
+                width: 100%;
+                height: 200px;
+                object-fit: cover;
+                display: block;
+              }
+              .sub-card-body {
+                padding: 0.8rem 1rem 1.1rem 1rem;
+                flex: 1 1 auto;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-start;
+                align-items: flex-start;
+              }
+              .sub-card-title {
+                font-size: 0.54rem;
+                font-weight: 600;
+                margin-bottom: 0.3rem;
+                color: #222;
+              }
+              .sub-card-price {
+                font-size: 0.5rem;
+                color: #667eea;
+                font-weight: 500;
+              }
+              @media (max-width: 600px) {
+                .sub-card {
+                }
+                .sub-card-img {
+                  height: 120px;
+                }
+              }
+            `;
+            document.head.appendChild(style);
+          }
+            });
+            container.innerHTML = html;
+          } catch (e) {
+            container.innerHTML = '<div class="empty-state">Failed to load activities.</div>';
+          }
+        }
+        // Call this with the current place ID (from Django context)
+        document.addEventListener('DOMContentLoaded', function() {
+          fetchAndRenderResortActivities('{{ placeid }}');
+        });
+      </script>
+    </section>
+
+
+    <!-- Accommodations Section (duplicated from Activities, adapted) -->
+    <section class="panel panel--accommodations" id="accommodations" aria-labelledby="accommodations-heading">
+      <div class="section-header">
+        <h2 id="accommodations-heading">Accommodations</h2>
+      </div>
+      <div id="accommodations-list-js"></div>
+      <script>
+        async function fetchAndRenderAccommodations(placeId) {
+          const container = document.getElementById('accommodations-list-js');
+          container.innerHTML = '<div class="loading-symbol"></div>';
+          try {
+            // Adjust the URL to your API endpoint for fetching accommodations by place
+            const res = await fetch(`/apis/getPlaceAccommodations/${placeId}/`);
+            if (!res.ok) throw new Error('Failed to fetch accommodations');
+            const resorts = await res.json();
+            if (!resorts || resorts.length === 0) {
+              container.innerHTML = '<div class="empty-state">No accommodations found for this place.</div>';
+              return;
+            }
+            let html = '';
+            resorts.forEach(resort => {
+              html += `<div class="resort-activities-block" style="margin-bottom: 24px;">`;
+              if (resort.AccommodationsList && resort.AccommodationsList.length > 0) {
+                // if (resort.websiteURL) {
+                //   html += `<a href="${resort.websiteURL}" class="btn-join" target="_blank" rel="noopener" style="margin-bottom:8px;display:inline-block;">Visit Website</a>`;
+                // }
+                html += '<div class="sub-card-grid">';
+                resort.AccommodationsList.forEach(acc => {
+                  const fallbackImage = "{% static 'home/images/me.jpg' %}";
+                  // If accommodation has subPackages, render those first
+                  if (acc.subPackagesList && acc.subPackagesList.length > 0) {
+                    acc.subPackagesList.forEach(pkg => {
+                      let imgTag = '';
+                      const pkgImages = pkg.package_image || pkg.imageURL || [];
+                      if (pkgImages && pkgImages.length > 0) {
+                        const imgSrc = Array.isArray(pkgImages) ? pkgImages[0] : pkgImages;
+                        imgTag = `<img src="${imgSrc}" alt="${pkg.title || pkg.name || acc.title || acc.name || resort.name || 'Package'}" class="sub-card-img" />`;
+                      }
+                      if (!imgTag) {
+                        const accImages = acc.resort_Gallery || acc.imageURL || [];
+                        const resortImages = resort.resort_Gallery || resort.imageURL || [];
+                        const fallbackSrc = (accImages && accImages.length > 0) ? (Array.isArray(accImages) ? accImages[0] : accImages) : (resortImages && resortImages.length > 0 ? (Array.isArray(resortImages) ? resortImages[0] : resortImages) : fallbackImage);
+                        imgTag = `<img src="${fallbackSrc}" alt="${pkg.title || pkg.name || acc.title || acc.name || resort.name || 'Package'}" class="sub-card-img" />`;
+                      }
+                      const displayTitle = pkg.title || pkg.name || acc.title || acc.name || 'Package';
+                      const displayPrice = (pkg.price && String(pkg.price).trim().length > 0) ? ('₱' + pkg.price) : (acc.price ? ('₱' + acc.price) : (resort.price ? ('₱' + resort.price) : 'Price not listed'));
+                      const visitUrl = pkg.websiteURL || pkg.website || acc.websiteURL || acc.website || resort.websiteURL || resort.website || '';
+                      const visitBtn = visitUrl ? `<a href="${visitUrl}" class="btn-join" target="_blank" rel="noopener" style="margin-top:8px; display:inline-block;">Visit Website</a>` : '';
+                      html += `<div class="sub-card">${imgTag}<div class="sub-card-body"><div class="sub-card-title">${displayTitle}</div><div class="sub-card-price">${displayPrice}</div>${visitBtn}</div></div>`;
+                    });
+                  } else {
+                    // no subPackages; render the accommodation itself
+                    let imgTag = '';
+                    const accImages = acc.resort_Gallery || acc.imageURL || [];
+                    if (accImages && accImages.length > 0) {
+                      const imgSrc = Array.isArray(accImages) ? accImages[0] : accImages;
+                      imgTag = `<img src="${imgSrc}" alt="${acc.title || acc.name || resort.name || 'Room'}" class="sub-card-img" />`;
+                    }
+                    if (!imgTag) {
+                      const resortImages = resort.resort_Gallery || resort.imageURL || [];
+                      const fallbackSrc = resortImages && resortImages.length > 0 ? (Array.isArray(resortImages) ? resortImages[0] : resortImages) : fallbackImage;
+                      imgTag = `<img src="${fallbackSrc}" alt="${acc.title || acc.name || resort.name || 'Room'}" class="sub-card-img" />`;
+                    }
+                    const displayTitle = acc.title || acc.name || 'Room';
+                    const displayPrice = (acc.price && String(acc.price).trim().length > 0) ? ('₱' + acc.price) : (resort.price ? ('₱' + resort.price) : 'Price not listed');
+                    const visitUrl = acc.websiteURL || acc.website || resort.websiteURL || resort.website || '';
+                    const visitBtn = visitUrl ? `<a href="${visitUrl}" class="btn-join" target="_blank" rel="noopener" style="margin-top:8px; display:inline-block;">Visit Website</a>` : '';
+                    html += `<div class="sub-card">${imgTag}<div class="sub-card-body"><div class="sub-card-title">${displayTitle}</div><div class="sub-card-price">${displayPrice}</div>${visitBtn}</div></div>`;
+                  }
+                });
+                html += '</div>';
+              } else {
+                html += '<div class="empty-state">No accommodations listed for this resort.</div>';
+              }
+              html += '</div>';
+
+              // Reuse sub-card CSS from activities if not already present
+              if (!document.getElementById('sub-card-style')) {
+                const style = document.createElement('style');
+                style.id = 'sub-card-style';
+                style.textContent = `
+                  .sub-card-grid {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap:0.2rem;
+                    margin: 1.2rem 0 0 0;
+                  }
+                  .sub-card {
+                    background: #fff;
+                    box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+                    overflow: hidden;
+                    width: 220px;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: stretch;
+                    transition: transform 0.18s;
+                  }
+                  .sub-card:hover {
+                    transform: translateY(-4px) scale(1.03);
+                    box-shadow: 0 6px 18px rgba(0,0,0,0.13);
+                  }
+                  .sub-card-img {
+                    width: 100%;
+                    height: 200px;
+                    object-fit: cover;
+                    display: block;
+                  }
+                  .sub-card-body {
+                    padding: 0.8rem 1rem 1.1rem 1rem;
+                    flex: 1 1 auto;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: flex-start;
+                    align-items: flex-start;
+                  }
+                  .sub-card-title {
+                    font-size: 0.54rem;
+                    font-weight: 600;
+                    margin-bottom: 0.3rem;
+                    color: #222;
+                  }
+                  .sub-card-price {
+                    font-size: 0.5rem;
+                    color: #667eea;
+                    font-weight: 500;
+                  }
+                  @media (max-width: 600px) {
+                    .sub-card-img {
+                      height: 120px;
+                    }
+                  }
+                `;
+                document.head.appendChild(style);
+              }
+            });
+            container.innerHTML = html;
+          } catch (e) {
+            container.innerHTML = '<div class="empty-state">Failed to load accommodations.</div>';
+          }
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+          fetchAndRenderAccommodations('{{ placeid }}');
+        });
+      </script>
+    </section>    
+    
+    <section class="panel panel--events" id="events" aria-labelledby="events-schedule-heading">
+
+
+      <!-- Community Bulletin -->
+      <div class="schedules-section" id="community-bulletin" style="margin-bottom: 18px;">
+        <div class="section-header">
+          <h3>Community Bulletin
+                    {% if user.is_authenticated %}
+          <button type="button" id="bulletinPostButton" class="button button--primary">Post</button>
+          <form id="bulletinPostForm" method="post" action="{% url 'home:community_bulletin_upload' placeid %}" enctype="multipart/form-data" style="display:none; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px;">
+            {% csrf_token %}
+            <input type="file" name="images" accept="image/*" multiple required />
+            <button type="submit" class="button button--primary">Upload</button>
+          </form>
+        {% endif %}
+          </h3>
+        </div>
+
+
+        {% if community_bulletins %}
+          <div class="calendar-grid" style="margin-top: 12px;">
+            {% for post in community_bulletins %}
+              <div class="calendar-item" style="overflow:hidden;">
+                {% with first_image=post.images.all.0 %}
+                  {% if first_image and first_image.image_url %}
+                    <div style="width:100%; height:160px; overflow:hidden;">
+                      <a href="{{ first_image.image_url }}" class="bulletin-image-link" data-image-url="{{ first_image.image_url }}" style="display:block; width:100%; height:160px;">
+                        <img src="{{ first_image.image_url }}" alt="{{ post.ai_title|default:'Bulletin image' }}" style="width:100%; height:160px; object-fit:cover;" />
+                      </a>
+                    </div>
+                  {% endif %}
+                {% endwith %}
+                {% if user.is_superuser %}
+                <div style="padding: 12px;">
+                  {% if user.is_superuser %}
+                    <form method="post" action="{% url 'home:community_bulletin_delete' placeid post.id %}" style="display:flex; justify-content:flex-end; margin-bottom: 6px;">
+                      {% csrf_token %}
+                      <button type="submit" class="button button--ghost" style="border-color: #e2e8f0;">Delete</button>
+                    </form>
+                  {% endif %}
+                  <div style="font-weight: 800; margin-bottom: 6px;">{{ post.ai_title|default:"Community bulletin" }}</div>
+                  {% if post.ai_description %}
+                    <!-- <div style="opacity: 0.9;">{{ post.ai_description }}</div> -->
+                  {% endif %}
+
+                  {% if post.images.all|length > 1 %}
+                    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
+                      {% for img in post.images.all %}
+                        {% if img.image_url %}
+                          <a href="{{ img.image_url }}" class="bulletin-image-link" data-image-url="{{ img.image_url }}" style="display:inline-block;">
+                            <img src="{{ img.image_url }}" alt="Bulletin photo" style="width:64px; height:64px; object-fit:cover; border-radius: 10px;" />
+                          </a>
+                        {% endif %}
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+                </div>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty-state" style="margin-top: 12px;">No bulletin posts yet.</div>
+        {% endif %}
+      </div>
+
+      <!-- All Schedules Section -->
+      <div class="schedules-section" id="schedules">
+        <div class="section-header">
+          <h3>Schedules</h3>
+        </div>
+        <ul id="calendar-allsched-list" class="calendar-list schedules-list">
+          <!-- Schedule items will be dynamically inserted here -->
+        </ul>
+      </div>
+
+      <div class="section-header">
+        <h2 id="events-schedule-heading">Events</h2>
+        <p>Join upcoming experiences and get a quick glance at schedules and plans.</p>
+      </div>
+      <div id="event-objects-list" class="calendar-grid"></div>
+      <div id="calendar-objects-list" class="calendar-list">
+        <div class="loading-symbol"></div>
+      </div>
+    </section>
+
+    <section class="panel panel--resorts" aria-labelledby="resorts-heading">
+      <div class="section-header">
+        <h2 id="resorts-heading"></h2>
+      </div>
+      <div id="resort-list-container"></div>
+    </section>
+
+    <section class="panel panel--blogs" id="blogs" aria-labelledby="blog-heading">
+      <div class="section-header">
+        <h2 id="blog-heading">Recent Blog Posts</h2>
+        <p>Fresh stories, guides, and travel hacks.</p>
+      </div>
+      <div class="blog-grid" id="blog-grid"></div>
+    </section>
+  </div>
+</div>
+
+<!-- Mobile Chat Button -->
+<div id="mobileChatBtn" style="position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--shadow-md); z-index: 1000; transition: transform var(--transition);">
+  <svg viewBox="0 0 16 16" style="width: 24px; height: 24px; fill: white;">
+    <path d="M14 1a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4.414A2 2 0 0 0 3 11.586l-2 2V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12.793a.5.5 0 0 0 .854.353l2.853-2.853A1 1 0 0 1 4.414 12H14a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/>
+    <path d="M3 3.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zM3 6a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9A.5.5 0 0 1 3 6zm0 2.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5z"/>
+  </svg>
+</div>
+
+<script>
+  function formatModelDate(datestr) {
+    let d = new Date(datestr)
+    return d.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    })
+  }
+
+  async function loadBlogs(placeName) {
+    const base = window.location.origin;
+    const res = await fetch(`${base}/apis/getPlaceBlogs/${placeName}/`);
+    if (!res.ok) return;
+
+    const blogs = await res.json();
+    const container = document.getElementById("blog-grid");
+    container.innerHTML = "";
+
+    if (!blogs.length) {
+      container.innerHTML = '<div class="empty-state">No blog posts yet.</div>';
+      return;
+    }
+
+    const cards = blogs
+      .map(blog => `
+        <div class="blog-post">
+          <h3 class="blog-title">${blog.title}</h3>
+          <span class="blog-category">${blog.category}</span>
+          <p class="blog-excerpt">${blog.summarize}</p>
+          <div class="blog-meta">
+            <div class="blog-meta-left">
+              <span class="blog-meta-item">📅 ${formatModelDate(blog.timestamp)}</span>
+              <span class="blog-meta-item">⏱️ ${blog.readtime} min read</span>
+            </div>
+            <a href="${blog.localurlpath}" target="_blank" class="blog-card">
+              <span>Read here →</span>
+            </a>
+          </div>
+        </div>
+      `)
+      .join("");
+    container.innerHTML = cards;
+  }
+</script>
+
+<script>
+  allDates = [];
+  allTD = document.querySelectorAll(".wed,.mon,.tue,.thu,.fri,.sat,.sun");
+  allTD.forEach((element) => {
+    if (element.innerHTML != "&nbsp") {
+      allDates.push(element);
+    }
+  });
+</script>
+
+<script>
+  function getPlan(whatPlan) {
+    todaysMonth = parseInt(`{{currentMonth}}`);
+    fetch(whatPlan, {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        document.querySelector("#place-name").innerText = data['placeName'];
+        xx = "/garden/map/"
+        y = `${data['placeName'].toLowerCase().replace(/\s+/g, "-")}`
+        c = xx + y
+        document.querySelector("#map-modal").src = c;
+        loadBlogs(data['placeName'])
+        // console.log(data);
+        resorts = data['placeResorts']
+        // console.log(resorts);
+        if (typeof resorts === 'string') {
+          resorts = JSON.parse(resorts);
+        }
+        // Normalize resorts from either legacy Django-serializer format ({fields: {...}})
+        // or the newer lightweight format ({name, link}).
+        const normalizedResorts = (Array.isArray(resorts) ? resorts : []).map(item => {
+          if (item && item.fields) {
+            const r = item.fields;
+            return {
+              name: (r.RealName || r.name || '').toString() || 'Resort',
+              link: r.website || r.websiteURL || r.websiteUrl || null,
+              address: (r.address || '').toString(),
+            };
+          }
+          return {
+            name: (item && item.name ? item.name : 'Resort').toString(),
+            link: (item && (item.link || item.url) ? (item.link || item.url) : null),
+            address: (item && item.address ? item.address : '').toString(),
+          };
+        });
+
+        window.placeResorts = normalizedResorts;
+        const resortContainer = document.querySelector("#resort-list-container");
+        if (normalizedResorts && normalizedResorts.length > 0) {
+          const resortItems = normalizedResorts
+            .map(r => {
+              const href = r.link ? r.link : '#';
+              const target = r.link ? ' target="_blank"' : '';
+              return `
+                <li>
+                  <a href="${href}"${target}>
+                    ${r.name}
+                    ${r.address ? `<small>${r.address}</small>` : ''}
+                  </a>
+                </li>
+                `;
+            })
+            .join('');
+
+          resortContainer.innerHTML = `
+            <div class="resort-list">
+              <div class="resort-list__scroller">
+                <ul>
+                  ${resortItems}
+                </ul>
+              </div>
+            </div>
+          `;
+        } 
+        // else {
+          // resortContainer.innerHTML = '<div class="empty-state">No resorts available right now.</div>';
+        // }
+
+        placeEventItems = data['placeEvents'];
+        ii = 0;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Reset time to midnight for accurate date comparison
+
+        const scheduleContainer = document.getElementById('calendar-objects-list');
+        scheduleContainer.innerHTML = '';
+        let scheduleCount = 0;
+
+        for (d in placeEventItems) {
+          if (placeEventItems[d].fields.monthN == todaysMonth) {
+            const eventDate = new Date(placeEventItems[d].fields.exactDate);
+            if (eventDate >= today) {
+              new dateObjects(placeEventItems[d].fields).createObject(placeEventItems[d].fields);
+              scheduleCount += 1;
+              ii += 1;
+            }
+          }
+        }
+        
+        const event_container = document.getElementById('event-objects-list');
+        event_container.innerHTML = '';
+        let upcomingEvents = 0;
+
+        placeEventItems.forEach(event => {
+          const e = { ...event.fields, _pk: event.pk };
+          const eventDate = new Date(e.exactDate);
+          
+          if (eventDate >= today) {
+            const card = document.createElement('div');
+            card.className = 'calendar-event-card';
+            card.style.backgroundImage = e.backgroundURL ? `url('${e.backgroundURL}')` : 'linear-gradient(135deg, rgba(102, 126, 234, 0.85), rgba(118, 75, 162, 0.85))';
+            card.onclick = () => showEventModal(e);
+            card.style.cursor = 'pointer';
+
+            const overlay = document.createElement('div');
+            overlay.className = 'card-overlay';
+            card.appendChild(overlay);
+
+            const content = document.createElement('div');
+            content.className = 'card-content';
+            content.innerHTML = `
+              <h4>${e.scheduleTitle}</h4>
+              <p>📅 ${e.exactDate}</p>
+            `;
+            card.appendChild(content);
+            event_container.appendChild(card);
+            upcomingEvents += 1;
+          }
+        });
+
+        if (!upcomingEvents) {
+          event_container.innerHTML = '<div class="empty-state">No upcoming events yet.</div>';
+        }
+
+        placeScheduleItems = data['placeSchedule'];
+
+        
+        const allSchedContainer = document.querySelector("#calendar-allsched-list");
+        allSchedContainer.innerHTML = '';
+        
+        if (placeScheduleItems && placeScheduleItems.length > 0) {
+          placeScheduleItems.forEach(schedItem => {
+            // Also add to calendar
+            new dateObjects(schedItem.fields).createObject(schedItem.fields);            
+
+            const sched = schedItem.fields;
+            // Create schedule card
+            const schedCard = document.createElement('li');
+            schedCard.className = 'schedule-card';
+            
+            // Get current user ID from request.user.id (server-side)
+            const currentUserID = `{{request.user.id|default:"null"}}`;
+            console.log('Current User ID:', currentUserID);
+            // Check if current user is the poster
+            const isPoster = currentUserID && String(sched.posterID) === String(currentUserID);
+            
+            schedCard.innerHTML = `
+              
+              <div class="schedule-card-body">
+                ${sched.otherDetails ? `<p class="schedule-description">${sched.otherDetails}</p>` : ''}
+                
+                
+                <div class="schedule-footer">
+                  <div class="poster-info">
+                    ${sched.posterImageURL ? `<img src="${sched.posterImageURL}" alt="${sched.posterName}" class="poster-avatar">` : '<div class="poster-avatar-placeholder">👤</div>'}
+                    <div class="poster-details">
+                      
+                      <div class="poster-name">${sched.posterName || 'Anonymous'} ${sched.posterVerified ? '✓' : ''}                        </div>
+                                            <span class="detail-value">${
+                        sched.MakerOrLooker === 'Look'
+                          ? 'Looking\ntransportation'
+                          : (sched.MakerOrLooker === 'Make'
+                            ? 'Created\nschedule'
+                            : (sched.MakerOrLooker || ''))
+                      }</span>
+                      ${sched.detailsContact ? `<div class="poster-contact">${sched.detailsContact}</div>` : ''}
+                      <div class="schedule-actions">
+                        ${sched.reviewCount ? `<span class="review-count">👁 ${sched.reviewCount} views</span>` : ''}
+                        ${isPoster ? `
+                          <button class="btn-view-joiners" onclick="viewJoiners(${schedItem.pk}, '${(sched.scheduleTitle || 'Schedule').replace(/'/g, "\\'")}')">View Joiners</button>
+                          <button class="btn-delete-schedule" onclick="deleteSchedule(${schedItem.pk}, '${(sched.scheduleTitle || 'Schedule').replace(/'/g, "\\'")}', this)">Delete</button>
+                        ` : `<button class="btn-join" onclick="joinSchedule(${schedItem.pk}, '${(sched.scheduleTitle || 'Schedule').replace(/'/g, "\\'")}')">Join</button>`}
+                      </div>
+                    </div>
+                  </div>                    
+                  <div class="schedule-details-grid">
+
+                    <div class="detail-item">
+                      <span class="detail-label">📍 </span>
+                      <span class="detail-value">${sched.meetPlace || 'TBA'}</span>
+                      to:
+                      ${sched.endPlace ? `<span class="detail-label">🏁 </span> <span class="detail-value">${sched.endPlace}</span> </div>` : ''}
+                    <span class="date-month">${sched.monthN ? new Date((sched.yearN || 2000), (sched.monthN - 1), 1).toLocaleString('en-US', { month: 'long' }) : ''} ${sched.dateN || ''} ${sched.yearN || ''}</span>
+  
+                    ${sched.meetTime ? `
+                    <div class="detail-item">
+                      <span class="detail-label">🕐 Time:</span>
+                      <span class="detail-value">${sched.meetTime}</span>
+                    </div>
+                    ` : ''}
+                    
+                    ${sched.scheduleCost ? `
+                    <div class="detail-item">
+                      <span class="detail-label">💰 Cost:</span>
+                      <span class="detail-value">${sched.scheduleCost}</span>
+                    </div>
+                    ` : ''}
+                    
+                    ${sched.scheduleTravelType ? `
+                    <div class="detail-item">
+                      <span class="detail-label">🚗 Transportation:</span>
+                      <span class="detail-value">${sched.scheduleTravelType}</span>
+
+                    </div>
+                    ` : ''}
+                  </div>
+
+                  
+                </div>
+              </div>
+            `;
+            
+            allSchedContainer.appendChild(schedCard);
+            
+
+          });
+        } else {
+          allSchedContainer.innerHTML = '<div class="empty-state">No schedules available for this location.</div>';
+        }
+
+        if (!scheduleCount) {
+          // scheduleContainer.innerHTML = '<div class="empty-state">No upcoming highlights this month.</div>';
+        }
+      })
+      .then(() => {
+        setTimeout(() => {
+          // showObjectListDIv();
+        }, 500);
+      });
+  }
+
+  function el(id) {
+    return document.getElementById(id);
+  }
+
+  function showEventModal(eventData) {
+    const modal = document.getElementById('eventDetailsModal');
+    document.getElementById('eventDetailsTitle').textContent = eventData.scheduleTitle || 'Event Details';
+    document.getElementById('eventDate').textContent = eventData.exactDate || 'N/A';
+    // Set the value of the hidden input to the innerHTML of #eventDate
+    var eventDateElem = document.getElementById('eventDate');
+    var eventDateInput = document.getElementById('siargaoEventDate');
+    if (eventDateElem && eventDateInput) {
+      eventDateInput.value = eventDateElem.innerHTML;
+    }
+
+    // Wire registration action to the selected event PK
+    const regForm = document.getElementById('siargaoEventRegisterForm');
+    if (regForm && regForm.dataset && regForm.dataset.actionTemplate && eventData && eventData._pk) {
+      regForm.action = regForm.dataset.actionTemplate.replace('/0/', '/' + eventData._pk + '/');
+    }
+    const regStatus = document.getElementById('siargaoEventRegisterStatus');
+    if (regStatus) regStatus.textContent = '';
+    const regSubmit = document.getElementById('siargaoEventRegisterSubmit');
+    if (regSubmit) {
+      regSubmit.disabled = false;
+      regSubmit.textContent = regSubmit.dataset.defaultLabel || 'Register';
+    }
+    
+    // Generate new math challenge when modal opens
+    generateMathChallenge();
+    const mathAnswerField = document.getElementById('mathAnswer');
+    if (mathAnswerField) mathAnswerField.value = '';
+
+    const locationElement = document.getElementById('eventLocation');
+    const locationLink = document.getElementById('eventLocationLink');
+    if (eventData.schedulePlace && eventData.schedulePlace.includes('https://')) {
+      locationElement.textContent = 'Find Directions';
+      locationLink.href = 'https://' + eventData.schedulePlace.split('https://')[1];
+    } else {
+      locationElement.textContent = eventData.schedulePlace || 'N/A';
+      locationLink.href = '';
+    }
+    // document.getElementById('eventHost').textContent = eventData.posterName || 'Anonymous';
+    
+    // Show Instagram if available
+    const instagramContainer = document.getElementById('eventInstagramContainer');
+    if (eventData.posterInstagram) {
+      const instagramLink = document.getElementById('eventInstagram');
+      instagramLink.href = `https://instagram.com/${eventData.posterInstagram.replace('@', '')}`;
+      instagramLink.textContent = eventData.posterInstagram;
+      instagramContainer.style.display = 'block';
+    } else {
+      instagramContainer.style.display = 'none';
+    }
+    
+    // Show website if available
+    const websiteContainer = document.getElementById('eventWebsiteContainer');
+    if (eventData.scheduleWebsite) {
+      document.getElementById('eventWebsite').href = eventData.scheduleWebsite;
+      websiteContainer.style.display = 'block';
+    } else if (window.placeResorts && window.placeResorts.length > 0 && window.placeResorts[0].link) {
+      document.getElementById('eventWebsite').href = window.placeResorts[0].link;
+      websiteContainer.style.display = 'block';
+    } else {
+      websiteContainer.style.display = 'none';
+    }
+    
+    // Show description if available
+    const descriptionContainer = document.getElementById('eventDescriptionContainer');
+    if (eventData.description) {
+      document.getElementById('eventDescription').textContent = eventData.description;
+      descriptionContainer.style.display = 'block';
+    } else {
+      descriptionContainer.style.display = 'none';
+    }
+    
+    // Show additional details if available
+    const additionalDetailsContainer = document.getElementById('eventAdditionalDetailsContainer');
+    if (eventData.additionalDetails) {
+      document.getElementById('eventAdditionalDetails').textContent = eventData.additionalDetails;
+      additionalDetailsContainer.style.display = 'block';
+    } else {
+      additionalDetailsContainer.style.display = 'none';
+    }
+    
+    // Show other details if available
+    const detailsText = document.getElementById('eventDetailsText');
+    if (eventData.otherDetails) {
+      detailsText.textContent = eventData.otherDetails;
+      detailsText.style.display = 'block';
+    } else {
+      detailsText.style.display = 'none';
+    }
+    
+    // Show thumbnail/background image if available
+    const imageContainer = document.getElementById('eventImageContainer');
+    const imageElement = document.getElementById('eventDetailsImage');
+    if (eventData.thumbnailURL || eventData.backgroundURL) {
+      imageElement.src = eventData.thumbnailURL || eventData.backgroundURL;
+      imageContainer.style.display = 'block';
+    } else {
+      imageContainer.style.display = 'none';
+    }
+    
+    modal.style.display = 'block';
+  }
+
+  function closeEventModal() {
+    document.getElementById('eventDetailsModal').style.display = 'none';
+  }
+
+  function closeAddScheduleModal() {
+    const modal = document.getElementById('addScheduleModal');
+    const status = document.getElementById('addScheduleStatus');
+    const form = document.getElementById('addScheduleForm');
+    if (status) {
+      status.textContent = '';
+      status.style.color = 'var(--accent)';
+    }
+    if (form) form.reset();
+    if (modal) modal.style.display = 'none';
+  }
+
+  // Close modal when clicking outside of it
+  window.onclick = function(event) {
+    const eventModal = document.getElementById('eventDetailsModal');
+    if (event.target == eventModal) {
+      closeEventModal();
+    }
+    const bulletinImageModal = document.getElementById('bulletinImageModal');
+    if (event.target == bulletinImageModal) {
+      closeBulletinImageModal();
+    }
+    const chatModal = document.getElementById('mobileChatModal');
+    if (event.target == chatModal) {
+      closeMobileChatModal();
+    }
+    const addScheduleModal = document.getElementById('addScheduleModal');
+    if (event.target == addScheduleModal) {
+      closeAddScheduleModal();
+    }
+  }
+
+  document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+      closeBulletinImageModal();
+    }
+  });
+
+  function closeMobileChatModal() {
+    document.getElementById('mobileChatModal').style.display = 'none';
+  }
+
+  document.addEventListener("DOMContentLoaded", function() {
+    putCalendarHeader = document.querySelector("#calendar-container")
+    navButtons = document.createElement("div");
+      const prevLink = "{% if place_slug %}{% url 'home:place_by_slug_with_date' place_slug=place_slug year=previousYear month=previousMonth %}{% else %}{% url 'home:place' id=placeid currentMonth=previousMonth currentYear=previousYear %}{% endif %}";
+      const nextLink = "{% if place_slug %}{% url 'home:place_by_slug_with_date' place_slug=place_slug year=nextYear month=nextMonth %}{% else %}{% url 'home:place' id=placeid currentMonth=nextMonth currentYear=nextYear %}{% endif %}";
+    navButtons.innerHTML = `
+      <div class="calendar-header">
+        <div class="calendar-header-left">
+          <h2 id="month-year">December 2025</h2>
+          {% if user.is_authenticated %}
+          <button class="add-schedule-btn" id="openAddScheduleBtn" type="button">+ Add Schedule</button>
+          {% endif %}
+        </div>
+        <div class="nav-buttons">
+            <a href="${prevLink}">
+            <button class="nav-btn">❮</button>
+          </a>
+            <a href="${nextLink}">
+            <button class="nav-btn">❯</button>
+          </a>
+        </div>
+      </div>
+    `
+    getElementInsertBeforeit = putCalendarHeader.firstChild
+    putCalendarHeader.insertBefore(navButtons, getElementInsertBeforeit);
+    makeItHeader = document.querySelector("#calendar-container > table > tbody > tr:nth-child(1) > th")
+    currentHeader = document.querySelector("#month-year")
+    currentHeader.innerHTML = makeItHeader.innerHTML
+    makeItHeader.remove()
+
+    const createScheduleUrl = "{% url 'home:create_schedule_for_place' placeid %}";
+    const addScheduleModal = document.getElementById('addScheduleModal');
+    const addScheduleForm = document.getElementById('addScheduleForm');
+    const addScheduleStatus = document.getElementById('addScheduleStatus');
+    const addScheduleSubmit = document.getElementById('addScheduleSubmit');
+    const openAddScheduleBtn = document.getElementById('openAddScheduleBtn');
+    const cancelAddSchedule = document.getElementById('cancelAddSchedule');
+    const addScheduleClose = document.getElementById('addScheduleClose');
+
+    const dayInput = document.getElementById('dateN');
+    const monthInput = document.getElementById('monthN');
+    const yearInput = document.getElementById('yearN');
+
+    function prefillScheduleFields() {
+      const now = new Date();
+      if (dayInput) dayInput.value = now.getDate();
+      if (monthInput) monthInput.value = now.getMonth() + 1;
+      if (yearInput) yearInput.value = now.getFullYear();
+    }
+
+    if (openAddScheduleBtn && addScheduleModal) {
+      openAddScheduleBtn.addEventListener('click', () => {
+        // prefillScheduleFields(); 
+        if (addScheduleStatus) addScheduleStatus.textContent = '';
+        addScheduleModal.style.display = 'block';
+      });
+    }
+
+    [cancelAddSchedule, addScheduleClose].forEach(btn => {
+      if (btn) btn.addEventListener('click', closeAddScheduleModal);
+    });
+
+    if (addScheduleForm) {
+      addScheduleForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (addScheduleStatus) {
+          addScheduleStatus.style.color = 'var(--accent)';
+          addScheduleStatus.textContent = 'Saving...';
+        }
+        if (addScheduleSubmit) {
+          addScheduleSubmit.disabled = true;
+          addScheduleSubmit.textContent = 'Saving...';
+        }
+        const payload = {
+          scheduleTypeAndMode: addScheduleForm.scheduleTypeAndMode.value,
+          dateN: addScheduleForm.dateN.value,
+          monthN: addScheduleForm.monthN.value,
+          yearN: addScheduleForm.yearN.value,
+          meetPlace: addScheduleForm.meetPlace.value,
+          endPlace: addScheduleForm.endPlace.value,
+          meetTime: addScheduleForm.meetTime.value,
+          detailsContact: (addScheduleForm.detailsContact ? addScheduleForm.detailsContact.value : ''),
+          MakerOrLooker: (addScheduleForm.MakerOrLooker ? addScheduleForm.MakerOrLooker.value : 'Make'),
+        };
+        try {
+          const response = await fetch(createScheduleUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': csrftoken,
+            },
+            body: JSON.stringify(payload),
+          });
+          const data = await response.json();
+          if (!response.ok) {
+            throw new Error(data.error || 'Failed to create schedule');
+          }
+          if (addScheduleStatus) {
+            addScheduleStatus.textContent = data.message || 'Schedule created. Refreshing...';
+          }
+
+          // Reload the page to the month/year of the created schedule
+          setTimeout(() => {
+            const targetMonth = data.monthN || new Date().getMonth() + 1;
+            const targetYear = data.yearN || new Date().getFullYear();
+            window.location.href = `{% if place_slug %}/places/{{ place_slug }}/${targetYear}/${targetMonth}/{% else %}/place/{{ placeid }}/${targetMonth}/${targetYear}/{% endif %}`.replace('${targetMonth}', targetMonth).replace('${targetYear}', targetYear);
+          }, 600);
+        } catch (err) {
+          if (addScheduleStatus) {
+            addScheduleStatus.textContent = err.message || 'Failed to create schedule';
+            addScheduleStatus.style.color = '#e53e3e';
+          }
+        } finally {
+          if (addScheduleSubmit) {
+            addScheduleSubmit.disabled = false;
+            addScheduleSubmit.textContent = 'Create schedule';
+          }
+        }
+      });
+    }
+
+    // Handle user authentication for anonymous users
+    const currentPageUser = '{{request.user}}';
+    if (currentPageUser === "AnonymousUser") {
+      const storedUsername = localStorage.getItem('username');
+      const storedPasscode = localStorage.getItem('userID');
+      
+      if (storedUsername && storedPasscode) {
+        fetch('/userProfile/registerjson', {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrftoken
+          },
+          body: JSON.stringify({
+            username: storedUsername,
+            password: storedPasscode,
+            passwordConfirmation: storedPasscode,
+            email: 'na@gmail.com',
+            placeID: `{{placeid}}`
+          }),
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.error) {
+            console.error("User registration error:", data.error);
+          } else {
+            console.log("User registered successfully");
+          }
+        })
+        .catch(error => {
+          console.error("Failed to register user:", error);
+        });
+      }
+    }
+
+    discussionViewer(`{{placeid}}`, 'POST')
+    thisPlan = `{% url 'home:placeCalendarJSONMonth' placeid currentMonth currentYear %}`;
+    getPlan(thisPlan);
+
+    const closeMapBtn = el('closeMapBtn');
+    if (closeMapBtn) closeMapBtn.addEventListener('click', () => {
+      el('mapModal').classList.remove('show');
+    });
+    
+    const modal = el('mapModal');
+    if (modal) modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.classList.remove('show');
+    });
+    
+    const openBtn = el('openMapBtn');
+    if (openBtn && modal) {
+      openBtn.addEventListener('click', () => {
+        modal.classList.add('show');
+      });
+    }
+
+    // Mobile chat functionality
+    document.getElementById('mobileChatBtn').addEventListener('click', () => {
+      document.getElementById('mobileChatModal').style.display = 'block';
+    });
+
+    // Quick ask functionality
+    const quickAskInput = document.getElementById('quick-ask-input');
+    const quickAskSend = document.getElementById('quick-ask-send');
+
+    const sendQuickAsk = () => {
+      const message = quickAskInput.value.trim();
+      if (message) {
+        // Set the message in the modal's textarea
+        document.getElementById('discuss-message').value = message;
+        // Disable modal send button and show spinner
+        const modalSendBtn = document.getElementById('modal-send-btn');
+        const modalOriginalContent = modalSendBtn.innerHTML;
+        modalSendBtn.disabled = true;
+        modalSendBtn.innerHTML = '<div class="spinner"></div>';
+        // Send the message
+        discussionFetcher(`{{placeid}}`, 'POST', quickAskSend).then(() => {
+          // Re-enable modal send button and restore content
+          modalSendBtn.disabled = false;
+          modalSendBtn.innerHTML = modalOriginalContent;
+        }).catch(() => {
+          // Re-enable on error
+          modalSendBtn.disabled = false;
+          modalSendBtn.innerHTML = modalOriginalContent;
+        });
+        // Clear the input
+        quickAskInput.value = '';
+        // Open the modal
+        document.getElementById('mobileChatModal').style.display = 'block';
+      }
+    };
+
+    quickAskSend.addEventListener('click', sendQuickAsk);
+    quickAskInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        sendQuickAsk();
+      }
+    });
+
+
+
+    // Siargao event registration (AJAX)
+    const regForm = document.getElementById('siargaoEventRegisterForm');
+    const regStatus = document.getElementById('siargaoEventRegisterStatus');
+    const regSubmit = document.getElementById('siargaoEventRegisterSubmit');
+
+    if (regForm) {
+      regForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        if (!regForm.action) {
+          if (regStatus) regStatus.textContent = 'Please select an event first.';
+          return;
+        }
+
+        // Check honeypot field (should be empty)
+        const honeypot = document.getElementById('website_field');
+        if (honeypot && honeypot.value !== '') {
+          if (regStatus) regStatus.textContent = 'Spam detected.';
+          return;
+        }
+
+        // Validate math challenge
+        const mathAnswer = document.getElementById('mathAnswer');
+        if (mathAnswer && parseInt(mathAnswer.value) !== mathCorrectAnswer) {
+          if (regStatus) regStatus.textContent = 'Incorrect answer. Please try again.';
+          mathAnswer.value = '';
+          mathAnswer.focus();
+          return;
+        }
+
+        const defaultLabel = (regSubmit && regSubmit.dataset && regSubmit.dataset.defaultLabel) ? regSubmit.dataset.defaultLabel : 'Register';
+
+        if (regStatus) regStatus.textContent = 'Registering...';
+        if (regSubmit) {
+          regSubmit.disabled = true;
+          regSubmit.textContent = 'Registering...';
+        }
+
+        try {
+          const formData = new FormData(regForm);
+          const response = await fetch(regForm.action, {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': csrftoken,
+            },
+            body: formData,
+            credentials: 'same-origin',
+          });
+
+          // The Django view currently redirects back with query params.
+          // `fetch` follows redirects by default, so `response.url` should include those params.
+          let message = '';
+          try {
+            const finalUrl = new URL(response.url, window.location.origin);
+            const params = finalUrl.searchParams;
+            if (params.get('ev_reg_success') === '1') {
+              message = 'Registered! See you there.';
+              regForm.reset();
+            } else if (params.get('ev_reg_exists') === '1') {
+              message = 'You were already registered — we updated your details.';
+            } else if (params.get('ev_reg_error') === '1') {
+              message = 'Please add your full name and email.';
+            }
+          } catch (err) {
+            // Ignore URL parsing issues and fall back to generic message.
+          }
+
+          if (!message) {
+            if (response.ok) {
+              message = 'Registration submitted.';
+            } else {
+              message = 'Registration failed. Please try again.';
+            }
+          }
+
+          if (regStatus) regStatus.textContent = message;
+          
+          // Reset math challenge
+          generateMathChallenge();
+          const mathAnswerField = document.getElementById('mathAnswer');
+          if (mathAnswerField) mathAnswerField.value = '';
+        } catch (err) {
+          if (regStatus) regStatus.textContent = 'Network error. Please try again.';
+        } finally {
+          if (regSubmit) {
+            regSubmit.disabled = false;
+            regSubmit.textContent = defaultLabel;
+          }
+        }
+      });
+    }
+  });
+</script>
+
+{% endblock %}

@@ -1,0 +1,97 @@
+#calculator {
+  background-color: rgb(202, 202, 202);
+  width: 350px;
+  height: fit-content;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgb(183, 183, 183);
+  padding: 0.5rem;
+  margin: auto auto;
+  overflow: auto;
+}
+
+
+#about h1 {
+  text-align: center;
+}
+a {
+  text-decoration: none;
+}
+.stock_header {
+  margin: 0.5rem;
+}
+input {
+  padding: 0.4rem;
+  border: 1.3px rgba(165, 42, 42, 0.471) solid;
+}
+button {
+  padding: 0.4rem;
+}
+#stock {
+  background-color: rgba(77, 224, 71, 0.459);
+}
+#amount {
+  background-color: rgba(172, 255, 47, 0.397);
+}
+#price {
+  background-color: rgba(255, 105, 180, 0.404);
+}
+#sell_price {
+  background-color: rgba(255, 158, 206, 0.404);
+}
+
+h2 {
+  text-align: center;
+}
+
+#increment {
+  background-color: rgba(137, 43, 226, 0);
+  border: none;
+  width: 3rem;
+}
+#incremented_price {
+  background-color: rgba(137, 43, 226, 0);
+  border: none;
+  width: 3rem;
+}
+#profit {
+  background-color: rgba(137, 43, 226, 0);
+  border: none;
+  width: 3rem;
+}
+#sell_get {
+  background-color: rgba(137, 43, 226, 0);
+  border: none;
+  width: 3rem;
+  text-decoration: underline;
+  color: rgb(105, 19, 105);
+}
+#result_for {
+  background-color: rgba(137, 43, 226, 0);
+  border: none;
+  width: 3rem;
+  text-decoration: underline;
+  color: rgb(105, 19, 105);
+}
+#result {
+  background-color: rgba(226, 43, 43, 0.272);
+  color: greenyellow;
+  border: none;
+  text-shadow: grey 0 0 6px;
+  width: 3rem;
+  font-size: larger;
+}
+#sell_amount {
+  background-color: rgba(226, 43, 43, 0.272);
+  color: greenyellow;
+  border: none;
+  text-shadow: grey 0 0 6px;
+  width: 3rem;
+  font-size: larger;
+}
+.side {
+  /* background-color: rgba(255, 99, 71, 0.505); */
+  padding: 0.4rem;
+  border: solid 1.2px red;
+  border-radius: 8px;
+}

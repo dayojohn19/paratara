@@ -1,0 +1,101 @@
+{% extends 'resort/base_manager.html' %}
+
+{% block title %}Accommodation Guestlist • {{ resortObject.RealName }}{% endblock %}
+
+{% block content %}
+
+
+  <main class="container">
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <div class="section-title">Accommodation Guestlist</div>
+          <div class="section-sub">{{ resortObject.RealName }}</div>
+        </div>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+          <form method="get" style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+            <div style="min-width:260px;">
+              <select name="room" onchange="this.form.submit()" aria-label="Select accommodation">
+                <option value="" {% if not selected_room_id %}selected{% endif %}>All accommodations</option>
+                {% for a in accommodations %}
+                  <option value="{{ a.id }}" {% if selected_room_id == a.id %}selected{% endif %}>{{ a.title }} — {{ a.packageName.PackageTitle }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </form>
+          <a class="btn" href="{% url 'resorts:view_accommodation_guestlist' resortObject.id %}">View all guestlist</a>
+          <a class="btn" href="{% url 'resorts:getResort' resortObject.name %}">Back</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <div style="font-weight:600;margin-bottom:0.75rem;">Guests ({{ guestlists|length }})</div>
+
+          <div style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;min-width:900px;">
+              <thead>
+                <tr>
+                  <th style="text-align:left;padding:0.6rem;border-bottom:1px solid var(--border-strong);">Guest</th>
+                  <th style="text-align:left;padding:0.6rem;border-bottom:1px solid var(--border-strong);">Contact</th>
+                  <th style="text-align:left;padding:0.6rem;border-bottom:1px solid var(--border-strong);">Room</th>
+                  <th style="text-align:left;padding:0.6rem;border-bottom:1px solid var(--border-strong);">Check-in</th>
+                  <th style="text-align:left;padding:0.6rem;border-bottom:1px solid var(--border-strong);">Check-out</th>
+                  <th style="text-align:left;padding:0.6rem;border-bottom:1px solid var(--border-strong);">Status</th>
+                  <th style="text-align:left;padding:0.6rem;border-bottom:1px solid var(--border-strong);">ID</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for g in guestlists %}
+                  <tr>
+                    <td style="padding:0.6rem;border-bottom:1px solid var(--border-soft);">
+                      <div style="font-weight:600;">{{ g.guest_name }}</div>
+                      {% if g.special_requests %}
+                        <div style="color:var(--ink-500);font-size:0.92rem;">{{ g.special_requests }}</div>
+                      {% endif %}
+                    </td>
+                    <td style="padding:0.6rem;border-bottom:1px solid var(--border-soft);">
+                      <div>{{ g.guest_email }}</div>
+                      <div style="color:var(--ink-500);font-size:0.92rem;">{{ g.guest_phone }}</div>
+                    </td>
+                    <td style="padding:0.6rem;border-bottom:1px solid var(--border-soft);">
+                      {% if g.room %}{{ g.room.title }}{% else %}<span style="color:var(--ink-500);">—</span>{% endif %}
+                    </td>
+                    <td style="padding:0.6rem;border-bottom:1px solid var(--border-soft);">{{ g.checkin_date }}</td>
+                    <td style="padding:0.6rem;border-bottom:1px solid var(--border-soft);">{{ g.checkout_date }}</td>
+                    <td style="padding:0.6rem;border-bottom:1px solid var(--border-soft);">
+                      {% if g.checked_in %}
+                        <span class="meta-tag" style="background: rgba(22, 163, 74, 0.12); color: var(--success-500); border-color: rgba(22, 163, 74, 0.22);">Checked-in</span>
+                      {% else %}
+                        <span class="meta-tag">Pending</span>
+                      {% endif %}
+                    </td>
+                    <td style="padding:0.6rem;border-bottom:1px solid var(--border-soft);">
+                      {% if g.id_picture %}
+                        <a class="btn" style="padding:0.35rem 0.6rem;" href="{{ g.id_picture }}" target="_blank" rel="noopener">View ID</a>
+                      {% else %}
+                        <span style="color:var(--ink-500);">—</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% empty %}
+                  <tr>
+                    <td colspan="7" style="padding:0.9rem;">
+                      <div class="empty-hint">No accommodation check-ins yet.</div>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  {% include 'resort/partials/footer.html' %}
+{% endblock %}
+
+{% block scripts %}
+  {% include 'resort/partials/scripts.html' %}
+{% endblock %}

@@ -1,0 +1,745 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="48x48" href="{% static 'home/images/favicon-48x48.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'home/images/favicon-16x16.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'home/images/favicon-32x32.png' %}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tourist Digitalization System - Presentation</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #1a1a2e;
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+        }
+        
+        /* Slide Container */
+        .presentation {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+        }
+        
+        .slide {
+            overflow: scroll;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            padding: 60px 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .slide.active {
+            display: flex;
+            opacity: 1;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        /* Slide Backgrounds */
+        .slide-1 { 
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%),
+                        url('https://images.unsplash.com/photo-1597115793997-06eb0c3cfe24?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0b3VyaXN0JTIwZGVzdGluYXRpb24lMjB0cmF2ZWx8ZW58MXx8fHwxNzY2MjEwNjA1fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral');
+            background-size: cover;
+            background-position: center;
+        }
+        .slide-2 { 
+            background: linear-gradient(135deg, rgba(240, 147, 251, 0.85) 0%, rgba(245, 87, 108, 0.85) 100%),
+                        url('https://images.unsplash.com/photo-1762953007649-8ea70115059a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkaWdpdGFsJTIwdHJhY2tpbmclMjB0ZWNobm9sb2d5fGVufDF8fHx8MTc2NjIxMDYwNXww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral');
+            background-size: cover;
+            background-position: center;
+        }
+        .slide-3 { 
+            background: linear-gradient(135deg, rgba(79, 172, 254, 0.85) 0%, rgba(0, 242, 254, 0.85) 100%),
+                        url('https://images.unsplash.com/photo-1640694514279-090bb1b09ee9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2JpbGUlMjBhcHAlMjBkYXNoYm9hcmR8ZW58MXx8fHwxNzY2MTE1ODEwfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral');
+            background-size: cover;
+            background-position: center;
+        }
+        .slide-4 { 
+            background: linear-gradient(135deg, rgba(67, 233, 123, 0.85) 0%, rgba(56, 249, 215, 0.85) 100%),
+                        url('https://images.unsplash.com/photo-1569908420024-c8f709b75700?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxRUiUyMGNvZGUlMjBzY2FubmluZ3xlbnwxfHx8fDE3NjYxMzc4ODV8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral');
+            background-size: cover;
+            background-position: center;
+        }
+        .slide-5 { 
+            background: linear-gradient(135deg, rgba(250, 112, 154, 0.85) 0%, rgba(254, 225, 64, 0.85) 100%),
+                        url('https://images.unsplash.com/photo-1654088757884-a2505daf79c6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoYXBweSUyMHRvdXJpc3RzJTIwdHJhdmVsaW5nfGVufDF8fHx8MTc2NjIxMDYwN3ww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral');
+            background-size: cover;
+            background-position: center;
+        }
+        .slide-6 { 
+            background: linear-gradient(135deg, rgba(48, 207, 208, 0.85) 0%, rgba(51, 8, 103, 0.85) 100%),
+                        url('https://images.unsplash.com/photo-1711606706060-52ea35a489dd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkYXRhJTIwYW5hbHl0aWNzJTIwc2NyZWVufGVufDF8fHx8MTc2NjE2ODY3N3ww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral');
+            background-size: cover;
+            background-position: center;
+        }
+        .slide-7 { 
+            background: linear-gradient(135deg, rgba(168, 237, 234, 0.85) 0%, rgba(254, 214, 227, 0.85) 100%),
+                        url('https://images.unsplash.com/photo-1761805364358-1a4446ffb0ca?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzYWZldHklMjBzZWN1cml0eSUyMHNoaWVsZHxlbnwxfHx8fDE3NjYyMTA2MDd8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral');
+            background-size: cover;
+            background-position: center;
+        }
+        .slide-8 { 
+            background: linear-gradient(135deg, rgba(255, 154, 158, 0.85) 0%, rgba(254, 207, 239, 0.85) 100%),
+                        url('https://images.unsplash.com/photo-1622258416260-cc79f4763be4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzdGFydHVwJTIwYmVnaW5uaW5nJTIwbGF1bmNofGVufDF8fHx8MTc2NjIxMDYwOHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral');
+            background-size: cover;
+            background-position: center;
+        }
+        .slide-9 { 
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%),
+                        url('https://images.unsplash.com/photo-1597115793997-06eb0c3cfe24?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0b3VyaXN0JTIwZGVzdGluYXRpb24lMjB0cmF2ZWx8ZW58MXx8fHwxNzY2MjEwNjA1fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral');
+            background-size: cover;
+            background-position: center;
+        }
+        
+        /* Title Slide */
+        .title-slide {
+            text-align: center;
+        }
+        
+        .title-slide h1 {
+            font-size: 4.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            line-height: 1.2;
+        }
+        
+        .title-slide .subtitle {
+            font-size: 1.8rem;
+            font-weight: 300;
+            opacity: 0.95;
+            margin-bottom: 40px;
+        }
+        
+        .title-slide .presenter {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            margin-top: 60px;
+        }
+        
+        /* Content Slide */
+        .content-slide h2 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 50px;
+            text-align: center;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .content-slide p {
+            font-size: 1.3rem;
+            line-height: 1.8;
+            max-width: 900px;
+            text-align: center;
+            margin: 0 auto 30px;
+            opacity: 0.95;
+        }
+        
+        /* Feature List */
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        
+        .feature-item {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .feature-item:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .feature-item h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+        
+        .feature-item p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            text-align: left;
+        }
+        
+        /* Steps / How it Works */
+        .steps {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .spot-showcase {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 6em;
+            margin-top: 20px;
+        }
+
+        .spot-preview {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .spot-label {
+            font-size: 0.85rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            opacity: 0.8;
+            margin-bottom: 8px;
+        }
+
+        .spot-image {
+            width: auto;
+            border-radius: 10px;
+            height: 160px;
+            object-fit: cover;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .step {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 25px 35px;
+            border-radius: 12px;
+            border-left: 5px solid rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+        
+        .step-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            min-width: 60px;
+            text-align: center;
+            opacity: 0.9;
+        }
+        
+        .step-content h3 {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+        
+        .step-content p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            text-align: left;
+            margin: 0;
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .stat-number {
+            font-size: 4rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            line-height: 1;
+        }
+        
+        .stat-label {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        /* Bullet Points */
+        .bullet-list {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .bullet-list ul {
+            list-style: none;
+        }
+        
+        .bullet-list li {
+            font-size: 1.5rem;
+            padding: 20px 30px;
+            margin-bottom: 15px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            border-left: 4px solid rgba(255, 255, 255, 0.8);
+            position: relative;
+            padding-left: 70px;
+        }
+        
+        .bullet-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 25px;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        
+        /* Navigation */
+        .nav-button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            font-size: 2rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .nav-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-50%) scale(1.1);
+        }
+        
+        .nav-button.prev {
+            left: 30px;
+        }
+        
+        .nav-button.next {
+            right: 30px;
+        }
+        
+        .nav-button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        
+        .nav-button:disabled:hover {
+            transform: translateY(-50%) scale(1);
+        }
+        
+        /* Progress Bar */
+        .progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            transition: width 0.3s ease;
+        }
+        
+        /* Slide Counter */
+        .slide-counter {
+            position: absolute;
+            bottom: 30px;
+            right: 40px;
+            font-size: 1.2rem;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Q&A Slide */
+        .qa-slide {
+            text-align: center;
+        }
+        
+        .qa-slide h2 {
+            font-size: 5rem;
+            margin-bottom: 30px;
+        }
+        
+        .qa-slide p {
+            font-size: 1.8rem;
+            opacity: 0.9;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .slide {
+                padding: 40px;
+            }
+            
+            .title-slide h1 {
+                font-size: 3rem;
+            }
+            
+            .title-slide .subtitle {
+                font-size: 1.4rem;
+            }
+            
+            .content-slide h2 {
+                font-size: 2.2rem;
+            }
+            
+            .feature-list {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .bullet-list li {
+                font-size: 1.2rem;
+            }
+            
+            .nav-button {
+                width: 50px;
+                height: 50px;
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="presentation">
+        <!-- Slide 1: Title + Live Dashboard -->
+        <div class="slide slide-1 active title-slide">
+            <h1>Tourist Digitalization Platform</h1>
+            <p class="subtitle">QR-driven visitor tracking, safety monitoring, and operational analytics for destinations</p>
+            <p class="presenter">Investor Overview | 2025</p>
+            
+            <div class="stats-grid" style="margin-top: 60px;">
+                <div class="stat-card">
+                    <div class="stat-number">Real‑time</div>
+                    <div class="stat-label">Visitor Check‑ins + Live Status</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">QR</div>
+                    <div class="stat-label">Secure Scan Entry (Tokenized)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">Guide</div>
+                    <div class="stat-label">Tourist ↔ Tour Guide Linking</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 2: What is it? -->
+        <div class="slide slide-2 content-slide">
+            <h2>Problem → Solution</h2>
+            <p>Tourist destinations often rely on manual reporting and fragmented tools, making it hard to answer: “Who is where, right now?”</p>
+            <p>This platform digitizes visits with QR check‑ins, live dashboards, and tour guide linkage—improving safety response, coordination, and planning.</p>
+        </div>
+
+        <!-- Slide 3: How the Website Works (Funnel) -->
+        <div class="slide content-slide">
+            <h2>How the Website Works (Tourist Funnel)</h2>
+            <p>Tourists usually start with broad research online, then need a simple, local companion once they arrive on the island.</p>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Discovery (Wide Internet)</h3>
+                        <p>Users search blogs and travel guides about the island across the web.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>On-Island Experience (Simple Website)</h3>
+                        <p>Once they arrive, they’re funneled into a simple site where they can quickly find: accommodation, transportation, foods, services, activities, events, and promotions.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3: Key Features -->
+        <div class="slide slide-3 content-slide">
+            <h2>Core Product Modules</h2>
+            <div class="feature-list">
+                <div class="feature-item">
+                    <h3>QR Check‑ins</h3>
+                    <p>Each tourist spot or experience has a unique QR entry that records visits and time stamps.</p>
+                    <a href="/place/siargao/tourist-spots/" style="display: inline-block; margin-top: 10px; color: white; text-decoration: underline; font-weight: 500;">Demo: Tourist Spots →</a>
+                </div>
+                <div class="feature-item">
+                    <h3>Live Operations Dashboard</h3>
+                    <p>See active visitors per location, trends, and operational load in real time.</p>
+                    <a href="/place/siargao/on-visit/" style="display: inline-block; margin-top: 10px; color: white; text-decoration: underline; font-weight: 500;">Demo: Live Dashboard →</a>
+                </div>
+                <div class="feature-item">
+                    <h3>Safety Monitoring</h3>
+                    <p>Flags extended stays and supports rapid response with visit history and basic contact data.</p>
+                    <a href="/place/siargao/on-visit/" style="display: inline-block; margin-top: 10px; color: white; text-decoration: underline; font-weight: 500;">Demo: Monitoring View →</a>
+                </div>
+                <div class="feature-item">
+                    <h3>Tour Guide Marketplace + Profiles</h3>
+                    <p>Tour guides register, publish their primary place, and can be linked to tourists for coordination.</p>
+                    <a href="/userProfile/tour-guide/find/juandelacruz21/" style="display: inline-block; margin-top: 10px; color: white; text-decoration: underline; font-weight: 500;">Demo: Tour Guide Profile →</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: How it Works -->
+        <div class="slide slide-4 content-slide">
+            <h2>How It Works (End‑to‑End)</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Scan to Enter</h3>
+                        <p>Visitor scans a QR code to open a protected entry page and start a visit session.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Instant Visit Logging</h3>
+                        <p>System records time, place, and visit status for live monitoring and later analytics.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Monitor + Coordinate</h3>
+                        <p>Admins see live counts; visitors can be associated with tour guides for coordination.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>Safety & Response</h3>
+                        <p>Extended stays and risky patterns can be flagged; historical movement helps respond faster.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5: Benefits -->
+        <div class="slide slide-5 content-slide">
+            <h2>Value Proposition (Why It Wins)</h2>
+            <div class="bullet-list">
+                <ul>
+                    <li>Improves visitor safety with live monitoring + visit history</li>
+                    <li>Reduces operational blind spots with real-time counts and location status
+                        <a href="/garden/map/siargao" style="display: inline-block; margin-top: 10px; color: white; text-decoration: underline; font-weight: 500;">Demo: Map View →</a>
+                    </li>
+                    <li>Creates measurable insights for tourism planning (peak times, hotspots, dwell time)</li>
+                    <li>Enables tour guide coordination through verified profiles and assignments</li>
+                    <li>Fast to deploy: QR signage + admin dashboard (no special hardware required)</li>
+                </ul>
+            </div>
+        </div>
+
+
+        <!-- Slide 6: Business Model / Analytics -->
+        <div class="slide slide-6 content-slide">
+            <h2>Target Market & Monetization</h2>
+            <p>Wedge into high‑traffic destinations: start with one pilot (LGU + top spots + guides), then scale across municipalities/islands.</p>
+            <div class="feature-list">
+                <div class="feature-item">
+                    <h3>LGUs / DMOs</h3>
+                    <p>Destination-wide safety + reporting. Monetize via annual SaaS subscription.</p>
+                </div>
+                <div class="feature-item">
+                    <h3>Tourist Spots / Attractions</h3>
+                    <p>Entry + live counts. Monetize via onboarding + per‑spot management fees.</p>
+                </div>
+                <div class="feature-item">
+                    <h3>Resorts / Hotels</h3>
+                    <p>Guest coordination + partner‑spot insights. Monetize via B2B subscription bundles.</p>
+                </div>
+                <div class="feature-item">
+                    <h3>Guides / Events</h3>
+                    <p>Verified profiles + assignments. Monetize via verification and directory placement.</p>
+                </div>
+            </div>
+        </div>
+
+
+
+        <!-- Slide 7: Safety Features -->
+        <div class="slide slide-7 content-slide">
+            <h2>Safety & Trust</h2>
+            <div class="feature-list">
+                <div class="feature-item">
+                    <h3>Extended Stay Monitoring</h3>
+                    <p>Detects long stays and helps operators respond quickly.</p>
+                </div>
+                <div class="feature-item">
+                    <h3>Basic Visitor Identity</h3>
+                    <p>Visitor records support contact and accountability where required.</p>
+                </div>
+                <div class="feature-item">
+                    <h3>Visit History</h3>
+                    <p>Historical trail per visitor and per spot for investigations and reporting.</p>
+                </div>
+                <div class="feature-item">
+                    <h3>Guide Linkage</h3>
+                    <p>Tour guides can be activated and linked to tourists for safer coordination.</p>
+                    <a href="/userProfile/tour-guide/register/" style="display: inline-block; margin-top: 10px; color: white; text-decoration: underline; font-weight: 500;">Demo: Register as Tour Guide →</a>
+                    
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 8: Getting Started -->
+        <div class="slide slide-8 content-slide">
+            <h2>Deployment Plan (Fast Rollout)</h2>
+            <p style="font-size: 1.5rem; margin-bottom: 40px;">Three steps to launch in a destination:</p>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Setup Locations</h3>
+                        <p>Add tourist spots and assign each place a QR entry point.</p>
+                        <div style="display: flex; gap: 10px; margin-top: 20px;">
+                            <a href="/place/siargao/tourist-spots/" style="display: inline-block; padding: 15px 30px; background: rgba(242, 151, 206, 0.736); backdrop-filter: blur(10px); border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 30px; color: white; text-decoration: none; font-weight: 600; transition: all 0.3s ease;">View Locations →</a>
+                            <a href="/tourist-spot-create/" style="display: inline-block; padding: 15px 30px; background: rgba(202, 84, 84, 0.668); backdrop-filter: blur(10px); border: 2px solid rgba(255, 255, 255, 0.5); border-radius: 30px; color: white; text-decoration: none; font-weight: 600; transition: all 0.3s ease;">Create New Tourist Spot →</a>
+                        </div>
+                        <div class="spot-showcase">
+                            <div class="spot-preview">
+                                <p class="spot-label">Siargao2 image</p>
+                                <img src="https://res.cloudinary.com/dam2loimt/image/upload/v1766813575/tourist_spots/siargao2-addba66b.png" alt="Siargao2 tourist spot" class="spot-image">
+                            </div>
+                            <div class="spot-preview">
+                                <p class="spot-label">QR entry code</p>
+                                <img src="https://res.cloudinary.com/dam2loimt/image/upload/v1766813576/tourist_spots/siargao2-qr-d994c607.png" alt="QR code for Siargao2" class="spot-image">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Register Tourist Guides</h3>
+                        <p><a href="/userProfile/tour-guide/register/">Register Guides.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Operate Live</h3>
+                        <p>Start monitoring immediately; operators use the live dashboard for real-time decision making.</p>
+                        <a href="/place/siargao/on-visit/" style="display: inline-block; margin-top: 20px; padding: 15px 30px; background: rgba(242, 151, 206, 0.736); backdrop-filter: blur(10px); border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 30px; color: white; text-decoration: none; font-weight: 600; transition: all 0.3s ease;">Demo: Live Dashboard →</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 9: Q&A -->
+        <div class="slide slide-9 qa-slide">
+            <h2>Let’s Talk</h2>
+            <p>Seeking partners for pilots, LGU deployments, and scaling to multiple destinations.</p>
+            <p style="margin-top: 40px; font-size: 1.4rem;">Contact: info@touristtracking.com</p>
+        </div>
+
+        <!-- Navigation -->
+        <button class="nav-button prev" onclick="changeSlide(-1)">‹</button>
+        <button class="nav-button next" onclick="changeSlide(1)">›</button>
+
+        <!-- Progress Bar -->
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <!-- Slide Counter -->
+        <div class="slide-counter">
+            <span id="currentSlide">1</span> / <span id="totalSlides">9</span>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        const progressFill = document.getElementById('progressFill');
+        const currentSlideEl = document.getElementById('currentSlide');
+
+        document.getElementById('totalSlides').textContent = totalSlides;
+
+        function showSlide(n) {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (n + totalSlides) % totalSlides;
+            slides[currentSlide].classList.add('active');
+            
+            // Update counter
+            currentSlideEl.textContent = currentSlide + 1;
+            
+            // Update progress bar
+            const progress = ((currentSlide + 1) / totalSlides) * 100;
+            progressFill.style.width = progress + '%';
+            
+            // Update navigation buttons
+            updateNavButtons();
+        }
+
+        function changeSlide(direction) {
+            showSlide(currentSlide + direction);
+        }
+
+        function updateNavButtons() {
+            // Enable continuous looping - no buttons disabled
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                changeSlide(1);
+            } else if (e.key === 'ArrowLeft') {
+                changeSlide(-1);
+            }
+        });
+
+        // Initialize
+        updateNavButtons();
+        progressFill.style.width = (1 / totalSlides * 100) + '%';
+    </script>
+</body>
+</html>

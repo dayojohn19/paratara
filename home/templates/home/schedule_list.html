@@ -1,0 +1,6 @@
+<h1>Schedule</h1>
+{% for schedule in object_list %}
+<ul>
+  <li><a href="{{ schedule.get_absolute_url }}">{{ schedule.meetPlace }} {{schedule.address}}</a></li>
+</ul>
+{% endfor %}

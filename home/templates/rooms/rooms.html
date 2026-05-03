@@ -1,0 +1,862 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zen Rooms</title>
+    <script src="https://smtpjs.com/v3/smtp.js"></script>
+    <!-- <script src="room.js"> -->
+
+    </script>
+    <script src="{% static 'room/room.js' %}"></script>
+</head>
+<style>
+    * {
+        font-family: Inter, -apple-system, BlinkMacSystemFont, segoe ui, Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    p {
+        margin: 0;
+        padding: 0;
+        text-indent: 2.5rem;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+        font-weight: 350;
+        letter-spacing: 0.25vw;
+    }
+
+    img {
+        width: 90vw;
+        max-width: 100%;
+        max-height: 50vh;
+        border-radius: 10px;
+    }
+
+    .wrapper {
+        display: flex;
+        flex-flow: row wrap;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .wrapper>* {
+        padding: 10px;
+        flex: 1 100%;
+    }
+
+    .header {
+        /* background: rgba(233, 231, 231, 0.623); */
+        background-color: white;
+        padding: 0;
+        font-family: sans-serif;
+        font-weight: 300;
+        font-stretch: wider;
+    }
+
+    .header-sub {
+        font-size: 10vh;
+    }
+
+    .footer {
+        background: rgb(233, 255, 233);
+    }
+
+    .main {
+        text-align: left;
+        background: rgb(245, 252, 255);
+        position: relative;
+        /* overflow: scroll; */
+        height: fit-content;
+    }
+
+    .aside-1 {
+        /* background: rgb(255, 187, 187); */
+        /* background: rgb(244, 244, 244); */
+    }
+
+    .room-item {
+        /* background-color: rgb(255, 143, 143); */
+        /* background: rgb(239, 237, 234); */
+
+        padding-top: 8px;
+    }
+
+    .aside-2 {
+        /* background: rgb(248, 248, 242); */
+    }
+
+    .activity-item {
+        background: rgb(253, 254, 246);
+        margin-bottom: 3vh;
+        padding: 0.5rem;
+
+    }
+
+    .button-hide-aside {
+        padding: 8px;
+        border-radius: 0 0 6px 6px;
+        border: none;
+        position: sticky;
+        /* text-shadow: 0 0 3px white; */
+        top: 0;
+        right: 0;
+        font-size: large;
+        margin: 0;
+        /* background-color: #9e9e9e; */
+        background-color: rgb(220, 220, 220);
+    }
+
+    @media all and (min-width: 600px) {
+        .aside {
+            flex: 1 0 0;
+        }
+
+
+    }
+
+    @media all and (min-width: 800px) {
+
+
+        .main {
+            flex: 2 0px;
+        }
+
+        .aside-1 {
+            order: 1;
+        }
+
+        .room-item {
+
+
+            margin-bottom: 3vh;
+            padding: 0.5rem;
+        }
+
+        .main {
+            order: 2;
+        }
+
+        .main>p {
+            margin-bottom: 2vh;
+        }
+
+        .aside-2 {
+            order: 3;
+        }
+
+        .footer {
+            order: 4;
+        }
+    }
+
+    iframe {
+        height: 50vh;
+        width: 100%;
+    }
+
+    /* MAP */
+    #map {
+        position: inherit;
+        height: 100%;
+        margin-top: 43px;
+        /* max-width: ; */
+    }
+
+    /* Optional: Makes the sample page fill the window. */
+    html,
+    body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    ul {
+        list-style: none;
+    }
+
+    /*  */
+
+
+    details {
+        padding: 10px;
+        display: flex;
+        align-items: center;
+        /* line-height: 1; */
+    }
+
+    ul {
+        margin-block-start: 0;
+        margin-block-end: 0;
+        margin-inline-start: 0px;
+        margin-inline-end: 0px;
+        padding-inline-start: 0;
+    }
+
+
+    summary::-webkit-details-marker {
+        display: none;
+        /* line-height: 10; */
+    }
+
+    /* ON CONTACT */
+    .button-close {
+        position: absolute;
+        right: 1px !important;
+        /* ON PARALLEL TO MARGIN TOP FROM MODAL-item-head which is 50px */
+        margin-right: 15px;
+        margin-top: 10px;
+        font-size: x-large;
+        color: grey;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        font-family: Raleway, sans-serif;
+    }
+
+    .button-close:hover {
+        color: #000;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .modal-container-sub {
+
+        /* SECOND MODAL VERSION */
+        background-color: rgb(255, 255, 255);
+        margin: 10% auto;
+        position: relative;
+        border: 3px solid rgb(213, 209, 209);
+        border-radius: 4px;
+        width: fit-content;
+        box-shadow: 0 0 15px rgba(67, 67, 67, 0.822);
+        /* END SECOND MODAL VERSION */
+    }
+
+    .modal-item-head {
+        border-radius: 8px 8px 0 0;
+        padding: 4px;
+        /* padding-left: 0;
+        padding-right: 0; */
+        background-color: rgb(221, 213, 203);
+        padding-bottom: 0;
+        font-family: poppins-semibold, poppins, sans-serif;
+        font-weight: 200;
+        letter-spacing: calc(0.2vh + 0.2vw);
+        text-align: center;
+    }
+
+
+    .custom-field {
+        font-size: calc(2vh + 1vw);
+
+        /* min-height: 76px; */
+        border: none;
+        border-radius: 4px;
+        padding: 9px;
+        box-shadow: 0 0 5px grey;
+
+    }
+
+    .button-send {
+        font-size: calc(1.8vh + 0.3vw);
+
+        padding: calc(1vh + 0.5vw);
+
+        border-radius: 7px;
+        border: none;
+        background-color: rgb(243, 209, 165);
+        text-shadow: white 0 0 2px;
+        box-shadow: #9e9e9e 2.1px 2.3px 2px;
+        margin: calc(0.5vh + 0.5vw);
+        bottom: 1px !important;
+    }
+
+    button:hover {
+        box-shadow: 0 0 4.5px grey;
+    }
+
+    .modal-container-main {
+        /* DISPLAYING CREATE VIAJE FORM */
+        position: fixed;
+        z-index: 3;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.4);
+        animation-name: slideIn;
+        animation-duration: 0.4s;
+        font-family: Poppins, sans-serif;
+    }
+
+    /* END OF */
+
+    .activities-summary {
+        background-color: rgb(220, 220, 220);
+        padding-top: 8px;
+        border-radius: 8px 8px 8px 0;
+
+
+    }
+
+    .blue-white {
+        background-color: #2196F3;
+        color: white;
+
+    }
+
+    .border-8 {
+        border-radius: 8px;
+    }
+
+    .room-summary {
+        background-color: rgb(220, 220, 220);
+        padding-top: 8px;
+        border-radius: 8px 8px 8px 0;
+    }
+
+    .red-white {
+        background-color: rgb(252, 84, 91);
+        color: white;
+
+    }
+
+    .contact-us {
+        background-color: rgb(241, 241, 11);
+        padding: 8px;
+        border-radius: 8px;
+        /* color: white; */
+    }
+</style>
+
+<body>
+    <img style="width: 100vw; border-radius: 0;" src="{% static 'room/dining.png' %}">
+
+
+
+    <div class="wrapper">
+        <header class="header">
+            <span class="header-sub">
+                John Foreign's Resort
+            </span>
+            <div style="text-align: right; margin-right: 5px;font-weight: 300;font-size: smaller;">
+
+                <small>Bagtikan Street, Makati City, Philippines</small>
+
+                <hr>
+            </div>
+        </header>
+
+        <article class="main">
+            <div style="text-align: center; align-items: center;">
+                <h2>
+                    <strong style="background-color: #4CAF50; color: white; border-radius: 8px;;padding: 8px; ">
+                        Promotional Video
+                    </strong>
+                </h2>
+            </div>
+
+
+            <!-- <iframe src="https://www.youtube.com/embed/px3gDScjYLY" title="YouTube video player" frameborder="0" -->
+            <iframe src="{% static 'room/Episode002v4FB - SD 480p.mp4' %}" title="YouTube video player" frameborder="0"
+                style="border-radius: 10px;"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen></iframe>
+            </iframe>
+            <p>
+                Lorem ipsum dolor sit amet consectetur adipisicing elit. Placeat nihil incidunt laudantium ratione natus
+            </p>
+            <a href="as.com" target="_blank">toBlank</a>
+            <p>Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum
+            </p>
+
+
+
+            <div>
+                <div class="modal-container-main" style="display: none;">
+                    <div class="modal-container-sub">
+                        <span class="button-close" onclick="closeModal()" class="close">&times;</span>
+                        <div class="modal-item-head">
+
+                            <button onclick="SendGuestMessage()" class="button-send">
+                                <h1 style="padding: 0; margin: 0;">Send</h1>
+                            </button>
+                            <hr>
+                            <input id="guest_contact" placeholder="Your Contact" class="custom-field">
+                            <hr>
+                            <textarea id="guest_message" style="min-height: 40vh;" placeholder="Your Message"
+                                class="custom-field"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+
+        <aside class="aside aside-1">
+            <details>
+                <summary class="room-summary red-white">
+                    <h2>Rooms</h2>
+                    <svg fill="none" height="16px" width="16px" viewBox="0 0 24 24" class="sc-16r8icm-0 coGWQa">
+                        <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-miterlimit="10"
+                            stroke-linecap="round" stroke-linejoin="round"></path>
+                    </svg>
+                </summary>
+                <button class="button-hide-aside red-white" onclick="document.querySelector('.room-summary').click()">
+                    <svg fill="none" height="16px" width="16px" viewBox="0 0 24 24" class="sc-16r8icm-0 coGWQa">
+                        <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-miterlimit="10"
+                            stroke-linecap="round" stroke-linejoin="round"></path>
+                    </svg>
+                </button>
+                <hr>
+                <details>
+                    <summary class="red-white border-8">
+                        Room Packages
+                        <svg fill="none" height="16px" width="16px" viewBox="0 0 24 24" class="sc-16r8icm-0 coGWQa">
+                            <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-miterlimit="10"
+                                stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                    </summary>
+                    <ul>
+                        <li>
+                            <details>
+                                <summary>2 Days 2 Person
+                                    <svg fill="none" height="16px" width="16px" viewBox="0 0 24 24"
+                                        class="sc-16r8icm-0 coGWQa">
+                                        <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2"
+                                            stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round">
+                                        </path>
+                                    </svg>
+                                </summary>
+                                <p>
+                                    Php 10,000
+                                </p>
+                            </details>
+                        </li>
+                        <li>
+                            <details>
+                                <summary>4 Days 4 Person
+                                    <svg fill="none" height="16px" width="16px" viewBox="0 0 24 24"
+                                        class="sc-16r8icm-0 coGWQa">
+                                        <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2"
+                                            stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round">
+                                        </path>
+                                    </svg>
+                                </summary>
+                                <p>
+                                    Php 15,000
+                                    Activities Included Snorkeling, Kayaking Activities, Coffee, and Internet
+                                </p>
+                            </details>
+                        </li>
+                        <li>
+                            <details>
+                                <summary>6 Days 6 Person
+                                    <svg fill="none" height="16px" width="16px" viewBox="0 0 24 24"
+                                        class="sc-16r8icm-0 coGWQa">
+                                        <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2"
+                                            stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round">
+                                        </path>
+                                    </svg>
+                                </summary>
+                                <p>
+                                    Php 17,500
+                                    Activities Included Snorkeling, Kayaking Activities, Coffee, and Internet
+                                </p>
+                            </details>
+                        </li>
+                        <li>
+                            <details>
+                                <summary>7 Days 8 Person
+                                    <svg fill="none" height="16px" width="16px" viewBox="0 0 24 24"
+                                        class="sc-16r8icm-0 coGWQa">
+                                        <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2"
+                                            stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round">
+                                        </path>
+                                    </svg>
+                                </summary>
+                                <p>
+                                    Php 18,750
+                                    Activities Included Snorkeling, Kayaking Activities, Coffee, and Internet
+                                </p>
+                            </details>
+                        </li>
+                    </ul>
+                </details>
+                <hr>
+                <details>
+                    <summary>
+                        Itinerary Packages
+
+                        <svg fill="none" height="16px" width="16px" viewBox="0 0 24 24" class="sc-16r8icm-0 coGWQa">
+                            <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-miterlimit="10"
+                                stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                    </summary>
+                    <ul>
+                        <li>
+                            <details>
+                                <summary>1 Day
+                                    <svg fill="none" height="16px" width="16px" viewBox="0 0 24 24"
+                                        class="sc-16r8icm-0 coGWQa">
+                                        <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2"
+                                            stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round">
+                                        </path>
+                                    </svg>
+                                </summary>
+                                <ul>
+                                    <li>7:00 - 11:00 Water Activities</li>
+                                    <li>1:00 pm - 5:00 pm Land Activities</li>
+                                    <li>5:00 pm Check Out</li>
+                                </ul>
+                            </details>
+                        </li>
+                        <li>
+                            <details>
+                                <summary>2 Days
+                                    <svg fill="none" height="16px" width="16px" viewBox="0 0 24 24"
+                                        class="sc-16r8icm-0 coGWQa">
+                                        <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2"
+                                            stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round">
+                                        </path>
+                                    </svg>
+                                </summary>
+                                <ul>
+                                    <li>7:00 pm - 10:00 pm Bon Fire and Other Night Activities</li>
+                                    <li>7:00 - 11:00 Freediving</li>
+                                    <li>7:00 - 11:00 Kayaking</li>
+                                    <li>7:00 - 11:00 Water Activities</li>
+                                </ul>
+                            </details>
+                        </li>
+                        <li>
+                            <details>
+                                <summary>3 Day
+                                    <svg fill="none" height="16px" width="16px" viewBox="0 0 24 24"
+                                        class="sc-16r8icm-0 coGWQa">
+                                        <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2"
+                                            stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round">
+                                        </path>
+                                    </svg>
+                                </summary>
+                                <ul>
+                                    <li>7:00 - 11:00 Water Activities</li>
+                                    <li>7:00 - 11:00 Water Activities</li>
+                                    <li>7:00 - 11:00 Water Activities</li>
+
+                                </ul>
+                            </details>
+                        </li>
+                    </ul>
+                </details>
+
+
+
+                <div class="room-item">
+                    <img src="{% static 'room/room1.png' %}">
+                    <p>
+                        <button onclick="alert('Make To Redirect in Booking')">Book This Room</button>
+                        dLorem ipsum dolor, sit amet consectetur adipisicing elit. Soluta minus alias commodi sit
+                        temporibus
+                    </p>
+                    <details>
+                        <summary>About This Room
+                            <svg fill="none" height="16px" width="16px" viewBox="0 0 24 24" class="sc-16r8icm-0 coGWQa">
+                                <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-miterlimit="10"
+                                    stroke-linecap="round" stroke-linejoin="round"></path>
+                            </svg>
+                        </summary>
+                        <ul>
+                            <li>Php 5,000</li>
+                            <li>5 Person</li>
+                            <li>4 Kids</li>
+                        </ul>
+                    </details>
+                </div>
+                <div class="room-item">
+                    <img src="{% static 'room/room2.png' %}">
+                    <p>
+                        <button onclick="alert('Make To Redirect in Booking')">Book This Room</button>
+                        Lorem ipsum dolor sit amet consectetur adipisicing elit. Rerum dolor impedit, quae quibusdam
+                        voluptatibus
+                        .
+                    </p>
+                    <details>
+                        <summary>About This Room
+                            <svg fill="none" height="16px" width="16px" viewBox="0 0 24 24" class="sc-16r8icm-0 coGWQa">
+                                <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-miterlimit="10"
+                                    stroke-linecap="round" stroke-linejoin="round"></path>
+                            </svg>
+                        </summary>
+                        <ul>
+                            <li>Php 5,000</li>
+                            <li>5 Person</li>
+                            <li>4 Kids</li>
+                        </ul>
+                    </details>
+                </div>
+                <div class="room-item">
+                    <img src="{% static 'room/room3.png' %}">
+                    <p>
+                        <button onclick="alert('Make To Redirect in Booking')">Book This Room</button>
+                        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Natus deserunt maiores ipsa, ea qui
+                        quisquam
+                    </p>
+                    <details>
+                        <summary>About This Room
+                            <svg fill="none" height="16px" width="16px" viewBox="0 0 24 24" class="sc-16r8icm-0 coGWQa">
+                                <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-miterlimit="10"
+                                    stroke-linecap="round" stroke-linejoin="round"></path>
+                            </svg>
+                        </summary>
+                        <ul>
+                            <li>Php 5,000</li>
+                            <li>5 Person</li>
+                            <li>4 Kids</li>
+                        </ul>
+                    </details>
+                </div>
+
+            </details>
+        </aside>
+
+        <!-- ASIDE SEPARATE -->
+
+
+        <aside class="aside aside-2">
+            <details>
+                <summary class="activities-summary blue-white">
+                    <h2>Activities</h2>
+                    <svg fill="none" height="16px" width="16px" viewBox="0 0 24 24" class="sc-16r8icm-0 coGWQa">
+                        <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-miterlimit="10"
+                            stroke-linecap="round" stroke-linejoin="round"></path>
+                    </svg>
+                </summary>
+                <button class="button-hide-aside blue-white"
+                    onclick="document.querySelector('.activities-summary').click()">
+                    <svg fill="none" height="16px" width="16px" viewBox="0 0 24 24" class="sc-16r8icm-0 coGWQa">
+                        <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-miterlimit="10"
+                            stroke-linecap="round" stroke-linejoin="round"></path>
+                    </svg>
+                </button>
+                <hr>
+                <details>
+                    <summary class="blue-white border-8">
+                        Activity Packages
+                        <svg fill="none" height="16px" width="16px" viewBox="0 0 24 24" class="sc-16r8icm-0 coGWQa">
+                            <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-miterlimit="10"
+                                stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                    </summary>
+                    <ul>
+                        <li>
+                            <details>
+                                <summary>Day Tour
+                                    <svg fill="none" height="16px" width="16px" viewBox="0 0 24 24"
+                                        class="sc-16r8icm-0 coGWQa">
+                                        <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2"
+                                            stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round">
+                                        </path>
+                                    </svg>
+                                </summary>
+                                <p>
+                                    Free Coffee
+                                    Use of Public Effects
+                                    <br>
+                                    Php 10,000
+                                </p>
+                            </details>
+                        </li>
+                        <li>
+                            <details>
+                                <summary>Day Tour and Rides
+                                    <svg fill="none" height="16px" width="16px" viewBox="0 0 24 24"
+                                        class="sc-16r8icm-0 coGWQa">
+                                        <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2"
+                                            stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round">
+                                        </path>
+                                    </svg>
+                                </summary>
+                                <p>
+                                    Daytour plus a chance to ride on ferriswheel and boating
+                                    <br>
+                                    Php 15,000
+                                </p>
+                            </details>
+                        </li>
+                        <li>
+                            <details>
+                                <summary>Daytour and Buffet
+                                    <svg fill="none" height="16px" width="16px" viewBox="0 0 24 24"
+                                        class="sc-16r8icm-0 coGWQa">
+                                        <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2"
+                                            stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round">
+                                        </path>
+                                    </svg>
+                                </summary>
+                                <p>
+                                    Daytour plus a lunch Buffet
+                                    Php 17,500
+                                </p>
+                            </details>
+                        </li>
+                        <li>
+                            <details>
+                                <summary>Daytour lunch and Buffet
+                                    <svg fill="none" height="16px" width="16px" viewBox="0 0 24 24"
+                                        class="sc-16r8icm-0 coGWQa">
+                                        <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2"
+                                            stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round">
+                                        </path>
+                                    </svg>
+                                </summary>
+                                <p>
+                                    Daytour plus a lunch and Buffet
+                                    <br>
+                                    Php 18,750
+                                </p>
+                            </details>
+                        </li>
+                    </ul>
+                </details>
+                <hr>
+                <div class="activity-item">
+                    <img src="{% static 'room/activity1.png' %}">
+                    <p><strong>Kids Entertainment</strong> For kids to have fun with in the area and live their younger
+                        days
+                    </p>
+                    <details>
+                        <summary>About this Activity
+                            <svg fill="none" height="16px" width="16px" viewBox="0 0 24 24" class="sc-16r8icm-0 coGWQa">
+                                <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-miterlimit="10"
+                                    stroke-linecap="round" stroke-linejoin="round"></path>
+                            </svg>
+                        </summary>
+                        <ul>All day
+                            <li>Php 5,000</li>
+                            <li>5 Person</li>
+                            <li>4 Kids</li>
+                        </ul>
+                    </details>
+                </div>
+                <div class="activity-item">
+                    <img src="{% static 'room/activity2.png' %}">
+                    <p><strong>Kayaking</strong> for 2 or single person to explore our glass like water </p>
+                    <details>
+                        <summary>About this Activity
+                            <svg fill="none" height="16px" width="16px" viewBox="0 0 24 24" class="sc-16r8icm-0 coGWQa">
+                                <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-miterlimit="10"
+                                    stroke-linecap="round" stroke-linejoin="round"></path>
+                            </svg>
+                        </summary>
+                        <ul> For 2 hours
+                            <li>Php 375</li>
+                            <li>1-2 Person </li>
+                        </ul>
+                    </details>
+                </div>
+                <div class="activity-item">
+
+                    <img src="{% static 'room/activity3.png' %}">
+                    <p><strong>Buffet</strong> Unlimited food of your choice in our menu</p>
+                    <details>
+                        <summary>About this Activity
+                            <svg fill="none" height="16px" width="16px" viewBox="0 0 24 24" class="sc-16r8icm-0 coGWQa">
+                                <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-miterlimit="10"
+                                    stroke-linecap="round" stroke-linejoin="round"></path>
+                            </svg>
+                        </summary>
+                        <ul>
+                            <li>Php 865</li>
+                            <li>per Adult Person </li>
+                            <li>Kids 1.5m below are free provided with two adult</li>
+                        </ul>
+                    </details>
+                </div>
+                <div class="activity-item">
+
+                    <img src="{% static 'room/activity4.png' %}">
+                    <p><strong>Tent Pitching</strong> </p>
+                    <details>
+                        <summary>About this Activity
+                            <svg fill="none" height="16px" width="16px" viewBox="0 0 24 24" class="sc-16r8icm-0 coGWQa">
+                                <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-miterlimit="10"
+                                    stroke-linecap="round" stroke-linejoin="round"></path>
+                            </svg>
+                        </summary>
+                        <ul>
+                            <li>Php 5,000</li>
+                            <li>5 Person</li>
+                            <li>4 Kids</li>
+                        </ul>
+                    </details>
+                </div>
+            </details>
+
+        </aside>
+
+
+        <footer class="footer">
+            <span class="button-close contact-us" onclick="closeModal()" class="close">Contact Us</span>
+            <hr>
+            <div style="min-height: 50vh;" id="map">
+
+
+            </div>
+            <hr>
+            Bagtikan Street, Makati City, Philippines
+            <div>
+                <small style="font-weight: 300;">+639 231 1282</small>
+            </div>
+            <hr>
+        </footer>
+    </div>
+
+
+  <!-- Messenger Chat Plugin Code -->
+  <div id="fb-root"></div>
+
+  <!-- Your Chat Plugin code -->
+  <div id="fb-customer-chat" class="fb-customerchat"> </div>
+
+  <script>
+    var chatbox = document.getElementById("fb-customer-chat");
+    chatbox.setAttribute("page_id", "101706861371936");
+    chatbox.setAttribute("attribution", "biz_inbox");
+  </script>
+
+  <!-- Your SDK code -->
+  <script>
+    window.fbAsyncInit = function () {
+      FB.init({
+        xfbml: true,
+        version: "v15.0",
+      });
+    };
+
+    (function (d, s, id) {
+      var js,
+        fjs = d.getElementsByTagName(s)[0];
+      if (d.getElementById(id)) return;
+      js = d.createElement(s);
+      js.id = id;
+      js.src = "https://connect.facebook.net/en_US/sdk/xfbml.customerchat.js";
+      fjs.parentNode.insertBefore(js, fjs);
+    })(document, "script", "facebook-jssdk");
+  </script>
+  <!-- END MESSENGER -->
+</body>
+<script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAELRe-ZcOBPDlxaPfnXhnhVatrDHbW7-4&callback=initMap&v=weekly"
+    async></script>
+
+<!-- BUTTON FOR CONTACT  -->
+<script src="https://smtpjs.com/v3/smtp.js"></script>
+
+<!-- <script src="../../../../materialize/js/contact_button.js"></script> -->
+
+
+</html>

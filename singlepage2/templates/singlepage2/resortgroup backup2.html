@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Join Our Resort Group</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #1e88e5;
+      --accent: #ffcc80;
+      --bg: #f9fbfd;
+      --text: #333;
+  --font-barbie: 255,245,247; /* RGB components */
+    }
+
+    body {
+      font-family: "Poppins", sans-serif;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    header {
+text-shadow: 0 0 2px #000;
+      color: white;
+      text-align: center;
+      padding: 120px 20px;
+    }
+
+header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  border-right: 3px solid rgba(255, 255, 255, 0.8);
+  width: 0;
+  animation: typing 3s steps(30, end) forwards;
+}
+
+/* typing animation */
+@keyframes typing {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+/* blinking cursor */
+@keyframes blink {
+  50% { border-color: transparent; }
+}
+
+    header p {
+      font-size: 1.2rem;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    section {
+      max-width: 1000px;
+      margin: 80px auto;
+
+    }
+
+    h2 {
+      /* color: var(--primary); */
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    .benefits {
+      background-color: rgba(255, 255, 255, 0.396);
+      padding: 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+      margin-top: 40px;
+    }
+
+
+    .cta {
+      text-align: center;
+      margin-top: 60px;
+    }
+
+    .cta button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      font-size: 1rem;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .cta button:hover {
+      background: #1565c0;
+    }
+
+    footer {
+      background: var(--primary);
+      color: white;
+      text-align: center;
+      padding: 30px 20px;
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    @media (max-width: 600px) {
+      header h1 {
+        font-size: 2rem;
+      }
+    }
+
+
+    .card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  transform: rotateY(180deg);
+  opacity: 0;
+  background-position: center;
+  background-size: cover;
+  /* animation: flipIn 4.2s ease forwards; */
+}
+.card::before {
+
+
+    content: "";
+  position: absolute;
+  inset: 0;
+  /* background: linear-gradient(to top, rgba(0,0,0,0.65), rgba(0,0,0,0.15)); */
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.09), rgba(0, 0, 0, 0.15));
+  z-index: 0;
+  border-radius: 16px;
+}
+.card h3 {
+  position: relative;
+  z-index: 1;
+  color: #fff;
+  text-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.8),
+    0 0 10px rgba(0, 0, 0, 0.4);
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+.card h3,
+.card p {
+  position: relative;
+  z-index: 1;
+}
+.card p {
+color: white;
+background: rgba(0, 0, 0, 0.15);
+padding: 8px 12px;
+display: inline-block;
+text-shadow: 0 2px 6px rgba(0, 0, 0, 0.91);
+}
+.card:nth-child(1) {
+  background-image: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80');
+}
+.card:nth-child(2) {
+  background-image: url('https://images.unsplash.com/photo-1544636331-e26879cd4d9b?auto=format&fit=crop&w=800&q=80'); /* poolside view */
+}
+.card:nth-child(3) {
+  background-image: url('http://images.unsplash.com/photo-1496417263034-38ec4f0b665a?auto=format&fit=crop&w=800&q=80'); /* tropical sunrise over infinity pool */
+}
+.card:nth-child(4) {
+  background-image: url('https://images.unsplash.com/photo-1526772662000-3f88f10405ff?auto=format&fit=crop&w=800&q=80'); /* map/travel */
+}
+.card:nth-child(5) {
+  background-image: url('https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&w=800&q=80'); /* promotion/marketing */
+}
+.card:nth-child(6) {
+  background-image: url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80'); 
+  /* background-image: url('/removedBackground.png'); */
+}
+.card:nth-child(7) {
+    background-image: url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=800&q=80');
+}
+.card.visible {
+  animation: flipIn 0.8s ease forwards;
+}
+
+/* Flip animation */
+@keyframes flipIn {
+  0% {
+    transform: rotateY(180deg);
+    opacity: 0;
+  }
+  100% {
+    transform: rotateY(0deg);
+    opacity: 1;
+  }
+}
+
+/* Staggered delay so they flip one after another */
+.card:nth-child(1) { animation-delay: 0.1s; }
+.card:nth-child(2) { animation-delay: 0.3s; }
+.card:nth-child(3) { animation-delay: 0.5s; }
+.card:nth-child(4) { animation-delay: 0.7s; }
+.card:nth-child(5) { animation-delay: 0.9s; }
+.card:nth-child(6) { animation-delay: 1.1s; }
+.card:nth-child(7) { animation-delay: 1.3s; }
+
+
+
+.join-form {
+  max-width: 500px;
+  margin: 60px auto;
+  background: rgba(255,255,255,0.9);
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  background-color: rgb(103,129,109);
+}
+
+.join-form h2 {
+  text-align: center;
+   font-family: "Playfair Display", serif;
+   font-size: 3.2em;
+  color: rgb(var(--font-barbie));
+  
+  margin-bottom: 10px;
+}
+
+.join-form p {
+  text-align: center;
+  color: rgb(var(--font-barbie));
+  margin-bottom: 25px;
+}
+
+.join-form label {
+  display: block;
+  font-weight: 100;
+  color: rgb(var(--font-barbie));
+  margin-bottom: 6px;
+}
+#contact {
+  color: rgb(var(--font-barbie));
+}
+.join-form input,
+.join-form select,
+.join-form textarea {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  margin-bottom: 18px;
+  font-size: 1rem;
+  background-color: transparent;
+  color: rgb(var(--font-barbie));
+}
+
+.join-form button {
+  width: 100%;
+  padding: 12px;
+  background-color: #00796b;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.join-form button:hover {
+  background-color: #009688;
+}
+
+/* Sample Resorts */
+.resort-showcase {
+  text-align: center;
+  padding: 80px 20px;
+  /* background: linear-gradient(to bottom, #f8f9fa, #ffffff); */
+}
+
+.resort-showcase h2 {
+  font-size: 2rem;
+  color: #f1ed19;
+  text-shadow: 0 0 2px #000;
+  margin-bottom: 10px;
+}
+
+.resort-showcase p {
+  color: rgba(226, 226, 226, 1);
+  margin-bottom: 40px;
+  font-size: 1.1rem;
+}
+
+.resort-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px;
+  justify-items: center;
+}
+
+.resort-card {
+  position: relative;
+  width: 100%;
+  height: 300px;
+  border-radius: 16px;
+  overflow: hidden;
+  color: white;
+  text-decoration: none;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+.resort-card .overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  transition: background 0.4s ease;
+}
+
+.resort-card h3,
+.resort-card p {
+  position: relative;
+  z-index: 1;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.8);
+}
+
+.resort-card h3 {
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.resort-card p {
+  font-size: 0.95rem;
+}
+
+.resort-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+
+.resort-card:hover .overlay {
+  background: rgba(0,0,0,0.5);
+}
+
+/* Background images */
+.resort-card:nth-child(1) {
+  background-image: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80');
+}
+.resort-card:nth-child(2) {
+  background-image: url('https://calatagan.unwndstays.com/wp-content/uploads/2024/05/unwndcalatagan2.jpg');
+  
+}
+.resort-card:nth-child(3) {
+  background-image: url('https://images.unsplash.com/photo-1533777324565-a040eb52fac1?auto=format&fit=crop&w=800&q=80');
+}
+.resort-card:nth-child(4) {
+  background-image: url('https://images.unsplash.com/photo-1551887373-6d32e9a1df86?auto=format&fit=crop&w=800&q=80');
+}
+
+/* Responsive spacing */
+@media (max-width: 600px) {
+  .resort-card {
+    height: 220px;
+    padding: 15px;
+  }
+}
+.apply-now-btn {
+  position: fixed;
+  bottom: 20px;   /* distance from bottom */
+  left: 20px;     /* distance from left */
+  z-index: 1000;  /* make sure it’s above other elements */
+  background-color: #007bff; /* your brand color */
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 30px;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  transition: all 0.3s ease;
+}
+
+.apply-now-btn:hover {
+  background-color: #0056b3;
+  transform: translateY(-2px);
+}
+
+.video-container {
+  position: relative;
+  padding-bottom: 56.25%; /* 16:9 aspect ratio */
+  height: 0;
+  overflow: hidden;
+  max-width: 100%;
+}
+
+.video-container iframe,
+.video-container video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.text-overlay {
+  text-shadow: 49px -49px 1px rgba(0,0,0,0.5);
+text-align: center;
+  font-size: 80px;
+  font-weight: 900;
+  text-transform: uppercase;
+  background: url('/singlepage2/templates/singlepage2/travel/philippines/cebu/cebucity/where-to-eat-breakfast-and-lunch.jpg') center/cover no-repeat;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent; /* for Chrome/Safari */
+  background-clip: text;
+  color: transparent; /* fallback for Firefox */
+  background-color: white; /* white page background */
+}
+#bg-video {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  z-index: -1;
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding-top: 40vh;
+}
+video.fullscreen-video {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  object-fit: cover;   /* fills window, keeps proportions */
+  object-position: center center; /* centers video */
+  z-index: -1;         /* keeps it behind other content */
+}
+
+#paypal-button-container-P-2SM58991UB4228103ND5N2VA > * {
+  margin: 0 auto;
+  max-width: 200px;
+}
+  </style>
+</head>
+<body>
+  <!-- <script src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id }}&vault=true&intent=subscription&currency=PHP"></script> -->
+  <script src="https://www.paypal.com/sdk/js?client-id=AZKp29XmANwKqTx3-VdxuiDVnuXihdQBZ_vCRJYOcq6v4xh8fZ5YWbtobAMADBTG1bm4a-N9csgOEgwu&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
+  <div class="content">
+    <header>
+      <h1>Paratara Resorts. </h1>
+      <p>We connect clients to a convenient destinations, booking systems, and contact automation — all cost-effective and integrated with travel tools.</p>
+    </header>
+
+
+
+    <section id="about">
+      <div class="text-overlay">
+    Why Join Us?
+  </div>
+
+
+      <div class="video-container" id="video-placeholder">
+        <img 
+          src="/static/resortgroup/resortgroupthumbnail.jpg" 
+          alt="Video Thumbnail" 
+          style="width:100%;cursor:pointer;" 
+          onclick="loadVideo()">
+      </div>
+
+
+
+      <div class="benefits">
+        <div class="card">
+          <h3>🌐 Professional Website</h3>
+          <p>Get your own resort website seamlessly connected to our booking and marketing platform.</p>
+        </div>
+      <div class="card">
+          <h3>🏝️ From Small to Big Resorts</h3>
+          <p>All resort sizes are welcome! Our partnership costs and tools are adjusted to fit smaller and independent resorts — because every place deserves a spotlight.</p>
+        </div>      
+        <div class="card">
+          <h3>💳 Smart Booking System</h3>
+          <p>Accept reservations with automated confirmations, payments, and availability tracking.</p>
+        </div>
+        <div class="card">
+          <h3>📱 Contact & Messaging Automation and Payment</h3>
+          <p>Integrated system for inquiries, email follow-ups, guest communication, and international payments.</p>
+        </div>
+        <div class="card">
+          <h3>🗺️ Map & Carpool Integration</h3>
+          <p>Show your resort on an interactive map with nearby destinations and carpooling options.</p>
+        </div>
+        <div class="card">
+          <h3>📢 Advertisement & Promotion</h3>
+          <p>Be featured across our travel partner networks to increase visibility, bookings and blog posts.</p>
+        </div>
+        <div class="card">
+          <h3>💼 Cost-Effective Partnership</h3>
+          <p>Shared tools, shared success — join a network built for sustainable growth.</p>
+        </div>
+      </div>
+    </section>
+
+ 
+
+    <section class="resort-showcase">
+      <section class="cta">
+        <h2>Become an early Partner Resort</h2>
+        <p>Let’s make hospitality smarter, simpler, and more connected. Join our network today.</p>
+        <button class="apply-now-btn" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})">Apply Now</button>
+      </section>
+
+      <h2>Our Partner Resorts</h2>
+
+
+      <div class="resort-grid">
+        <a href="https://paratara.com/resorts/seaviewforestanilao/" class="resort-card" target="_blank">
+          <div class="overlay"></div>
+          <h3>Sea View Forest Anilao</h3>
+          <p>Luxury beachfront stay in Anilao Batangas</p>
+        </a>
+
+        <a href="https://paratara.com/resorts/unwndbotiquehotel" class="resort-card" target="_blank">
+          <div class="overlay"></div>
+          <h3>UN WND Hotel Botique</h3>
+          <p>Cozy retreats overlooking the highseas in Calatagan Batangas</p>
+        </a>
+
+      </div>
+    </section>
+
+  </div>
+
+  <section id="contact" style="margin-top:80px;text-align:center;">
+      <h2>Plan Starts at</h2>
+  <p>Php 159 / month</p>
+
+  <!-- PayPal SDK -->
+  
+
+  <!-- PayPal Button -->
+
+  <div id="paypal-button-container-P-2SM58991UB4228103ND5N2VA"></div>
+    <h2>Get In Touch and Ask</h2>
+    fill out our application form to start the onboarding process.</p>
+
+<form id="contact-form" class="join-form">
+    <input style="display: none;" hidden type="email" name="to_name" value="dayo_john16@yahoo.com">
+<input style="display: none;" hidden type="email" name="reply_to" value="johnwebsiteprojects@gmail.com">
+  <h2>Join Our Resort Network</h2>
+  <p>We help resorts of all sizes connect with travelers, streamline bookings, and grow together.</p>
+
+  <label for="from_name">Full Name</label>
+  <input type="text" id="from_name" name="from_name" placeholder="Your name" required>
+
+  <label for="resort_name">Resort Name</label>
+  <input type="text" id="resort_name" name="resort_name" placeholder="Your resort’s name" required>
+
+  <label for="resort_location">Resort Location</label>
+  <input type="text" id="resort_location" name="resort_location" placeholder="City or province" required>
+
+  <label for="resort_size">Resort Size</label>
+  <select id="resort_size" name="resort_size" required>
+    <option value="">Select size</option>
+    <option value="Small (1–10 rooms)">Small (1–5 rooms)</option>
+    <option value="Medium (11–50 rooms)">Medium (5–20 rooms)</option>
+    <option value="Large (51+ rooms)">Large (20+ rooms)</option>
+  </select>
+
+  <label for="booking_inquiry">Interested Services</label>
+  <textarea id="booking_inquiry" name="booking_inquiry" placeholder="e.g. Website setup, booking system, marketing support" rows="3" required></textarea>
+
+  <label for="message">Tell us about your resort</label>
+  <textarea id="message" name="message" placeholder="Describe your resort and what you hope to achieve by joining" rows="4" required></textarea>
+
+  <label for="sender_contact">Contact Info</label>
+  <input type="text" id="sender_contact" name="sender_contact" placeholder="Email or phone number" required>
+
+  <button type="submit">Apply to Join</button>
+</form>
+
+  </section>
+
+
+
+  <footer>
+    <p>© 2022 Resort Group Network — All Rights Reserved.<br>
+    <a href="#">Privacy Policy</a> | <a href="#">Terms</a></p>
+  </footer>
+</body>
+<script>
+  const cards = document.querySelectorAll('.card');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target); // play only once
+      }
+    });
+  }, {
+    threshold: 0.2 // triggers when 20% of the card is visible
+  });
+
+  cards.forEach((card, index) => {
+    card.style.animationDelay = `${index * 0.2}s`; // stagger entry
+    observer.observe(card);
+  });
+</script>
+<script defer type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script type="text/javascript">
+
+window.addEventListener("load", () => {
+  const video = document.createElement("video");
+  video.id = "bg-video";
+  video.autoplay = true;
+  video.muted = true;
+  video.loop = true;
+  video.playsInline = true;
+
+  const source = document.createElement("source");
+  source.src = "https://static.vecteezy.com/system/resources/previews/052/003/527/mp4/tropical-paradise-beach-free-video.mp4";  // ✅ replace with your actual video path
+  source.type = "video/mp4";
+
+  video.appendChild(source);
+  document.body.prepend(video); // add video behind all content
+});
+
+  window.onload = function() {
+    loadVideo()
+    document.getElementById('contact-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const sender_name = this.from_name.value;
+      const resort_name = this.resort_name.value;
+      const resort_location = this.resort_location.value;
+      const resort_size = this.resort_size.value;
+      const booking_inquiry = this.booking_inquiry.value;
+      const originalMessage = this.message.value;
+      const sender_contact = this.sender_contact.value;
+
+      const fullMessage = `
+Join Application:
+
+Resort Name: ${resort_name}
+Location: ${resort_location}
+Size: ${resort_size}
+
+Services Interested: ${booking_inquiry}
+
+Message:
+${originalMessage}
+
+Contact:
+${sender_name}
+${sender_contact}
+`;
+
+      this.message.value = fullMessage;
+
+      (function() {
+        emailjs.init({ publicKey: "kPR5fCmH0j3E0NSyr" });
+      })();
+
+      alert('Submitting your application...');
+      emailjs.sendForm('service_jv335d7', 'template_hzlk188', this)
+        .then(() => {
+          console.log('SUCCESS!');
+          alert('Application sent successfully! We’ll be in touch soon.');
+          this.reset();
+        }, (error) => {
+          alert('Message not sent, please try again.');
+          console.log('FAILED...', error);
+        });
+    });
+  }
+</script>
+<script>
+  function loadVideo() {
+    document.getElementById('video-placeholder').innerHTML = `
+
+      
+      <video 
+
+  playsinline 
+  controls
+  style="object-fit:cover; margin:0; padding:0; display:block;"
+>
+  <source src="/static/resortgroup/resortgroup.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+      
+      
+      
+      
+      `;
+  }
+</script>
+
+
+
+
+
+<script>
+  paypal.Buttons({
+      style: {
+          shape: 'rect',
+          color: 'gold',
+          layout: 'vertical',
+          label: 'subscribe'
+      },
+      createSubscription: function(data, actions) {
+        return actions.subscription.create({
+          /* Creates the subscription */
+          plan_id: 'P-2SM58991UB4228103ND5N2VA'
+        });
+      },
+      onApprove: function(data, actions) {
+        alert(data.subscriptionID); // You can add optional success message for the subscriber here
+      }
+  }).render('#paypal-button-container-P-2SM58991UB4228103ND5N2VA'); // Renders the PayPal button
+</script>
+
+
+<!-- 
+  <script>
+    paypal.Buttons({
+      style: {
+        layout: 'vertical',
+        color: 'blue',
+        shape: 'rect',
+        label: 'subscribe'
+      },
+
+      // Create the subscription
+      createSubscription: function (data, actions) {
+        return actions.subscription.create({
+          plan_id: 'P-2SM58991UB4228103ND5N2VA' // your plan ID
+        });
+      },
+
+      // When the buyer approves the subscription
+      onApprove: function (data, actions) {
+        alert('Subscription completed! ID: ' + data.subscriptionID);
+
+        // Example: send subscription ID to your Django backend
+        fetch('/save-subscription/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+          },
+          body: JSON.stringify({
+            subscription_id: data.subscriptionID
+          })
+        })
+        .then(response => response.json())
+        .then(result => {
+          console.log('Server response:', result);
+        })
+        .catch(error => console.error('Error:', error));
+      },
+
+      // Handle cancellation
+      onCancel: function (data) {
+        alert('Subscription process was cancelled.');
+      },
+
+      // Handle errors
+      onError: function (err) {
+        console.error('PayPal Button Error:', err);
+        alert('Something went wrong during the payment process.');
+      }
+
+    }).render('#paypal-button-container');
+  </script> -->
+
+
+</html>

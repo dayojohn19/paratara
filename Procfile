@@ -1,0 +1,1 @@
+web: gunicorn webSchedule.wsgi --workers=1 --threads=2 --worker-class=gthread --worker-tmp-dir=/dev/shm --timeout=60 --keep-alive=5 --max-requests=1000 --max-requests-jitter=50 --log-file=-

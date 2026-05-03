@@ -1,0 +1,28 @@
+<header class="p-3 text-bg-dark">
+  <div class="container">
+    <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
+      <a href="/" class="d-flex align-items-center mb-2 mb-lg-0 text-white text-decoration-none">
+        <svg class="bi me-2" width="40" height="32" role="img" aria-label="Bootstrap"><use xlink:href="#bootstrap" /></svg>
+      </a>
+
+      <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
+        <li><a href="{% url 'home:carpool' %}" class="btn btn-danger nav-link px-2 text-white">Home</a></li>
+        {% if user.is_authenticated %}
+        <li><a href="{% url 'userProfile:profileOf' csrf_token request.user.id %}" class="nav-link px-2 text-white">Profile</a></li>
+        <!-- <li><a href="{% url 'userProfile:Messages_Room' %}" class="nav-link px-2 text-white">Messages Room</a></li> -->
+        {% endif %}
+        <li><a href="{% url 'userProfile:aboutUs' %}" class="nav-link px-2 text-white">About</a></li>
+        <!-- <li><a href="{% url 'userProfile:howitwork' %}" class="nav-link px-2 text-white">How?</a></li> -->
+      </ul>
+
+      <div class="text-end">
+        {% if user.is_authenticated %}
+        <a href="{% url 'userProfile:logoutUser' %}" class="nav-link px-2 text-white">Log Out</a>
+        {% else %}
+        <button type="button" class="btn btn-outline-light me-2" onclick="document.querySelector('#signUpForm').style.display = 'none';document.querySelector('#signIpForm').style.display = 'block';">Login</button>
+        <button type="button" class="btn btn-warning" onclick="document.querySelector('#signUpForm').style.display = 'block';document.querySelector('#signIpForm').style.display = 'none';">Sign-up</button>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</header>

@@ -1,0 +1,677 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendar</title>
+    
+    
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+const confirmForms = document.querySelectorAll('#check-out, #make-request, #submit-checkin-btn');
+
+confirmForms.forEach(form => {
+    form.addEventListener('submit', function (e) {
+        const actionType = form.querySelector('input[name="type"]').value;
+        const confirmMessage = actionType === 'add'
+            ? 'Are you sure you want to go to the next month?'
+            : 'Are you sure?';
+
+        if (!confirm(confirmMessage)) {
+            e.preventDefault();  // Stop form submission
+        }
+    });
+});
+});
+function enableEdit(id) {
+const textarea = document.getElementById(`text-${id}`);
+const submitBtn = document.getElementById(`submit-${id}`);
+
+textarea.removeAttribute('disabled');
+textarea.focus();
+submitBtn.style.display = 'inline-block';
+}
+</script>
+
+
+
+</head>
+
+<body>
+
+
+
+
+
+
+
+
+    <!-- <div class="product">
+      <div>
+        <div><strong id="title">Weekend Stay</strong></div>
+        <div class="meta">Single bed • Private toilet • Kitchenette</div>
+      </div>
+      <button class="payBtn payBtn-primary"
+        data-packagetitle="Weekend Stay"
+        data-packageprice="100"          
+        data-packageresortid="12"
+        data-packageid="345">Pay ₱100</button>
+    </div> -->
+
+
+
+
+
+    <div class="body-holder">
+        <div class="body-item item-1">
+            <div class="main-sub-container">
+                {% include "resortManagement/booking_calendar.html" %}
+
+                <div>
+                    {% if isManager or user.is_superuser %}
+                    <div>
+                        <ul class="checkin-list" id="checkin-list">
+                            <h1 style="text-align: center;">Check-ins</h1>
+                            {% for checkin in check_list %}
+                                <li class="checkin-item">
+                                    <div class="info-row">
+                                        <span class="label">Email:</span> {{ checkin.guest_email }}<br>
+                                        <span class="label">Phone:</span> {{ checkin.guest_phone }}
+                                    </div>
+                                        {% if checkin.checked_in %}
+                                            {% if checkin.id_picture %}
+                                            <h3><a href="{{ checkin.id_picture }}">{{ checkin.guest_name.split.0 }}</a></h3>
+                                            <!-- <img src="{{ checkin.id_picture.url }}" alt="ID Picture" style="max-width:200px;"> -->
+                                            {% else %}
+                                            <h3>{{ checkin.guest_name.split.0 }}</h3>
+                                                <form action="{% url 'resort_management:movemarkedcalendarnamed' resortID room_id month year 'id_picture' %}" method="POST" enctype="multipart/form-data" class="upload-form">
+                                                    <input hidden name="checkin_id" value="{{checkin.id}}">
+                                                    {% csrf_token %}
+                                                    <div class="form-group">
+                                                        <label for="formFile">📷 Upload Valid ID or Proof of Payment</label>
+                                                        <input required class="form-control" type="file" id="formFile" name="image" accept="image/*">
+                                                    </div>
+                                                    <button type="submit" class="btn-submit">✨ Upload</button>
+                                                </form>
+                                            {% endif %}                                    
+                                            <form id="check-out" method="POST" action="{% url 'resort_management:movemarkedcalendarnamed' resortID room_id month year 'checkout' %}">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="type" value="checkout">
+                                                <input type="hidden" name="checked_id" value="{{ checkin.id }}">
+                                                <button class="edit-button" type="submit">Check Out</button>
+                                            </form>
+
+                                            {% if checkin.special_requests %}
+                                                <form id="make-request-{{ checkin.id }}" method="POST" action="{% url 'resort_management:movemarkedcalendarnamed' resortID room_id month year 'request' %}">
+                                                    {% csrf_token %}
+                                                    <div class="info-row">
+                                                        <span class="label">Note:</span> 
+                                                        <button type="button" class="edit-button" onclick="enableEdit('{{ checkin.id }}')">Edit</button>
+                                                    </div>                    
+                                                    
+                                                    <input type="hidden" name="type" value="request">
+                                                    <input type="hidden" name="checked_id" value="{{ checkin.id }}">
+                                                
+                                                    <textarea id="text-{{ checkin.id }}" name="special_requests" rows="2" cols="30" placeholder="Special Requests" disabled>{{ checkin.special_requests }}</textarea>
+                                                
+                                                    
+                                                    <button class="status Booked change-button" type="submit" id="submit-{{ checkin.id }}">Change</button>
+                                                </form>                
+
+                                            {% endif %}
+                                    
+                                        {% endif %}
+                                        <div class="dates">
+                                            <span class="highlight">Check-in: {{ checkin.checkin_date|date:"M d, Y H:i" }}</span>
+                                            <span class="highlight">Check-out: {{ checkin.checkout_date|date:"M d, Y H:i" }}</span>
+                                            <hr>
+                                            <span class="highlight"><small>Updated: {{ checkin.updated|date:"M d, Y H:i" }}</small></span>
+                                        </div>                
+                                    
+                                    
+                                </li>
+                                <div style="height: 50px;"></div>
+                            {% empty %}
+                                <li class="checkin-item">
+                                    <p>Please Contact us to Make reservations.</p>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>                    
+                    {% endif %}
+                </div>
+            </div>
+
+
+
+        </div>
+
+
+
+    </div>
+
+    
+  
+
+
+<!-- </div -->
+
+<!-- For Image Form -->
+<style>
+.upload-form {
+  max-width: 420px;
+  margin: 2rem auto;
+  padding: 1.5rem;
+
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.upload-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.upload-form label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.95rem;
+}
+
+.upload-form input[type="file"] {
+  padding: 0.5rem;
+  border: 2px dashed #9ca3af;
+  border-radius: 0.5rem;
+  background-color: #f9fafb;
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+.upload-form input[type="file"]:hover {
+  border-color: #3b82f6;
+  background-color: #eef2ff;
+}
+
+.btn-submit {
+  display: block;
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.6rem;
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  border: none;
+  border-radius: 0.5rem;
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.btn-submit:hover {
+  background: linear-gradient(135deg, #2563eb, #4f46e5);
+  transform: translateY(-2px);
+}
+
+.btn-submit:active {
+  transform: translateY(0);
+}
+</style>
+
+
+
+
+<style>
+  .nav-link:hover {
+    color: #ffd700 !important;      /* Gold text on hover */
+    background-color: #0d6efd20;    /* Light blue background (transparent) */
+    border-radius: 0.25rem;         /* Optional rounded corners */
+  }
+
+    .new-button{ 
+        background-image: linear-gradient(90deg,#6a63ef,#438fd2);
+    }
+
+            select[name="room"], select[name="resort"] {
+            display: none;
+        }
+        .book-indicator {
+            background-color: rgb(255, 103, 103);  box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);height: 20px;margin-bottom: 5px;
+        }
+        /* text area edit */
+        .change-button {
+        display: none;
+        margin-top: 5px;
+    }
+
+    .edit-button {
+        background-color: #ffc107;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        color: #000;
+        cursor: pointer;
+        margin-top: 5px;
+    }
+
+    .status.Booked {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+        /*  request change request */
+        #make-request {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-width: 400px;
+        background-color: #f9f9f9;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        font-family: sans-serif;
+    }
+
+    #make-request textarea {
+        resize: vertical;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 0.95rem;
+    }
+
+    #make-request button {
+        align-self: flex-start;
+        background-color: #28a745;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.95rem;
+        transition: background-color 0.2s ease;
+    }
+
+    #make-request button:hover {
+        background-color: #218838;
+    }
+
+    #make-request .status.Booked {
+        background-color: #007bff;
+    }
+
+    #make-request .status.Booked:hover {
+        background-color: #0056b3;
+    }
+
+        #id_room, #id_resort {
+            /* display: none; */
+
+        }
+
+/* Close button */
+.close {
+    position: absolute;
+    right: 15px;
+    top: 10px;
+    font-size: 24px;
+    text-decoration: none;
+    color: #000;
+}  
+        /* form style */
+
+</style>
+
+
+<style>
+      body { font-family: Arial, sans-serif; }
+        /* table.calendar {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table.calendar th, table.calendar td {
+            width: 14.28%;
+            height: 100px;
+            border: 1px solid #ddd;
+            text-align: center;
+            vertical-align: top;
+        } */
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+        }
+
+        /* Style for table header (days of the week) */
+        th {
+            background-color: #f2f2f2;
+            padding: 10px;
+            font-weight: bold;
+            border: 1px solid #ddd;
+        }
+
+        /* Style for table data (days of the month) */
+        td {
+            /* padding: 20px; */
+            padding-bottom: 10px;
+            border: 1px solid #ddd;
+            cursor: pointer;
+        }
+        td.selectable:hover { cursor: pointer; background-color: #e0f7fa; }
+        /* td.selected { background-color: #4caf50; color: white; } */
+
+        /* Hover effect for days */
+
+
+        /* Style for the overall table container */
+        .main-sub-container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+
+
+        .booked {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .available {
+            color: #155724;
+        }
+             .packages-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+
+
+        .package-images {
+            display: flex;
+            overflow-x: auto;
+        }
+
+        .package-images img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .package-content {
+            padding: 16px;
+        }
+
+        .package-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 0 0 8px 0;
+            color: #333;
+        }
+
+        .package-description {
+            color: #555;
+            margin-bottom: 10px;
+        }
+
+        .package-info {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .package-price {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            font-weight: bold;
+            padding: 8px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        /* Scrollbar for images */
+        .package-images::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .package-images::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 4px;
+        }
+
+
+</style>
+
+
+<style>
+    .checkin-list {
+            max-width: 800px;
+            margin: auto;
+            list-style: none;
+            padding: 0;
+        }
+
+.checkin-item {
+    list-style: none;
+    /* background-color: #fff; */
+    /* border-radius: 12px; */
+    padding: 20px 25px;
+    margin: 15px 0;
+    /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    
+    background: linear-gradient(145deg, #f5f7fa, #e4ebf0);
+    border-radius: 1rem;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.checkin-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.checkin-item h4 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #333;
+}
+
+.checkin-item h3 {
+    margin: 5px 0 15px;
+    font-size: 1rem;
+    color: #555;
+    font-weight: normal;
+}
+
+.info-row {
+    margin-bottom: 10px;
+    font-size: 0.95rem;
+    color: #555;
+}
+
+.info-row .label {
+    font-weight: 600;
+    color: #222;
+    margin-right: 5px;
+}
+
+.dates {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin: 10px 0;
+}
+
+.dates .highlight {
+    background-color: #f0f8ff;
+    color: #007BFF;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.checkin-item .note {
+    font-style: italic;
+    color: #777;
+    margin-top: 10px;
+}
+
+/* Optional: responsive adjustments */
+@media (max-width: 600px) {
+    .table-container {
+        /* transform: scale(0.8); */
+    }
+
+    .body-holder {
+        margin: 0 auto;
+        width: 95vw;
+    }
+    .dates {
+        flex-direction: column;
+        gap: 8px;
+    }
+}
+
+        .info-row {
+            margin: 10px 0;
+            color: #555;
+        }
+
+        .highlight {
+            background-color: #e8f5e9;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-weight: bold;
+            display: block;
+            margin-right: 10px;
+        }
+
+        .label {
+            font-weight: bold;
+            color: #444;
+        }
+
+        .dates {
+            margin-top: 12px;
+        }
+</style>
+
+<!-- Upload Image AJAX -->
+<script>
+
+// document.getElementById("upload-btn").addEventListener("click", async () => {
+
+
+//     const fileInput = document.getElementById("image");
+//     const status = document.getElementById("status");
+//     const image_url = document.getElementById("url_status");
+//     //   const preview = document.getElementById("preview");
+//     const imageform = document.getElementById("imageform");
+    
+
+//     if (!fileInput.files.length) {
+//         status.textContent = "Please choose a file first.";
+//         return;
+//     }
+
+//     const formData = new FormData();
+//     formData.append("csrfmiddlewaretoken", "{{ csrf_token }}");
+//     formData.append("image", fileInput.files[0]);
+
+//     status.textContent = "Uploading...";
+
+//     try {
+//         const response = await fetch("{% url 'resort_management:ajax_upload' %}", {
+//         method: "POST",
+//         body: formData
+//         });
+//         const data = await response.json();
+
+//         if (data.success) {
+//         status.textContent = "Upload successful!";
+//         image_url.value = data.url
+//         //   preview.src = data.url;
+//         //   preview.style.display = "block";
+//         // imageform.style.display = "none";
+//         imageform.style.display = "none";
+//         } else {
+//         status.textContent = "Upload failed: " + (data.error || "Check file.");
+//         }
+//     } catch (err) {
+//         status.textContent = "Error: " + err.message;
+//     }
+// });
+
+
+</script>
+<!-- END UPLOAD IMAGE AJAX -->
+
+
+<!-- Paymongo -->
+  <script>
+    const secretKey = "pk_test_7fCWDLu3YxFx4AP5fSptNLzG"; // ⚠️ Use only in testing!
+    // pk_test_UZj69NmWd5qLu5ggmT2r6Rit
+
+    async function createCheckoutSession() {
+        console.log('packagetitle: ', this.dataset.packagetitle)
+        console.log('packageprice: ', this.dataset.packageprice)
+        console.log('packageresortid: ', this.dataset.packageresortid)
+        console.log('packageid: ', this.dataset.packageid)
+
+        // return
+        
+      const response = await fetch("https://api.paymongo.com/v1/checkout_sessions", {
+        method: "POST",
+        headers: {
+          "Authorization": "Basic " + btoa(secretKey + ":"),
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          data: {
+            attributes: {
+              cancel_url: "https://your-website.example/cancel",
+              description: "Sample Payment for ₱100",
+              line_items: [
+                {
+                  currency: "PHP",
+                  amount: 10000, // 100 PHP in centavos
+                  name: "Test Product",
+                  quantity: 1
+                }
+              ],
+              payment_method_types: ["gcash", "card"],
+            // payment_method_allowed: ['qrph', 'card', 'dob', 'paymaya', 'billease', 'gcash', 'grab_pay'],
+            payment_method_options: {card: {request_three_d_secure: 'any'}},              
+              success_url: "https://your-website.example/success"
+            }
+          }
+        })
+      });
+
+      const result = await response.json();
+      console.log(result);
+
+      // Redirect to PayMongo Checkout page
+      const checkoutUrl = result.data.attributes.checkout_url;
+      window.location.href = checkoutUrl;
+    }
+
+
+    document.querySelectorAll(".payBtn").forEach(btn => {
+  btn.addEventListener("click", createCheckoutSession);
+});
+  </script>
+
+<!-- End Paymongo -->
+</body>
+</html>

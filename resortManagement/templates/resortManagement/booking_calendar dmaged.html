@@ -1,0 +1,984 @@
+
+<!-- 
+ *** READ ME 
+ THESE Values need to pass the html
+    room_item.title
+    room_item.price
+    month_name
+    weeks
+    year
+    resort_id
+    room_id
+    room_month
+    room_year
+    day.in_month
+    day.status
+ -->
+<!-- Fill Up Form -->
+<style>
+    .read-only-class {
+  pointer-events: none;     /* disables tap, focus, and keyboard */
+  background-color: #f5f5f5;
+  color: #333;
+    }
+    .loader {
+  border: 6px solid #f3f3f3;   /* Light gray */
+  border-top: 6px solid #007bff; /* Blue */
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+        .open-btn {
+            /* margin: 10px; */
+            display: inline-block;
+            padding: 5px 5px;
+            /* background-color: #34db5e;  */
+            background-color: #34db5e;  /* blue */
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            /* font-weight: bold; */
+            font-family: sans-serif;
+            transition: background-color 0.3s ease;
+            text-align: center;
+        }
+
+
+.open-btn:hover {
+    background-color: #2980b9;  /* darker blue on hover */
+}            
+    .table-container table {
+        margin: 0 auto;
+    }
+/* Basic Modal Styling */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+}
+
+/* Show when targeted via anchor */
+.modal:target {
+    display: block;
+}
+
+/* Modal content styling */
+.modal-content {
+    background: #fff;
+    padding: 5px;
+    /* width: 80%; */
+    max-width: 400px;
+    margin: 3% auto;
+    position: relative;
+    border-radius: 8px;
+}
+
+
+    .close {
+    position: absolute;
+    right: 15px;
+    top: 10px;
+    font-size: 24px;
+    text-decoration: none;
+    color: #000;
+}  
+    .form-container {
+
+        overflow-y: auto;
+        margin: auto;
+        /* padding: 30px 40px; */
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        
+
+    }
+
+    .form-container h2 {
+        text-align: center;
+        margin-bottom: 25px;
+        color: #333;
+    }
+
+    form p {
+        margin-bottom: 18px;
+    }
+
+    input, textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 15px;
+    }
+
+    input[type="submit"] {
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    input[type="submit"]:hover {
+        background-color: #45a049;
+    }
+
+    label {
+        font-weight: bold;
+        display: block;
+        margin-bottom: 6px;
+        color: #444;
+    }
+
+    .datetime-field input {
+        padding: 8px;
+    }
+
+    .hidden-field {
+        display: none;
+    }
+</style>
+
+<!-- Calendar Style -->
+<style>
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Segoe UI', sans-serif;
+                width: 100%;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            background-color: white;
+}
+ thead .weekdays th {
+            background-color: #4A90E2;
+            color: white;
+            padding: 12px 0;
+            text-align: center;
+            text-transform: uppercase;
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 14px;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tbody tr:hover {
+            background-color: #f1f1f1;
+        }
+.weekdays th {
+    background-color: #4A90E2; /* Blue background */
+    color: white;              /* White text */
+    padding: 12px 8px;
+    text-align: center;
+    font-weight: bold;
+    border: 1px solid #ddd;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+th, td {
+    border: 1px solid #ddd;
+}
+
+    td.selectable:hover { cursor: pointer; }
+td.selected { background-color: #5cd660; color: white; }
+td.range-start { border-left: 2px solid #2e7d32; }
+td.range-end { border-right: 2px solid #2e7d32; }
+td.range-start {
+    /* background: linear-gradient(94deg, #ffffff41 50%, #5cd660 100%) ; */
+    background-color:#5cd660;
+    color: black !important;
+}
+td.range-end {
+    /* background: linear-gradient(to right, #5cd660, #f8f8f841 50%) ; */
+    background-color:#5cd660;
+    color: black !important;
+}
+td {
+  padding: 10px;
+  text-align: center;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+  cursor: default;
+  background: rgb(236, 236, 236);
+}
+
+/* Dates outside the current month */
+.other-month {
+  color: #b0b0b0;
+  opacity: 0.6;
+}
+
+
+</style>
+
+
+
+<style>
+@media (max-width: 500px) {
+    /* .table-container {
+        transform: scale(0.8);
+    } */
+table.calendar {
+  border-collapse: collapse;
+  width: 100%;
+  text-align: center;
+}
+
+table.calendar th,
+table.calendar td {
+  width: 40px;            /* or any fixed size you prefer */
+  height: 40px;           /* ensures uniform square cells */
+  vertical-align: middle; /* centers text vertically */
+  padding: 0;             /* prevents extra spacing */
+  line-height: 40px;      /* matches height for perfect centering */
+  box-sizing: border-box;
+}
+
+table.calendar th {
+  background-color: #4285f4; 
+  color: white;
+}    
+}
+
+
+
+
+/* Check-in dates */
+.checkin {
+    /* background: linear-gradient(90deg,#ffffff00 30%,#438fd2 100%); */
+  color: #000000;
+  font-weight: 600;
+}
+
+/* Check-out dates */
+.stay {
+  /* background: #438fd2; */
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Stay dates */
+.checkout {
+  /* background: linear-gradient(270deg,#ffffff00 30%,#438fd2 100%); */
+  color: #000000;
+  font-weight: 600;
+}
+
+/* Hover effect for all active dates */
+.checkin:hover,
+.checkout:hover,
+.stay:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}        
+
+.stay, .checkin, .checkout {
+  text-align: center;          /* center text horizontally */
+  vertical-align: middle;      /* center vertically in td */
+}
+
+.stay span,.checkin span, .checkout span {
+  display: inline-block;
+  width: 40px;                 /* equal width/height for circle */
+  height: 40px;
+  line-height: 40px;           /* centers text inside circle */
+
+  color: #fff;
+  font-weight: 600;
+  border-radius: 50%;          /* makes the circle */
+  box-shadow: 0 2px 6px rgba(229, 57, 53, 0.3);
+}
+.checkin span {
+    background: linear-gradient(90deg,#ffffff00 30%,#e33f3f 100%);
+    color: black;
+}
+.stay span {
+    background: #e33f3f ;
+}
+.checkout span {
+    background: linear-gradient(270deg,#ffffff00 30%,#e33f3f 100%);
+    color: black;
+}
+.month-name {
+    text-align: center;
+    /* font-size: 1.5em; */
+    padding: 10px;
+    background-color: #f2f2f2;
+}
+/* month style */
+.month-header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #f5f5f5;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-family: sans-serif;
+        margin-bottom: 20px;
+    }
+
+    .month-title {
+        font-size: 1.2rem;
+        font-weight: bold;
+    }
+
+    .month-nav {
+        display: flex;
+        gap: 10px;
+        justify-content: center; 
+    }
+
+    .month-nav form {
+        display: inline;
+    }
+
+    .month-nav button {
+        background-color: #007bff;
+        border: none;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: background-color 0.2s ease;
+    }
+
+    .month-nav button:hover {
+        background-color: #0056b3;
+    }
+
+
+
+</style>
+<style>
+/* --- CLEAN BOOKING FORM STYLING --- */
+#contact-form .modal-content {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  max-width: 420px;
+  width: 90%;
+  margin: 5% auto;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  font-family: "Inter", "Segoe UI", sans-serif;
+  color: #333;
+}
+
+#contact-form .close {
+  position: absolute;
+  right: 15px;
+  top: 10px;
+  font-size: 24px;
+  text-decoration: none;
+  color: #999;
+  transition: 0.3s;
+}
+#contact-form .close:hover {
+  color: #000;
+}
+
+#contact-form form p {
+  margin-bottom: 14px;
+}
+
+#contact-form label {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 4px;
+  color: #444;
+  font-size: 0.9rem;
+}
+
+#contact-form input,
+#contact-form textarea {
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  transition: 0.2s border-color;
+}
+
+#contact-form input:focus,
+#contact-form textarea:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+/* Submit + PayPal Buttons */
+#contact-form input[type="submit"] {
+  background: linear-gradient(90deg, #4CAF50, #43a047);
+  color: white;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+#contact-form input[type="submit"]:hover {
+  background: linear-gradient(90deg, #45a049, #388e3c);
+}
+
+#paypal-button-container {
+  margin-top: 15px;
+  border-radius: 10px;
+}
+
+/* Loader */
+.loader {
+  border: 6px solid #f3f3f3;
+  border-top: 6px solid #007bff;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  animation: spin 1s linear infinite;
+  margin: 15px auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* --- CALENDAR CLEANUP --- */
+.calendar-container {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.table-container table.calendar {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.calendar th, .calendar td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.calendar .weekdays th {
+  background: #007bff;
+  color: white;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+}
+
+.calendar td.selectable:hover {
+  cursor: pointer;
+  background: #e6f4ff;
+}
+
+.calendar td.selected, 
+.calendar td.range-start, 
+.calendar td.range-end {
+  background: #4CAF50 !important;
+  color: white !important;
+  font-weight: 600;
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 600px) {
+  .calendar th, .calendar td {
+    padding: 6px;
+    font-size: 0.8rem;
+  }
+  #contact-form .modal-content {
+    margin-top: 10%;
+    padding: 16px;
+  }
+}
+</style>
+
+<script src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id }}&currency=PHP&locale=en_PH"></script>
+<!-- Calendar Check in Script -->
+<script> 
+    document.addEventListener('DOMContentLoaded', () => {
+        let totalCostDiff = 1;
+        
+        // VALUES HERE
+            const checkinInput = document.getElementById('id_checkin_date');
+            const checkoutInput = document.getElementById('id_checkout_date');
+            // const checkinInput = document.getElementById('id_checkin_date');
+            // const checkoutInput = document.getElementById('id_checkout_date');
+
+            const options = { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric', 
+            hour: 'numeric', 
+            minute: 'numeric', 
+            hour12: true  // 12-hour format with AM/PM
+            };
+
+            let firstDate = null;
+            const tds = [...document.querySelectorAll('td')];
+
+            const selectable = tds.filter(td => {
+            if (td.classList.contains('checkin') ){
+                if ( td.previousElementSibling?.classList.contains('checkin') || td.previousElementSibling?.classList.contains('stay')){
+                    td.className = 'stay';
+                }
+            } else if (td.classList.contains('checkout') ){
+                if (td.nextElementSibling?.classList.contains('checkout')) {
+                    td.className = 'stay';
+                }
+            }
+            if (td.classList.contains('stay')) {
+                td.addEventListener('click', () => {
+                    alert('Unavailable Date.');
+                });            
+            }
+        const forbidden = td.classList.contains('stay');
+        return !forbidden && td.dataset.date;
+    });
+            const unselectable = tds.filter(td => {
+
+            const forbidden = td.classList.contains('stay');
+            return forbidden && td.dataset.date;
+            });
+            function clearSelection() {
+                selectable.forEach(td => td.classList.remove('selected','range-start','range-end'));
+                checkinInput.value = '';
+                checkoutInput.value = '';
+                firstDate = null;
+            }
+
+            function highlightRange(start, end) {
+                selectable.some(td => {
+                    const d = new Date(td.dataset.date);
+                    if (d >= start && d <= end) {
+                    td.classList.add('selected');
+                        if (td.classList.contains('checkin') && td.nextElementSibling?.classList.contains('checkout')) {
+                            if (d.getTime() === end.getTime()){
+                                console.log('Same Time')
+                                return true
+                            } 
+                            alert('Cant Book schedule');clearSelection(); return true
+                        }
+                    }  if (d.getTime() === start.getTime()) {
+                        if (td.nextElementSibling?.classList.contains('checkout') && td.nextElementSibling?.classList.contains('stay')){
+                            alert('Cant Book this Start Time 1');clearSelection(); return true
+                        }
+                        if (td.classList.contains('checkin') && td.nextElementSibling?.classList.contains('checkin') || td.nextElementSibling?.classList.contains('checkout')){
+                            alert('Cant Book this Start Time 2');clearSelection(); return true
+                        }
+                        td.classList.add('range-start');
+                    }  if (d.getTime() === end.getTime()) {
+                        if (td.classList.contains('checkout') && td.nextElementSibling?.classList.contains('checkin')) {
+                            alert('Cant Book this End Time');clearSelection(); return true
+                        }
+                        if ( td.previousElementSibling?.classList.contains('checkin') ){
+                            alert('Cant Book this End Time');clearSelection(); return true
+                        }
+                        td.classList.add('range-end');
+                    }
+                    return false;
+                    }
+                );
+
+            let startDate = new Date(checkinInput.value);
+            let endDate = new Date(checkoutInput.value);
+            
+            // let roomPrice = Number(this.room_price.value)
+            let roomPrice = Number(document.querySelector("#room_price").value)
+
+            document.querySelector("#startdateinput").value = startDate.toLocaleString('en-US', options)
+            document.querySelector("#enddateinput").value = endDate.toLocaleString('en-US', options)
+
+            // Calculate the difference in milliseconds
+            let diffMs = endDate - startDate;
+            let diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+            totalCostDiff = Number(roomPrice) * Number(diffDays)
+            totalCostDiff = totalCostDiff * 1.093
+            document.querySelector("#totalcostinput").value = totalCostDiff.toLocaleString('en-US');
+            payWith(totalCostDiff)
+
+            }
+
+            selectable.forEach(td => {
+                td.addEventListener('click', () => {
+                const clickedDate = new Date(td.dataset.date);
+                // Reset if two dates already chosen
+                if (firstDate && checkoutInput.value) {
+                    clearSelection();
+                    document.querySelector("#open-btn").style.display = 'none'
+                }
+
+                if (!firstDate) {
+                    // First click: set start date
+                    firstDate = clickedDate;
+                    td.classList.add('selected','range-start');
+                    checkinInput.value = td.dataset.date + "T15:00";
+                } else {
+                    let start = firstDate;
+                    // Second click: set end date
+                    let end = clickedDate;
+                    // console.log('First: ',firstDate)
+                    // console.log('Second: ',clickedDate)
+                    if (firstDate.getTime() == clickedDate.getTime()){
+                        console.log('Same Date:')
+                        clearSelection()
+                        return
+                    }
+                    checkoutInput.value = end.toISOString().split('T')[0] + "T12:00";
+                    if (end < start) {
+                        [start, end] = [end, start];
+                        [checkinInput.value,checkoutInput.value]  =[checkoutInput.value, checkinInput.value];
+                    }
+                    const hasOverlap = unselectable.some(cell => {
+                            const cellDate = new Date(cell.dataset.date);
+                            return cellDate >= start && cellDate <= end;
+                        });            
+                    if (hasOverlap){
+                        // console.log('Someone is Checked in Between !')
+                        alert('Already Booked Between Date !')
+                        clearSelection()
+                        return
+                    }
+                    document.querySelector("#open-btn").style.display = 'block'
+                    // box.style.display = 'block';
+                    highlightRange(start, end);
+                    
+                }
+                    });
+            });
+    });
+</script>
+<!-- END CALENDAR CHECK IN SCRIPT -->
+
+
+
+
+    <div class="calendar-container">
+        <div class="month-name"> 
+            <div class="month-header">
+                <div class="month-title">
+                    <div style="display: none;" class="package-price">₱ {{ room_item.price }} </div>
+                    <hr>
+                    {{ month_name }} {{ year }}
+                    <div class="month-nav">
+                        <form id="last-month" method="POST" action="{% url 'resort_management:movemarkedcalendarnamed' resortID room_id month year 'previous' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="type" value="subtract">
+                            <button class="new-button" type="submit">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M16 4L8 12L16 20" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    
+                            </button>
+                        </form>                    
+
+                        <form id="next-month" method="POST" action="{% url 'resort_management:movemarkedcalendarnamed' resortID room_id month year 'next' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="type" value="add">
+                            <button class="new-button" type="submit"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8 4L16 12L8 20" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            </button>
+                        </form>
+                        
+                    </div>
+                </div>
+            </div>
+        
+            <div class="table-container">
+                
+{% if messages %}
+  <div class="container mt-3">
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        <h3>{{ message }}</h3>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+<h3 id="message-box">Select Date To Book </h3>
+<small>{{room_item.title}}</small>
+
+{% endif %}                    
+                <a class="open-btn" href="#contact-form" id="open-btn" style="margin: 1rem; display: none;">Book</a>
+                <table class="calendar">
+                    <tr class="weekdays">
+                        <th>Sun</th><th>Mon</th><th>Tue</th><th>Wed</th>
+                        <th>Thu</th><th>Fri</th><th>Sat</th>
+                    </tr>
+
+                    {% for week in weeks %}
+                        <tr>
+                        {% for day in week %}
+                            <td
+                            data-date="{{ day.date|date:'Y-m-d' }}"
+                            class="
+                                {% if not day.in_month %}other-month{% endif %}
+                                {% if day.status == 'checkin' %} checkin
+                                {% elif day.status == 'checkout' %} checkout
+                                {% elif day.status == 'stay' %} stay
+                                {% endif %}
+                            ">
+                                
+                                <span>{{ day.date.day }}</span>
+                            </td>
+                        {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </table>
+                
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+        <div id="contact-form" class="form-container modal" >
+            <div class="modal-content">
+                <a href="#" class="close">&times;</a>
+                <div class="form-container">
+                    <form id="booking-form" method="POST" action="{% url 'resort_management:room_checkin' %}">
+  {% csrf_token %}
+
+  <!-- Hidden values -->
+  <input type="hidden" name="room_package" value="{{ room_item.packageName.PackageTitle }}">
+  <input type="hidden" name="room_name" value="{{ room_item.title }}">
+  <input type="hidden" id="room_price" name="room_price" value="{{ room_item.price }}">
+  <input type="hidden" id="to_send_email" name="to_send_email" value="{{ resortObject.contactEmail }}">
+  <input type="hidden" name="resort_id" value="{{ resortObject.id }}">
+  <input type="hidden" name="room_id" value="{{ room_item.id }}">
+  <input type="hidden" name="month" value="{{ month }}">
+  <input type="hidden" name="year" value="{{ year }}">
+  <input type="hidden" name="startdate" id="startdateinput">
+  <input type="hidden" name="enddate" id="enddateinput">
+  <input type="hidden" name="totalcost" id="totalcostinput" value="100">
+
+  {{ form.room }}
+  {{ form.resort }}
+
+  <p>{{ form.guest_name.label_tag }}{{ form.guest_name }}</p>
+  <p>{{ form.guest_email.label_tag }}{{ form.guest_email }}</p>
+  <p>{{ form.guest_phone.label_tag }}{{ form.guest_phone }}</p>
+
+  <!-- Make datetime visible but readonly for iOS -->
+  <p>
+    <label for="{{ form.checkin_date.id_for_label }}">Check-in Date & Time</label>
+    <input type="datetime-local" 
+           id="{{ form.checkin_date.id_for_label }}"
+           name="checkin_date"
+           class="date-input"
+           value="{{ form.checkin_date.value|default:'' }}"
+           readonly
+           onfocus="this.removeAttribute('readonly');" />
+  </p>
+
+  <p>
+    <label for="{{ form.checkout_date.id_for_label }}">Check-out Date & Time</label>
+    <input type="datetime-local" 
+           id="{{ form.checkout_date.id_for_label }}"
+           name="checkout_date"
+           class="date-input"
+           value="{{ form.checkout_date.value|default:'' }}"
+           readonly
+           onfocus="this.removeAttribute('readonly');" />
+  </p>
+
+  <p>{{ form.special_requests.label_tag }}{{ form.special_requests }}</p>
+
+  {% if isManager or user.is_superuser %}
+    <input type="submit" id="submit-checkin-btn" value="Submit">
+  {% else %}
+    <div id="paypal-button-container"></div>
+    <small>Processing fees apply</small>
+  {% endif %}
+</form>
+
+                </div>
+            </div>
+        </div>
+
+
+
+
+
+    <!-- START PAYPAL  -->
+    <!-- <script src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id }}&currency=PHP"></script> -->
+    <!-- <script src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id }}&currency=PHP&locale=fil_PH"></script> -->
+     
+
+    <script>
+    let selectedAmount = 5; // default
+
+    function payWith(amount) {
+        selectedAmount = amount;
+        document.getElementById("paypal-button-container").innerHTML = ""; // clear previous
+        renderButton();
+    }
+
+    function renderButton() {
+        // selectedAmount = Number(document.querySelector("#room_price").value); 
+        paypal.Buttons({
+        createOrder: function(data, actions) {
+            return actions.order.create({
+            purchase_units: [{
+                amount: { value: selectedAmount.toFixed(2) }
+            }]
+            });
+        },
+        onApprove: function(data, actions) {
+            return actions.order.capture().then(function(details) {
+            // alert("✅ Paid $" + selectedAmount + " by " + details.payer.name.given_name);
+            // Send to Django backend for saving
+            fetch(window.location.origin + "/apis/payments/create/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                event_type: "PAYMENT.CAPTURE.COMPLETED",
+                resource: {
+                    id: data.orderID,
+                    payer: { email_address: details.payer.email_address },
+                    amount: { value: selectedAmount },
+                    resort_id : `{{resortObject.id}}`,
+                    room_id : `{{room_item.id}}`,
+                    full_details: details
+                }
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("booking-form").submit();
+                let anchorCloseBtn2 = document.querySelector('a.close');
+                // If found, trigger click
+                if (anchorCloseBtn2) anchorCloseBtn2.click();
+                document.getElementById("message-box").innerHTML =
+                    'Just a moment — we’re confirming your booking.<div class="loader"></div> ';
+                let openBtn = document.querySelector("#open-btn");
+                openBtn.style.display = "none";                
+            })
+            .catch(error => {
+                console.error("❌ Payment save fai  led:", error);
+                alert("Payment succeeded but saving failed!");
+            });            
+
+            });
+            
+
+            
+        }
+        }).render("#paypal-button-container");
+    }
+
+    // render first button
+    renderButton();
+    </script>
+    <!-- END PAYPAL  -->
+
+
+    <!-- This side is Email JS Contact Form 
+    ⬇︎⬇︎⬇︎⬇︎⬇︎⬇︎⬇︎⬇︎⬇︎⬇︎⬇︎⬇︎⬇︎⬇︎⬇︎⬇︎⬇︎⬇︎⬇︎⬇︎ -->
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script type="text/javascript">
+      window.onload = function() {
+          document.getElementById('booking-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+// const closeBtn = document.querySelector('.f-button.is-close-button[data-fancybox-close]');
+const anchorCloseBtn = document.querySelector('a.close');
+// If found, trigger click
+if (anchorCloseBtn) anchorCloseBtn.click();
+// document.getElementById("message-box").textContent = "Just a moment — we’re confirming your booking.";
+  document.getElementById("message-box").innerHTML =
+    'Just a moment — we’re confirming your booking.<div class="loader"></div> ';
+let openBtn = document.querySelector("#open-btn");
+openBtn.style.display = "none";
+            // this.to_send_email.value // where the email will be sent
+
+            
+            
+
+
+            (function() {
+                // EMAIL WRITING
+                // https://dashboard.emailjs.com/admin/account
+                    emailjs.init({
+                        publicKey: "kPR5fCmH0j3E0NSyr",
+                    });
+                })();
+                
+            // these IDs from the previous steps
+            alert('Sending Message')
+            //   emailjs.sendForm('service_jv335d7', 'template_hzlk188',this)
+
+            
+            emailjs.sendForm('service_jv335d7', 'template_q8aw1ni',this)
+            .then(() => {
+                to_guest_email = document.querySelector("#id_guest_email").value
+                
+                    to_send_email = document.querySelector("#to_send_email").value
+                    document.querySelector("#id_guest_email").value = to_send_email
+                    emailjs.sendForm('service_jv335d7', 'template_q8aw1ni',this)
+                        .then(() => {
+                            alert('Message Sent!') 
+                            this.submit();
+                            //   this.reset();
+                        }, (error) => {
+                            alert('Message Not Sent !')
+                            console.log('FAILED...', error);
+                        });
+                        
+                  }, (error) => {
+                    alert('Email Not Valid !')
+                      console.log('FAILED...', error);
+                  });
+
+
+          }
+            
+
+
+        );
+      }
+    </script>
+    <!-- To simplify the tutorial, the value is static. -->
+
+      
+
+    

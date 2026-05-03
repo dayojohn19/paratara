@@ -1,0 +1,290 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <title>About Us</title>
+    <!-- <link href="../assets/dist/css/bootstrap.min.css" rel="stylesheet"> -->
+    <link href="{% static 'bootstrap/assets/dist/css/bootstrap.min.css' %}" rel="stylesheet" />
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'home:home' %}">Traveller Club</a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#aboutNavbar"
+          aria-controls="aboutNavbar"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="aboutNavbar">
+          <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+              {% if default_place_id %}
+                <a class="nav-link" href="{% url 'home:place' default_place_id default_month default_year %}">Places</a>
+              {% else %}
+                <a class="nav-link" href="{% url 'home:searchplace' %}">Places</a>
+              {% endif %}
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!--  -->
+    <div class="" style="background: linear-gradient(90deg, rgba(2, 0, 36, 0.5) 0%, rgba(79, 154, 195, 0) 3%, rgba(0, 212, 255, 0) 100%); z-index: 2">
+      <div class="welcome-background welcome-container">
+        <div>
+          <h1 class="welcome-header">Welcome to Traveller Club</h1>
+
+          <span class="welcome-summary">
+            <details>
+              <summary>Facebook Community</summary>
+              <ul>
+                <hr />
+                <li><a style="color: #ece81e; text-decoration: none; font-weight: 500" href="https://www.facebook.com/groups/1855765764808523/" target="_blank">Travellers Club</a></li>
+                <hr />
+                <li><a style="color: #ece81e; text-decoration: none; font-weight: 500" href="https://www.facebook.com/people/Treep-Today/100090640505314/" target="_blank">Carpool Today</a></li>
+              </ul>
+            </details>
+          </span>
+          <!-- <li class="welcome-summary">
+          <details>
+            <summary> Our Benefits: </summary>
+            <ul>
+              <li>Passenger and Driver Security</li>
+              <li>Conveniency</li>
+              <li>Discounts</li>
+            </ul>
+          </details>
+        </li> -->
+
+          <div>
+            <a href="#memberregistration">
+              <button class="button-join">Join</button>
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="HeaderSection__ShapeContainer-sc-1s77nx6-8 cbYhmQ"
+        ><div class="custom-shape-divider-bottom"
+          ><svg fill="rgb(60	200	256		)" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+            <path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25" class="shape-fill"></path>
+            <path d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z" opacity=".5" class="shape-fill"></path>
+            <path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z" class="shape-fill"></path></svg></div
+      ></div>
+    </div>
+    <style>
+      @import url("https://fonts.cdnfonts.com/css/honey-ponds-personal-use");
+      .welcome-background {
+        /* z-index: 5 !important; */
+        /* background-color: #f9f9aaf9;
+        background: rgb(2, 0, 36);
+        background: linear-gradient(90deg, rgba(2, 0, 36, 1) 0%, rgba(28, 76, 102, 1) 0%, rgba(0, 212, 255, 1) 100%);
+
+        background: rgb(2, 0, 36);
+        background: linear-gradient(90deg, rgba(2, 0, 36, 1) 0%, rgba(79, 154, 195, 1) 3%, rgba(0, 212, 255, 1) 100%); */
+        background: rgb(2, 0, 36);
+        background: linear-gradient(90deg, rgba(2, 0, 36, 1) 0%, rgba(79, 154, 195, 0.5116421568627452) 3%, rgba(0, 212, 255, 1) 100%);
+
+        /* position: fixed; */
+        /* 
+        top: 50%;
+        left: 50%;
+        width: 100vw;
+        height: 100vh;
+        transform: translate(-50%, -50%); */
+      }
+      .welcome-container ul {
+        list-style-type: none;
+        padding: 0;
+      }
+      .welcome-header {
+        font-size: 8vw;
+        display: inline-block;
+        width: 100%;
+        text-align: center;
+        font-weight: 400;
+        padding-top: 8vh;
+      }
+      .welcome-container {
+        font-family: "Honey Ponds Personal Use", sans-serif;
+        text-align: center;
+        display: block;
+
+        color: white;
+
+        z-index: 2;
+        /* background-color: rgb(245, 195, 68); */
+        /* border-radius: 30px; */
+        box-shadow: 5px 10px #888888;
+        padding: 1vh;
+        /* background-color: rgba(255, 0, 0, 0.289); */
+        background: linear-gradient(90deg, rgba(2, 0, 36, 0.5) 0%, rgba(79, 154, 195, 0.2) 3%, rgba(0, 212, 255, 0.75) 100%), url("https://img.freepik.com/premium-vector/carpool-service-flat-vector-car-with-young-people-man-woman-fellow-character-yellow-car-have-fun-ride-carsharing-traveling-technology-vehicle-cooperation-adventure_81534-1508.jpg?w=2000");
+        background-position: top;
+        height: 100vh;
+        background-size: cover;
+        background-repeat: no-repeat;
+      }
+      .welcome-summary {
+        background-color: rgba(76, 120, 224, 0.45);
+        color: white;
+        padding: 9px 45px;
+        border-radius: 8px;
+        font-size: 14px;
+        line-height: 1.4;
+        display: inline-block;
+        box-shadow: 2px 2px 10px 0 rgb(0 0 0 / 25%);
+        text-transform: uppercase;
+        margin-top: 45px;
+        font: bold;
+        font-family: "Courier New", Courier, monospace;
+      }
+      .welcome-summary:hover {
+        background-color: rgba(76, 120, 224, 0.89);
+      }
+
+      .button-join {
+        background-color: #ec311e;
+        border: none;
+        border-radius: 8px;
+        padding: 9px 45px;
+        font-size: 14px;
+        line-height: 1.4;
+        display: inline-block;
+        box-shadow: 2px 2px 10px 0 rgb(0 0 0 / 25%);
+        text-transform: uppercase;
+        margin-top: 45px;
+        font-weight: bold;
+        color: white;
+      }
+    </style>
+
+    <!--  -->
+    <!--  -->
+    <!--  -->
+    <!--  -->
+    <!--  -->
+    <div class="container px-4 py-5" id="custom-cards">
+      <div class="row row-cols-1 row-cols-lg-3 align-items-stretch g-4 py-5">
+        <div class="col">
+          <div class="card card-cover h-100 overflow-hidden text-bg-dark rounded-4 shadow-lg" style="background-position: center; background-size: cover; background-image: url('https://media.greenmatters.com/brand-img/ytZ-T9sp7/0x0/what-emissions-do-cars-produce4-1604596615333.jpg')">
+            <div class="d-flex flex-column h-100 p-5 pb-3 text-white text-shadow-1">
+              <h2 class="pt-5 mt-5 mb-4 display-6 lh-1 fw-bold" style="background-color: rgba(91, 68, 72, 0.364)"> By carpooling twice a week 1,600 pounds of greenhouse gases out of the air each year</h2>
+              <ul class="d-flex list-unstyled mt-auto">
+                <li class="me-auto">
+                  <img src="https://www.clipartmax.com/png/small/255-2558998_maple-leaf-green-plant-nature-cartoon-light-green-leaf.png" alt="Bootstrap" width="32" height="32" class="rounded-circle border border-white" />
+                </li>
+                <li class="d-flex align-items-center me-3">
+                  <svg class="bi me-2" width="1em" height="1em"><use xlink:href="#geo-fill"></use></svg>
+                  <small>Earth</small>
+                </li>
+                <li class="d-flex align-items-center">
+                  <svg class="bi me-2" width="1em" height="1em"><use xlink:href="#calendar3"></use></svg>
+                  <small>3d</small>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="col">
+          <div class="card card-cover h-100 overflow-hidden text-bg-dark rounded-4 shadow-lg" style="background-position: center; background-size: cover; background-image: url('https://511nyrideshare.org/documents/13062580/13063312/5cf107d7-1710-4076-b902-1aa0e6f554ea.jpg/f64aa95e-0a8c-6aca-470d-eef4ca2002ff?t=1562101484722')">
+            <div class="d-flex flex-column h-100 p-5 pb-3 text-white text-shadow-1">
+              <h3 class="pt-5 mt-5 mb-4 display-6 lh-1 fw-bold" style="background-color: rgba(70, 68, 91, 0.364)">Initiative designed to encourage individuals to share rides</h3>
+              <ul class="d-flex list-unstyled mt-auto">
+                <li class="me-auto">
+                  <img src="https://www.clipartmax.com/png/small/255-2558998_maple-leaf-green-plant-nature-cartoon-light-green-leaf.png" alt="Bootstrap" width="32" height="32" class="rounded-circle border border-white" />
+                </li>
+                <li class="d-flex align-items-center me-3">
+                  <svg class="bi me-2" width="1em" height="1em"><use xlink:href="#geo-fill"></use></svg>
+                  <small>Pakistan</small>
+                </li>
+                <li class="d-flex align-items-center">
+                  <svg class="bi me-2" width="1em" height="1em"><use xlink:href="#calendar3"></use></svg>
+                  <small>4d</small>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="col">
+          <div class="card card-cover h-100 overflow-hidden text-bg-dark rounded-4 shadow-lg" style="background-position: center; background-size: cover; background-image: url('https://www.gsb.stanford.edu/sites/default/files/styles/1630x_variable_tinypng/public/resources/ostrovsky-trafficjam.gif.webp?itok=_kegIei1')">
+            <div class="d-flex flex-column h-100 p-5 pb-3 text-shadow-1">
+              <h3 class="pt-5 mt-5 mb-4 display-6 lh-1 fw-bold" style="background-color: rgba(51, 0, 255, 0.165)">The goal of a carpool incentive is to reduce traffic congestion</h3>
+              <ul class="d-flex list-unstyled mt-auto">
+                <li class="me-auto">
+                  <img src="https://www.clipartmax.com/png/small/255-2558998_maple-leaf-green-plant-nature-cartoon-light-green-leaf.png" alt="Bootstrap" width="32" height="32" class="rounded-circle border border-white" />
+                </li>
+                <li class="d-flex align-items-center me-3">
+                  <svg class="bi me-2" width="1em" height="1em"><use xlink:href="#geo-fill"></use></svg>
+                  <small>California</small>
+                </li>
+                <li class="d-flex align-items-center">
+                  <svg class="bi me-2" width="1em" height="1em"><use xlink:href="#calendar3"></use></svg>
+                  <small>5d</small>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container col-xxl-8 px-4 py-5">
+      <div class="row flex-lg-row-reverse align-items-center g-5 py-5">
+        <div class="col-10 col-sm-8 col-lg-6" style="margin: 0 auto">
+          <img src="https://www.goodnet.org/photos/620x0/36142_hd.jpg" class="d-block mx-lg-auto img-fluid rounded-4" alt="Bootstrap Themes" width="700" height="500" loading="lazy" />
+        </div>
+        <div class="col-lg-6">
+          <h1 class="display-5 fw-bold lh-1 mb-3">Cost savings,Color coding exemptions, Environmental benefits, Reduced stress, Time savings, Social connections, </h1>
+          <p class="lead"> By using our site, you can reduce the risk of scams and protect yourself from financial fraud and hassles. Remember to always be cautious and verify the identity of individuals <strong>and we are here to help and do it for your</strong></p>
+          <div class="card mb-3">
+            <div class="card-body">
+              <h5 class="card-title">Touring &amp; Recommendations</h5>
+              <p class="card-text mb-2">Explore with our <strong>Digital Tour Guide</strong> — personalized place recommendations, tailored itineraries, and real-time schedules of events and community bulletins to help you discover and plan local activities with confidence.</p>
+              <ul class="list-inline mb-3">
+                <li class="list-inline-item me-3">📍 <strong>Place recommendations</strong></li>
+                <li class="list-inline-item me-3">🗓️ <strong>Event schedules</strong></li>
+                <li class="list-inline-item me-3">📣 <strong>Community bulletins</strong></li>
+                <li class="list-inline-item">🧭 <strong>Digital tour guide</strong></li>
+              </ul>
+              <a href="#" class="btn btn-outline-primary btn-sm me-2" aria-label="Learn more about touring and recommendations">Learn more</a>
+              <a href="{% url 'userProfile:profile' %}" class="btn btn-primary btn-sm" aria-label="Join and get started">Join &amp; Get Started</a>
+            </div>
+          </div>
+          <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+            <a href="{% url 'home:home' %}" type="button" class="btn btn-primary btn-lg px-4 me-md-2">Pool Car Now</a>
+            <a href="{% url 'userProfile:profile' %}" type="button" class="btn btn-outline-secondary btn-lg px-4">Register and Join</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="px-4 pt-5 my-5 text-center border-bottom" id="memberregistration" style="background: radial-gradient(farthest-side at 76% 77%, rgba(245, 228, 212, 0.25) 4%, rgba(255, 255, 255, 0) calc(4% + 1px)), radial-gradient(circle at 76% 40%, rgb(254, 246, 236) 4%, rgba(255, 255, 255, 0) 4.18%), linear-gradient(135deg, rgb(255, 0, 0) 0%, rgb(0, 0, 54) 100%), radial-gradient(at 28% 0%, rgb(255, 207, 172) 0%, rgba(98, 149, 144, 0.5) 100%), linear-gradient(rgb(205, 110, 138) 0%, rgb(245, 234, 176) 69%, rgb(214, 200, 162) 70%, rgb(162, 117, 141) 100%); background-blend-mode: normal, normal, screen, overlay, normal; background-color: rgb(169, 201, 255); background-image: linear-gradient(45deg, rgb(169, 201, 255) 0%, rgb(255, 187, 236) 100%)">
+      <h1 class="display-4 fw-bold">Members are not just a member</h1>
+      <div class="col-lg-6 mx-auto">
+        <p class="lead mb-4">Present your Carpool Membership ID's and avail discounts on toll fees,car registration, renewal, parking fees and enjoy traffic priority lane and many more. You help us in our economy and return to you twice </p>
+        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mb-5">
+          <a href="{% url 'userProfile:profile' %}" type="button" class="btn btn-primary btn-lg px-4 me-sm-3">Become a member</a>
+          <a href="{% url 'userProfile:profile' %}" type="button" class="btn btn-outline-secondary btn-lg px-4">Sign Up</a>
+        </div>
+      </div>
+      <div class="overflow-hidden">
+        <!-- <div class="container px-5">
+          <img src="https://drive.google.com/uc?export=view&id=13GouMnhWKmTGyShFEzPs-SR_N8J8GL1r" class="img-fluid border rounded-4 shadow-lg mb-4" alt="Example image" width="700" height="500" loading="lazy" />
+        </div> -->
+      </div>
+    </div>
+
+    <script src="{% static 'bootstrap/assets/dist/js/bootstrap.bundle.min.js' %}"></script>
+  </body>
+</html>

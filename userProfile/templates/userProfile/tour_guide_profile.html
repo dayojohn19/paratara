@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ tour_guide.user.username }} - Tour Guide Profile</title>
+    <style>
+        /* Modern Tour Guide Profile Styles */
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Montserrat:wght@300;400;500;600&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .profile-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .profile-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .profile-photo {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid #667eea;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .profile-info h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-info .username {
+            color: #667eea;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .experience-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .bio {
+            font-size: 1.125rem;
+            line-height: 1.6;
+            color: #555;
+            margin-bottom: 1.5rem;
+        }
+
+        .profile-stats {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .profile-link {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .profile-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .content-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.75rem;
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 0.5rem;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .info-item {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-value {
+            color: #555;
+            line-height: 1.5;
+        }
+
+        .tour-spot-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .tour-spot-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .tour-spot-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .tour-spot-image {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+
+        .tour-spot-content {
+            padding: 1rem;
+        }
+
+        .tour-spot-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .tour-spot-location {
+            color: #667eea;
+            font-size: 0.875rem;
+        }
+
+        .no-data {
+            text-align: center;
+            color: #7f8c8d;
+            font-style: italic;
+            padding: 2rem;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 2rem;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .profile-stats {
+                justify-content: center;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tour-spot-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .tourist-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .tourist-item {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            padding: 1rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .tourist-name {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.25rem;
+        }
+
+        .tourist-email {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="profile-container">
+            <!-- <a href="{% url 'userProfile:profile' %}" class="back-link">← Back to Profile</a> -->
+        </div>
+    </div>
+
+    <div class="profile-container">
+        <div class="profile-header">
+            {% if user.additionalCreds.photo %}
+            <img src="{{ user.additionalCreds.photo }}" alt="{{ user.username }}" class="profile-photo">
+            {% else %}
+            <div class="profile-photo" style="background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem; font-weight: bold;">
+                {{ user.username|slice:":1"|upper }}
+            </div>
+            {% endif %}
+
+            <div class="profile-info">
+                <h1>{{ user.additionalCreds.name|default:user.get_full_name|default:user.username }}</h1>
+                <div class="username">@{{ user.username }}</div>
+
+                {% if tour_guide.experience_years %}
+                <div class="experience-badge">
+                    {{ tour_guide.experience_years }} Years Experience
+                </div>
+                {% endif %}
+
+                {% if tour_guide.bio %}
+                <div class="bio">{{ tour_guide.bio }}</div>
+                {% endif %}
+
+                <div class="profile-stats">
+                    <div class="stat">
+                        <!-- <div class="stat-number">{{ tour_guide.tours.count }}</div> -->
+                        <div class="stat-label">Tours</div>
+                    </div>
+                    <div class="stat">
+                        <!-- <div class="stat-number">{{ tour_guide.tourist_spots.count }}</div> -->
+                        <div class="stat-label">Spots</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2 class="section-title">Professional Information</h2>
+            <div class="info-grid">
+                {% if tour_guide.primary_place %}
+                <div class="info-item">
+                    <div class="info-label">Primary Location</div>
+                    <div class="info-value">{{ tour_guide.primary_place.placename }}</div>
+                </div>
+                {% endif %}
+
+                {% if tour_guide.mobile_number %}
+                <div class="info-item">
+                    <div class="info-label">Mobile Number</div>
+                    <div class="info-value">{{ tour_guide.mobile_number }}</div>
+                </div>
+                {% endif %}
+
+                {% if tour_guide.certifications %}
+                <div class="info-item">
+                    <div class="info-label">Certifications</div>
+                    <div class="info-value">{{ tour_guide.certifications }}</div>
+                </div>
+                {% endif %}
+
+                <div class="info-item">
+                    <div class="info-label">Member Since</div>
+                    <div class="info-value">{{ tour_guide.created_at|date:"F j, Y" }}</div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-label">Last Updated</div>
+                    <div class="info-value">{{ tour_guide.updated_at|date:"F j, Y" }}</div>
+                </div>
+            </div>
+        </div>
+
+        {% if tourist_assignments %}
+        <div class="content-section">
+            <h2 class="section-title">Currently Guiding Tourist</h2>
+            <div class="tourist-list">
+                <div class="tourist-item">
+                    <div class="tourist-name">{{ tourist_assignments.tourist.username }}</div>
+                    <div class="tourist-email">{{ tourist_assignments.tourist.email }}</div>
+                    <div style="color: #667eea; font-size: 0.85rem; margin-top: 0.25rem;">Started guiding: {{ tourist_assignments.assigned_at_local|date:"M j, Y g:i A" }}</div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if tour_guide.tours.all %}
+        <div class="content-section">
+            <h2 class="section-title">Guided Tours</h2>
+            <div class="tour-spot-grid">
+                {% for tour in tour_guide.tours.all %}
+                <div class="tour-spot-card">
+                    <div class="tour-spot-content">
+                        <div class="tour-spot-title">{{ tour.scheduleTitle }}</div>
+                        <div class="tour-spot-location">{{ tour.schedulePlace.placename }}</div>
+                        {% if tour.scheduleWebsite %}
+                        <a href="{{ tour.scheduleWebsite }}" target="_blank" style="color: #667eea; text-decoration: none; font-size: 0.875rem;">View Details →</a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if tour_guide.tourist_spots.all %}
+        <div class="content-section">
+            <h2 class="section-title">Specialized Tourist Spots</h2>
+            <div class="tour-spot-grid">
+                {% for spot in tour_guide.tourist_spots.all %}
+                <div class="tour-spot-card">
+                    {% if spot.img %}
+                    <img src="{{ spot.img }}" alt="{{ spot.name }}" class="tour-spot-image">
+                    {% endif %}
+                    <div class="tour-spot-content">
+                        <div class="tour-spot-title">{{ spot.name }}</div>
+                        <div class="tour-spot-location">{{ spot.place.placename }}</div>
+                        {% if spot.url %}
+                        <a href="{{ spot.url }}" target="_blank" style="color: #667eea; text-decoration: none; font-size: 0.875rem;">Learn More →</a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if not tour_guide.tours.all and not tour_guide.tourist_spots.all %}
+        <div class="content-section">
+            <div class="no-data">
+                <p>This tour guide hasn't added any tours or tourist spots yet.</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

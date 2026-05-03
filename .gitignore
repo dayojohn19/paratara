@@ -1,0 +1,56 @@
+# Environments
+.env
+cleanenv/
+env/
+env2/
+env3/
+venv/
+venv11/
+speechenv/
+
+# Python
+__pycache__/
+*.pyc
+
+# Media & generated
+staticfiles/
+geoip/
+imageuploads/
+storyvideo/
+image_bank_uploaded/
+storyimages/
+image_cards/
+
+# macOS
+.DS_Store
+
+# Git rewrite temp data
+.git-rewrite/
+
+# Editor
+.vscode/
+
+webSchedule/settings.py
+1db.sqlite3
+2db.sqlite3
+3db.sqlite3
+4db.sqlite3
+5db.sqlite3
+
+oldv_db.sqlite3
+4db.sqlite3
+olddb.sqlite3
+proj2db_backup.dump
+image_cards/
+# Databases
+*.sqlite3
+*.sqlite3-journal
+*.db
+*.db-journal
+
+# Media
+*.mp4
+*.mov
+*.avi
+# Binary databases
+*.mmdb

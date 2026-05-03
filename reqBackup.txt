@@ -1,0 +1,16 @@
+asgiref
+Django==3.2
+django-cors-headers
+django-extensions
+django-resized
+djangorestframework
+djongo==1.3.6
+dnspython
+gunicorn
+packaging
+pillow
+pymongo==3.12.3
+pytz
+typing_extensions
+whitenoise
+sqlparse==0.2.4

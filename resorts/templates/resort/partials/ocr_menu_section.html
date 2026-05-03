@@ -1,0 +1,270 @@
+{% load humanize %}
+{% if managerUser %}
+<!-- ============================================================ -->
+<!-- OCR MENU UPLOAD SECTION (Manager Only) -->
+<!-- Upload menu images and extract items using OCR + AI -->
+<!-- ============================================================ -->
+<section class="section" id="ocr-menu-upload">
+  <div class="section-head">
+    <div class="section-title">📸 Add Food Menu</div>
+    <!-- <div class="section-sub">Upload menu images and extract items automatically</div> -->
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <!-- Hidden input to store resort ID for JavaScript -->
+      <input type="hidden" id="ocrResortId" value="{{ resortObject.id }}" />
+      
+      <!-- Package Title Input -->
+      <div style="margin-bottom:1rem;">
+        <label for="ocrPackageTitle">Menu Section: eg. Pasta, Smoothies, Coffee, Fish, Seafood...</label>
+        <select id="ocrPackageTitleSelect" style="margin-bottom:0.5rem;">
+          {% for foodPackage in resortObject.resortFood.all %}
+            <option value="{{ foodPackage.PackageTitle }}">{{ foodPackage.PackageTitle }}</option>
+          {% endfor %}
+          <option value="other">Other (specify below)</option>
+        </select>
+        <input id="ocrPackageTitle" type="text" placeholder="Specify eg. Cakes, Pasta, Salad, Fish, Seafood.." style="display:none;" />
+      </div>
+      <script>
+        (function() {
+          function initOcrPackageTitleSelect() {
+            var select = document.getElementById('ocrPackageTitleSelect');
+            var input = document.getElementById('ocrPackageTitle');
+            if (!select || !input) return;
+
+            function syncPackageTitleUI() {
+              if (select.value === 'other') {
+                input.style.display = '';
+                input.value = '';
+              } else {
+                input.style.display = 'none';
+                input.value = select.value;
+              }
+            }
+
+            // Avoid adding duplicate listeners if this partial is re-rendered.
+            if (!select.dataset.boundChange) {
+              select.addEventListener('change', syncPackageTitleUI);
+              select.dataset.boundChange = '1';
+            }
+
+            // Important when the only option is "Other" and when partial is loaded after DOMContentLoaded
+            syncPackageTitleUI();
+          }
+
+          // Run now (works for late-injected partials)
+          initOcrPackageTitleSelect();
+
+          // Also run after DOM is ready (safe for normal full-page loads)
+          document.addEventListener('DOMContentLoaded', initOcrPackageTitleSelect);
+        })();
+      </script>
+
+      <!-- File Input -->
+      <div style="margin-bottom:1rem;">
+        <input id="ocrFileInput" type="file" accept="image/*" multiple />
+      </div>
+
+      <!-- Action Buttons -->
+      <div style="display:flex;gap:12px;margin-bottom:1rem;">
+        <button id="ocrProcessAll" class="btn primary">Process All</button>
+        <button id="ocrClearAll" class="btn">Clear</button>
+      </div>
+
+      <!-- File List Container -->
+      <div id="ocrFileList" style="margin-top:14px;"></div>
+    </div>
+  </div>
+
+  <!-- Display Existing Menu Items -->
+  <div class="card" style="margin-top:1.5rem;">
+    <div class="card-body">
+      <div style="font-weight:600;margin-bottom:1rem;font-size:1.1rem;">📋 Existing Food Menu Items</div>
+      
+      <!-- <div style="color:#999;font-size:0.85rem;margin-bottom:1rem;">
+        {# Debug counts removed to avoid extra DB queries on page load. #}
+      </div> -->
+      
+      {% for foodPackage in resortObject.resortFood.all %}
+      <div style="margin-bottom:1.5rem;padding:1rem;background:#f9f9f9;border-radius:8px;">
+        <div style="font-weight:600;margin-bottom:0.75rem;color:var(--primary);">
+          {{ foodPackage.PackageTitle }}
+          <span style="font-size:0.75rem;color:#666;font-weight:normal;">({{ foodPackage.subPackages.all|length }} items)</span>
+        </div>
+        
+        {% for item in foodPackage.subPackages.all %}
+          <div class="menu-item-row" data-item-id="{{ item.id }}" style="gap:0.75rem;align-items:start;padding:0.5rem;background:white;border-radius:4px;border:1px solid #ddd;margin-bottom:0.5rem;{% if not item.is_available %}opacity:0.55;{% endif %}">
+          <!-- Item Image -->
+          {% if item.ImageURL.all %}
+          <div style="flex-shrink:0;">
+
+            {% for img in item.ImageURL.all %}
+              {% if forloop.first %}
+              <img src="{{ img.urlField }}" alt="{{ item.title }}" style="width:80px;height:80px;object-fit:cover;border-radius:4px;" />
+              {% endif %}
+            {% endfor %}
+            <!-- Price and Actions -->
+            <div style="display:flex;align-items:center;gap:1rem;flex-shrink:0;">
+              {% if item.price %}
+              <div style="font-weight:600;color:var(--primary);white-space:nowrap;">₱{{ item.price|intcomma }}</div>
+              {% endif %}
+              {% if managerUser %}
+              <label style="display:flex;align-items:center;gap:0.35rem;font-size:0.8rem;color:var(--muted);white-space:nowrap;">
+                <input
+                  type="checkbox"
+                  class="availability-toggle"
+                  data-item-id="{{ item.id }}"
+                  data-url="{% url 'resorts:togglePackageAvailability' item.id %}"
+                  {% if item.is_available %}checked{% endif %}
+                />
+                <span class="availability-label" data-item-id="{{ item.id }}">{% if item.is_available %}Available{% else %}Unavailable{% endif %}</span>
+              </label>
+              <button class="btn primary edit-item-btn" data-item-id="{{ item.id }}" data-title="{{ item.title }}" data-description="{{ item.description }}" data-price="{{ item.price }}" data-images='[{% for img in item.ImageURL.all %}{"id":{{ img.id }},"url":"{{ img.urlField }}"}{% if not forloop.last %},{% endif %}{% endfor %}]' style="padding:4px 12px;font-size:0.85rem;">Edit</button>
+              <button class="btn warn delete-item-btn" data-url="{% url 'resorts:removeResortSubPackage' item.id %}" data-confirm="Are you sure you want to delete {{ item.title }}? This action cannot be undone." data-target="div" style="padding:4px 12px;font-size:0.85rem;">Delete</button>
+              {% endif %}
+            </div>            
+          </div>
+          {% endif %}
+          
+          <!-- Item Details -->
+          <div style="flex:1;">
+            <div class="menu-item-title" style="font-weight:600;font-size:0.95rem;{% if not item.is_available %}text-decoration:line-through;{% endif %}">{{ item.title }}</div>
+            {% if not item.is_available %}
+            <div style="color:var(--muted);font-size:0.8rem;margin-top:0.2rem;">Unavailable</div>
+            {% endif %}
+            {% if item.description %}
+            <div style="color:var(--muted);font-size:0.85rem;margin-top:0.25rem;">{{ item.description }}</div>
+            {% endif %}
+          </div>
+          
+
+        </div>
+        {% empty %}
+        <div style="display:flex;align-items:center;gap:1rem;">
+          <div style="color:var(--muted);font-style:italic;font-size:0.9rem;">No items in this package yet</div>
+          {% if managerUser %}
+          <button class="btn warn delete-item-btn" data-url="{% url 'resorts:removeResortPackage' foodPackage.id %}" data-confirm="Are you sure you want to delete the entire '{{ foodPackage.PackageTitle }}' menu? This action cannot be undone." data-target="div" style="padding:4px 12px;font-size:0.85rem;">Delete Menu</button>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% empty %}
+      <div style="color:var(--muted);font-style:italic;">
+        No menu items yet.
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div id="editItemModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:12px;padding:2rem;max-width:500px;width:90%;max-height:90vh;overflow-y:auto;">
+      <h3 style="margin:0 0 1.5rem 0;font-size:1.25rem;">Edit Menu Item</h3>
+      
+      <form id="editItemForm">
+        <input type="hidden" id="editItemId" />
+        
+        <div style="margin-bottom:1rem;">
+          <label for="editItemTitle" style="display:block;margin-bottom:0.5rem;font-weight:600;">Title</label>
+          <input id="editItemTitle" type="text" required style="width:100%;padding:0.5rem;border:1px solid #ddd;border-radius:4px;" />
+        </div>
+        
+        <div style="margin-bottom:1rem;">
+          <label for="editItemDescription" style="display:block;margin-bottom:0.5rem;font-weight:600;">Description</label>
+          <textarea id="editItemDescription" rows="3" style="width:100%;padding:0.5rem;border:1px solid #ddd;border-radius:4px;"></textarea>
+        </div>
+        
+        <div style="margin-bottom:1rem;">
+          <label for="editItemPrice" style="display:block;margin-bottom:0.5rem;font-weight:600;">Price (₱)</label>
+          <input id="editItemPrice" type="number" step="0.01" required style="width:100%;padding:0.5rem;border:1px solid #ddd;border-radius:4px;" />
+        </div>
+        
+        <div style="margin-bottom:1rem;">
+          <label style="display:block;margin-bottom:0.5rem;font-weight:600;">Current Images</label>
+          <div class="current-images-container" style="min-height:40px;padding:0.5rem;border:1px solid #eee;border-radius:4px;"></div>
+        </div>
+        
+
+         
+        <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+          <button type="button" id="cancelEdit" class="btn" style="padding:0.5rem 1.5rem;">Cancel</button>
+          <button type="submit" class="btn primary" style="padding:0.5rem 1.5rem;">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<script>
+  (function() {
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+
+    async function updateAvailability({ url, itemId, isAvailable, checkbox }) {
+      const label = document.querySelector(`.availability-label[data-item-id="${itemId}"]`);
+      const row = document.querySelector(`.menu-item-row[data-item-id="${itemId}"]`);
+      const title = row ? row.querySelector('.menu-item-title') : null;
+
+      const previousChecked = checkbox.checked;
+      checkbox.disabled = true;
+
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          body: JSON.stringify({ is_available: isAvailable })
+        });
+
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.success) {
+          throw new Error(data.error || 'Failed to update availability');
+        }
+
+        if (label) label.textContent = data.is_available ? 'Available' : 'Unavailable';
+        if (row) row.style.opacity = data.is_available ? '' : '0.55';
+        if (title) title.style.textDecoration = data.is_available ? '' : 'line-through';
+      } catch (err) {
+        checkbox.checked = !previousChecked;
+        alert('❌ ' + err.message);
+      } finally {
+        checkbox.disabled = false;
+      }
+    }
+
+    // Event delegation: works for late-injected partials too.
+    document.addEventListener('change', function(e) {
+      const checkbox = e.target;
+      if (!checkbox || !checkbox.classList || !checkbox.classList.contains('availability-toggle')) return;
+
+      const url = checkbox.dataset.url;
+      const itemId = checkbox.dataset.itemId;
+      if (!url || !itemId) return;
+
+      updateAvailability({
+        url,
+        itemId,
+        isAvailable: checkbox.checked,
+        checkbox,
+      });
+    });
+  })();
+</script>
+
+{% endif %}

@@ -1,0 +1,35 @@
+{% extends 'resort/base_manager.html' %}
+{% load humanize %}
+{% load static %}
+{% load custom_tags %}
+
+{% block title %}{{resortObject.name}} • Managers Views{% endblock %}
+
+{% block head_meta %}
+  <meta property="og:image" content="{{resortObject.headerImage}}" />
+  <meta property="og:description" content="{{resortObject.description}}" />
+  <meta property="og:title" content="{{resortObject.RealName}}" />
+{% endblock %}
+
+{% block content %}
+  {% include 'resort/partials/header_toolbar.html' %}
+  <main class="container">
+    {% include 'resort/partials/overview_section.html' %}
+    {% include 'resort/partials/promotions_section.html' %}
+    {% include 'resort/partials/accommodations_section.html' %}
+    {% include 'resort/partials/activities_section.html' %}
+    {% include 'resort/partials/gallery_section.html' %}
+    {% include 'resort/partials/ocr_menu_section.html' %}
+    {% include 'resort/partials/manager_tools_section.html' %}
+  </main>
+  {% include 'resort/partials/footer.html' %}
+{% endblock %}
+
+{% block modals %}
+  {% include 'resort/partials/modals.html' %}
+{% endblock %}
+
+{% block scripts %}
+  {% include 'resort/partials/scripts.html' %}
+{% endblock %}
+ 

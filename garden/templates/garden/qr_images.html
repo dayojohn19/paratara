@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fff;
+            margin: 8px 0 8px 20px;
+            padding: 10px 15px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            transition: 0.2s;
+        }
+
+        .file-item:hover {
+            border-color: #007bff;
+            background-color: #f0f7ff;
+        }
+
+        .file-link {
+            font-size: 0.9rem;
+            color: #444;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-right: 10px;
+        }
+
+        /* Action Button Container */
+        .file-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            border: none;
+            background: #f8f9fa;
+            padding: 6px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 1.1rem;
+            transition: 0.2s;
+            line-height: 1;
+        }
+
+        .action-btn:hover {
+            background: #e2e6ea;
+        }
+
+        .action-btn.download:hover {
+            background: #d4edda; /* Green tint */
+        }
+
+        .action-btn.print:hover {
+            background: #d1ecf1; /* Blue tint */
+        }        
+        #a4-collage-list {
+            list-style: none;
+            padding: 0;
+            margin: 20px auto;
+            max-width: 800px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+        }
+
+        /* Date Header Styles */
+        .date-header {
+            background-color: #f8f9fa;
+            padding: 10px 15px;
+            margin-top: 25px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: #6c757d;
+            border-left: 4px solid #007bff; /* Accent color */
+            display: flex;
+            align-items: center;
+        }
+
+        /* File Item Styles */
+        .file-item {
+            background: #fff;
+            margin: 8px 0 8px 20px;
+            padding: 12px 18px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .file-item:hover {
+            border-color: #007bff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transform: translateY(-1px);
+        }
+
+        /* Link/Text Styles */
+        .file-link {
+            text-decoration: none;
+            color: #2c3e50;
+            font-weight: 500;
+            font-size: 0.95rem;
+            flex-grow: 1;
+        }
+
+        .file-link::before {
+            content: "📄"; /* File icon */
+            margin-right: 10px;
+            opacity: 0.6;
+        }
+
+        /* Empty State */
+        .no-results {
+            text-align: center;
+            color: #999;
+            padding: 40px;
+            font-style: italic;
+        }
+        @page { margin: 0; }
+    </style>
+</head>
+<body>
+    <h1>QR IMAGES</h1>
+    <div>
+    <h2>A4 Collages</h2>
+    <button id="refresh-collages-btn">Refresh Collage List</button>
+    <button id="download-all-collages-btn">Download All Collages</button>
+    <ul id="a4-collage-list"></ul>
+</div>
+    <button id="generate-collage-btn">Generate A4 Collage</button>
+    <div id="collage-result" style="margin:10px 0;"></div>
+    <ul>
+    {% for collection in collections %}
+        <li>
+            <strong>ID:</strong> {{ collection.collectionUniqueID }}<br>
+            <strong>Name:</strong> {{ collection.collectionName }}<br>
+            <strong>Is Collected:</strong> {{ collection.collectionIsCollected }}<br>
+            <strong>Collected At:</strong> {{ collection.collectionCollected }}<br>
+            <strong>Timestamp:</strong> {{ collection.collectionTimstamp }}<br>
+        </li>
+        <hr>
+    {% endfor %}
+    </ul>
+</ul>
+
+<script>
+
+function downloadFile(data, filename, type = 'application/octet-stream') {
+  const blob = data instanceof Blob ? data : new Blob([data], { type });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById('generate-collage-btn').onclick = function() {
+    const resultDiv = document.getElementById('collage-result');
+    resultDiv.innerHTML = 'Generating collage...';
+    fetch('/garden/generate_a4_collage/', {method: 'POST'})
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                resultDiv.innerHTML = 'A4 Collage created: <a href="' + data.file_path + '" download>' + data.file_path + '</a>';
+            } else {
+                let errorMsg = data.error ? ' (' + data.error + ')' : '';
+                resultDiv.innerHTML = 'Failed to generate collage' + errorMsg;
+            }
+        })
+        .catch((err) => {
+            resultDiv.innerHTML = 'Error generating collage.' + (err ? ' (' + err + ')' : '');
+        });
+};
+
+document.getElementById('download-all-collages-btn').onclick = function() {
+    fetch('/garden/list_a4_collages/')
+        .then(response => response.json())
+        .then(data => {
+            const images = data.images || [];
+            if (!images.length) {
+                alert('No collages to download.');
+                return;
+            }
+            images.forEach(function(path) {
+                const parts = path.split(/[\\/]/);
+                const filename = parts[parts.length - 1];
+                fetch(path)
+                  .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.blob();
+                  })
+                  .then(blob => {
+                    downloadFile(blob, filename, blob.type);
+                  })
+                  .catch(() => {
+                    alert('Failed to download ' + filename);
+                  });
+            });
+        })
+        .catch(() => {
+            alert('Failed to fetch collage list.');
+        });
+};
+function renderCollageList(images) {
+    const listElement = document.getElementById('a4-collage-list');
+    listElement.innerHTML = '';
+
+    if (!images.length) {
+        listElement.innerHTML = '<li class="no-results">No collages found.</li>';
+        return;
+    }
+
+    const groupedCollages = groupImagesByDate(images);
+    
+    // Sort dates newest first
+    const sortedDates = Object.keys(groupedCollages).sort((a, b) => {
+        return new Date(b.replace(/-/g, ' ')) - new Date(a.replace(/-/g, ' '));
+    });
+
+    sortedDates.forEach(dateKey => {
+        const header = createListElement(dateKey, { fontWeight: 'bold' });
+        header.className = 'date-header';
+        listElement.appendChild(header);
+
+        const sortedFiles = groupedCollages[dateKey].sort((a, b) => a.localeCompare(b));
+
+        sortedFiles.forEach(path => {
+            const fileName = path.split(/[\\/]/).pop();
+            const item = createActionItem(fileName, path);
+            listElement.appendChild(item);
+        });
+    });
+}
+function createActionItem(fileName, path) {
+    const li = document.createElement('li');
+    li.className = 'file-item';
+
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'file-link';
+    nameSpan.textContent = fileName;
+
+    const actions = document.createElement('div');
+    actions.className = 'file-actions';
+
+    // Download Button
+    const btnDownload = document.createElement('a');
+    btnDownload.href = path;
+    btnDownload.download = fileName;
+    btnDownload.innerHTML = '📥';
+    btnDownload.title = 'Download';
+    btnDownload.className = 'action-btn download';
+
+    // Print Button
+// Print Button
+
+const btnPrint = document.createElement('button');
+btnPrint.innerHTML = '🖨️';
+btnPrint.title = 'Print (Ensure Paper Size is set to A4)'; // Browser tooltip on hover
+btnPrint.className = 'action-btn print';
+
+btnPrint.onclick = () => {
+    // 1. Show a quick alert or notification
+    const proceed = confirm("Reminder: Please ensure your Printer Settings are set to 'A4' for the best results. Proceed to print?");
+    
+    if (!proceed) return;
+
+    // 2. Proceed with the A4-styled print window
+    const printWindow = window.open('', '_blank', 'width=800,height=600');
+    printWindow.document.write(`
+        <html>
+            <head>
+                <title>Print Collage</title>
+                <style>
+                    @page { size: A4; margin: 0; }
+                    body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+                    img { max-width: 210mm; max-height: 297mm; object-fit: contain; }
+                    /* Visual reminder inside the print window just in case */
+                    .print-note { position: absolute; top: 10px; font-family: sans-serif; color: #999; font-size: 10px; }
+                    @media print { .print-note { display: none; } }
+                </style>
+            </head>
+            <body>
+                <div class="print-note">Set layout to A4 in settings</div>
+                <img src="${path}" onload="setTimeout(() => { window.print(); window.close(); }, 500);">
+            </body>
+        </html>
+    `);
+    printWindow.document.close();
+};
+
+actions.appendChild(btnDownload);
+    actions.appendChild(btnPrint);
+    li.appendChild(nameSpan);
+    li.appendChild(actions);
+
+    return li;
+}
+/**
+ * Enhanced Date Extraction: Handles AM/PM to ensure Local Time is correct
+ */
+function extractDateKey(path) {
+    const filename = path.split(/[\\/]/).pop();
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    
+    const match = filename.match(/([A-Za-z]+ \d{1,2} \d{4}) - (\d{1,2}) (\d{2}) (\d{2}) (AM|PM)/i);
+    
+    if (match) {
+        const [_, datePart, hour, min, sec, ampm] = match;
+        const dateObj = new Date(`${datePart} ${hour}:${min}:${sec} ${ampm}`);
+        
+        if (!isNaN(dateObj)) {
+            const MMM = months[dateObj.getMonth()];
+            const DD = String(dateObj.getDate()).padStart(2, '0');
+            const YYYY = dateObj.getFullYear();
+            const HH = String(dateObj.getHours()).padStart(2, '0');
+            const mm = String(dateObj.getMinutes()).padStart(2, '0');
+            
+            return `${MMM} ${DD} ${YYYY} ${HH}:${mm}`;
+        }
+    }
+    return 'Unknown Date';
+}
+function groupImagesByDate(images) {
+    return images.reduce((groups, path) => {
+        const key = extractDateKey(path);
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(path);
+        return groups;
+    }, {});
+}
+
+function createListElement(text, styles = {}) {
+    const li = document.createElement('li');
+    li.textContent = text;
+    Object.assign(li.style, styles);
+    return li;
+}
+
+// Update createLinkElement to add the link class
+function createLinkElement(fileName, path) {
+    const li = document.createElement('li');
+    const anchor = document.createElement('a');
+    anchor.className = 'file-link'; // Link class
+    anchor.href = path;
+    anchor.textContent = fileName;
+    anchor.download = fileName;
+    li.appendChild(anchor);
+    return li;
+}
+function fetchCollageList() {
+    fetch('/garden/list_a4_collages/')
+        .then(response => response.json())
+        .then(data => {
+            renderCollageList(data.images || []);
+        })
+        .catch(() => {
+            renderCollageList([]);
+        });
+}
+
+document.getElementById('refresh-collages-btn').onclick = fetchCollageList;
+window.addEventListener('DOMContentLoaded', fetchCollageList);
+</script>
+</body>
+</html>

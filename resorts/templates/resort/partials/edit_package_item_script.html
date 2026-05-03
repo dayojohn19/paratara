@@ -1,0 +1,223 @@
+<!-- Generic Edit Package Item Script -->
+<script>
+(function() {
+  // Get CSRF token from cookies
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  // Generic edit handler
+  function setupEditModal(config) {
+    const modal = document.getElementById(config.modalId);
+    const form = document.getElementById(config.formId);
+    const cancelBtn = document.getElementById(config.cancelBtnId);
+    const editButtons = document.querySelectorAll(config.editBtnClass);
+
+    if (!modal || !form || editButtons.length === 0) return;
+
+    // Open modal and populate form
+    editButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const itemId = this.getAttribute('data-item-id');
+        const images = this.getAttribute('data-images');
+        
+        // Set item ID
+        document.getElementById(config.fields.id).value = itemId;
+        
+        // Populate all configured fields
+        Object.keys(config.fields).forEach(fieldKey => {
+          if (fieldKey !== 'id') {
+            const inputId = config.fields[fieldKey];
+            const dataAttr = 'data-' + fieldKey.replace(/_/g, '-');
+            const value = this.getAttribute(dataAttr);
+            const input = document.getElementById(inputId);
+            if (input) {
+              input.value = value || '';
+            }
+          }
+        });
+
+        // Handle images if container exists
+        const imageContainer = modal.querySelector('.current-images-container');
+        if (imageContainer && images) {
+          try {
+            const imageList = JSON.parse(images);
+            imageContainer.innerHTML = '';
+            if (imageList.length > 0) {
+              imageList.forEach(img => {
+                const imgDiv = document.createElement('div');
+                imgDiv.style.cssText = 'position:relative;display:inline-block;margin:0.5rem;';
+                imgDiv.innerHTML = `
+                  <img src="${img.url}" style="width:80px;height:80px;object-fit:cover;border-radius:4px;" />
+                  <button type="button" class="delete-image-btn" data-image-id="${img.id}" style="position:absolute;top:-8px;right:-8px;background:red;color:white;border:none;border-radius:50%;width:24px;height:24px;cursor:pointer;font-size:14px;line-height:1;">×</button>
+                `;
+                imageContainer.appendChild(imgDiv);
+              });
+              
+              // Add delete handlers
+              imageContainer.querySelectorAll('.delete-image-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                  const imageId = this.getAttribute('data-image-id');
+                  if (confirm('Delete this image?')) {
+                    fetch(`/resorts/delete-package-image/${imageId}/`, {
+                      method: 'POST',
+                      headers: { 'X-CSRFToken': getCookie('csrftoken') }
+                    }).then(r => r.ok ? this.parentElement.remove() : alert('Failed to delete'));
+                  }
+                });
+              });
+            } else {
+              imageContainer.innerHTML = '<div style="color:#999;font-size:0.9rem;">No images yet</div>';
+            }
+          } catch (e) {
+            imageContainer.innerHTML = '<div style="color:#999;font-size:0.9rem;">No images yet</div>';
+          }
+        }
+
+        modal.style.display = 'flex';
+      });
+    });
+
+    // Close modal
+    function closeModal() {
+      modal.style.display = 'none';
+      form.reset();
+    }
+
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', closeModal);
+    }
+    
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) {
+        closeModal();
+      }
+    });
+
+    // Handle form submission
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const itemId = document.getElementById(config.fields.id).value;
+      const formData = new FormData();
+      
+      // Collect all field values
+      Object.keys(config.fields).forEach(fieldKey => {
+        if (fieldKey !== 'id') {
+          const inputId = config.fields[fieldKey];
+          const input = document.getElementById(inputId);
+          if (input) {
+            if (input.type === 'file' && input.files.length > 0) {
+              // Add all selected files
+              Array.from(input.files).forEach(file => {
+                formData.append('images', file);
+              });
+            } else {
+              formData.append(fieldKey, input.value || '');
+            }
+          }
+        }
+      });
+
+      try {
+        const response = await fetch(`/resorts/edit-package-item/${itemId}/`, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+          },
+          body: formData
+        });
+
+        if (response.ok) {
+          // Reload page to show updated data
+          window.location.reload();
+        } else {
+          const data = await response.json();
+          alert('Error: ' + (data.error || 'Failed to update item'));
+        }
+      } catch (error) {
+        console.error('Error updating item:', error);
+        alert('Failed to update item. Please try again.');
+      }
+    });
+  }
+
+  // Initialize all edit modals when DOM is ready
+  document.addEventListener('DOMContentLoaded', function() {
+    // Menu Items
+    setupEditModal({
+      modalId: 'editItemModal',
+      formId: 'editItemForm',
+      cancelBtnId: 'cancelEdit',
+      editBtnClass: '.edit-item-btn',
+      fields: {
+        id: 'editItemId',
+        title: 'editItemTitle',
+        description: 'editItemDescription',
+        price: 'editItemPrice',
+        
+      }
+    });
+
+    // Accommodations
+    setupEditModal({
+      modalId: 'editAccommodationModal',
+      formId: 'editAccommodationForm',
+      cancelBtnId: 'cancelEditAccommodation',
+      editBtnClass: '.edit-accommodation-btn',
+      fields: {
+        id: 'editAccommodationId',
+        title: 'editAccommodationTitle',
+        description: 'editAccommodationDescription',
+        information: 'editAccommodationInformation',
+        price: 'editAccommodationPrice',
+        
+      }
+    });
+
+    // Activities
+    setupEditModal({
+      modalId: 'editActivityModal',
+      formId: 'editActivityForm',
+      cancelBtnId: 'cancelEditActivity',
+      editBtnClass: '.edit-activity-btn',
+      fields: {
+        id: 'editActivityId',
+        title: 'editActivityTitle',
+        description: 'editActivityDescription',
+        information: 'editActivityInformation',
+        price: 'editActivityPrice',
+        images: 'editActivityImages',
+      }
+    });
+
+    // Promotions
+    setupEditModal({
+      modalId: 'editPromotionModal',
+      formId: 'editPromotionForm',
+      cancelBtnId: 'cancelEditPromotion',
+      editBtnClass: '.edit-promotion-btn',
+      fields: {
+        id: 'editPromotionId',
+        title: 'editPromotionTitle',
+        description: 'editPromotionDescription',
+        information: 'editPromotionInformation',
+        price: 'editPromotionPrice',
+        expires_at: 'editPromotionExpiresAt',
+        
+      }
+    });
+  });
+})();
+</script>

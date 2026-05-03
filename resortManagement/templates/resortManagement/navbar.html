@@ -1,0 +1,82 @@
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'bootstrap/css/master.css' %}" />
+    <style>
+            @media (max-width: 768px) {
+              .room-list {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+              }
+              .navbar1 {
+                padding-top: 5rem;
+                width: 100vw;
+              }
+              .navbar2 {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 1030; /* Keep above other elements */
+                background-color: rgb(235, 238, 241) !important;
+              }
+            }
+
+
+
+    </style>
+    <script src="{% static 'bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+      <div class="navbar1 text-white rounded flex-fill text-center" style="backdrop-filter: red;">
+
+      </div>
+      <div class="text-white rounded flex-fill text-center">
+        <nav class="navbar navbar2 navbar-expand-lg bg-body-tertiary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'resorts:getResort' resortName %}">{{resortRealName}}</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <!-- <li class="nav-item">
+                <a class="nav-link active" aria-current="page" href="{% url 'resort_management:room_list' resortID %}">Find more</a>
+                </li> -->
+                <li class="nav-item dropdown">
+                  {% for accommodation in resortObject.AccomodationsList %}
+                    <div>
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                          {{accommodation.PackageTitle}}
+                        </a>
+                        <ul class="dropdown-menu">
+                          {% for package in accommodation.subPackagesList %}
+
+                          <!-- <li><a class="dropdown-item" href="#">resort ID {{resortID}}</a></li> -->
+                          <li><a class="dropdown-item" href="{% url 'resort_management:movemarkedcalendarnamed' resortID package.id month year 'id_picture' %}">{{package.title}}</a></li>
+                          <!-- <li><a class="dropdown-item" href="#">{{package.id}}</a></li> -->
+                          {% endfor %}
+                          <li><hr class="dropdown-divider"></li>
+                          <li><a class="dropdown-item" href="{% url 'resort_management:room_list' resortID %}">View All</a></li>
+                        </ul>                      
+                      </div>
+                  {% endfor %}
+                </li>
+                <a class="nav-link active" aria-current="page" href="{% url 'home:home' %}">Carpool</a>
+            </ul>
+            <!-- SEARCH BAR DONT DELETE -->
+            <!-- <form class="d-flex" role="search">
+                <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search"/>
+                <button class="btn btn-outline-success" type="submit">Search</button>
+            </form> -->
+            </div>
+        </div>
+        </nav>    
+      </div>
+    </div>
+
+
+    <style>
+        .nav-link:hover {
+    color: #ffd700 !important;      /* Gold text on hover */
+    background-color: #0d6efd20;    /* Light blue background (transparent) */
+    border-radius: 0.25rem;         /* Optional rounded corners */
+  }
+    </style>

@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Booking Calendar </title>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const confirmForms = document.querySelectorAll('#check-out, #make-request, #submit-checkin-btn');
+    
+            confirmForms.forEach(form => {
+                form.addEventListener('submit', function (e) {
+                    const actionType = form.querySelector('input[name="type"]').value;
+                    const confirmMessage = actionType === 'add'
+                        ? 'Are you sure you want to go to the next month?'
+                        : 'Are you sure?';
+    
+                    if (!confirm(confirmMessage)) {
+                        e.preventDefault();  // Stop form submission
+                    }
+                });
+            });
+        });
+        function enableEdit(id) {
+        const textarea = document.getElementById(`text-${id}`);
+        const submitBtn = document.getElementById(`submit-${id}`);
+        
+        textarea.removeAttribute('disabled');
+        textarea.focus();
+        submitBtn.style.display = 'inline-block';
+    }
+    </script>
+    <style>
+        select[name="room"], select[name="resort"] {
+            display: none;
+        }
+        .book-indicator {
+            background-color: rgb(255, 103, 103);  box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);height: 20px;margin-bottom: 5px;
+        }
+        /* text area edit */
+        .change-button {
+        display: none;
+        margin-top: 5px;
+    }
+
+    .edit-button {
+        background-color: #ffc107;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        color: #000;
+        cursor: pointer;
+        margin-top: 5px;
+    }
+
+    .status.Booked {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+        /*  request change request */
+        #make-request {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-width: 400px;
+        background-color: #f9f9f9;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        font-family: sans-serif;
+    }
+
+    #make-request textarea {
+        resize: vertical;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 0.95rem;
+    }
+
+    #make-request button {
+        align-self: flex-start;
+        background-color: #28a745;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.95rem;
+        transition: background-color 0.2s ease;
+    }
+
+    #make-request button:hover {
+        background-color: #218838;
+    }
+
+    #make-request .status.Booked {
+        background-color: #007bff;
+    }
+
+    #make-request .status.Booked:hover {
+        background-color: #0056b3;
+    }
+/* month style */
+.month-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background-color: #f5f5f5;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-family: sans-serif;
+        margin-bottom: 20px;
+    }
+
+    .month-title {
+        font-size: 1.2rem;
+        font-weight: bold;
+    }
+
+    .month-nav {
+        display: flex;
+        gap: 10px;
+    }
+
+    .month-nav form {
+        display: inline;
+    }
+
+    .month-nav button {
+        background-color: #007bff;
+        border: none;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: background-color 0.2s ease;
+    }
+
+    .month-nav button:hover {
+        background-color: #0056b3;
+    }
+
+        #id_room, #id_resort {
+            /* display: none; */
+
+        }
+/* Basic Modal Styling */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+}
+
+/* Show when targeted via anchor */
+.modal:target {
+    display: block;
+}
+
+/* Modal content styling */
+.modal-content {
+    background: #fff;
+    /* padding: 20px; */
+    /* width: 80%; */
+    max-width: 400px;
+    margin: 3% auto;
+    position: relative;
+    border-radius: 8px;
+}
+
+/* Close button */
+.close {
+    position: absolute;
+    right: 15px;
+    top: 10px;
+    font-size: 24px;
+    text-decoration: none;
+    color: #000;
+}  
+        /* form style */
+    .form-container {
+
+        overflow-y: auto;
+        margin: auto;
+        padding: 30px 40px;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    .form-container h2 {
+        text-align: center;
+        margin-bottom: 25px;
+        color: #333;
+    }
+
+    form p {
+        margin-bottom: 18px;
+    }
+
+    input, textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 15px;
+    }
+
+    input[type="submit"] {
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    input[type="submit"]:hover {
+        background-color: #45a049;
+    }
+
+    label {
+        font-weight: bold;
+        display: block;
+        margin-bottom: 6px;
+        color: #444;
+    }
+
+    .datetime-field input {
+        padding: 8px;
+    }
+
+    .hidden-field {
+        display: none;
+    }
+</style>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        /* table.calendar {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table.calendar th, table.calendar td {
+            width: 14.28%;
+            height: 100px;
+            border: 1px solid #ddd;
+            text-align: center;
+            vertical-align: top;
+        } */
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+        }
+
+        /* Style for table header (days of the week) */
+        th {
+            background-color: #f2f2f2;
+            padding: 10px;
+            font-weight: bold;
+            border: 1px solid #ddd;
+        }
+
+        /* Style for table data (days of the month) */
+        td {
+            /* padding: 20px; */
+            padding-bottom: 10px;
+            border: 1px solid #ddd;
+            cursor: pointer;
+        }
+
+        /* Hover effect for days */
+        td:hover {
+            background-color: #f0f0f0;
+        }
+
+        /* Style for the overall table container */
+        .calendar-container {
+            margin: 50px auto;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+        /* Style for the month name */
+        .month-name {
+            text-align: center;
+            font-size: 1.5em;
+            padding: 10px;
+            background-color: #f2f2f2;
+        }
+
+
+        .booked {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .available {
+            color: #155724;
+        }
+             .packages-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .package-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            width: 300px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .package-images {
+            display: flex;
+            overflow-x: auto;
+        }
+
+        .package-images img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .package-content {
+            padding: 16px;
+        }
+
+        .package-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 0 0 8px 0;
+            color: #333;
+        }
+
+        .package-description {
+            color: #555;
+            margin-bottom: 10px;
+        }
+
+        .package-info {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .package-price {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            font-weight: bold;
+            padding: 8px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        /* Scrollbar for images */
+        .package-images::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .package-images::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 4px;
+        }
+        #open-btn {
+            margin: 10px;
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #34db5e;  /* blue */
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+    font-family: sans-serif;
+    transition: background-color 0.3s ease;
+}
+        #other-btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #34a9db;  /* blue */
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+    font-family: sans-serif;
+    transition: background-color 0.3s ease;
+}
+
+#open-btn:hover {
+    background-color: #2980b9;  /* darker blue on hover */
+}        
+    </style>
+  <style>
+/* Check in List Style */
+.checkin-list {
+            max-width: 800px;
+            margin: auto;
+            list-style: none;
+            padding: 0;
+        }
+
+        .checkin-item {
+            background: white;
+            border-left: 6px solid #4CAF50;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .checkin-item h3 {
+            margin: 0;
+            font-size: 1.2em;
+            color: #333;
+        }
+
+        .info-row {
+            margin: 10px 0;
+            color: #555;
+        }
+
+        .highlight {
+            background-color: #e8f5e9;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-weight: bold;
+            display: block;
+            margin-right: 10px;
+        }
+
+        .label {
+            font-weight: bold;
+            color: #444;
+        }
+
+        .dates {
+            margin-top: 12px;
+        }
+</style>
+</head>
+<body>
+
+
+
+
+
+
+    <div class="calendar-container">
+        <!-- Month Name -->
+
+
+
+        <div class="month-name"> 
+            <div class="month-header">
+                <div class="month-title"><h3>{{ room_item.title }} </h3> {{ month_name }} {{ year }}
+                    <hr>
+                <div class="month-nav">
+                    <form id="last-month" method="POST" action="{% url 'resort_management:room_availability' resort_id room_id room_month room_year %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="type" value="subtract">
+                        <button type="submit">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M16 4L8 12L16 20" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                              </svg>
+                              
+                        </button>
+                    </form>                    
+                    <form id="next-month" method="POST" action="{% url 'resort_management:room_availability' resort_id room_id room_month room_year %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="type" value="add">
+                        <button type="submit"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M8 4L16 12L8 20" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        </button>
+                    </form>
+                    
+                </div>
+            </div>
+            <a href="{% url 'resort_management:room_list' resort_id %}" id="other-btn"> more list</a>
+            </div>
+        </div>
+    
+
+        <table class="calendar">
+            <tr>
+                <th>Sun</th><th>Mon</th><th>Tue</th><th>Wed</th>
+                <th>Thu</th><th>Fri</th><th>Sat</th>
+            </tr>
+
+            {% for week in calendar %}
+            <tr>
+                {% for day in week %}
+                    {% if day > 0 %}
+
+                    <td class="available">
+                        <h3>{{ day }}</h3><br>
+
+                        {% for full_date in booked_days %}
+                        <!-- date: {{full_date|slice:"8:10"}} day: {{day|stringformat:"02d"}} -->
+                        {% if day|stringformat:"02d" == full_date|slice:"8:10" %}
+                        <!-- Do something if the day part of the date is "04" -->
+                        <a href="#checkin-list">
+                        <div class="book-indicator">
+                            
+                            <!-- Empty div with red background -->
+                        </div></a>
+                        <!-- <td class="booked">
+                            {{ month_name|slice:":3" }} {{ day }}<br>
+                            <small>Booked</small>
+                        </td> -->
+
+                        {% else %}
+
+                        {% endif %}
+
+                        {% endfor %}
+                    </td>
+
+                    <!-- DEBUG: {{ full_date }} -->
+
+                    {% else %}
+                        <td></td>
+                    {% endif %}
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </table>
+        </div>
+    </div>
+    <!-- if request.user.is_authenticated -->
+    <!-- <div class="package-card" style="margin: 0 auto; margin-bottom: 30px;" >
+        <div class="package-content">
+            <h2 class="month-name" style="background-color:rgba(255, 222, 173, 0);">{{ room_item.title }}  </h2>
+            <small><h5>{{ room_item.packageName }}</h5></small>
+            <div class="package-description">{{ room_item.description|truncatechars:100 }}</div>
+            <div class="package-info">{{ room_item.information|linebreaksbr }}</div>
+            <div class="package-price">₱ {{ room_item.price }} </div>
+        </div>
+        <a href="#guestcheckinModal" id="open-btn">Check In</a>
+        <hr>
+         {{resortPackage_id}} 
+        <a href="{% url 'resort_management:room_list' resort_id %}" id="other-btn"> Other List</a>
+    </div> -->
+    <!-- endif -->
+
+    {% if isManager %}
+    <h1>Manager {{isManager.profile}}a</h1>
+    <div class="package-card" style="margin: 0 auto; margin-bottom: 30px;" >
+        <div class="package-content">
+            <h2 class="month-name" style="background-color:rgba(255, 222, 173, 0);">{{ room_item.title }}  </h2>
+            <small><h5>{{ room_item.packageName }}</h5></small>
+            <div class="package-description">{{ room_item.description|truncatechars:100 }}</div>
+            <div class="package-info">{{ room_item.information|linebreaksbr }}</div>
+            <div class="package-price">₱ {{ room_item.price }} </div>
+        </div>
+        <a href="#guestcheckinModal" id="open-btn">Check In</a>
+        <hr>
+         {{resortPackage_id}} 
+        <a href="{% url 'resort_management:room_list' resort_id %}" id="other-btn"> more list</a>
+    </div>    
+    {% else %}
+    <h1>
+        <a style="text-decoration: none;" href="{% url 'resorts:getResortID' resort_id %}">Please Contact Us </a>
+    </h1>
+    {% endif %}
+
+
+    
+  
+
+
+    <div class="form-container modal" id="guestcheckinModal" >
+        <div class="modal-content">
+            <a href="#" class="close">&times;</a>
+            <div class="form-container">
+                <form method="POST" action="{% url 'resort_management:room_checkin' %}">
+                    {% csrf_token %}
+        
+                    <!-- Hidden room and resort fields -->
+                    {{ form.room }}
+                    {{ form.resort }}
+        
+                    <!-- Render visible fields manually for control -->
+                    <p>
+                        {{ form.guest_name.label_tag }}<br>
+                        {{ form.guest_name }}
+                    </p>
+                    <p>
+                        {{ form.guest_email.label_tag }}<br>
+                        {{ form.guest_email }}
+                    </p>
+                    <p>
+                        {{ form.guest_phone.label_tag }}<br>
+                        {{ form.guest_phone }}
+                    </p>
+                    <p class="datetime-field">
+                        <label for="{{ form.checkin_date.id_for_label }}">Check-in Date & Time</label>
+                        {{ form.checkin_date }}
+                    </p>
+                    <p class="datetime-field">
+                        <label for="{{ form.checkout_date.id_for_label }}">Check-out Date & Time</label>
+                        {{ form.checkout_date }}
+                    </p>
+                    <p>
+                        {{ form.special_requests.label_tag }}<br>
+                        {{ form.special_requests }}
+                    </p>
+                    <p>
+                        <input type="submit" id="submit-checkin-btn" value="Submit Check-In">
+                    </p>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+
+<ul class="checkin-list" id="checkin-list">
+    <h1 style="text-align: center;">Guest Check-ins</h1>
+    {% for checkin in check_list %}
+        <li class="checkin-item">
+            <h4>{{ checkin.room }}</h4>
+            <h3>{{ checkin.guest_name.split.0 }}</h3>
+            <div class="info-row">
+                <span class="label">Email:</span> {{ checkin.guest_email }}<br>
+                <span class="label">Phone:</span> {{ checkin.guest_phone }}
+            </div>
+
+            <div class="dates">
+                <span class="highlight">Check-&nbsp;&nbsp;in: {{ checkin.checkin_date|date:"M d, Y H:i" }}</span>
+                <span class="highlight">Check-out: {{ checkin.checkout_date|date:"M d, Y H:i" }}</span>
+                {% if checkin.checked_in %}
+                <form id="check-out" method="POST" action="{% url 'resort_management:room_availability' resort_id room_id room_month room_year %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="type" value="checkout">
+                    <input type="hidden" name="checked_id" value="{{ checkin.id }}">
+                    <button class="edit-button" type="submit">Check Out</button>
+                </form>
+                {% endif %}
+    
+            </div>
+
+            {% if checkin.special_requests %}
+                <br>
+                <div class="info-row">
+                    <span class="label">Note:</span> 
+                </div>
+            
+
+                {% if checkin.checked_in %}
+                
+                <form id="make-request-{{ checkin.id }}" method="POST" action="{% url 'resort_management:room_availability' resort_id room_id room_month room_year %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="type" value="request">
+                    <input type="hidden" name="checked_id" value="{{ checkin.id }}">
+                
+                    <textarea id="text-{{ checkin.id }}" name="special_requests" rows="2" cols="30" placeholder="Special Requests" disabled>{{ checkin.special_requests }}</textarea>
+                
+                    <button type="button" class="edit-button" onclick="enableEdit('{{ checkin.id }}')">Edit</button>
+                    <button class="status Booked change-button" type="submit" id="submit-{{ checkin.id }}">Change</button>
+                </form>                
+                {% endif %}
+
+            {% endif %}
+            
+            
+        </li>
+        <div style="height: 50px;"></div>
+    {% empty %}
+        <li class="checkin-item">
+            <p>Please Contact us to Make reservations.</p>
+        </li>
+    {% endfor %}
+</ul>
+</body>
+</html>

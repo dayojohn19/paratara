@@ -1,0 +1,128 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="{% static 'bootstrap/css/master.css' %}" />
+<script src="{% static 'bootstrap/js/bootstrap.js' %}"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body style="align-items: center; text-align: center;">
+<h1>{{message}}</h1>
+
+
+<form method="post" action="{% url 'garden:registrationpage' %}">
+    <h2>Create New Province</h2>
+    {% csrf_token %}
+    <div>Province Name</div>
+{{ProvinceForm.provinceName}}
+<input type="submit" value="Submit">
+</form>
+
+<hr>
+
+<form  method="post" action="{% url 'garden:registrationpage' %}">
+    <h2>New Place</h2>
+    {% csrf_token %}
+    <div>Place Name: </div>
+    {{PlaceProfileForm.placeName}}
+    <br><br>
+    <div>Place Picture URL: </div>
+    {{PlaceProfileForm.placePicture}}
+    <br><br>
+    <div>Place Province: </div>
+    {{PlaceProfileForm.placeProvince}}
+    <br><br>
+    <input type="submit" value="Submit" class="btn btn-success">
+</form>
+
+<hr>
+
+
+<form method="post" action="{% url 'garden:registerImagesFromImageBank' %}" style="background-color: ghostwhite;">
+    <h2>Add Collection</h2>
+    <input name="collectioncustomTitle" placeholder="custom title" type="text" value="">
+    <input name="collectionCount" placeholder="collection count" type="number" required value="">
+    <p><small><i>This is the Cards Different Name</i></small></p>
+    {% csrf_token %}
+    <div>
+        <p>Collection Name</p>
+        <!-- <label class="form-label">{{CollectionForm.collectionName}}</label> -->
+          <input class="form-select" placeholder="--- Select Collection ---" name="collectionName" type="text" list="cnames">
+            
+
+          <datalist id="cnames">
+              {% for i in CollectionForm.collectionName %}
+              <option>{{i}}</option>
+              {% endfor %}
+            
+          </datalist>
+
+        <hr>
+    </div>
+    <div>
+        <h3>Creating a Title</h3>
+        <p>
+            go to <p><a target="_blank" href="https://www.textstudio.com/logo/vaporwave-text-effect-2183">www.textstudio.com</a></p>
+            create a Head Title Design and save to <p><a target="_blank" href="https://imgbb.com">imgbb.com</a></p>
+            <div><small>repapaka20@gmail.com</small></div>
+        </p>
+        and Paste the URL .png here for<br>
+         <div><b>Collection Title</b></div>
+        {{CollectionForm.collectionImageIndicator}}
+        <br><br>
+        <div>Collection collectionDescription</div>
+        {{CollectionForm.collectionDescription}}
+    </div>
+    <hr>
+    <div>
+        <p>Collection Background Picture URL</p>
+        <p>
+            <div><small>.png the image should be 1000x700 pixelss</small></div>
+             save to <p><a target="_blank" href="https://imgbb.com">imgbb.com</a></p>
+            <div><small>repapaka20@gmail.com</small></div>
+        </p>
+        {{CollectionForm.collectionPicture}}
+        <hr>
+    </div>
+    <div>Collection Theme</div>
+    {{CollectionForm.collectionTheme}}
+    <br><br>
+    <div>Collection Place</div>
+    <p>{{CollectionForm.collectionPlace}}</p>
+        <div>Collection Place Direct</div> 
+        <p>{{CollectionForm.collectionPlaceDirect}}</p>
+    <br><br>
+    <p><input type="submit" value="Submit Collection" class="btn btn-warning"></p>
+</form>
+
+<hr>
+
+
+<form method="post" action="{% url 'garden:registrationpage' %}">
+    <h2>Make Visitor</h2>
+    <p><small><i>Individual </i></small></p>
+    {% csrf_token %}
+    <div>Name</div>
+    {{VisitorForm.visitorName}}
+    <br><br>
+    <div>ID</div>
+    {{VisitorForm.visitorID}}
+    <br><br>
+    <input type="submit" value="Submit">
+</form>
+
+<hr>
+
+
+<!-- <form method="post" action="{% url 'garden:registrationpage' %}">
+    <h2>Generate QR Code</h2>
+    {{QRCodeForm}}
+    <input type="submit" value="Submit">
+</form> -->
+
+<hr>
+
+</body>
+</html>

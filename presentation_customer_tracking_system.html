@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tourist Tracking System - Presentation</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #1a1a2e;
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+        }
+        
+        /* Slide Container */
+        .presentation {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+        }
+        
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            padding: 60px 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .slide.active {
+            display: flex;
+            opacity: 1;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        /* Slide Backgrounds */
+        .slide-1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .slide-2 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .slide-3 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .slide-4 { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .slide-5 { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+        .slide-6 { background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); }
+        .slide-7 { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
+        .slide-8 { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); }
+        .slide-9 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        
+        /* Title Slide */
+        .title-slide {
+            text-align: center;
+        }
+        
+        .title-slide h1 {
+            font-size: 4.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            line-height: 1.2;
+        }
+        
+        .title-slide .subtitle {
+            font-size: 1.8rem;
+            font-weight: 300;
+            opacity: 0.95;
+            margin-bottom: 40px;
+        }
+        
+        .title-slide .presenter {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            margin-top: 60px;
+        }
+        
+        /* Content Slide */
+        .content-slide h2 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 50px;
+            text-align: center;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .content-slide p {
+            font-size: 1.3rem;
+            line-height: 1.8;
+            max-width: 900px;
+            text-align: center;
+            margin: 0 auto 30px;
+            opacity: 0.95;
+        }
+        
+        /* Feature List */
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        
+        .feature-item {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .feature-item:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .feature-item h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+        
+        .feature-item p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            text-align: left;
+        }
+        
+        /* Steps / How it Works */
+        .steps {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .step {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 25px 35px;
+            border-radius: 12px;
+            border-left: 5px solid rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+        
+        .step-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            min-width: 60px;
+            text-align: center;
+            opacity: 0.9;
+        }
+        
+        .step-content h3 {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+        
+        .step-content p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            text-align: left;
+            margin: 0;
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .stat-number {
+            font-size: 4rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            line-height: 1;
+        }
+        
+        .stat-label {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        /* Bullet Points */
+        .bullet-list {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .bullet-list ul {
+            list-style: none;
+        }
+        
+        .bullet-list li {
+            font-size: 1.5rem;
+            padding: 20px 30px;
+            margin-bottom: 15px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            border-left: 4px solid rgba(255, 255, 255, 0.8);
+            position: relative;
+            padding-left: 70px;
+        }
+        
+        .bullet-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 25px;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        
+        /* Navigation */
+        .nav-button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            font-size: 2rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .nav-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-50%) scale(1.1);
+        }
+        
+        .nav-button.prev {
+            left: 30px;
+        }
+        
+        .nav-button.next {
+            right: 30px;
+        }
+        
+        .nav-button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        
+        .nav-button:disabled:hover {
+            transform: translateY(-50%) scale(1);
+        }
+        
+        /* Progress Bar */
+        .progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            transition: width 0.3s ease;
+        }
+        
+        /* Slide Counter */
+        .slide-counter {
+            position: absolute;
+            bottom: 30px;
+            right: 40px;
+            font-size: 1.2rem;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Q&A Slide */
+        .qa-slide {
+            text-align: center;
+        }
+        
+        .qa-slide h2 {
+            font-size: 5rem;
+            margin-bottom: 30px;
+        }
+        
+        .qa-slide p {
+            font-size: 1.8rem;
+            opacity: 0.9;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .slide {
+                padding: 40px;
+            }
+            
+            .title-slide h1 {
+                font-size: 3rem;
+            }
+            
+            .title-slide .subtitle {
+                font-size: 1.4rem;
+            }
+            
+            .content-slide h2 {
+                font-size: 2.2rem;
+            }
+            
+            .feature-list {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .bullet-list li {
+                font-size: 1.2rem;
+            }
+            
+            .nav-button {
+                width: 50px;
+                height: 50px;
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="presentation">
+        <!-- Slide 1: Title -->
+        <div class="slide slide-1 active title-slide">
+            <h1>Tourist Tracking System</h1>
+            <p class="subtitle">Real-time Visitor Monitoring & Safety Management</p>
+            <p class="presenter">Your Organization Name | 2024</p>
+        </div>
+
+        <!-- Slide 2: What is it? -->
+        <div class="slide slide-2 content-slide">
+            <h2>What is the Tourist Tracking System?</h2>
+            <p>A comprehensive digital solution designed to monitor and manage tourist movements across multiple tourist spots in real-time.</p>
+            <p>Ensuring visitor safety, improving tourist experience, and providing valuable insights for destination management.</p>
+        </div>
+
+        <!-- Slide 3: Key Features -->
+        <div class="slide slide-3 content-slide">
+            <h2>Key Features</h2>
+            <div class="feature-list">
+                <div class="feature-item">
+                    <h3>📍 Real-time Check-ins</h3>
+                    <p>Track visitor locations as they check in at each tourist spot</p>
+                </div>
+                <div class="feature-item">
+                    <h3>👥 Live Visitor Count</h3>
+                    <p>Monitor active visitors at each location instantly</p>
+                </div>
+                <div class="feature-item">
+                    <h3>🚨 Safety Alerts</h3>
+                    <p>Automatic notifications for visitors staying over 24 hours</p>
+                </div>
+                <div class="feature-item">
+                    <h3>🧭 Tour Guide Tracking</h3>
+                    <p>Link tourists with their tour guides for better coordination</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: How it Works -->
+        <div class="slide slide-4 content-slide">
+            <h2>How It Works</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Tourist Arrives</h3>
+                        <p>Visitor scans QR code or checks in at the tourist spot</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>System Records Visit</h3>
+                        <p>Time, location, and tourist details are logged automatically</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Real-time Monitoring</h3>
+                        <p>Administrators can view all active visitors across locations</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>Safety Tracking</h3>
+                        <p>System alerts if visitors stay longer than expected</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5: Benefits -->
+        <div class="slide slide-5 content-slide">
+            <h2>Benefits</h2>
+            <div class="bullet-list">
+                <ul>
+                    <li>Enhanced visitor safety and security</li>
+                    <li>Better resource allocation based on real data</li>
+                    <li>Improved emergency response capabilities</li>
+                    <li>Data-driven insights for tourism planning</li>
+                    <li>Seamless tour guide coordination</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Slide 6: Live Dashboard Stats -->
+        <div class="slide slide-6 content-slide">
+            <h2>Live Dashboard</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">247</div>
+                    <div class="stat-label">Active Visitors</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">15</div>
+                    <div class="stat-label">Tourist Spots</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">32</div>
+                    <div class="stat-label">Tour Guides</div>
+                </div>
+            </div>
+            <p style="margin-top: 50px;">Monitor everything from a single, intuitive dashboard</p>
+        </div>
+
+        <!-- Slide 7: Safety Features -->
+        <div class="slide slide-7 content-slide">
+            <h2>Safety & Security</h2>
+            <div class="feature-list">
+                <div class="feature-item">
+                    <h3>⏰ 24-Hour Monitoring</h3>
+                    <p>Automatic alerts for extended stays</p>
+                </div>
+                <div class="feature-item">
+                    <h3>📧 Contact Information</h3>
+                    <p>Quick access to tourist contact details</p>
+                </div>
+                <div class="feature-item">
+                    <h3>📊 Visit History</h3>
+                    <p>Complete trail of tourist movements</p>
+                </div>
+                <div class="feature-item">
+                    <h3>🔗 Guide Connection</h3>
+                    <p>Direct link to assigned tour guides</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 8: Getting Started -->
+        <div class="slide slide-8 content-slide">
+            <h2>Getting Started</h2>
+            <p style="font-size: 1.5rem; margin-bottom: 40px;">Three simple steps to implement:</p>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Setup Your Locations</h3>
+                        <p>Add all your tourist spots to the system</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Generate QR Codes</h3>
+                        <p>Create unique QR codes for each location</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Start Tracking</h3>
+                        <p>Visitors scan and you start monitoring instantly</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 9: Q&A -->
+        <div class="slide slide-9 qa-slide">
+            <h2>Questions?</h2>
+            <p>Thank you for your attention!</p>
+            <p style="margin-top: 40px; font-size: 1.4rem;">Contact: info@touristtracking.com</p>
+        </div>
+
+        <!-- Navigation -->
+        <button class="nav-button prev" onclick="changeSlide(-1)">‹</button>
+        <button class="nav-button next" onclick="changeSlide(1)">›</button>
+
+        <!-- Progress Bar -->
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <!-- Slide Counter -->
+        <div class="slide-counter">
+            <span id="currentSlide">1</span> / <span id="totalSlides">9</span>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        const progressFill = document.getElementById('progressFill');
+        const currentSlideEl = document.getElementById('currentSlide');
+
+        document.getElementById('totalSlides').textContent = totalSlides;
+
+        function showSlide(n) {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (n + totalSlides) % totalSlides;
+            slides[currentSlide].classList.add('active');
+            
+            // Update counter
+            currentSlideEl.textContent = currentSlide + 1;
+            
+            // Update progress bar
+            const progress = ((currentSlide + 1) / totalSlides) * 100;
+            progressFill.style.width = progress + '%';
+            
+            // Update navigation buttons
+            updateNavButtons();
+        }
+
+        function changeSlide(direction) {
+            showSlide(currentSlide + direction);
+        }
+
+        function updateNavButtons() {
+            const prevBtn = document.querySelector('.nav-button.prev');
+            const nextBtn = document.querySelector('.nav-button.next');
+            
+            prevBtn.disabled = currentSlide === 0;
+            nextBtn.disabled = currentSlide === totalSlides - 1;
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                if (currentSlide < totalSlides - 1) changeSlide(1);
+            } else if (e.key === 'ArrowLeft') {
+                if (currentSlide > 0) changeSlide(-1);
+            }
+        });
+
+        // Initialize
+        updateNavButtons();
+        progressFill.style.width = (1 / totalSlides * 100) + '%';
+    </script>
+</body>
+</html>

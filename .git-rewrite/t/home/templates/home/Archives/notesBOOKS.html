@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    .container-books {
+        padding: 20px;
+        background-color: cornsilk;
+        display: flex;
+        flex-wrap: wrap;
+        position: relative;
+
+    }
+
+    .item-book {
+        /* padding: 30px; */
+        background-color: red;
+        margin: 5px;
+        border-radius: 0 8px 8px 0;
+        height: 20px;
+        /* width: px; */
+        /* line-height: normal;
+        */
+        /* line-height: 80%; */
+        /* line-height: 200%; */
+        font-size: 3.5vw;
+        font-size: 3.5em;
+        font-size: 3.5rem;
+        font-size: calc(0.5 * 100%);
+        ;
+        transform: translate(40px, 202px);
+
+        font-size-adjust: 0.74;
+        width: 60px;
+        height: 100px;
+        line-height: 1.6;
+        position: relative;
+    }
+
+    .tedtDiv {
+        width: 50px;
+    }
+</style>
+
+<body>
+    <h1>BOOKS NOTES</h1>
+
+    <hr>
+
+    <div class="container-books">
+        <span class="item-book">the Title Contents of the book asd sdasdldk adjla sjdoasj doasj</span>
+        <span class="item-book"></span>
+        <span class="item-book"></span>
+        <span class="item-book"></span>
+        <span class="item-book"></span>
+        <span class="item-book"></span>
+        <span class="item-book"></span>
+        <span class="item-book"></span>
+        <span class="item-book"></span>
+        <span class="item-book"></span>
+    </div>
+    <div class="tedtDiv">
+        asda sdas sada sdsd as
+    </div>
+</body>
+<script>
+    divContainer = document.querySelector('.tedtDiv')
+    divContainer.style.width = '40px'
+
+    console.log(divContainer)
+    console.log(divContainer.style)
+</script>
+
+</html>

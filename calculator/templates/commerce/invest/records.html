@@ -1,0 +1,130 @@
+{% extends "commerce/invest/layout.html" %}
+{% load humanize %}
+{% load static %}
+{% block body %}
+<style>
+    #form {
+        /* background-color: rgb(170, 170, 170); */
+        width: fit-content;
+        padding: 0.45rem;
+        margin: 0.4rem;
+        border-radius: 8px;
+        margin: auto auto;
+        text-shadow: rgb(255, 255, 255) 0 0 10px;
+    }
+</style>
+<link rel="stylesheet" href="{% static 'commerce/invest/table.css' %}">
+
+
+
+
+
+
+<br><br>
+
+
+{% if request.user.is_superuser %}
+
+
+
+<hr>
+
+
+<h2>Make Voting SYstem</h2>
+
+
+
+
+
+<style>
+    .record-container {
+        margin: 4px;
+        padding: 8px;
+
+        display: flex;
+        flex-wrap: wrap;
+        flex-grow: 1;
+    }
+
+    .record-sub-container {
+        width: auto;
+    }
+</style>
+
+{% endif %}
+<!-- END IF SUPERUSER -->
+
+
+<div style="border: 2px solid rgb(168, 248, 49);">
+
+    <div class="record-container">
+        <div class="record-sub-container" style="border: rgb(0, 145, 255) 5px solid; margin: 10px; padding: 5px;">
+            <div>
+                <hr>
+                <h1>Dividend Record</h1>
+                <hr>
+
+            </div>
+            {% for recordOfDividend in dividendsRecords %}
+            <div>
+                <div>ID: {{recordOfDividend.investorID | intcomma}}</div>
+                <div>Amount Invested: {{recordOfDividend.investedAmount | intcomma}}</div>
+                <div>Value: {{recordOfDividend.investedValue | intcomma}}</div>
+                <div>Profit: {{recordOfDividend.investedProfit | intcomma}}</div>
+                <div>Ratio: {{recordOfDividend.contractRatio | intcomma}}</div>
+                <div>Dividend: {{recordOfDividend.investedDividend | intcomma}}</div>
+                <div>Given: {{recordOfDividend.deliveredDividend }}</div>
+            </div>
+            <hr>
+            {% endfor %}
+        </div>
+
+        <div class="record-sub-container" style="border: rgb(245, 128, 115) 5px solid; margin: 10px; padding: 5px;">
+            <hr>
+            <h1>Investment Records</h1>
+            <hr>
+            {% for record in investmentRecords %}
+            <strong>{{record.investor_id}}</strong> invested:
+            <strong>Php {{record.invest_amount | intcomma}}</strong>
+            <div>
+                Before: <strong>{{record.investedPercentageBefore}} %</strong> with a value of
+                Php <strong>{{record.invest_valueBefore | intcomma}}</strong>
+            </div>
+            <div>
+                Club Value at Invested Time: Php <strong>{{record.CurrentiClubValue | intcomma}}</strong>
+            </div>
+            <div>
+                <small>{{record.timestamp}}</small>
+            </div>
+            <hr>
+            {% endfor %}
+        </div>
+
+        <div class="record-sub-container" style="border: rgb(255, 255, 8) 5px solid; margin: 10px; padding: 5px;">
+            <div>
+                <div>
+                    <hr>
+                    <h1>Transaction Records</h1>
+                    <hr>
+
+                    {% for transaction in tradeRecords %}
+                    <div>
+                        <div>
+                            {{transaction.TransactionSide}}<br>
+                            <strong>{{transaction.stockName}}</strong><br>
+                            stockQuantity {{transaction.stockQuantity}}<br>
+                            stockPrice {{transaction.stockPrice}}<br>
+                            CostAfterTax {{transaction.CostAfterTax |intcomma}}<br>
+                            <small>{{transaction.timestamp}}</small>
+                            <hr>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

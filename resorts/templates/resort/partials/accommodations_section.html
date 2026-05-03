@@ -1,0 +1,341 @@
+{% load humanize %}
+{% if managerUser or resortObject.AccomodationsList %}
+<section class="section" id="accommodations">
+  <div class="section-head">
+    <div>
+      <div class="section-title"></div>
+      <div class="section-sub"></div>
+    </div>
+    {% if managerUser %}
+    <span class="meta-tag" id="accommodationSavedMeta" style="display:none;"></span>
+    {% endif %}
+  </div>
+
+  {% if managerUser %}
+  <div id="modal-add-accommodation" style="display:none;">
+    <div class="card">
+      <div class="card-body">
+      <div style="font-weight:600;margin-bottom:0.75rem;">Add accommodation</div>
+      <div id="accommodationAddSaving" style="display:none;margin-bottom:0.75rem;color:var(--muted);font-weight:600;">
+        Saving…
+      </div>
+      <div id="accommodationAddSuccess" style="display:none;margin-bottom:0.75rem;color:var(--primary);font-weight:600;">
+        Saved. You can add another accommodation now.
+      </div>
+
+      <form class="image-upload-form package-form" enctype="multipart/form-data" method="post" action="{% url 'resorts:createPackaged' %}">
+        {% csrf_token %}
+
+        <!-- Accommodation Cluster Picker (mirrors Food Menu 'Other' pattern) -->
+        <div style="margin-bottom:1rem;">
+          <label for="accommodationPackageSelect">Accommodation cluster</label>
+          <select id="accommodationPackageSelect" style="margin-bottom:0.5rem;">
+            {% for acc in resortObject.AccomodationsList %}
+              <option value="{{ acc.id }}" data-title="{{ acc.PackageTitle }}">{{ acc.PackageTitle }}</option>
+            {% endfor %}
+            <option value="other">Other (specify below)</option>
+          </select>
+          <input id="accommodationPackageTitle" name="package_title" type="text" placeholder="Specify eg. Rooms, Villas, Dorms, Cabins..." style="display:none;" />
+          <input id="accommodationPackageId" name="packageID" type="hidden" />
+          <input name="resort_id" type="hidden" value="{{ resortObject.id }}" />
+          <input name="packageType" type="hidden" value="accomodation" />
+        </div>
+
+        <div class="form-row">
+          <input required name="title" placeholder="Accommodation name" />
+          <input required name="price" placeholder="Price" />
+        </div>
+        <div class="form-row">
+          <input required name="description" placeholder="Headline description" />
+          <input type="text" name="information" placeholder="Additional notes (optional)" />
+        </div>
+        <div class="form-row">
+          <input type="file" name="images" accept="image/*" multiple placeholder="Upload multiple images" />
+        </div>
+        <div class="amenities-grid">
+          <label><input type="checkbox" name="amenities" value="WiFi" /> WiFi / Internet</label>
+          <label><input type="checkbox" name="amenities" value="Air Conditioning" /> Air Conditioning</label>
+          <label><input type="checkbox" name="amenities" value="Electric Fan" /> Electric Fan</label>
+          <label><input type="checkbox" name="amenities" value="Workspace/Desk" /> Workspace/Desk</label>
+          <label><input type="checkbox" name="amenities" value="Kitchen" /> Kitchen</label>
+          <label><input type="checkbox" name="amenities" value="Kitchenette" /> Kitchenette</label>
+          <label><input type="checkbox" name="amenities" value="Private Bathroom" /> Private Bathroom</label>
+          <label><input type="checkbox" name="amenities" value="Shared Bathroom" /> Shared Bathroom</label>
+          <label><input type="checkbox" name="amenities" value="Hot Shower" /> Hot Shower</label>
+          <label><input type="checkbox" name="amenities" value="TV" /> TV</label>
+          <label><input type="checkbox" name="amenities" value="Mini Fridge" /> Mini Fridge</label>
+          <label><input type="checkbox" name="amenities" value="Balcony/Terrace" /> Balcony/Terrace</label>
+          <label><input type="checkbox" name="amenities" value="Ocean View" /> Ocean View</label>
+          <label><input type="checkbox" name="amenities" value="Garden View" /> Garden View</label>
+          <label><input type="checkbox" name="amenities" value="Pool Access" /> Pool Access</label>
+          <label><input type="checkbox" name="amenities" value="Laundry Service" /> Laundry Service</label>
+          <label><input type="checkbox" name="amenities" value="Towels & Linens" /> Towels & Linens</label>
+          <label><input type="checkbox" name="amenities" value="Toiletries" /> Toiletries</label>
+          <label><input type="checkbox" name="amenities" value="Breakfast Included" /> Breakfast Included</label>
+          <label><input type="checkbox" name="amenities" value="Parking" /> Parking</label>
+        </div>
+        <button class="btn primary" type="submit">Add accommodation</button>
+      </form>
+
+      <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          var select = document.getElementById('accommodationPackageSelect');
+          var titleInput = document.getElementById('accommodationPackageTitle');
+          var idInput = document.getElementById('accommodationPackageId');
+          var form = document.querySelector('#accommodations .package-form');
+
+          if (!select || !titleInput || !idInput) return;
+
+          function sync() {
+            if (select.value === 'other') {
+              titleInput.style.display = '';
+              titleInput.value = '';
+              idInput.value = '';
+            } else {
+              titleInput.style.display = 'none';
+              var selectedOption = select.options[select.selectedIndex];
+              titleInput.value = (selectedOption && selectedOption.dataset && selectedOption.dataset.title) ? selectedOption.dataset.title : '';
+              idInput.value = select.value;
+            }
+          }
+
+          select.addEventListener('change', sync);
+
+          // Initial
+          if (!select.value) {
+            select.value = 'other';
+          }
+          sync();
+
+          // Prevent accidental double-submit
+          if (form) {
+            form.addEventListener('submit', function() {
+              var btn = form.querySelector('button[type="submit"]');
+              var saving = document.getElementById('accommodationAddSaving');
+              if (saving) saving.style.display = '';
+              if (btn) {
+                btn.disabled = true;
+                btn.dataset.originalText = btn.dataset.originalText || btn.textContent;
+                btn.textContent = 'Saving…';
+              }
+
+              // Safety: if submission doesn't navigate/redirect, don't leave UI stuck
+              window.setTimeout(function() {
+                try {
+                  var stillSaving = document.getElementById('accommodationAddSaving');
+                  var successNow = new URLSearchParams(window.location.search).get('success') === '1';
+                  if (!successNow && btn && btn.disabled) {
+                    if (stillSaving) stillSaving.style.display = 'none';
+                    btn.disabled = false;
+                    f=document.querySelector('input[placeholder="Accommodation name"]')
+                    f.value=''
+
+
+                    btn.textContent = btn.dataset.originalText || 'Saved, Add another ?';
+                  }
+                } catch (e) {
+                  // ignore
+                }
+              }, 15000);
+            });
+          }
+
+          // If page is restored from bfcache, ensure we don't show stale 'Saving…'
+          window.addEventListener('pageshow', function() {
+            var saving = document.getElementById('accommodationAddSaving');
+            if (saving) saving.style.display = 'none';
+            if (form) {
+              var btn = form.querySelector('button[type="submit"]');
+              if (btn) {
+                btn.disabled = false;
+                btn.textContent = btn.dataset.originalText || btn.textContent;
+              }
+            }
+          });
+        });
+      </script>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+  
+  {% for acc in resortObject.AccomodationsList %}
+  <div class="card package-card">
+    <div class="package-head">
+      <div>
+        <div class="package-label">Accommodation cluster</div>
+        <h3 class="package-title">{{ acc.PackageTitle }}</h3>
+      </div>
+
+      {% if managerUser %}
+        {% if not acc.subPackagesList %}
+          <div class="package-actions">
+            <button class="btn warn delete-package-btn" data-url="{% url 'resorts:removeResortPackage' acc.id %}" data-confirm="Are you sure you want to delete this package? This will also delete all items under it." data-target=".package-card">Remove {{acc.PackageTitle}}</button>
+          </div>
+        {% endif %}
+      {% endif %}
+
+    </div>
+
+
+
+    <div class="package-items grid">
+      {% for sub in acc.subPackagesList %}
+      <article class="card promo-card">
+        <div>
+          {% for images in sub.images %}
+            {% if forloop.last %}
+            <a data-fancybox="gallery-{{acc.id}}-{{sub.id}}" href="{{images.urlField}}">
+              <img class="img-cover" src="{{images.urlField}}" alt="{{sub.title}}" />
+            </a>
+            {% endif %}
+          {% endfor %}
+          <div style="display:none">
+            {% for images in sub.images %}
+            <a data-fancybox="gallery-{{acc.id}}-{{sub.id}}" href="{{images.urlField}}"></a>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="package-item-title">{{ sub.title }}</div>
+          {% if sub.description %}
+          <p class="package-item-sub">{{ sub.description }}</p>
+          {% endif %}
+          {% if sub.price %}
+          <div class="price">₱{{ sub.price|intcomma }}</div>
+          {% endif %}
+          <div class="actions">
+            <a class="btn primary" data-fancybox data-src="#dialog-content-{{sub.id}}-{{resortObject.id}}">Check availability</a>
+            <!-- <button class="btn" onclick="bookNow('{{sub.title}}\n₱{{sub.price|intcomma}} per night')">Send inquiry</button> -->
+          </div>
+                    <button class="btn toggle-manager-stack-btn" type="button" style="margin: 0.5rem 0;">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09A1.65 1.65 0 0 0 9 4.6V4a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.09a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    </button>
+          {% if managerUser %}
+          <div class="manager-stack">
+            <button class="btn primary edit-accommodation-btn" data-item-id="{{ sub.id }}" data-title="{{ sub.title }}" data-description="{{ sub.description }}" data-price="{{ sub.price }}" data-information="{{ sub.information }}" data-images='[{% for img in sub.images %}{"id":{{ img.id }},"url":"{{ img.urlField }}"}{% if not forloop.last %},{% endif %}{% endfor %}]'>Edit</button>
+            <button class="btn warn delete-item-btn" data-url="{% url 'resorts:removeResortSubPackage' sub.id %}" data-confirm="Are you sure you want to delete {{sub.title}}? This action cannot be undone." data-target="article">Delete item</button>
+            <form class="image-upload-form" id="imageform-{{sub.id}}" enctype="multipart/form-data" method="post" action="{% url 'resorts:createImage' %}">
+              {% csrf_token %}
+              <input hidden readonly name="subID" value="{{sub.id}}" />
+              <input hidden name="imageURL" placeholder="Image URL for {{sub.title}}" />
+              <input type="file" name="image" accept="image/*" required>
+              <button class="btn">Upload Picture</button>
+              <div id="upload-result-{{sub.id}}"></div>
+            </form>
+          </div>
+          {% endif %}
+          <div class="iframe-container" id="dialog-content-{{sub.id}}-{{resortObject.id}}">
+            <div class="iframe-loader"></div>
+            <iframe class="calendar-frame" loading="lazy" sandbox="allow-scripts allow-forms allow-popups allow-same-origin" src="{% url 'resort_management:movemarkedcalendarnamed' resortObject.id sub.id currentMonth currentYear 'upload_id' %}"></iframe>
+          </div>
+        </div>
+      </article>
+      {% empty %}
+      <div class="empty-hint">No accommodation items added yet.</div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+
+  <!-- Edit Accommodation Modal -->
+  <div id="editAccommodationModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:12px;padding:2rem;max-width:500px;width:90%;max-height:90vh;overflow-y:auto;">
+      <h3 style="margin:0 0 1.5rem 0;font-size:1.25rem;">Edit Accommodation</h3>
+      
+      <form id="editAccommodationForm">
+        <input type="hidden" id="editAccommodationId" />
+        
+        <div style="margin-bottom:1rem;">
+          <label for="editAccommodationTitle" style="display:block;margin-bottom:0.5rem;font-weight:600;">Title</label>
+          <input id="editAccommodationTitle" type="text" required style="width:100%;padding:0.5rem;border:1px solid #ddd;border-radius:4px;" />
+        </div>
+        
+        <div style="margin-bottom:1rem;">
+          <label for="editAccommodationDescription" style="display:block;margin-bottom:0.5rem;font-weight:600;">Headline Description</label>
+          <textarea id="editAccommodationDescription" rows="2" style="width:100%;padding:0.5rem;border:1px solid #ddd;border-radius:4px;"></textarea>
+        </div>
+        
+        <div style="margin-bottom:1rem;">
+          <label for="editAccommodationInformation" style="display:block;margin-bottom:0.5rem;font-weight:600;">Additional Notes</label>
+          <textarea id="editAccommodationInformation" rows="2" style="width:100%;padding:0.5rem;border:1px solid #ddd;border-radius:4px;"></textarea>
+        </div>
+        
+        <div style="margin-bottom:1rem;">
+          <label for="editAccommodationPrice" style="display:block;margin-bottom:0.5rem;font-weight:600;">Price (₱)</label>
+          <input id="editAccommodationPrice" type="number" step="0.01" required style="width:100%;padding:0.5rem;border:1px solid #ddd;border-radius:4px;" />
+        </div>
+        
+        <div style="margin-bottom:1rem;">
+          <label style="display:block;margin-bottom:0.5rem;font-weight:600;">Current Images</label>
+          <div class="current-images-container" style="min-height:40px;padding:0.5rem;border:1px solid #eee;border-radius:4px;"></div>
+        </div>
+        
+
+        
+        <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+          <button type="button" id="cancelEditAccommodation" class="btn" style="padding:0.5rem 1.5rem;">Cancel</button>
+          <button type="submit" class="btn primary" style="padding:0.5rem 1.5rem;">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Check if success parameter is in URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const successType = (urlParams.get('success_type') || '').toLowerCase();
+  const isAccommodationSuccessType = successType === 'accomodation' || successType === 'accommodation';
+  if (urlParams.get('success') === '1' && isAccommodationSuccessType) {
+    // Indicate success, then clear the form for the next entry
+    const successBanner = document.getElementById('accommodationAddSuccess');
+    const savingBanner = document.getElementById('accommodationAddSaving');
+    const headerMeta = document.getElementById('accommodationSavedMeta');
+    if (savingBanner) savingBanner.style.display = 'none';
+    if (successBanner) {
+      successBanner.style.display = '';
+      window.setTimeout(() => {
+        successBanner.style.display = 'none';
+      }, 2500);
+    }
+    if (headerMeta) {
+      headerMeta.textContent = 'Saved';
+      headerMeta.style.display = '';
+      window.setTimeout(() => {
+        headerMeta.style.display = 'none';
+        headerMeta.textContent = '';
+      }, 2500);
+    }
+
+    // Clear accommodation form (simple reset)
+    const form = document.querySelector('.image-upload-form.package-form');
+    if (form && typeof form.reset === 'function') {
+      form.reset();
+
+      // Re-enable submit button for next entry
+      const btn = form.querySelector('button[type="submit"]');
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = btn.dataset.originalText || 'Add accommodation';
+      }
+    }
+
+    // Re-sync hidden package fields after reset
+    const packageSelect = document.getElementById('accommodationPackageSelect');
+    if (packageSelect) {
+      packageSelect.dispatchEvent(new Event('change'));
+    }
+    
+    // Remove success params from URL
+    urlParams.delete('success');
+    urlParams.delete('success_type');
+    const qs = urlParams.toString();
+    const newUrl = window.location.pathname + (qs ? ('?' + qs) : '');
+    window.history.replaceState({}, document.title, newUrl);
+  }
+});
+</script>
+
+{% endif %}

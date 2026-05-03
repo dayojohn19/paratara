@@ -1,0 +1,1056 @@
+{% load humanize %}
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{name}}</title>
+    <script src="https://smtpjs.com/v3/smtp.js"></script>
+    <!-- <script src="room.js"> -->
+
+    </script>
+    <!-- <script src="{% static 'room/room.js' %}"></script> -->
+    <script>
+        let map;
+
+        function initMap() {
+            map = new google.maps.Map(document.getElementById("map"), {
+                // center: { lat: 14.211279746038974, lng: 121.02127465910414 },
+                center: { lat: parseFloat('{{latitude}}'), lng: parseFloat('{{longitude}}') },
+                zoom: 15,
+            });
+
+            new google.maps.Marker({
+                // position: { lat: 14.211279746038974, lng: 121.02127465910414 },
+                position: { lat: parseFloat('{{latitude}}'), lng: parseFloat('{{longitude}}') },
+                map,
+                title: "Resort Position !",
+            })
+        }
+
+        function bookNow(toBook) {
+            console.log(toBook)
+            dom = document.querySelector(".modal-container-main")
+            dom.style.display = 'block'
+            msg = document.querySelector("#guest_message").innerHTML = `Book for ____ night\n`
+            bookContainer = document.querySelector("#guest_book")
+            booking = bookContainer.innerHTML = toBook
+            bookContainer.style.display = 'block'
+            console.log(msg + booking)
+        }
+
+        function closeModal() {
+            dom = document.querySelector(".modal-container-main")
+            if (dom.style.display == 'none') {
+                dom.style.display = 'block'
+            } else {
+                dom.style.display = 'none'
+            }
+        }
+        // TODO CHANGE
+        DATA_BASE_URL = 'http://127.0.0.1:8000/resortDB/1'
+        webID = '{{resort_ID}}'
+        function SendGuestMessage() {
+            guestContact = document.querySelector("#guest_contact").value
+            if (guestContact == '') {
+                return alert('Please Provide Contact')
+            }
+            guestMessage = document.querySelector("#guest_message").value
+            booking = document.querySelector("#guest_book").innerHTML
+            guestMessage += booking
+            if (guestMessage == '') {
+                return alert('What is your Message')
+            }
+
+            fetch(DATA_BASE_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    guestContact: guestContact,
+                    guestMessage: guestMessage,
+                    webID: webID
+                })
+            }).then(response => {
+                alert('Message Sent')
+            })
+            sendEmail(guestContact, guestMessage, webID)
+        }
+        //  <script src="https://smtpjs.com/v3/smtp.js">
+        function sendEmail(guestContact, guestMessage, resortID) {
+            Email.send({
+                Host: "smtp.elasticemail.com",
+                Username: "repapaka20@gmail.com",
+                Password: "20B28409FAB2EC360F970DEBC62ACB854E4B",
+                To: 'dayo_john16@yahoo.com',
+                From: "repapaka20@gmail.com",
+                Subject: `{{name}} - ${resortID}: ${guestContact}`,
+                Body: guestMessage
+            }).then(
+                message => alert('Please Check You Spam', message)
+            );
+        }
+    </script>
+</head>
+<style>
+    .sub-package {
+        text-align: center;
+    }
+
+    .column-sub-title {
+        font-family: libre baskerville, serif;
+        font-weight: 400;
+        font-size: .875rem;
+        font-style: italic;
+        margin: 0 0 .25rem;
+    }
+
+    .column-title {
+        font-weight: 400;
+        letter-spacing: .125rem;
+        text-transform: uppercase;
+        margin: 0 0 .25rem;
+    }
+
+    .price-indicator {
+        color: #5cb85c;
+        display: block;
+    }
+
+    .button-book {
+
+        color: #fff;
+        /* background-color: #3071a9; */
+        background-color: #428bca;
+        border-color: #285e8e;
+        margin-bottom: 0;
+        font-weight: normal;
+        text-align: center;
+        vertical-align: middle;
+        cursor: pointer;
+        background-image: none;
+        border: 1px solid transparent;
+        white-space: nowrap;
+        padding: 6px 12px;
+        font-size: 14px;
+        line-height: 1.42857143;
+        border-radius: 4px;
+        -webkit-user-select: none;
+        /* display: block; */
+    }
+
+    .itemHidden {
+        display: none;
+    }
+
+    .PreviousButton {
+        position: absolute;
+        top: 50%;
+        left: 0%;
+        transform: translate(0%, -50%);
+    }
+
+    .NextButton {
+        position: absolute;
+        top: 50%;
+        right: 0;
+        transform: translate(0%, -50%);
+    }
+
+    .imgNPButton {
+        color: #fff !important;
+        /* background-color: #000 !important; */
+        border: none;
+        padding: 10px;
+        margin: 0;
+    }
+
+    .imgNPButton:hover {
+        background-color: #000;
+    }
+
+    @keyframes slideIn {
+        from {
+            bottom: -300px;
+            opacity: 0
+        }
+
+        to {
+            bottom: 0;
+            opacity: 1
+        }
+    }
+
+    @keyframes appearIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes appearOut {
+        from {
+            opacity: 1;
+        }
+
+        to {
+            opacity: 0;
+        }
+    }
+</style>
+<style>
+    * {
+        font-family: Inter, -apple-system, BlinkMacSystemFont, segoe ui, Roboto, Helvetica, Arial, sans-serif;
+        /* max-width: 100vw !important; */
+    }
+
+    p {
+        margin: 0;
+        padding: 0;
+        /* text-indent: 2.5rem; */
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+        font-weight: 350;
+        font-size: 13px;
+        letter-spacing: 0.15em;
+        line-height: 2.5;
+    }
+
+    article p {
+        text-indent: 2.5rem;
+    }
+
+    img {
+        width: 90vw;
+        max-width: 100%;
+        max-height: 50vh;
+        border-radius: 10px;
+    }
+
+
+    .wrapper {
+        display: flex;
+        flex-flow: row wrap;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .wrapper>* {
+        /* padding: 10px; */
+        flex: 1 100%;
+    }
+
+    .header {
+        /* background: rgba(233, 231, 231, 0.623); */
+        background-color: white;
+        padding: 0;
+        font-family: sans-serif;
+        font-weight: 300;
+        font-stretch: wider;
+    }
+
+
+
+    .footer {
+        margin-top: 2rem;
+        background: rgb(255, 255, 240);
+        border: 1.5px solid rgb(255, 255, 182);
+    }
+
+    .footer-notes {
+        font-family: proxima n w01 reg, helvetica neue, Helvetica, Helvetica, Arial, sans-serif;
+        font-weight: 400;
+    }
+
+    .footer-notes span {
+        margin: 8px 0 12px;
+        padding: 0 20px;
+        display: block;
+        text-align: left;
+        position: relative;
+        padding: .6875rem 1rem .6875rem 4.6875rem;
+        color: #fff;
+        background-color: #3abac3;
+        background-image: -webkit-linear-gradient(top, #48c0c8 0%, #32b8c1 100%);
+        background-image: linear-gradient(to bottom, #48c0c8 0%, #32b8c1 100%);
+        border-radius: 8px;
+        /* display: block; */
+        /* font-family: proxima n w01 reg,helvetica neue,Helvetica,Helvetica,Arial,sans-serif; */
+        box-shadow: 2px 2px 2px 0 rgba(0, 0, 0, .4);
+    }
+
+    .footer-notes-icon {
+        font-size: 2.25rem;
+        position: absolute;
+        top: 50%;
+        left: 1.75rem;
+        -webkit-transform: translateY(-50%);
+        -moz-transform: translateY(-50%);
+        -ms-transform: translateY(-50%);
+        -o-transform: translateY(-50%);
+        transform: translateY(-50%);
+    }
+
+    .main {
+        text-align: left;
+        /* background: rgb(245, 252, 255);
+        border: 1.5px solid rgb(175, 231, 255); */
+        background: #f7fff7;
+        border: 1.5px solid #cdffcf;
+        border-radius: 8px;
+        position: relative;
+        /* overflow: scroll; */
+        height: fit-content;
+    }
+
+    .aside-1 {
+        /* background: rgb(255, 187, 187); */
+        /* background: rgb(244, 244, 244); */
+    }
+
+    .room-item {
+        /* background-color: rgb(255, 143, 143); */
+        /* background: rgb(239, 237, 234); */
+        /* padding-top: 8px; */
+        margin-top: 8px;
+
+    }
+
+    .room-item summary {
+        font-family: proxima n w01 reg, helvetica neue, Helvetica, Helvetica, Arial, sans-serif;
+        font-weight: 400;
+        /* text-align: center; */
+        text-transform: uppercase;
+        /* margin: 1.5rem 0; */
+        font-size: 1rem;
+    }
+
+    .activity-item summary {
+        font-family: proxima n w01 reg, helvetica neue, Helvetica, Helvetica, Arial, sans-serif;
+        font-weight: 400;
+        /* text-align: center; */
+        text-transform: uppercase;
+        /* margin: 1.5rem 0; */
+        font-size: 1rem;
+    }
+
+    .aside-2 {
+        /* background: rgb(248, 248, 242); */
+    }
+
+    .activity-item {
+        background: rgb(253, 254, 246);
+        margin-bottom: 3vh;
+        /* padding: 0.5rem; */
+
+    }
+
+    .button-hide-aside {
+        padding: 8px;
+        border-radius: 0 0 6px 6px;
+        border: none;
+        position: sticky;
+        /* text-shadow: 0 0 3px white; */
+        top: 0;
+        right: 0;
+        font-size: large;
+        margin: 0;
+        /* background-color: #9e9e9e; */
+        background-color: rgb(220, 220, 220);
+        z-index: 2;
+    }
+
+    @media all and (min-width: 600px) {
+        .aside {
+            flex: 1 0 0;
+        }
+
+
+    }
+
+    @media all and (min-width: 800px) {
+
+
+        .main {
+            flex: 2 0px;
+        }
+
+        .aside-1 {
+            order: 1;
+        }
+
+        .room-item {
+
+
+            margin-bottom: 3vh;
+            padding: 0.5rem;
+        }
+
+        .main {
+            order: 2;
+        }
+
+        .main>p {
+            margin-bottom: 2vh;
+        }
+
+        .aside-2 {
+            order: 3;
+        }
+
+        .footer {
+            order: 4;
+        }
+    }
+
+    iframe {
+        height: 50vh;
+        width: 100%;
+    }
+
+    /* MAP */
+    #map {
+        position: inherit;
+        height: 100%;
+        margin-top: 43px;
+        /* max-width: ; */
+    }
+
+    /* Optional: Makes the sample page fill the window. */
+    html,
+    body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    ul {
+        list-style: none;
+    }
+
+    /*  */
+
+
+    details {
+        margin: 10px;
+        display: flex;
+        align-items: center;
+        /* line-height: 1; */
+        margin-top: 10px;
+    }
+
+    ul {
+        margin-block-start: 0;
+        margin-block-end: 0;
+        margin-inline-start: 0px;
+        margin-inline-end: 0px;
+        padding-inline-start: 0;
+    }
+
+
+    summary::-webkit-details-marker {
+        display: none;
+        /* line-height: 10; */
+    }
+
+    /* ON CONTACT */
+    .button-close {
+        position: absolute;
+        right: 1px !important;
+        /* ON PARALLEL TO MARGIN TOP FROM MODAL-item-head which is 50px */
+        margin-right: 15px;
+        margin-top: 10px;
+        font-size: x-large;
+        color: grey;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        font-family: Raleway, sans-serif;
+    }
+
+    .button-close:hover {
+        color: #000;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .modal-container-sub {
+
+        /* SECOND MODAL VERSION */
+        background-color: rgb(255, 255, 255);
+        margin: 10% auto;
+        position: relative;
+        border: 3px solid rgb(213, 209, 209);
+        border-radius: 4px;
+        width: fit-content;
+        box-shadow: 0 0 15px rgba(67, 67, 67, 0.822);
+        /* END SECOND MODAL VERSION */
+    }
+
+    .modal-item-head {
+        border-radius: 8px 8px 0 0;
+        padding: 4px;
+        /* padding-left: 0;
+        padding-right: 0; */
+        background-color: rgb(221, 213, 203);
+        padding-bottom: 0;
+        font-family: poppins-semibold, poppins, sans-serif;
+        font-weight: 200;
+        letter-spacing: calc(0.2vh + 0.2vw);
+        text-align: center;
+        animation-name: slideIn;
+        animation-duration: 0.4s;
+        padding-top: 1.5rem;
+    }
+
+
+    .custom-field {
+        font-size: calc(2vh + 1vw);
+
+        /* min-height: 76px; */
+        border: none;
+        border-radius: 4px;
+        padding: 9px;
+        box-shadow: 0 0 5px grey;
+
+    }
+
+    .button-send {
+        font-size: calc(1.8vh + 0.3vw);
+
+        padding: calc(1vh + 0.5vw);
+
+        border-radius: 7px;
+        border: none;
+        /* background-color: rgb(243, 209, 165); */
+        background-color: rgb(255, 221, 177);
+        text-shadow: white 0 0 2px;
+        box-shadow: #9e9e9e 2.1px 2.3px 2px;
+        margin: calc(0.5vh + 0.5vw);
+        bottom: 1px !important;
+    }
+
+    button:hover {
+        box-shadow: 0 0 4.5px grey;
+    }
+
+    .modal-container-main {
+        /* DISPLAYING CREATE VIAJE FORM */
+        position: fixed;
+        z-index: 3;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.4);
+        animation-name: slideIn;
+        animation-duration: 0.4s;
+        font-family: Poppins, sans-serif;
+    }
+
+    /* END OF */
+    .tour-summary {
+        background-color: rgb(220, 220, 220);
+        padding-top: 8px;
+        border-radius: 8px 8px 8px 0;
+        box-shadow: 2px 2px 2px 0 rgba(0, 0, 0, .4);
+        text-align: center;
+    }
+
+    .yellow-green {
+        /* background-color: yellow; */
+        /* background-color: rgb(254, 254, 36); */
+        background-color: #3abac3;
+        background-image: -webkit-linear-gradient(top, #48c0c8 0%, #32b8c1 100%);
+        background-image: linear-gradient(to bottom, #48c0c8 0%, #32b8c1 100%);
+        color: white;
+    }
+
+
+    .activities-summary {
+        background-color: rgb(220, 220, 220);
+        padding-top: 8px;
+        border-radius: 8px 8px 8px 0;
+        box-shadow: 2px 2px 2px 0 rgba(0, 0, 0, .4);
+        text-align: center;
+    }
+
+    .activities-summary:hover {
+        box-shadow: 0 0 5px 0 rgb(0, 0, 0, .4);
+    }
+
+    .blue-white {
+        background-color: #2196F3;
+        color: white;
+        box-shadow: 2px 2px 2px 0 rgba(0, 0, 0, .4);
+    }
+
+    .border-8 {
+        border-radius: 8px;
+    }
+
+    .room-summary {
+        background-color: rgb(220, 220, 220);
+        padding-top: 8px;
+        border-radius: 8px 8px 8px 0;
+        box-shadow: 2px 2px 2px 0 rgba(0, 0, 0, .4);
+        text-align: center;
+    }
+
+    .room-summary:hover {
+        box-shadow: 0 0 5px 0 rgb(0, 0, 0, .4);
+    }
+
+    .red-white {
+        /* border: rgb(255, 215, 216) 1.5px solid; */
+        background-color: rgb(252, 84, 91);
+        color: white;
+        box-shadow: 2px 2px 2px 0 rgba(0, 0, 0, .4);
+    }
+
+    .red-red-white {
+        border: 1.5px solid rgb(255, 230, 230);
+        background-color: rgb(255, 246, 246);
+        border-radius: 4px;
+    }
+
+
+    .blue-blue-white {
+        border: 1.5px solid #cbe8ff;
+        background-color: #f6fafd;
+        border-radius: 4px;
+
+    }
+
+    .contact-us {
+        background-color: rgb(241, 241, 11);
+        padding: 8px;
+        border-radius: 0 0 8px 8px;
+        box-shadow: 2px 2px 2px 0 rgba(0, 0, 0, .4);
+        /* color: white; */
+    }
+
+    .header {
+        background-position: center;
+        background-size: cover;
+        position: relative;
+        height: fit-content;
+        min-height: 300px;
+        /* background: radial-gradient(120% 120px at 50% -30px, #000 75%, transparent 75%); */
+        animation-name: appearIn;
+        animation-duration: 5s;
+
+    }
+
+    .header-sub {
+        position: absolute;
+        top: 50%;
+        left: 0%;
+        transform: translate(0%, -50%);
+        /* box-shadow: inset 5px 5px 15px 5px rgb(0, 0, 0); */
+        border-radius: 3px;
+        padding: 10px;
+        margin-left: 5px;
+        animation-name: appearOut;
+        animation-duration: 3s;
+    }
+
+    .header-name-sub {
+        text-align: center;
+        margin-right: 5px;
+        font-weight: 700;
+        text-shadow: 0 0 10px black;
+        font-size: smaller;
+    }
+
+    .header-name {
+        text-anchor: middle;
+        color: white;
+        font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+        margin: 0;
+        text-shadow: 0 0 5px black;
+    }
+
+    .sub-information {
+        font-style: italic;
+        font-weight: 300;
+        font-family: libre baskerville, serif;
+    }
+</style>
+
+<body>
+    <!-- <img style="width: 100vw; border-radius: 0;" src="{{headerImage}}"> -->
+    <header class="header" style="background-image: url('{% static 'room/adsample.png' %}');">
+        <span class="header-sub">
+            <h1 class="header-name">{{RealName}}</h1>
+            <div class="header-name-sub">
+                <hr style="padding: 0 ; margin: 0;">
+                <small style="padding: 0;margin: 0; color: white;">
+                    {{address}}
+                </small>
+            </div>
+        </span>
+    </header>
+    <!-- <img style="width: 100vw; border-radius: 0;" src="{% static 'room/adsample.png' %}"> -->
+    <div class="wrapper">
+        <article class="main">
+            <iframe src="{{promotionalVide}}" title="YouTube video player" frameborder="0" style="border-radius: 10px;"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen></iframe>
+            </iframe>
+
+            <!-- <iframe src="{% static 'room/Episode002v4FB - SD 480p.mp4' %}" title="YouTube video player" frameborder="0" -->
+            <!-- <iframe src="" title="YouTube video player" frameborder="0" style="border-radius: 10px;"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen></iframe>
+            </iframe> -->
+
+            <p style="padding:10px">
+                {{description}}
+            </p>
+            <div>
+                <div class="modal-container-main" style="display: none;">
+                    <div class="modal-container-sub">
+                        <span class="button-close" onclick="closeModal()" class="close">&times;</span>
+                        <div class="modal-item-head">
+
+                            <input id="guest_contact" placeholder="Your Contact" class="custom-field">
+                            <hr>
+                            <textarea id="guest_message" style="min-height: 40vh;" placeholder="Your Message"
+                                class="custom-field"></textarea>
+                            <textarea readonly id="guest_book" class="custom-field"
+                                style="display: none;margin: 0 auto;"></textarea>
+                            <button onclick="SendGuestMessage()" class="button-send">
+                                <!-- <h1 style="padding: 0; margin: 0;">Send</h1> -->
+                                <!-- <i class="footer-notes-icon"> -->
+                                <svg viewBox="0 0 16 16" width="9%" style="fill:#2196F3; ">
+                                    <path
+                                        d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z">
+                                    </path>
+                                </svg>
+                                <!-- </i> -->
+                                <!-- </i> -->
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{request.user}}
+            {% if resort_IDs %}
+            <style>
+                .SUPERUSER-FORMS {
+                    text-align: center;
+                }
+            </style>
+            <div class="SUPERUSER-FORMS">
+                <form method="POST" action="{% url 'resorts:createResortPackage' resortID=resort_ID %}">
+                    {% csrf_token %}
+                    <p>Create Package</p>
+                    <input name="title" placeholder="Category">
+                    <input name="packageType" placeholder="accomodation or activity or tour" style="width:50%">
+                    <button action="submit">Submit</button>
+                </form>
+                <hr>
+                <hr>
+                <div>
+                    <!-- SUB FORMS -->
+                    {% if places %}
+                    <form method="post" action="{% url 'resorts:putPlace' %}">
+                        {% csrf_token %}
+                        <h1>For Place</h1>
+                        <!-- <select name="placeID">
+                            <option selected value="-">---</option>
+                            {% for place in places %}
+                            <option value="{{place.id}}">{{place.placename}}</option>
+                            {% endfor %}
+                        </select> -->
+                        <input name="other" placeholder="Other">
+                        <!--  -->
+                        <input name="placeID" list="destinationSearch" type="text" placeholder="Search">
+
+                        <datalist id="destinationSearch">
+                            {% for place in places %}
+                            <option value="{{place.id}}" id="1">{{place}}</option>
+                            {% endfor %}
+                        </datalist>
+                        <!--  -->
+                        <input value="{{resort_ID}}" readonly hidden name="resortID" placeholder="place">
+                        <button>Submit</button>
+                    </form>
+                    {% endif %}
+                    <h1>ACCOMODATION FORMS</h1>
+                    <div>
+                        {% for acc in AccomodationsList %}
+                        {{acc}}--
+                        <hr>
+                        <p>Make Sub Package</p>
+                        <form method="post" action="{% url 'resorts:createPackaged' %}">
+                            {% csrf_token %}
+                            <input hidden readonly name="packageID" value="{{acc.id}}">
+                            <input name="title" placeholder="Accomodation Name" />
+                            <input name="description" placeholder="Package Description" />
+                            <input name="information" placeholder="Package Information" />
+                            <input name="price" placeholder="Package Price" />
+                            <button>Submit</button>
+                        </form>
+                        <ul>
+                            {% for sub in acc.subPackagesList %}
+                            <li>
+                                <hr>{{sub}}<p>Make Image URL</p>
+                                <ul>
+                                    {% for images in sub.images %}
+                                    <li>{{images.urlField}}</li>
+                                    {% endfor %}
+                                </ul>
+                                <form method="post" action="{% url 'resorts:createImage' %}">
+                                    {% csrf_token %}
+                                    <input hidden readonly name="subID" value="{{sub.id}}">
+                                    <input name="imageURL">
+                                    <button>Submit </button>
+                                </form>
+
+                                {% endfor %}
+                                <hr>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <h1>ACIVITY FORMS</h1>
+                    <div>
+                        {% for acc in ActivitiesList %}
+                        {{acc}}--
+                        <hr>
+                        <p>Make Sub Package</p>
+                        <form method="post" action="{% url 'resorts:createPackaged' %}">
+                            {% csrf_token %}
+                            <input hidden readonly name="packageID" value="{{acc.id}}">
+                            <input name="title" placeholder="Package Title" />
+                            <input name="description" placeholder="Package Description" />
+                            <input name="information" placeholder="Package Information" />
+                            <input name="price" placeholder="Package Price" />
+                            <button>Submit</button>
+                        </form>
+                        <ul>
+                            {% for sub in acc.subPackagesList %}
+                            <li>
+                                <hr>{{sub}}<p>Make Iage URL</p>
+                                <ul>
+                                    {% for images in sub.images %}
+                                    <li>{{images.urlField}}</li>
+                                    {% endfor %}
+                                </ul>
+                                <form method="post" action="{% url 'resorts:createImage' %}">
+                                    {% csrf_token %}
+                                    <input hidden readonly name="subID" value="{{sub.id}}">
+                                    <input name="imageURL">
+                                    <button>Submit </button>
+                                </form>
+
+                                {% endfor %}
+                                <hr>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div>
+                        <h1>Tour FORMS</h1>
+                        <div>
+                            {% for acc in TourList %}
+                            {{acc}}--
+                            <hr>
+                            <p>Make Sub Package</p>
+                            <form method="post" action="{% url 'resorts:createPackaged' %}">
+                                {% csrf_token %}
+                                <input hidden readonly name="packageID" value="{{acc.id}}">
+                                <input name="title" placeholder="Package Title" />
+                                <input name="description" placeholder="Package Description" />
+                                <input name="information" placeholder="Package Information" />
+                                <input name="price" placeholder="Package Price" />
+                                <button>Submit</button>
+                            </form>
+                            <ul>
+                                {% for sub in acc.subPackagesList %}
+                                <li>
+                                    <hr>{{sub}}<p>Make Iage URL</p>
+                                    <ul>
+                                        {% for images in sub.images %}
+                                        <li>{{images.urlField}}</li>
+                                        {% endfor %}
+                                    </ul>
+                                    <form method="post" action="{% url 'resorts:createImage' %}">
+                                        {% csrf_token %}
+                                        <input hidden readonly name="subID" value="{{sub.id}}">
+                                        <input name="imageURL">
+                                        <button>Submit </button>
+                                    </form>
+
+                                    {% endfor %}
+                                    <hr>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+
+
+
+            </div>
+    </div>
+    {% endif %}
+    <div class="tour-packages">
+        <div>
+            <details>
+                <summary class="tour-summary yellow-green">
+                    <h3 class="column-sub-title">Get our</h3>
+                    <div style="padding-left:30% ;padding-right: 30%;">
+                        <hr style="margin: 0; padding: 0;">
+                    </div>
+                    <h2 class="column-title">Tour Packages</h2>
+                    <svg fill="none" height="16px" width="16px" viewBox="0 0 24 24" class="sc-16r8icm-0 coGWQa">
+                        <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-miterlimit="10"
+                            stroke-linecap="round" stroke-linejoin="round"></path>
+                    </svg>
+                </summary>
+
+                {% for acc in TourList %}
+
+                <details>
+                    <summary class=" border-8 yellow-green sub-package">
+                        <span class="">{{acc}}</span>
+                        <svg fill="none" height="16px" width="16px" viewBox="0 0 24 24" class="sc-16r8icm-0 coGWQa">
+                            <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-miterlimit="10"
+                                stroke-linecap="round" stroke-linejoin="round">
+                            </path>
+                        </svg>
+                    </summary>
+                    <ul>
+                        {% for sub in acc.subPackagesList %}
+
+                        <li>
+                            <span>
+                                <span>{{sub}}
+
+                                </span>
+                                <p>{{sub.description}}</p>
+                                <p>{{sub.information}}</p>
+                                <div style="text-align: right;">
+                                    {% if sub.price %}
+                                    <strong class="price-indicator">₱{{sub.price| intcomma}}</strong>
+                                    {% endif %}
+                                    <!-- <button class="button-book"
+                                        onclick="alert('Make To Redirect in Booking {{sub.title}}-{{sub.price}}')">Book</button> -->
+                                </div>
+                            </span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </details>
+                {% endfor %}
+            </details>
+        </div>
+    </div>
+    </article>
+
+
+    {% block body %}
+
+
+    {% endblock %}
+
+    <footer class="footer">
+        <span class="button-close contact-us" onclick="closeModal()" class="close">Contact Us</span>
+        <hr>
+        <div style="min-height: 50vh;" id="map">
+
+
+        </div>
+        <hr>
+
+
+        <div class="footer-notes">
+            <span>{{address}}
+                <i class="footer-notes-icon">
+                    <svg class="bi bi-geo-alt" viewBox="0 0 16 16" width="9%" style="fill: white; ">
+                        <path
+                            d="M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A31.493 31.493 0 0 1 8 14.58a31.481 31.481 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94zM8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10z">
+                        </path>
+                        <path d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path>
+                    </svg>
+                </i>
+            </span>
+            <span>
+                <i class="footer-notes-icon">
+                    <svg viewBox="0 0 16 16" width="9%" style="fill: white; ">
+                        <path
+                            d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z">
+                        </path>
+                    </svg>
+                </i>
+                {{contactNumber}}
+            </span>
+            <span>
+                <i class="footer-notes-icon">
+                    <svg viewBox="0 0 24 16" width="12.5%" style="fill: white; ">
+                        <path
+                            d="M23.9 1.8h-.2L14 11.5c-1.1 1.1-2.8 1.1-3.9 0L.3 1.9c-.1-.1-.1-.1-.2 0-.1 0-.1 0-.1.1v12c0 1.1.9 2 2 2h20c1.1 0 2-.9 2-2V2c0-.1 0-.1-.1-.2z">
+                        </path>
+                        <path
+                            d="M11.1 10.6c.5.5 1.3.5 1.8 0L22.6.9c.1-.1.2-.3.1-.5-.1-.4-.4-.4-.7-.4H2c-.3 0-.6 0-.7.4-.1.2 0 .4.1.5z">
+                        </path>
+                    </svg>
+                </i>
+                {{contactEmail}}</span>
+        </div>
+        <hr>
+    </footer>
+    </div>
+
+
+</body>
+<script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAELRe-ZcOBPDlxaPfnXhnhVatrDHbW7-4&callback=initMap&v=weekly"
+    async></script>
+
+<!-- BUTTON FOR CONTACT  -->
+<script src="https://smtpjs.com/v3/smtp.js"></script>
+
+<script>
+
+
+    var n = 0
+    function BrowseItemPictures(imgClass, nToAdd) {
+        ItemPictures = document.getElementsByClassName(imgClass);
+        try {
+            ItemPictures[n].style.display = 'none'
+            n += nToAdd
+            ItemPictures[n].style.display = 'block'
+        }
+        catch {
+            for (i = 0; i <= ItemPictures.length; i++) {
+                if (i == n || n <= 0) {
+                    if (n <= 0) {
+                        n = parseInt(ItemPictures.length - 1)
+                        ItemPictures[n].style.display = 'block'
+                        break
+                    }
+                    n = 0
+                    ItemPictures[n].style.display = 'block'
+                    break
+                } else {
+                    ItemPictures[i].style.display = 'none'
+                }
+            }
+        }
+    }
+</script>
+<!-- <script src="../../../../materialize/js/contact_button.js"></script> -->
+
+
+</html>
