@@ -3224,7 +3224,10 @@ def create_tourist_spot(request):
             longitude = request.POST.get('longitude', '').strip()            
         except:
             place_id = request['place']
-            name = request['name'].strip()
+            try:
+                name = request['name'].strip()
+            except:
+                name = request['name'][0].strip()
             slug = None
             desc = None
             img = None

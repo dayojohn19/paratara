@@ -1665,7 +1665,6 @@ async function fetchLookPlaceData() {
   }
 
   :global(body[data-theme='light'] .postcard-frame),
-  :global(body[data-theme='light'] .credentials-box),
   :global(body[data-theme='light'] .card) {
     background: #ffffff;
     border-color: #d3deef;
