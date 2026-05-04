@@ -11,8 +11,8 @@ from rest_framework.decorators import api_view
 import json
 from pprint import pprint
 from .models import Collection,Visitor
-from django.http import HttpResponse
-from django.http import JsonResponse
+from django.http import HttpResponse, Http404, JsonResponse
+from django.views.static import serve
 # from django.views.decorators.csrf import csrf_exempt
 # from django.core import serializers
 from django.views.decorators.csrf import csrf_exempt
@@ -42,6 +42,21 @@ from django.core import signing
 from django.utils import timezone
 from django.http import HttpResponseForbidden
 from django.db.models import Count
+
+
+
+def sveltepageforgarden(request, path):
+    from django.conf import settings
+    import os
+    dist_dir = os.path.join(settings.BASE_DIR, 'garden/static/svelte test  v1.2/dist')
+    serve_path = os.path.join('assets', path) or 'index.html'
+    try:
+        return serve(request, serve_path, document_root=dist_dir, show_indexes=False)
+    except Http404:
+        if os.path.splitext(serve_path)[1]:  # Has file extension (likely asset)
+            raise
+        return serve(request, 'index.html', document_root=dist_dir, show_indexes=False)
+
 
 @csrf_exempt
 def list_a4_collages(request):
@@ -184,9 +199,9 @@ def look(request, collectionStr):
         from django.conf import settings
         import os
         
-        dist_dir = os.path.join(settings.BASE_DIR, 'singlepage2/static/svelte test  v1.2/dist')
+        dist_dir = os.path.join(settings.BASE_DIR, 'garden/static/svelte test  v1.2/dist')
         if collectionStr:
-            asset_path = os.path.join(dist_dir, collectionStr.replace('/pages/', '').lstrip('/'))
+            asset_path = os.path.join(dist_dir, collectionStr.replace('/garden/', '').lstrip('/'))
         else:
             asset_path = os.path.join(dist_dir, 'index.html')
         

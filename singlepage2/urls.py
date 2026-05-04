@@ -77,7 +77,7 @@ urlpatterns = [
     path("resortgroup/", views.resortgroup, name='resortgroup'),
 
     path("", views.SinglePageHome, name='singlepagehome'),
-    path('<path:path>', views.SinglePageHome, name='svelte-spa'),
+    
     path("upploadtheimage/", views.upploadtheimage, name='upploadtheimage'),
 #     path('uploadimage/', views.uploadimage, name='uploadimage'),
 #     path("upload-form/", views.upload_imgbb, name="upload-imgbb"),
