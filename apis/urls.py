@@ -11,6 +11,7 @@ urlpatterns = [
 
     # path('blogs/<int:place_id>/', views.get_blogs, name='get_blogs'),    
     path('getPlaceBlogs/<str:placename>/', views.getPlaceBlogs, name="getbloglist"),
+    path('getPlaceCollections/<str:placename>/', views.getPlaceCollections, name="getPlaceCollections"),
     path('getPlaceEvents/<str:placename>/', views.apiEvents, name='apisevents'),
     path('getPlaceSchedules/<str:placename>/', views.getPlaceSchedule, name='apisevents'),
 

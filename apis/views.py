@@ -133,6 +133,15 @@ def getPlaceBlogs(request, placename):
     serializer = BlogsSerializer(pi.blogs, many=True)
     return Response(serializer.data)
 
+@api_view(['GET'])
+def getPlaceCollections(request, placename):
+    from home.models import Places_v2
+    from garden.models import CollectionGroup
+    pi = Places_v2.objects.get(slug=slugify(placename))
+    groups = CollectionGroup.objects.filter(primaryCollections__collectionPlaceDirect=pi).distinct()
+    data = [g.serialize() for g in groups]
+    return Response(data)
+
 
 
 def get_calendar_view(request):

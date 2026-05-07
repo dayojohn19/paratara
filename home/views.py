@@ -1114,41 +1114,81 @@ from webSchedule.utils import getPlacePhoto
 
 def make_list_of_tourist_place(placename):
     """
-    Given a placename, ask ChatGPT to list tourist places in that location.
-    Prints and returns the list of tourist places (as a Python list of strings).
+    Given a placename, ask GROK to list 10+ tourist places. Improved parsing + fallback.
     """
-    import ast
-    prompt = f"List popular tourist places and underrated tourist places in {placename}. Return only a Python list of place names, no explanation."
-    print(f"[GPT-PLACES] Asking ChatGPT: {prompt}")
+    prompt = f"""List All top popular tourist places AND underrated hidden gems in {placename} maximum of 5. 
+Return EXACTLY this Python format - NO explanation, NO other text: 
+['Spot1', 'Spot2', 'Spot3', 'Spot4', 'Spot5', 'Spot6', 'Spot7', 'Spot8', 'Spot9', 'Spot10']"""
+    print(f"[GPT-PLACES] Asking GROK: {prompt[:100]}...")
     try:
         response = client.chat.completions.create(
             model=settings.GROK_MODEL_NAME,
             messages=[
-                {"role": "system", "content": "You are a helpful assistant that returns only Python lists of place names."},
+                {"role": "system", "content": "Return ONLY a Python list of 10+ place names as strings. No code blocks, no extras."},
                 {"role": "user", "content": prompt},
             ],
-            temperature=0.5,
-            max_tokens=256,
+            temperature=0.3,
+            max_tokens=2048,
         )
         gpt_reply = response.choices[0].message.content.strip()
-        print(f"[GPT-PLACES] Raw response: {gpt_reply}")
-        # Remove code block markers and language tags
-        if gpt_reply.startswith("```"):
-            gpt_reply = gpt_reply.strip('`\n')
-            if gpt_reply.startswith("python"):
-                gpt_reply = gpt_reply[len("python"):].lstrip('\n')
-        # Remove comments and blank lines, extract all lists and variable assignments
+        print(f"[GPT-PLACES] Raw: {gpt_reply}")
+
+        # Strip code blocks
+        gpt_reply = gpt_reply.strip('` \n')
+        if gpt_reply.startswith('python'):
+            gpt_reply = gpt_reply[6:].lstrip('\n')
+
+        # Try ast.literal_eval first
+        import ast
+        try:
+            spots = ast.literal_eval(gpt_reply)
+            if isinstance(spots, list):
+                spots = [str(s).strip() for s in spots if str(s).strip()]
+                print(f"[GPT-PLACES] Parsed {len(spots)} via ast: {spots[:3]}...")
+                if len(spots) >= 3:
+                    return spots
+        except:
+            pass
+
+        # Fallback: regex extract quoted strings
         import re
-        lines = [line for line in gpt_reply.splitlines() if line.strip() and not line.strip().startswith('#')]
-        list_strs = []
-        for line in lines:
-            line = line.strip()
+        spots = re.findall(r"'([^']*)'|\"([^\"]*)\"", gpt_reply)
+        spots = [s[0] or s[1] for s in spots if (s[0] or s[1]).strip()]
+        spots = list(set(spots))[:15]  # dedupe, limit
+        print(f"[GPT-PLACES] Parsed {len(spots)} via regex: {spots[:3]}...")
+
+        if len(spots) < 3:
+            # Hardcoded fallback
+            spots = [
+                f"{placename} Beach",
+                f"{placename} Viewpoint",
+                f"{placename} Market",
+                f"{placename} Waterfall",
+                f"{placename} Island",
+                "Local Church",
+                "Town Square",
+                "Night Market",
+                "Hiking Trail",
+                "Seafood Restaurant"
+            ]
+            print(f"[GPT-PLACES] Using fallback {len(spots)} spots")
+
+        return spots[:15]  # cap at 15
+
+    except Exception as e:
+        print(f"[GPT-PLACES] Error: {e}")
+        # Fallback always
+        return [
+            f"{placename} Beach",
+            f"{placename} Main Attraction",
+            f"{placename} Hidden Spot"
+        ]
             # Match variable assignments: var = [ ... ]
-            match = re.match(r'^[a-zA-Z0-9_]+\s*=\s*(\[.*\])$', line)
-            if match:
-                list_strs.append(match.group(1))
-            elif line.startswith('[') and line.endswith(']'):
-                list_strs.append(line)
+        match = re.match(r'^[a-zA-Z0-9_]+\s*=\s*(\[.*\])$', line)
+        if match:
+            list_strs.append(match.group(1))
+        elif line.startswith('[') and line.endswith(']'):
+            list_strs.append(line)
         if list_strs:
             # Combine all lists into one
             combined_items = []
@@ -1871,12 +1911,8 @@ def discussion(request, placeID):
     from datetime import timedelta
     from django.utils import timezone
     import uuid
-
-    trace_id = uuid.uuid4().hex[:8]
-    def _step(msg: str):
-        # Intentionally keep logs short and avoid printing secrets.
-        print(f"[discussion:{placeID} trace:{trace_id}] {msg}")
-
+    def _step(description):
+        print(f"[Discussion] {description}")
     _step(f"START method={request.method}")
     
     client = OpenAI(api_key=settings.GROK_API_KEY, base_url='https://api.x.ai/v1')
@@ -1890,20 +1926,15 @@ def discussion(request, placeID):
     place = Places_v2.objects.get(placeID=placeID)
     _step(f"Loaded place placename={getattr(place, 'placename', None) or getattr(place, 'name', None)}")
 
-    _step("Checking if message is non-empty")
     if data.get('message') != '':
         if request.method == 'POST':
-            _step("POST request detected")
             message_content = data.get('message', '').strip()
-            _step(f"Message received len={len(message_content)} preview={message_content[:60]!r}")
             
             # Basic validation
             if len(message_content) < 2:
-                _step("Validation failed: message too short")
                 return JsonResponse({"error": "Message too short", "response": []}, status=400)
             
             if len(message_content) > 200:
-                _step("Validation failed: message too long")
                 return JsonResponse({"error": "Message too long", "response": []}, status=400)
             
             # Early AI check: Is user asking something or just chatting?
@@ -3200,398 +3231,108 @@ def search_tourist_spots_by_placename(request):
                 context['spots'] = spots
                 context['placename'] = placename
     return render(request, 'home/search_tourist_spots.html', context)
-    
+     
+import threading
+from django.shortcuts import render, get_object_or_404
+from django.utils.text import slugify
+from django.views.decorators.csrf import csrf_exempt
+
+from .models import TouristSpot, Places_v2
+from resorts.models import resortItem as ResortItem
+
+from .tasks import process_tourist_spot  # 👈 background logic
+
+
 @csrf_exempt
 def create_tourist_spot(request):
-    """Create a new tourist spot"""
-    from django.utils.text import slugify
-    from resorts.models import resortItem as ResortItem
-    import json
-    
-    if request.method == 'POST':
-        try:
-            place_id = request.POST.get('place')
-
-            name = request.POST.get('name').strip()
-            spot_id = request.POST.get('spot_id', '').strip()
-            slug = request.POST.get('slug', '').strip()
-            desc = request.POST.get('desc', '').strip()
-            img = request.POST.get('img', '').strip()
-            image_upload = request.FILES.get('image_upload')            
-            url = request.POST.get('url', '').strip()
-            resort_ids = request.POST.getlist('resortItem')
-            latitude = request.POST.get('latitude', '').strip()
-            longitude = request.POST.get('longitude', '').strip()            
-        except:
-            place_id = request['place']
-            try:
-                name = request['name'].strip()
-            except:
-                name = request['name'][0].strip()
-            slug = None
-            desc = None
-            img = None
-            image_upload = None
-            url = None   
-            latitude = None
-            longitude = None
-            resort_ids=None
-            print(place_id,name)
-
-            print("got from mere request")
-
-        # Generate description using OpenAI if not provided
-        if not desc:
-            try:
-                place = get_object_or_404(Places_v2, id=place_id)
-                prompt = f"Write a short, engaging 1-2 sentence description (max 35 words) for a tourist spot called '{name}' in {place.placename}. Make it appealing and informative. what can be done there and how long usually stay there"
-                ai_response = client.chat.completions.create(
-                    model=settings.GROK_MODEL_NAME,
-                    messages=[{"role": "user", "content": prompt}],
-                    max_tokens=300
-                )
-                desc = ai_response.choices[0].message.content.strip()
-            except Exception as e:
-                print(f"Error generating description: {e}")
-                desc = f"Visit {name} in {place.placename}"
 
 
-        
-        
-        
-        # Validate required fields
-        if not place_id or not name:
-            return render(request, 'home/tourist_spot_create.html', {
-                'places': Places_v2.objects.all(),
-                'resorts': ResortItem.objects.all(),
-                'error': 'Place and Name are required fields'
+    def get_clean_value(data, key, default=""):
+        val = data.get(key, default)
+
+        # If it's a list → take first item
+        if isinstance(val, list):
+            val = val[0] if val else default
+
+        # If None → return default
+        if val is None:
+            return default
+
+        # Convert EVERYTHING to string safely
+        return str(val).strip()
+
+    data = getattr(request, "POST", request)  # ✅ ALWAYS defined    
+    if request.method == "POST":
+        name = get_clean_value(data, "name")
+        place_id = get_clean_value(data, "place")
+        slug = get_clean_value(data, "slug")
+        desc = get_clean_value(data, "desc")
+        latitude = get_clean_value(data, "latitude")
+        longitude = get_clean_value(data, "longitude")
+
+
+        # data = request.POST if hasattr(request, "POST") else request
+        # name = (data.get("name") or "").strip()
+        # place_id = data.get("place")
+        # slug = (data.get("slug") or "").strip() or slugify(name)
+        # desc = (data.get("desc") or "").strip()
+        # latitude = data.get("latitude")
+        # longitude = data.get("longitude")
+        resort_ids = data.getlist("resortItem")
+
+        if not name or not place_id:
+            return render(request, "home/tourist_spot_create.html", {
+                "places": Places_v2.objects.all(),
+                "resorts": ResortItem.objects.all(),
+                "error": "Place and Name are required"
             })
-        
+
         place = get_object_or_404(Places_v2, id=place_id)
 
-
-        # Build coordinates from latitude and longitude
         coords = None
         if latitude and longitude:
             try:
                 coords = {
-                    'latitude': float(latitude),
-                    'longitude': float(longitude)
+                    "latitude": float(latitude),
+                    "longitude": float(longitude)
                 }
-            except (ValueError, TypeError):
-                coords = None
-        else:
-            # If no lat/lng, ask ChatGPT for coordinates
-            try:
-                place_obj = place if 'place' in locals() else get_object_or_404(Places_v2, id=place_id)
-                gpt_prompt = (
-                    f"What are the most precise real-world latitude and longitude coordinates (at least 6 decimal places, from official sources like Google Maps, no rounding) "
-                    f"of the tourist spot '{name}' in {place_obj.placename}? "
-                    f"Reply as JSON: {{'latitude': <lat>, 'longitude': <lng>}}. If unknown, reply with nulls."
-                )
-                print(f"[GPT-COORDS] Asking ChatGPT for coordinates: {gpt_prompt}")
-                ai_response = client.chat.completions.create(
-                    model=settings.GROK_MODEL_NAME,
-                    messages=[{"role": "user", "content": gpt_prompt}],
-                    max_tokens=50
-                )
-                import ast
-                gpt_content = ai_response.choices[0].message.content.strip()
-                print(f"[GPT-COORDS] ChatGPT raw response: {gpt_content}")
-                # Remove code block markers and language tags robustly
-                if gpt_content.startswith('```'):
-                    gpt_content = gpt_content.strip('`\n')
-                    first_line = gpt_content.split('\n', 1)[0].strip()
-                    if first_line.lower() in ['python', 'json', 'py']:
-                        gpt_content = gpt_content.split('\n', 1)[-1] if '\n' in gpt_content else gpt_content
-                    if gpt_content.endswith('```'):
-                        gpt_content = gpt_content[:-3]
-                    gpt_content = gpt_content.strip()
-                # Try to extract dict from variable assignment or parse as dict (STRICT)
-                import re
-                dict_candidate = None
-                lines = [line for line in gpt_content.splitlines() if line.strip() and not line.strip().startswith('#')]
-                for line in lines:
-                    match = re.match(r'^[a-zA-Z0-9_]+\s*=\s*(\{.*\})$', line.strip())
-                    if match:
-                        dict_candidate = match.group(1)
-                        break
-                if not dict_candidate:
-                    for line in lines:
-                        if line.strip().startswith('{') and line.strip().endswith('}'):
-                            dict_candidate = line.strip()
-                            break
-                if not dict_candidate:
-                    dict_candidate = gpt_content
-                try:
-                    coords_candidate = ast.literal_eval(dict_candidate)
-                    print(f"[GPT-COORDS] Parsed response: {coords_candidate}")
-                    # Strict: must be dict, both keys, both floats, not None, and in valid range
-                    def is_valid_latlng(val):
-                        try:
-                            lat = float(val['latitude'])
-                            lng = float(val['longitude'])
-                            if not (-90 <= lat <= 90 and -180 <= lng <= 180):
-                                return False
-                            return True
-                        except Exception:
-                            return False
-                    if (
-                        isinstance(coords_candidate, dict)
-                        and 'latitude' in coords_candidate
-                        and 'longitude' in coords_candidate
-                        and coords_candidate['latitude'] is not None
-                        and coords_candidate['longitude'] is not None
-                        and is_valid_latlng(coords_candidate)
-                    ):
-                        coords = {
-                            'latitude': float(coords_candidate['latitude']),
-                            'longitude': float(coords_candidate['longitude'])
-                        }
-                        print(f"[GPT-COORDS] Using coordinates: {coords}")
-                    else:
-                        print(f"[GPT-COORDS] Invalid or missing coordinates. Parsed: {coords_candidate}")
-                        coords = None
-                except Exception as parse_exc:
-                    print(f"[GPT-COORDS] Error parsing ChatGPT response: {parse_exc}")
-                    coords = None
-            except Exception as e:
-                print(f"[GPT-COORDS] Error getting coordinates from ChatGPT: {e}")
-        
-        # Auto-generate slug if not provided
-        if not slug:
-            slug = slugify(name)
+            except:
+                pass
 
-        image_url = img
-        # If no uploaded file was provided, try to fetch a relevant image automatically
-
-        if image_upload:
-            try:
-                from webSchedule.utils import upload_to_imgbb
-                image_url = upload_to_imgbb(image_upload)
-            except Exception as upload_error:
-                places_list = Places_v2.objects.all()
-                resorts_list = ResortItem.objects.all()
-                return render(request, 'home/tourist_spot_create.html', {
-                    'places': places_list,
-                    'resorts': resorts_list,
-                    'error': f'Unable to upload image: {upload_error}'
-                })
-        if not image_upload:
-            try:
-                fetched = getPlacePhoto(request, name)
-                if fetched:
-                    image_upload = fetched
-                    print(f"[AUTO-IMAGE] Fetched image for '{name}': {fetched}")
-                else:
-                    print(f"[AUTO-IMAGE] getPlacePhoto returned no result for '{name}'")
-            except Exception as e:
-                print(f"[AUTO-IMAGE] Error fetching image for '{name}': {e}")
-                        
-
-        if not image_url and not image_upload:
-            # Ask ChatGPT for a relevant image URL
-            try:
-                gpt_img_prompt = f"Give a direct image URL (jpg/png, no html, no markdown, no explanation) of the tourist spot '{name}' in {place.placename}. Only reply with the image URL."
-                print(f"[GPT-IMG] Asking ChatGPT for image URL: {gpt_img_prompt}")
-                ai_img_response = client.chat.completions.create(
-                    model=settings.GROK_MODEL_NAME,
-                    messages=[{"role": "user", "content": gpt_img_prompt}],
-                    max_tokens=100
-                )
-                img_content = ai_img_response.choices[0].message.content.strip()
-                # Remove markdown/image tags if present
-                if img_content.startswith('![') or img_content.startswith('['):
-                    img_content = img_content.split('(')[-1].split(')')[0]
-                if img_content.startswith('http'):
-                    image_url = img_content
-                    print(f"[GPT-IMG] Using image URL: {image_url}")
-                else:
-                    print(f"[GPT-IMG] ChatGPT did not return a valid image URL: {img_content}")
-            except Exception as img_exc:
-                print(f"[GPT-IMG] Error getting image URL from ChatGPT: {img_exc}")
-
-
-        # Create the tourist spot (spot_id will be set from the model's primary key)
+        # ✅ Create immediately (FAST)
         spot = TouristSpot.objects.create(
             place=place,
             name=name,
             slug=slug,
-            desc=desc,
-            coords=coords,
-            img=image_url,
-            url=url
+            desc=desc or "",
+            coords=coords
         )
-        
-        # Set spot_id as the model's primary key if not already set
+
         if not spot.spot_id:
             spot.spot_id = f"SPOT-{spot.id}"
             spot.save()
-        
-        # Add resorts if provided
+
         if resort_ids:
-            resorts_to_add = ResortItem.objects.filter(id__in=resort_ids)
-            spot.resortItem.set(resorts_to_add)
-        
-        # Auto-generate blog post using OpenAI
-        try:
-            from singlepage2.htmlwriter import generate_blog_page
-            from apis.models import Blogs
-            
-            blog_prompt = f"""Write a comprehensive travel blog post (800-1000 words) about visiting {name} in {place.placename}. 
-            
-            Include sections:
-            1. Introduction - Hook the reader about this destination and tell what is it
-            2. How to Get There - Directions and where are transport options and the detailed Cost
-            3. Best Time to Visit - Seasonal information
-            4. What to Do - Activities and attractions
-            5. Where to Stay - Accommodation options nearby
-            6. Local Tips & Recommendations
-            7. Budget & Costs
-            8. Conclusion
-            
-            IMPORTANT: Use these CSS classes for styling:
-            - <div class="intro-section"><h2>...</h2><p>...</p></div> for introduction
-            - <div class="content-section"><h3>...</h3><p>...</p></div> for main sections
-            - <div class="highlight-box"><h3>...</h3><ul><li>...</li></ul></div> for important highlights/tips
-            - <div class="tip-box"><p><strong>...</strong> ...</p></div> for travel tips
-            - <div class="mindset-box"><h3>...</h3><p>...</p></div> for special insights
-            - <div class="cta-section"><h2>...</h2><p>...</p></div> for conclusion/call-to-action
-            
-            Make it engaging, informative, and SEO-friendly. Use proper semantic HTML with <h2>, <h3>, <p>, <ul>, <li> tags within the div classes."""
-            
-            ai_response = client.chat.completions.create(
-                model=settings.GROK_MODEL_NAME,
-                messages=[{"role": "user", "content": blog_prompt}],
-                max_tokens=1500
-            )
-            blog_content = ai_response.choices[0].message.content.strip()
-            
-            # Generate blog HTML file
-            blog_title = f"Visit {name}: A Complete Travel Guide"
-            
-            # Calculate read time
-            text_content = _strip_html_tags(blog_content)
-            word_count = len(text_content.split())
-            read_time = max(1, round(word_count / 200))
-            
-            faq_entries = [
-                {
-                    "@type": "Question",
-                    "name": f"What is {name}?",
-                    "acceptedAnswer": {
-                        "@type": "Answer",
-                        "text": desc
-                    }
-                },
-                {
-                    "@type": "Question",
-                    "name": f"How do I get to {name}?",
-                    "acceptedAnswer": {
-                        "@type": "Answer",
-                        "text": f"{name} is located in {place.placename}. You can reach it by various transportation modes including car, bus, or organized tours."
-                    }
-                },
-                {
-                    "@type": "Question",
-                    "name": f"What is the best time to visit {name}?",
-                    "acceptedAnswer": {
-                        "@type": "Answer",
-                        "text": f"The best time to visit {name} depends on the weather and season. Check local travel guides for seasonal recommendations."
-                    }
-                }
-            ]
-            
-            # Generate HTML content and write to file
-            html_content = generate_blog_page(
-                request,
-                place_name=place.placename,
-                title=blog_title,
-                body_text=blog_content,
-                cover_image_url=image_url,
-                faq_entries=faq_entries
-            )
-            
-            # Write HTML to file
-            place_slug = slugify(place.placename)
-            blog_slug = slugify(blog_title)
-            blog_folder = os.path.join(
-                os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                "singlepage2", "templates", "blogs", place_slug
-            )
-            os.makedirs(blog_folder, exist_ok=True)
-            blog_file_path = os.path.join(blog_folder, f"{blog_slug}.html")
-            
-            with open(blog_file_path, 'w', encoding='utf-8') as f:
-                f.write(html_content)
-            
-            # Create Blogs model instance
-            blog_obj = Blogs.objects.create(
-                blogplace=place,
-                title=blog_title[:64],
-                category='Guide',
-                summarize=desc[:140],
-                readtime=read_time,
-                localurlpath=f"/pages/blog/{place_slug}/{blog_slug}/{slugify(name)}"
-            )
-            
-            # Link blog to place
-            place.blog.add(blog_obj)
-            
-            print(f"✅ Blog post created for {name}")
-            print(f"📊 Summary: {blog_obj.summarize}")
-            print(f"⏱️  Read time: {blog_obj.readtime} min")
-            print(f" URL: {blog_obj.localurlpath}")
-            print(f"📁 File: {blog_file_path}")
-        except Exception as blog_error:
-            print(f"⚠️ Error generating blog post: {blog_error}")
-        
-        spot_url = f"https://paratara.com/{place.slug}/visit/{spot.slug}/"
-        qr_buffer = io.BytesIO()
-        qr_code = qrcode.make(spot_url)
-        qr_code.save(qr_buffer, format="PNG")
-        qr_data = base64.b64encode(qr_buffer.getvalue()).decode('ascii')
-        generated_qr_data = f"data:image/png;base64,{qr_data}"
+            resorts = ResortItem.objects.filter(id__in=resort_ids)
+            spot.resortItem.set(resorts)
 
-        qr_upload_error = None
-        qr_cloud_url = None
-        qr_buffer.seek(0)
-        try:
-            from django.core.files.base import ContentFile
-            from webSchedule.utils import upload_to_imgbb
+        # ✅ Run heavy tasks in background
+        threading.Thread(
+            target=process_tourist_spot,
+            args=(spot.id,),
+            daemon=True
+        ).start()
 
-            qr_file = ContentFile(qr_buffer.getvalue())
-            qr_file.name = f"{slug}-qr.png"
-            qr_url = upload_to_imgbb(qr_file)
-            qr_cloud_url = qr_url
-            spot.qr_code_url = qr_url
-            spot.url = f"https://paratara.com{blog_obj.localurlpath}"
-            spot.save()
-        except Exception as upload_error:
-            qr_upload_error = str(upload_error)
-
-        places_list = Places_v2.objects.all()
-        resorts_list = ResortItem.objects.all()
-        return render(request, 'home/tourist_spot_create.html', {
-            'places': places_list,
-            'resorts': resorts_list,
-            'success_message': f'Tourist spot "{spot.name}" created successfully.',
-            'spot_qr_url': spot_url,
-            'qr_image_data': generated_qr_data,
-            'qr_cloud_url': qr_cloud_url,
-            'qr_upload_error': qr_upload_error
+        return render(request, "home/tourist_spot_create.html", {
+            "places": Places_v2.objects.all(),
+            "resorts": ResortItem.objects.all(),
+            "success_message": f'{spot.name} created successfully (processing in background)'
         })
-    
 
-    
-    # GET request - show the form
-    places = Places_v2.objects.all()
-    resorts_list = ResortItem.objects.all()
-    return render(request, 'home/tourist_spot_create.html', {
-        'places': places,
-        'resorts': resorts_list
+    return render(request, "home/tourist_spot_create.html", {
+        "places": Places_v2.objects.all(),
+        "resorts": ResortItem.objects.all()
     })
-
 
 def get_tour_guide_info(request, username):
     if request.method != 'GET':

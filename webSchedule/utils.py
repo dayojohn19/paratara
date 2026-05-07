@@ -150,14 +150,38 @@ def getPlacePhoto(request, placename):
         if data['results']:
             image_url = data['results'][0]['urls']['regular']
             print(f"Setting background for {image_url}")
-            return image_url
+            resp = requests.get(image_url, timeout=10)
+            resp.raise_for_status()
+            content = resp.content
+            size = len(content)
+            return InMemoryUploadedFile(
+                BytesIO(content),
+                'ImageField',
+                f"{placename}.jpg",
+                'image/jpeg',
+                size,
+                None
+            )
         else:
             print(f"No image found for {placename} on Unsplash — trying fallback search")
             try:
                 fallback = get_image_url_from_search(placename)
                 if fallback:
                     print(f"Fallback search found image: {fallback}")
-                    return fallback
+                    image_url = fallback
+                    print(f"Setting background for {image_url}")
+                    resp = requests.get(image_url, timeout=10)
+                    resp.raise_for_status()
+                    content = resp.content
+                    size = len(content)
+                    return InMemoryUploadedFile(
+                        BytesIO(content),
+                        'ImageField',
+                        f"{placename}.jpg",
+                        'image/jpeg',
+                        size,
+                        None
+                    )
                 else:
                     print(f"Fallback search returned no image for {placename}")
                     return None
@@ -170,7 +194,20 @@ def getPlacePhoto(request, placename):
             fallback = get_image_url_from_search(placename)
             if fallback:
                 print(f"Fallback search found image: {fallback}")
-                return fallback
+                image_url = fallback
+                print(f"Setting background for {image_url}")
+                resp = requests.get(image_url, timeout=10)
+                resp.raise_for_status()
+                content = resp.content
+                size = len(content)
+                return InMemoryUploadedFile(
+                    BytesIO(content),
+                    'ImageField',
+                    f"{placename}.jpg",
+                    'image/jpeg',
+                    size,
+                    None
+                )
             else:
                 print(f"Fallback search returned no image for {placename}")
                 return None

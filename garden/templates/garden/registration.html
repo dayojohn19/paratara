@@ -8,7 +8,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel</title>
-
+ 
     <style>
         * {
             box-sizing: border-box;
@@ -389,23 +389,56 @@
 
 <hr>
 
+<!-- Add Tourist Spot Form -->
+<form id="tourist-spot-form">
+    <h2>Add Tourist Spot</h2>
+    <label>Place</label>
+    <select id="place-select" required>
+        <option value="">Loading places...</option>
+    </select>
+    <label>Spot Name *</label>
+    <input type="text" id="spot-name" placeholder="Enter spot name" required>
+    <label>Description (optional)</label>
+    <textarea id="spot-desc" rows="3" placeholder="Description"></textarea>
+    <label>Image</label>
+    <input type="file" id="spot-image" accept="image/*">
+    <label>URL (optional)</label>
+    <input type="url" id="spot-url" placeholder="https://example.com">
+    <label>Resorts (hold Ctrl/Cmd for multiple)</label>
+    <select id="resort-select" multiple>
+        <option value="">Select resorts (optional)</option>
+    </select>
+    <label>Latitude (optional)</label>
+    <input type="number" id="spot-lat" step="any" placeholder="e.g. 10.123456">
+    <label>Longitude (optional)</label>
+    <input type="number" id="spot-lng" step="any" placeholder="e.g. 123.123456">
+    <button type="submit" class="btn btn-info">Create Spot</button>
+    <div id="spot-status" class="note"></div>
+</form>
+
+<hr>
+
+<!-- Add Viaje v2 Form -->
+<form id="viaje-form">
+    <h2>Create Viaje v2</h2>
+    <label>Place Name *</label>
+    <input type="text" id="placename" placeholder="Enter place name" required>
+    <label>Meet Dates</label>
+    <div id="dates-container">
+        <input type="date" class="meet-date" id="date-0">
+        <button type="button" id="add-date">Add Date</button>
+    </div>
+    <button type="submit" class="btn btn-success">Create Viaje</button>
+    <div id="viaje-status" class="note"></div>
+</form>
+
 </div>
 <script>
-/* UPDATE COLOR CIRCLE WHEN USER SELECTS A THEME */
-document.getElementById("collectionTheme").addEventListener("change", function() {
-    const color = this.options[this.selectedIndex].dataset.color;
-    document.querySelector(".color-preview").style.background = color || "#ccc";
-});
-
-// Cloudinary upload for Place Picture
 const placePictureFileInput = document.getElementById('placePictureFile');
 const placePictureUrlInput = document.getElementById('placePictureUrl');
 const uploadStatus = document.getElementById('uploadStatus');
-const placeProfileForm = document.getElementById('placeProfileForm');
 const placeProfileSubmit = document.getElementById('placeProfileSubmit');
-
-// Cloudinary config values
-const CLOUDINARY_UPLOAD_PRESET = 'ml_default'; // Default unsigned preset, change if you have a custom one
+const CLOUDINARY_UPLOAD_PRESET = 'ml_default';
 const CLOUDINARY_CLOUD_NAME = 'dg6xfou1t';
 
 placePictureFileInput.addEventListener('change', async function() {
@@ -490,6 +523,125 @@ placePictureFileInput.addEventListener('change', async function() {
         console.log('Upload error:', err);
     }
 });
+    // Tourist Spot functionality
+    async function createTouristSpot(formData) {
+      const statusEl = document.getElementById('spot-status');
+      statusEl.textContent = 'Creating spot...';
+      statusEl.style.color = '#007bff';
+
+      try {
+        const response = await fetch('/tourist-spot-create/', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+
+        const result = await response.text();  // Returns HTML, parse if needed
+        statusEl.textContent = 'Spot created successfully!';
+        statusEl.style.color = 'green';
+        document.getElementById('tourist-spot-form').reset();
+        console.log('Success:', result);
+      } catch (error) {
+        statusEl.textContent = 'Error: ' + error.message;
+        statusEl.style.color = 'red';
+        console.error('Error:', error);
+      }
+    }
+
+    // Populate places dropdown
+    async function loadPlaces() {
+      try {
+        const response = await fetch('/home/getcarpooljson/');
+        const data = await response.json();
+        const select = document.getElementById('place-select');
+        select.innerHTML = '<option value="">Select a place</option>';
+        data.PlacesList.forEach(place => {
+          const option = new Option(place.placename, place.id);
+          select.add(option);
+        });
+      } catch (error) {
+        console.error('Failed to load places:', error);
+        document.getElementById('place-select').innerHTML = '<option value="">Error loading places</option>';
+      }
+    }
+
+    // Resort dropdown: optional, fetch if API exists or skip
+    // For now, manual or empty; extend as needed
+
+    // Form submit
+    document.getElementById('tourist-spot-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData();
+      const placeId = document.getElementById('place-select').value;
+      const name = document.getElementById('spot-name').value.trim();
+      if (!placeId || !name) {
+        document.getElementById('spot-status').textContent = 'Place and name required.';
+        return;
+      }
+      formData.append('place', placeId);
+      formData.append('name', name);
+      const desc = document.getElementById('spot-desc').value.trim();
+      if (desc) formData.append('desc', desc);
+      const imageFile = document.getElementById('spot-image').files[0];
+      if (imageFile) formData.append('image_upload', imageFile);
+      const url = document.getElementById('spot-url').value.trim();
+      if (url) formData.append('url', url);
+      const resortSelect = document.getElementById('resort-select');
+      Array.from(resortSelect.selectedOptions).forEach(opt => formData.append('resortItem', opt.value));
+      const lat = document.getElementById('spot-lat').value;
+      if (lat) formData.append('latitude', lat);
+      const lng = document.getElementById('spot-lng').value;
+      if (lng) formData.append('longitude', lng);
+
+      await createTouristSpot(formData);
+    });
+
+    // Load places on page load
+    window.addEventListener('load', loadPlaces);
+
+
+async function createViaje(placename, meetDates = []) {
+  const formData = new FormData();
+  formData.append('placenameschedule', placename);
+  meetDates.forEach(date => formData.append('meetDate', date));
+
+  try {
+    const response = await fetch('/home/newViaje/', {
+      method: 'POST',
+      body: formData
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const result = await response.text();
+    console.log('Viaje created:', result);
+    return result;
+  } catch (error) {
+    console.error('Error:', error);
+    throw error;
+  }
+}
+  document.getElementById('viaje-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const placename = document.getElementById('placename').value;
+    const dates = [];
+    // Collect all date inputs
+    document.querySelectorAll('input[type="date"]').forEach(input => {
+      if (input.value) dates.push(input.value);
+    });
+    try {
+      await createViaje(placename, dates);
+      alert('Viaje created!');
+    } catch (error) {
+      alert('Error: ' + error.message);
+    }
+  });
 </script>
 </body>
 </html>

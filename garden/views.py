@@ -110,7 +110,8 @@ def get_map(request, placeName):
      return render(
          request,
 
-         f'garden/map/{place.slug}.html',
+        #  f'garden/map/{place.slug}.html',
+         f'garden/map.html',
          {
              'tourist_spots': tourist_spots,
              'placeName': placeName,
@@ -646,6 +647,7 @@ def registrationPage(request):
     # from time import sleep
     from .forms import ProvinceForm, CollectionForm, PlaceProfileForm,VisitorForm
     from .models import CollectionGroup
+    from home.models import Places_v2
 
     # Always define forms for rendering
     pform = ProvinceForm()

@@ -4,28 +4,8 @@ import os
 from django.utils.text import slugify
 from django.conf import settings
 import json
-from garden.models import Collection, CollectionGroup
 def generate_blog_page(request,place_name, title, body_text, cover_image_url="/static/images/default-cover.jpg", faq_entries=None):
-    print("=== DEBUG: generate_blog_page called ===")
-    print(f"  request: {request} (type: {type(request)})")
-    print(f"  place_name: '{place_name}'")
-    print(f"  title: '{title}'")
-    print(f"  body_text len: {len(body_text) if body_text else 0}")
-    print(f"  cover_image_url: '{cover_image_url}'")
-    print(f"  faq_entries: {faq_entries} (len: {len(faq_entries) if faq_entries else 0})")
-    print("=======================================")
-    print("DEBUG: About to get CSRF token...")
-    if request is None:
-        print("ERROR: request is None! Cannot get CSRF token.")
-        csrf_token = ""  # fallback
-    else:
-        try:
-            csrf_token = get_token(request)
-            print(f"DEBUG: CSRF token obtained: {csrf_token[:10]}...")
-        except Exception as e:
-            print(f"ERROR getting CSRF: {e}")
-            csrf_token = ""
-    print("DEBUG: CSRF step done.")
+    csrf_token = get_token(request)  # from django.middleware.csrf import get_token
     upload_url = reverse("imageapp:uploadimage")
     subscribe_url = reverse("apis:subscribe_email")
 # def generate_blog_page(place_name, title, body_text, cover_image_url="/static/images/default-cover.jpg", faq_list=None):
@@ -44,17 +24,9 @@ def generate_blog_page(request,place_name, title, body_text, cover_image_url="/s
 
     # The final HTML file location
     file_path = os.path.join(folder_path, f"{title_slug}.html")
-    print(f"DEBUG: Prepared file_path: {file_path}")
 
     # The canonical full URL on your live site
     canonical_url = f"https://www.paratara.com/pages/blog/{place_slug}/{title_slug}/"
-
-    collections_html = f'''
-<div id="dynamic-collections" class="collection-section">
-  <h2>📱 Local Collections & QR Experiences</h2>
-  <p id="collections-loading">Discover interactive collections nearby. Scan QR codes for memories! Loading...</p>
-</div>
-    '''
 
     # ✅ Build FAQ Schema if provided
 
@@ -77,6 +49,7 @@ def generate_blog_page(request,place_name, title, body_text, cover_image_url="/s
         <html lang="en">
         <head>
                                             {faq_schema}
+                                            <script id="Cookiebot" src="https://consent.cookiebot.com/uc.js" data-cbid="f333d02c-4b9d-44bf-90a8-648b9ac87ab2" data-blockingmode="auto" type="text/javascript"></script>
                                             <!-- Google tag (gtag.js) -->
                                             <script> window.dataLayer = window.dataLayer || []; function gtag(){{dataLayer.push(arguments);}} gtag('js', new Date()); gtag('config', 'G-MH2W7TQEH3'); </script>
                                             <meta name="google-site-verification" content="8jqO-yxHVkp0mIbnh_nvbfA0N21q0QcCR4aDkFbb8rc" />
@@ -268,15 +241,8 @@ img {{
 
 .dropdown-menu li a {{
     display: block;
-    padding: 1.25rem 1.5rem;
-    font-size: 1rem;
-    border-radius: 8px;
-    transition: all 0.2s ease;
-}}
-
-.dropdown-menu li a:hover {{
-    background: var(--light-blue);
-    transform: translateX(4px);
+    /* padding: 0.75rem 1.25rem; */
+    font-size: 0.9rem;
 }}
 
 .dropdown-menu li a:hover {{
@@ -407,6 +373,7 @@ img {{
 
 /* Blog List Sidebar */
 #blog-list {{
+    padding-left:1.4em;
     list-style: none;
     max-height: 100vh;
     height: 100vh;
@@ -444,61 +411,6 @@ img {{
 
 #blog-list a:hover {{
     color: var(--primary-blue);
-}}
-
-.collection-section .collections-grid {{
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 1.5rem;
-    margin-top: 1rem;
-}}
-
-.collection-section .collection-card {{
-    background: var(--white);
-    border-radius: 12px;
-    padding: 1.5rem;
-    box-shadow: var(--shadow-md);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}}
-
-.collection-section .collection-card:hover {{
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
-}}
-
-.collection-section .collection-card img {{
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-    border-radius: 8px;
-    margin-bottom: 1rem;
-}}
-
-.collection-section .collection-card h4 {{
-    font-size: 1.25rem;
-    margin-bottom: 0.5rem;
-    color: var(--primary-blue);
-}}
-
-.collection-section .collection-card p {{
-    color: var(--text-gray);
-    margin-bottom: 1rem;
-    line-height: 1.5;
-}}
-
-.collection-section .collection-link {{
-    display: inline-block;
-    background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
-    color: white;
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 600;
-    transition: opacity 0.2s ease;
-}}
-
-.collection-section .collection-link:hover {{
-    opacity: 0.9;
 }}
 
 /* Footer */
@@ -557,85 +469,35 @@ footer input[type="file"] {{
     margin-top: 1rem;
 }}
 
-/* Hamburger Menu Icon - Friendly & Animated */
+/* Hamburger */
 .hamburger {{
     display: none;
-    flex-direction: column;
-    justify-content: space-around;
-    width: 30px;
-    height: 25px;
+    font-size: 1.8rem;
     cursor: pointer;
-    padding: 5px;
-    border-radius: 8px;
-    background: var(--light-blue);
-    box-shadow: var(--shadow-sm);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }}
 
-.hamburger:hover {{
-    transform: scale(1.05);
-    box-shadow: var(--shadow-md);
-}}
-
-.hamburger:active {{
-    transform: scale(0.98);
-}}
-
-.hamburger span {{
-    display: block;
-    height: 3px;
-    width: 100%;
-    background: var(--primary-blue);
-    border-radius: 3px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-}}
-
-.hamburger span:nth-child(1) {{
-    transform-origin: right center;
-
-}}
-.hamburger span:nth-child(2) {{
-        margin-top: 4px;
-}}
-
-.hamburger span:nth-child(3) {{
-    transform-origin: right center;
-    margin-top: 4px;
-}}
-
-/* X Animation when open */
-.hamburger.open span:nth-child(1) {{
-    transform: rotate(45deg) translate(5px, 5px);
-}}
-
-.hamburger.open span:nth-child(2) {{
-    opacity: 0;
-    transform: translateX(20px);
-}}
-
-.hamburger.open span:nth-child(3) {{
-    transform: rotate(-45deg) translate(7px, -6px);
-}}
-   .hamburger {{
-        display: block;
-    }}
+/* Mobile Responsive */
+@media (max-width: 768px) {{
     .dropdown:hover .dropdown-menu {{
         opacity: 1;
         visibility: visible;
         transform: translateY(0);
     }}    
+   .hamburger {{
+        display: block;
+    }}
 
     .nav-links {{
         overflow: scroll;
-
+        position: absolute;
         top: 70px;
         background: #ffffff;
         flex-direction: column;
-
-
+        max-width: 80vw;
+        border-radius: 16px;
+        padding: 1rem;
         display: none;
-
+        box-shadow: 0 16px 48px rgba(0,0,0,0.15);
     }}
 
     .nav-links.open {{
@@ -657,10 +519,8 @@ footer input[type="file"] {{
     }}
     #body-contents {{
         padding: 2rem 1rem;
+        margin-top: 60px;
     }}
-/* Mobile Responsive */
-@media (max-width: 768px) {{
-
 
     h1 {{ font-size: 2rem; }}
     h2 {{ font-size: 1.5rem; }}
@@ -781,28 +641,35 @@ footer input[type="file"] {{
 
 
 <nav class="navbar">
-    <div style="display: flex; align-items: center; gap: 12px;">
-        <div class="hamburger" id="hamburgerBtn" onclick="toggleDropdown(event)">
-            <span></span>
-            <span></span>
-            <span></span>
-        </div>
-        <div class="logo">ParaTara</div>
-    </div>
+    <div class="logo"></div>
+
+    <div class="hamburger" onclick="toggleMenu()">☰</div>
 
     <ul class="nav-links" id="navLinks">
-        <ul class="" id="blog-list">
-        </ul>
+        <!-- <li><a href="#">Home</a></li> -->
+
+        <li class="dropdown" id="dropdowntoogle">
+            <a href="javascript:void(0)" onclick="toggleDropdown(event)">Blogs ▾</a>
+            <ul class="dropdown-menu" id="blog-list">
+
+            </ul>
+        </li>
+
+        <!-- <li class="dropdown">
+            <a href="#" onclick="toggleDropdown(event)">Explore ▾</a>
+            <ul class="dropdown-menu">
+                <li><a href="#">Blog</a></li>
+                <li><a href="#">Events</a></li>
+                <li><a href="#">Guides</a></li>
+            </ul>
+        </li> -->
+
+        <!-- <li><a href="#">Contact</a></li> -->
     </ul>
 </nav>                                                                
 <script>
 function toggleMenu() {{
-    const navLinks = document.getElementById('navLinks');
-    const hamburger = document.getElementById('hamburgerBtn');
-    navLinks.classList.toggle('open');
-    if (hamburger) {{
-        hamburger.classList.toggle('open');
-    }}
+    document.getElementById('navLinks').classList.toggle('open');
 }}
 
 function toggleDropdown(e) {{
@@ -815,7 +682,6 @@ function toggleDropdown(e) {{
 
 
   <article id="body-contents">
-    {collections_html}
     {body_text}
   </article>
   
@@ -850,7 +716,7 @@ async function fetchAndInsertImages() {{
         const insertionPoints = contentSections.length > 0 ? contentSections : [bodyContents];
         
         let count = 0;
-        const maxImages = 3;
+        const maxImages = Math.min(10, shuffled.length);
 
         shuffled.slice(0, maxImages).forEach((imgUrl, index) => {{
             if (count >= maxImages) return;
@@ -928,47 +794,8 @@ async function getBlogLists() {{
     }})
     .catch(err => {{
         console.error("Error fetching blogs:", err);
-    }});
-}}
-
-async function fetchCollections() {{
-    csrftoken = getCookie('csrftoken');
-    
-    await fetch(`/apis/getPlaceCollections/${{placename}}/`, {{
-        method: 'GET',
-        headers: {{
-            "X-Requested-With": "XMLHttpRequest",
-            "X-CSRFToken": csrftoken,
-        }}
-    }})
-    .then(res => res.json())
-    .then(data => {{
-        const collectionsDiv = document.querySelector("#dynamic-collections");
-        const loadingP = document.getElementById("collections-loading");
-
-        if (!data || !data.length) {{
-            loadingP.textContent = "No local collections found nearby.";
-            return;
-        }}
-
-        let html = '<div class="collections-grid">';
-        data.forEach(col => {{
-            const linkUrl = col.collectionGoogleDriveURL || col.collectionVideo || `/garden/collection/${{col.collectionUniqueID}}/`;
-            html += `
-                <div class="collection-card">
-                    ${{col.collectionPicture ? `<img src="${{col.collectionPicture}}" alt="${{col.collectionName}}" loading="lazy">` : ''}}
-                    <h4>${{col.collectionName}}</h4>
-                    <p>${{col.collectionDescription ? col.collectionDescription.substring(0, 100) + '...' : 'Discover this collection!'}}</p>
-                    <a href="${{linkUrl}}" target="_blank" class="collection-link">📱 Scan QR / View Collection</a>
-                </div>
-            `;
-        }});
-        html += '</div>';
-        collectionsDiv.innerHTML = html;
-    }})
-    .catch(err => {{
-        console.error("Error fetching collections:", err);
-        document.getElementById("collections-loading").textContent = "Failed to load collections.";
+        document.getElementById("blog-list").innerHTML =
+            "<p>Error loading blogs.</p>";
     }});
 }}
 
@@ -1012,7 +839,6 @@ document.addEventListener("DOMContentLoaded", () => {{
 
     fetchAndInsertImages();
     getBlogLists();
-    fetchCollections();
 
 
     
@@ -1094,7 +920,5 @@ document.addEventListener('click', (ev) => {{
 </body>
 </html>
 """
-    print(f"DEBUG: Generated HTML content (len: {len(html_content)})")
-    print("DEBUG: Function complete.")
     return html_content
 

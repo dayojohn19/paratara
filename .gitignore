@@ -11,7 +11,7 @@ speechenv/
 # Python
 __pycache__/
 *.pyc
-
+singlepage2/templates/blogs
 # Media & generated
 staticfiles/
 geoip/
