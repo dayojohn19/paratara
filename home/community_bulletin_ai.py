@@ -43,6 +43,7 @@ def _basic_spam_check(text: str) -> Tuple[bool, str]:
 
 
 def analyze_bulletin_post_from_images(image_bytes_list: Iterable[bytes]) -> Dict[str, object]:
+    print("Analyzing bulletin post from images...")  # Debug log
     """Analyze images to generate title/description and detect no-text or spam.
 
     Returns dict keys:
@@ -64,10 +65,11 @@ def analyze_bulletin_post_from_images(image_bytes_list: Iterable[bytes]) -> Dict
             "is_spam": False,
             "spam_reason": "no_images",
         }
-
+    print(f"Received {len(images)} images for analysis.")  # Debug log
     extracted_text = ""
 
     # Try local OCR first (best-effort). This is optional; if not installed, we proceed.
+    print("Attempting local OCR extraction...")  # Debug log
     try:
         from PIL import Image  # type: ignore
         import pytesseract  # type: ignore
@@ -77,23 +79,26 @@ def analyze_bulletin_post_from_images(image_bytes_list: Iterable[bytes]) -> Dict
             try:
                 img = Image.open(io.BytesIO(b))
                 parts.append(pytesseract.image_to_string(img) or "")
+                print(f"OCR extracted text: {parts[-1][:100]}...")  # Debug log
             except Exception:
                 continue
         extracted_text = "\n".join(parts).strip()
     except Exception:
         extracted_text = ""
-
+    print(f"Total extracted text length: {len(extracted_text)}")  # Debug log
     # If OpenAI is available, use vision to extract text + generate + classify.
     try:
         from openai import OpenAI
 
-        api_key = getattr(settings, "OPENAI_API_KEY", None)
-        if not api_key:
-            raise RuntimeError("OPENAI_API_KEY not configured")
+        # api_key = getattr(settings, "OPENAI_API_KEY", None)
+        # if not api_key:
+        #     raise RuntimeError("OPENAI_API_KEY not configured")
 
-        model = getattr(settings, "OPENAI_VISION_MODEL", "gpt-4o-mini")
-        client = OpenAI(api_key=api_key)
-
+        # model = getattr(settings, "OPENAI_VISION_MODEL", "gpt-4o-mini")
+        # client = OpenAI(api_key=api_key)
+        from django.conf import settings
+        client = OpenAI(api_key=settings.GROK_API_KEY, base_url='https://api.x.ai/v1')
+        print("Using OpenAI vision for analysis...")  # Debug log
         content = [
             {
                 "type": "text",
@@ -115,12 +120,12 @@ def analyze_bulletin_post_from_images(image_bytes_list: Iterable[bytes]) -> Dict
             b64 = base64.b64encode(b).decode("utf-8")
             content.append({"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}})
 
-        resp = client.chat.completions.create(
-            model=model,
-            messages=[{"role": "user", "content": content}],
-            response_format={"type": "json_object"},
-        )
 
+        resp = client.chat.completions.create(
+            model=settings.GROK_MODEL_NAME,
+            messages=[{"role": "user", "content": content}],
+        )
+        print(f"OpenAI response: {resp}")  # Debug log
         raw = (resp.choices[0].message.content or "").strip()
         data = json.loads(raw) if raw else {}
 

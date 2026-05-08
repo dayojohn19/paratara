@@ -782,7 +782,7 @@ footer input[type="file"] {{
 
 <nav class="navbar">
     <div style="display: flex; align-items: center; gap: 12px;">
-        <div class="hamburger" id="hamburgerBtn" onclick="toggleDropdown(event)">
+         <div class="hamburger" id="hamburgerBtn" onclick="toggleMenu()">
             <span></span>
             <span></span>
             <span></span>
@@ -939,7 +939,7 @@ async function fetchCollections() {{
         headers: {{
             "X-Requested-With": "XMLHttpRequest",
             "X-CSRFToken": csrftoken,
-        }}
+        }} 
     }})
     .then(res => res.json())
     .then(data => {{
@@ -952,18 +952,20 @@ async function fetchCollections() {{
         }}
 
         let html = '<div class="collections-grid">';
+        
         data.forEach(col => {{
             const linkUrl = col.collectionGoogleDriveURL || col.collectionVideo || `/garden/collection/${{col.collectionUniqueID}}/`;
             html += `
                 <div class="collection-card">
                     ${{col.collectionPicture ? `<img src="${{col.collectionPicture}}" alt="${{col.collectionName}}" loading="lazy">` : ''}}
-                    <h4>${{col.collectionName}}</h4>
-                    <p>${{col.collectionDescription ? col.collectionDescription.substring(0, 100) + '...' : 'Discover this collection!'}}</p>
-                    <a href="${{linkUrl}}" target="_blank" class="collection-link">📱 Scan QR / View Collection</a>
+                    <h4>${{col.name}}</h4>
+                    <p>${{col.address ? col.collectionDescription.substring(0, 130) + '...' : ' '}}</p>
+
                 </div>
             `;
         }});
         html += '</div>';
+        html += `<p>Discover interactive collection cards on these places. !</p>`;
         collectionsDiv.innerHTML = html;
     }})
     .catch(err => {{

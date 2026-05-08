@@ -205,6 +205,7 @@ class Collection(models.Model):
             'collectionUniqueID': self.collectionUniqueID,
             'collectionPlace': self.collectionPlace.placeName,
             'collectionPlaceID': self.collectionPlaceDirect.id if self.collectionPlaceDirect else None,
+            'collectionPlaceDirectName': self.collectionPlaceDirect.slug if self.collectionPlaceDirect else None,
             'collectionIsCollected': self.collectionIsCollected,
             # 'collectionMemory':self.collectionMemory
             'collectionProvince': self.collectionPlace.placeProvince.provinceName,

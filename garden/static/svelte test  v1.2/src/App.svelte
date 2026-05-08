@@ -374,6 +374,9 @@ const ACCEPT_HEADER = 'application/json';
 
   let postcardMemories = [];
 
+  let currentYear = new Date().getFullYear();
+  let currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
+
   let isLoadingPostcard = true;
   let showCredentialsForm = false;
   let credentialsError = '';
@@ -435,6 +438,18 @@ const ACCEPT_HEADER = 'application/json';
     }
 
     return String(value).replace(/\{(\w+)\}/g, (_, token) => params[token] ?? '');
+  }
+
+  function slugify(text) {
+    return text
+      .toString()
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/[^\w\-]+/g, '')
+      .replace(/\-\-+/g, '-')
+      .replace(/^-+/, '')
+      .replace(/-+$/, '');
   }
 
   function setLanguage(languageCode, shouldPersist = true) {
@@ -582,6 +597,7 @@ const ACCEPT_HEADER = 'application/json';
 
     if (memory.id) subtitleParts.push(`Collection ${memory.id}`);
     if (memory.placeId) subtitleParts.push(`Place ID ${memory.placeId}`);
+    console.log('scannedPostcardDetails:', memory);
 
     return {
       title: memory.title,
@@ -590,7 +606,8 @@ const ACCEPT_HEADER = 'application/json';
       collected: memory.collected,
       collector: memory.collector,
       collectorUsername: memory.collectorUsername,
-      collectorUserId: memory.collectorUserId
+      collectorUserId: memory.collectorUserId,
+      collectionPlaceDirect: memory.collectionPlaceDirectName
     };
   }
 
@@ -1345,9 +1362,13 @@ async function fetchLookPlaceData() {
             <h3>{scannedPostcardDetails.title}</h3>
             <div class="meta-grid">
               <p>{scannedPostcardDetails.location}</p>
-              <p><span>{t('collected')}</span>{formatCollectedDate(scannedPostcardDetails.collected)}</p>
-              <p><span>{t('collector')}</span>{scannedPostcardDetails.collector}</p>
-            </div>
+              <p>{formatCollectedDate(scannedPostcardDetails.collected)}</p>
+              <p>{scannedPostcardDetails.collector}</p>
+               <a href={`/places/${scannedPostcardDetails.collectionPlaceDirect}/${currentYear}/${currentMonth}`} class=""><p> Read here </p></a>
+            </div>  
+            
+            
+
             <!--
             <div class="booking-actions">
               <button class="cta tour-booking-btn" type="button" on:click={openTourBookingModal}>
@@ -2445,7 +2466,7 @@ async function fetchLookPlaceData() {
       letter-spacing: 0.06em;
     }
 
-    .subtext {
+    .subtext { 
       font-size: 0.94rem;
     }
 

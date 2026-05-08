@@ -73,12 +73,13 @@ def _get_client_ip(request):
 
 
 def _redirect_back_with_params(request, **params):
+    print('Redirecting back with params:', params)
     from urllib.parse import urlsplit, urlunsplit, parse_qsl, urlencode
 
     referer = request.META.get('HTTP_REFERER')
     if not referer:
         return redirect('/')
-
+    print('Original Referer:', referer)
     parts = urlsplit(referer)
     qs = dict(parse_qsl(parts.query))
     for k, v in params.items():
@@ -1675,6 +1676,7 @@ def addScheduleReview(request, scheduleID):
 
 def community_bulletin_list(request, place_id: int):
     # If place_id is a string (not an integer), try to find the place by placename and set place_id to its id
+    print('community_bulletin_list called with place_id:', place_id)
     if isinstance(place_id, str) and not place_id.isdigit():
         from .models import Places_v2
         place_obj = Places_v2.objects.filter(placename__iexact=place_id).first()
@@ -1684,7 +1686,7 @@ def community_bulletin_list(request, place_id: int):
             return JsonResponse({'error': 'Place not found'}, status=404)
     # ...existing code...
     from .models import CommunityBulletinPost
-
+    print('Fetching CommunityBulletinPost for place_id:', place_id)
     posts = (
         CommunityBulletinPost.objects
         .filter(place_id=place_id)
@@ -1693,6 +1695,7 @@ def community_bulletin_list(request, place_id: int):
     )
 
     data = []
+    print('Processing posts for JSON response...')
     for p in posts:
         data.append(
             {
@@ -1711,6 +1714,7 @@ def community_bulletin_list(request, place_id: int):
 
 @require_POST
 def community_bulletin_upload(request, place_id: int):
+    print('community_bulletin_upload called with place_id:', place_id)
     from .models import Places_v2, CommunityBulletinPost, CommunityBulletinImage
     try:
         from .community_bulletin_ai import analyze_bulletin_post_from_images
@@ -1718,12 +1722,13 @@ def community_bulletin_upload(request, place_id: int):
         analyze_bulletin_post_from_images = None
     from webSchedule.utils import upload_to_imgbb, upload_to_imgbb_with_metadata
     from django.http import HttpResponseForbidden
-
+    print('Checking authentication for user:', getattr(request.user, 'username', None))
     if not request.user.is_authenticated:
+        print('User not authenticated; returning 403')
         return HttpResponseForbidden('Login required')
 
     place = get_object_or_404(Places_v2, id=place_id)
-
+    print('Found place:', place.placename)
     uploaded = request.FILES.getlist('images')
     if not uploaded:
         return _redirect_back_with_params(request, cb_error='no_images')
@@ -1732,6 +1737,7 @@ def community_bulletin_upload(request, place_id: int):
 
     # Read bytes first (before saving) so AI generation has access.
     image_bytes_list = []
+    print('Reading uploaded files for AI analysis...')
     for f in uploaded[:4]:
         try:
             image_bytes_list.append(f.read())
@@ -1751,14 +1757,17 @@ def community_bulletin_upload(request, place_id: int):
             'has_words': True,
             'is_spam': False,
         }
+    print('AI analysis result:', analysis)
     if analysis.get('is_spam'):
+        print('AI flagged as spam; rejecting upload')
         return _redirect_back_with_params(request, cb_error='spam')
     if not analysis.get('has_words'):
+        print('AI analysis found no words; rejecting upload')
         return _redirect_back_with_params(request, cb_error='no_words')
 
     title = (analysis.get('title') or 'Community bulletin')
     description = (analysis.get('description') or '')
-
+    print(' Creating CommunityBulletinPost with title:', title)
     post = CommunityBulletinPost.objects.create(
         place=place,
         ip_address=ip,
