@@ -27,7 +27,7 @@ const getCurrentMonthYear = () => {
 ========================= */
 
 function openInNewTab(place, placeID) {
-  const { month, year } = getCurrentMonthYear();
+  let { month, year } = getCurrentMonthYear();
   const placeSlug = slugify(place);
   const url = `/${placeSlug}/place/${placeID}/${month}/${year}/`;
   window.open(url, "_blank");
@@ -35,6 +35,10 @@ function openInNewTab(place, placeID) {
 }
 
 function newTabPlaceSearch(placeName) {
+  console.log('aa')
+  let { month, year } = getCurrentMonthYear();
+  const placeSlug = slugify(placeName);
+  const url = `/${placeSlug}/place/${month}/${year}/`;  
   window.open(url, "_blank");
   // confirmOpen(placeName, `/placeslug/${slugify(placeName)}/`);
 }

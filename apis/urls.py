@@ -4,6 +4,10 @@ from . import upload_imbb
 from django.http import HttpResponse
 app_name = "apis"
 urlpatterns = [
+
+    
+
+
         path('getPlaceActivities/<int:place_id>/', views.getPlaceActivities, name='get_place_activities'),
         path('getPlaceAccommodations/<int:place_id>/', views.getPlaceAccommodations, name='get_place_accommodations'),
         
@@ -42,5 +46,12 @@ urlpatterns = [
     path("userblog/<str:message>/",views.NewblogUser, name="blog"),
     path("blogsItem/<int:bloggerID>", views.getBlogs, name="blogs_item"),
     path('chatgpt/', views.chatgpt_view, name='chatgpt'),
-    
+
+    # Storeproducts endpoints
+    path('storeproducts/', views.get_storeproducts, name='get_storeproducts'),
+    path('storeproducts/<int:pk>/', views.get_storeproduct, name='get_storeproduct'),
+    path('storeproducts/create/', views.create_storeproduct, name='create_storeproduct'),
+    path('storeproducts/<int:pk>/update/', views.update_storeproduct, name='update_storeproduct'),
+    path('storeproducts/<int:pk>/delete/', views.delete_storeproduct, name='delete_storeproduct'),
+
 ]

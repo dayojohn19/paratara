@@ -121,4 +121,8 @@ urlpatterns = [
     path('add-facebook-page/', views.add_facebook_page, name='add_facebook_page'),
 
     # http://treep.today/.well-known/pki-validation/D86D3E0B01797CC0A936E2472CF4FB91.txt
+
+    # Storeproducts management
+    path('store/storeproducts/', views.storeproducts_management, name='storeproducts_management'),
+
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -1,5 +1,5 @@
 from rest_framework.serializers import ModelSerializer
-from .models import Payments, Blogger, Blogs
+from .models import Payments, Blogger, Blogs, Storeproducts
 from home.models import  SiargaoEventSchedule, allSchedules
 
 class PaymentSerializer(ModelSerializer):
@@ -26,6 +26,11 @@ class BlogsSerializer(ModelSerializer):
         model = Blogs
         fields = '__all__'
         # exclude = ['blogUser',]
+
+class StoreproductsSerializer(ModelSerializer):
+    class Meta:
+        model = Storeproducts
+        fields = '__all__'
 
 # class BlogsSerializer(ModelSerializer):
 #     class Meta:

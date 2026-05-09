@@ -1,0 +1,216 @@
+{% extends "home/layout.html" %}
+{% load static %}
+
+{% block body %}
+<link rel="stylesheet" href="{% static 'home/itemcontainer.css' %}" />
+<link rel="stylesheet" href="{% static 'home/index.css' %}" />
+<script src="{% static 'home/index.js' %}" defer></script>
+
+<div class="container-center" style="max-width: 1200px; margin: 0 auto; padding: 20px;">
+    <h1 style="text-align: center; margin-bottom: 30px; color: #2a3556;">Store Products Management</h1>
+
+    <!-- Add New Product Button -->
+    <div style="text-align: center; margin-bottom: 20px;">
+        <button onclick="showCreateForm()" style="background: #4e7ad2; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 16px;">
+            Add New Product
+        </button>
+    </div>
+
+    <!-- Create/Edit Form (Hidden by default) -->
+    <div id="productForm" style="display: none; background: #f7f9fc; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h3 id="formTitle">Add New Product</h3>
+        <form id="productFormData" onsubmit="submitProduct(event)">
+            <input type="hidden" id="productId" name="id">
+
+            <div style="margin-bottom: 15px;">
+                <label for="name" style="display: block; margin-bottom: 5px; font-weight: bold;">Name:</label>
+                <input type="text" id="name" name="name" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="description" style="display: block; margin-bottom: 5px; font-weight: bold;">Description:</label>
+                <textarea id="description" name="description" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; min-height: 80px;"></textarea>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="price" style="display: block; margin-bottom: 5px; font-weight: bold;">Price:</label>
+                <input type="number" id="price" name="price" step="0.01" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="image_url" style="display: block; margin-bottom: 5px; font-weight: bold;">Image URL:</label>
+                <input type="url" id="image_url" name="image_url" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="affiliate_link" style="display: block; margin-bottom: 5px; font-weight: bold;">Affiliate Link:</label>
+                <input type="url" id="affiliate_link" name="affiliate_link" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
+
+            <div style="text-align: center;">
+                <button type="submit" style="background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-right: 10px;">Save</button>
+                <button type="button" onclick="hideForm()" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Cancel</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Products List -->
+    <div id="productsList">
+        <!-- Products will be loaded here -->
+    </div>
+</div>
+
+<script>
+let products = [];
+let editingProduct = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadProducts();
+});
+
+function loadProducts() {
+    fetch('/apis/storeproducts/')
+        .then(response => response.json())
+        .then(data => {
+            products = data;
+            displayProducts();
+        })
+        .catch(error => console.error('Error loading products:', error));
+}
+
+function displayProducts() {
+    const container = document.getElementById('productsList');
+    container.innerHTML = '';
+
+    if (products.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #666;">No products found.</p>';
+        return;
+    }
+
+    products.forEach(product => {
+        const productDiv = document.createElement('div');
+        productDiv.style.cssText = 'background: white; border: 1px solid #ddd; border-radius: 8px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);';
+
+        productDiv.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+                <div style="flex: 1;">
+                    <h3 style="margin: 0 0 10px 0; color: #2a3556;">${product.name}</h3>
+                    <p style="margin: 0 0 10px 0; color: #666;">${product.description || 'No description'}</p>
+                    <p style="margin: 0 0 5px 0; font-weight: bold; color: #28a745;">₱${product.price}</p>
+                    ${product.image_url ? `<img src="${product.image_url}" alt="${product.name}" style="max-width: 100px; max-height: 100px; border-radius: 4px; margin-bottom: 10px;">` : ''}
+                    ${product.affiliate_link ? `<p style="margin: 0;"><a href="${product.affiliate_link}" target="_blank" style="color: #4e7ad2;">View Product</a></p>` : ''}
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="editProduct(${product.id})" style="background: #ffc107; color: black; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">Edit</button>
+                    <button onclick="deleteProduct(${product.id})" style="background: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">Delete</button>
+                </div>
+            </div>
+        `;
+
+        container.appendChild(productDiv);
+    });
+}
+
+function showCreateForm() {
+    editingProduct = null;
+    document.getElementById('formTitle').textContent = 'Add New Product';
+    document.getElementById('productFormData').reset();
+    document.getElementById('productId').value = '';
+    document.getElementById('productForm').style.display = 'block';
+}
+
+function hideForm() {
+    document.getElementById('productForm').style.display = 'none';
+    editingProduct = null;
+}
+
+function editProduct(id) {
+    const product = products.find(p => p.id === id);
+    if (!product) return;
+
+    editingProduct = product;
+    document.getElementById('formTitle').textContent = 'Edit Product';
+    document.getElementById('productId').value = product.id;
+    document.getElementById('name').value = product.name;
+    document.getElementById('description').value = product.description || '';
+    document.getElementById('price').value = product.price;
+    document.getElementById('image_url').value = product.image_url || '';
+    document.getElementById('affiliate_link').value = product.affiliate_link || '';
+    document.getElementById('productForm').style.display = 'block';
+}
+
+function submitProduct(event) {
+    event.preventDefault();
+
+    const formData = new FormData(event.target);
+    const data = Object.fromEntries(formData);
+
+    // Remove empty strings for optional fields
+    if (!data.description) delete data.description;
+    if (!data.image_url) delete data.image_url;
+    if (!data.affiliate_link) delete data.affiliate_link;
+
+    const url = editingProduct ? `/apis/storeproducts/${editingProduct.id}/update/` : '/apis/storeproducts/create/';
+    const method = editingProduct ? 'PUT' : 'POST';
+
+    fetch(url, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        if (response.ok) {
+            hideForm();
+            loadProducts();
+        } else {
+            alert('Error saving product');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error saving product');
+    });
+}
+
+function deleteProduct(id) {
+    if (!confirm('Are you sure you want to delete this product?')) return;
+
+    fetch(`/apis/storeproducts/${id}/delete/`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            loadProducts();
+        } else {
+            alert('Error deleting product');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error deleting product');
+    });
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+
+{% endblock %}

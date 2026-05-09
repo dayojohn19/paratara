@@ -3539,3 +3539,6 @@ def add_facebook_page(request):
         form = FacebookPageForm()
     return render(request, 'home/add_facebook_page.html', {'form': form})
 
+def storeproducts_management(request):
+    return render(request, 'home/storeproducts.html')
+

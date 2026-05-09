@@ -4,8 +4,8 @@ from django.http import HttpResponse
 # # Create your views here.
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .serializers import PaymentSerializer,ScheduleSerializer,BloggerSerializer,BlogsSerializer
-from .models import Payments,Transaction, Blogger, Blogs, EmailSubscribers
+from .serializers import PaymentSerializer,ScheduleSerializer,BloggerSerializer,BlogsSerializer,StoreproductsSerializer
+from .models import Payments,Transaction, Blogger, Blogs, EmailSubscribers, Storeproducts
 from home.models import allSchedules
 from userProfile.models import userPoster
 from django.shortcuts import redirect
@@ -26,6 +26,19 @@ from resorts.models import resortItem
 from home.models import Places_v2
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 @api_view(['GET'])
 def getPlaceSchedule(request, placename):
@@ -1024,6 +1037,52 @@ def getBlogs(request,bloggerID):
     # BlogsItem = Blogs.objects.all()
     serializer = BlogsSerializer(BlogsItem, many=True)
     return Response(serializer.data)
+
+
+# Storeproducts API views
+@api_view(['GET'])
+def get_storeproducts(request):
+    storeproducts = Storeproducts.objects.all()
+    serializer = StoreproductsSerializer(storeproducts, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+def get_storeproduct(request, pk):
+    try:
+        storeproduct = Storeproducts.objects.get(id=pk)
+        serializer = StoreproductsSerializer(storeproduct, many=False)
+        return Response(serializer.data)
+    except Storeproducts.DoesNotExist:
+        return Response({'error': 'Storeproduct not found'}, status=404)
+
+@api_view(['POST'])
+def create_storeproduct(request):
+    serializer = StoreproductsSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=201)
+    return Response(serializer.errors, status=400)
+
+@api_view(['PUT'])
+def update_storeproduct(request, pk):
+    try:
+        storeproduct = Storeproducts.objects.get(id=pk)
+        serializer = StoreproductsSerializer(storeproduct, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+    except Storeproducts.DoesNotExist:
+        return Response({'error': 'Storeproduct not found'}, status=404)
+
+@api_view(['DELETE'])
+def delete_storeproduct(request, pk):
+    try:
+        storeproduct = Storeproducts.objects.get(id=pk)
+        storeproduct.delete()
+        return Response({'message': 'Storeproduct deleted successfully'}, status=204)
+    except Storeproducts.DoesNotExist:
+        return Response({'error': 'Storeproduct not found'}, status=404)
     
 
 
