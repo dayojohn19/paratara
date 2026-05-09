@@ -1,4 +1,5 @@
-<!DOCTYPE html>
+
+    <!DOCTYPE html>
         <html lang="en">
         <head>
                                             
@@ -27,7 +28,6 @@
 }
 </script>
 
-                                            <script id="Cookiebot" src="https://consent.cookiebot.com/uc.js" data-cbid="f333d02c-4b9d-44bf-90a8-648b9ac87ab2" data-blockingmode="auto" type="text/javascript"></script>
                                             <!-- Google tag (gtag.js) -->
                                             <script> window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-MH2W7TQEH3'); </script>
                                             <meta name="google-site-verification" content="8jqO-yxHVkp0mIbnh_nvbfA0N21q0QcCR4aDkFbb8rc" />
@@ -74,6 +74,12 @@
                                                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
+/* Allow click-to-open on desktop too */
+.dropdown.open .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
 :root {
     --primary-blue: #0ea5e9;
     --dark-blue: #0369a1;
@@ -138,9 +144,7 @@ strong {
     font-weight: 600;
 }
 
-ul {
-    margin: 1rem 0 1.5rem 1.5rem;
-}
+
 
 li {
     margin-bottom: 0.625rem;
@@ -156,18 +160,29 @@ img {
 }
 
 /* Navigation */
+
+
+
+/* Navbar Base */
 .navbar {
-    background: var(--white);
-    box-shadow: var(--shadow-sm);
+
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    background: #ffffff;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    position: sticky;
     top: 0;
     z-index: 1000;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem 2rem;
-    backdrop-filter: blur(10px);
 }
 
+.logo {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #2563eb;
+}
+
+/* Links */
 .nav-links {
     list-style: none;
     display: flex;
@@ -175,32 +190,49 @@ img {
 }
 
 .nav-links a {
-    color: var(--text-gray);
     text-decoration: none;
-    font-weight: 500;
-    font-size: 0.875rem;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    transition: color 0.3s ease;
+    color: #0f172a;
+    font-weight: 600;
 }
 
-.nav-links a:hover {
-    color: var(--primary-blue);
+/* Dropdown */
+.dropdown {
+    position: relative;
 }
 
-.arrow {
-    font-size: 10px;
-    margin-left: 4px;
-    opacity: 0.6;
+.dropdown-menu {
+    width: 100vw;
+    position: absolute;
+    top: 130%;
+    left: 0;
+    background: #ffffff;
+    min-width: 180px;
+    list-style: none;
+    /* padding: 0.75rem 0; */
+    border-radius: 12px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: all 0.3s ease;
 }
 
-.hamburger {
-    display: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: var(--text-dark);
+.dropdown-menu li a {
+    display: block;
+    padding: 1.25rem 1.5rem;
+    font-size: 1rem;
+    border-radius: 8px;
+    transition: all 0.2s ease;
 }
 
+.dropdown-menu li a:hover {
+    background: var(--light-blue);
+    transform: translateX(4px);
+}
+
+.dropdown-menu li a:hover {
+    background: #f1f5f9;
+}
 /* Main Content */
 #body-contents {
     max-width: 900px;
@@ -306,7 +338,6 @@ img {
     background: linear-gradient(135deg, var(--accent-orange), #f97316);
     color: var(--white);
     padding: 3rem;
-    border-radius: 16px;
     text-align: center;
     margin: 3rem 0;
     box-shadow: var(--shadow-lg);
@@ -327,11 +358,9 @@ img {
 
 /* Blog List Sidebar */
 #blog-list {
-    padding: 1rem;
     list-style: none;
     max-height: 100vh;
     height: 100vh;
-    width: 100%;
     overflow-y: auto;
     background: var(--white);
 }
@@ -366,6 +395,61 @@ img {
 
 #blog-list a:hover {
     color: var(--primary-blue);
+}
+
+.collection-section .collections-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.collection-section .collection-card {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow-md);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.collection-section .collection-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.collection-section .collection-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.collection-section .collection-card h4 {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+    color: var(--primary-blue);
+}
+
+.collection-section .collection-card p {
+    color: var(--text-gray);
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.collection-section .collection-link {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: opacity 0.2s ease;
+}
+
+.collection-section .collection-link:hover {
+    opacity: 0.9;
 }
 
 /* Footer */
@@ -405,7 +489,7 @@ footer form {
 }
 
 footer button {
-    background: var(--white);
+    background: #6a1875;
     color: var(--primary-blue);
     border: none;
     padding: 0.75rem 2rem;
@@ -424,48 +508,110 @@ footer input[type="file"] {
     margin-top: 1rem;
 }
 
-/* Mobile Responsive */
-@media (max-width: 768px) {
-    .navbar {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        background: var(--white);
-        z-index: 999;
-        padding: 1rem;
-    }
+/* Hamburger Menu Icon - Friendly & Animated */
+.hamburger {
+    display: none;
+    flex-direction: column;
+    justify-content: space-around;
+    width: 30px;
+    height: 25px;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 8px;
+    background: var(--light-blue);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
-    .hamburger {
+.hamburger:hover {
+    transform: scale(1.05);
+    box-shadow: var(--shadow-md);
+}
+
+.hamburger:active {
+    transform: scale(0.98);
+}
+
+.hamburger span {
+    display: block;
+    height: 3px;
+    width: 100%;
+    background: var(--primary-blue);
+    border-radius: 3px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.hamburger span:nth-child(1) {
+    transform-origin: right center;
+
+}
+.hamburger span:nth-child(2) {
+        margin-top: 4px;
+}
+
+.hamburger span:nth-child(3) {
+    transform-origin: right center;
+    margin-top: 4px;
+}
+
+/* X Animation when open */
+.hamburger.open span:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+}
+
+.hamburger.open span:nth-child(2) {
+    opacity: 0;
+    transform: translateX(20px);
+}
+
+.hamburger.open span:nth-child(3) {
+    transform: rotate(-45deg) translate(7px, -6px);
+}
+   .hamburger {
         display: block;
-        position: absolute;
-        right: 1rem;
-        top: 50%;
-        transform: translateY(-50%);
     }
+    .dropdown:hover .dropdown-menu {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }    
 
     .nav-links {
-        position: absolute;
-        top: 60px;
-        right: 0;
-        background: var(--white);
-        width: 250px;
+        overflow: scroll;
+
+        top: 70px;
+        background: #ffffff;
         flex-direction: column;
-        gap: 0;
-        padding: 1rem;
+
+
         display: none;
-        box-shadow: var(--shadow-lg);
-        border-radius: 8px;
+
     }
 
     .nav-links.open {
         display: flex;
     }
 
+    .dropdown-menu {
+        position: static;
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+        box-shadow: none;
+        /* padding-left: 1rem; */
+        display: none;
+    }
+
+    .dropdown.open .dropdown-menu {
+        display: block;
+    }
     #body-contents {
         padding: 2rem 1rem;
-        margin-top: 60px;
     }
+/* Mobile Responsive */
+@media (max-width: 768px) {
+
 
     h1 { font-size: 2rem; }
     h2 { font-size: 1.5rem; }
@@ -502,6 +648,77 @@ footer input[type="file"] {
         font-size: 1.5rem;
     }
 }
+
+@media (min-width: 640px) {
+    #subscribeForm {
+        flex-wrap: nowrap;
+    }
+
+    #subscribeForm input[type="email"] {
+        flex: 2;
+    }
+
+    #subscribeForm input[type="text"] {
+        flex: 1;
+    }
+
+    #subscribeForm button {
+        width: auto;
+        white-space: nowrap;
+    }
+}
+#subscribeForm {
+    max-width: 420px;
+    margin: 0 auto;
+    padding: 20px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+#subscribeForm input[type="email"],
+#subscribeForm input[type="text"] {
+    flex: 1 1 100%;
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#subscribeForm input::placeholder {
+    color: #aaa;
+}
+
+#subscribeForm input:focus {
+    border-color: #6c63ff;
+    box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.15);
+}
+
+#subscribeForm button {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: none;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    background: linear-gradient(135deg, #6c63ff, #4f46e5);
+    color: #fff;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+
+#subscribeForm button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
+    opacity: 0.95;
+}
+
+#subscribeForm button:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25);
+}
 </style>
 
     
@@ -515,22 +732,46 @@ footer input[type="file"] {
 
 
 <nav class="navbar">
-  <div class="logo"></div>
+    <div style="display: flex; align-items: center; gap: 12px;">
+         <div class="hamburger" id="hamburgerBtn" onclick="toggleMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <div class="logo">ParaTara</div>
+    </div>
 
-  <div class="hamburger" onclick="toggleMenu()">
-    ☰
-  </div>
+    <ul class="nav-links" id="navLinks">
+        <ul class="" id="blog-list">
+        </ul>
+    </ul>
+</nav>                                                                
+<script>
+function toggleMenu() {
+    const navLinks = document.getElementById('navLinks');
+    const hamburger = document.getElementById('hamburgerBtn');
+    navLinks.classList.toggle('open');
+    if (hamburger) {
+        hamburger.classList.toggle('open');
+    }
+}
 
-  <ul class="nav-links" id="blog-list">
-    <h1>More Links</h1>
-    <li><a href="#">ABOUT <span class="arrow">▼</span></a></li>
-    <li><a href="#">BLOG</a></li>
-  </ul>
-</nav>                                                                        
-
+function toggleDropdown(e) {
+    e.preventDefault();
+    const dropdown = e.target.closest('#dropdowntoogle');
+    if (!dropdown) return;
+    dropdown.classList.toggle('open');
+}
+</script>
 
 
   <article id="body-contents">
+    
+<div id="dynamic-collections" class="collection-section">
+  <h2>📱 Local Collections & QR Experiences</h2>
+  <p id="collections-loading">Discover interactive collections nearby. Scan QR codes for memories! Loading...</p>
+</div>
+    
     <div class="intro-section">
 <h2>Discover Running in Siargao</h2>
 <p>Siargao Island, famous for its world-class waves, also offers incredible opportunities for runners. Whether you're a seasoned marathoner or just looking to enjoy a leisurely jog, Siargao's diverse terrain and scenic routes make it a runner's paradise.</p>
@@ -567,8 +808,8 @@ footer input[type="file"] {
 
 <script>
 
-place_name = "Siargao"
-placename = "Siargao"
+var place_name = "Siargao";
+var placename = "Siargao";
 
 async function fetchAndInsertImages() {
     try {
@@ -592,7 +833,7 @@ async function fetchAndInsertImages() {
         const insertionPoints = contentSections.length > 0 ? contentSections : [bodyContents];
         
         let count = 0;
-        const maxImages = Math.min(10, shuffled.length);
+        const maxImages = 3;
 
         shuffled.slice(0, maxImages).forEach((imgUrl, index) => {
             if (count >= maxImages) return;
@@ -642,7 +883,7 @@ async function fetchAndInsertImages() {
 async function getBlogLists() {
     csrftoken = getCookie('csrftoken');
     
-    await fetch(`/apis/getPlaceBlogs/Siargao/`, {
+    await fetch(`/apis/getPlaceBlogs/${placename}/`, {
         method: 'GET',
         headers: {
             "X-Requested-With": "XMLHttpRequest",
@@ -657,7 +898,6 @@ async function getBlogLists() {
             blogList.innerHTML = "<p>No blogs found for this place.</p>";
             return;
         }
-        const list = document.createElement("ul");
         data.forEach(blog => {
             const item = document.createElement("li");
             const link = document.createElement("a");
@@ -665,14 +905,55 @@ async function getBlogLists() {
             link.textContent = blog.title;
             link.target = "_blank";
             item.appendChild(link);
-            list.appendChild(item);
+            blogList.appendChild(item);
         });
-        blogList.appendChild(list);
+
     })
     .catch(err => {
         console.error("Error fetching blogs:", err);
-        document.getElementById("blog-list").innerHTML =
-            "<p>Error loading blogs.</p>";
+    });
+}
+
+async function fetchCollections() {
+    csrftoken = getCookie('csrftoken');
+    
+    await fetch(`/apis/getPlaceCollections/${placename}/`, {
+        method: 'GET',
+        headers: {
+            "X-Requested-With": "XMLHttpRequest",
+            "X-CSRFToken": csrftoken,
+        } 
+    })
+    .then(res => res.json())
+    .then(data => {
+        const collectionsDiv = document.querySelector("#dynamic-collections");
+        const loadingP = document.getElementById("collections-loading");
+
+        if (!data || !data.length) {
+            loadingP.textContent = "No local collections found nearby.";
+            return;
+        }
+
+        let html = '<div class="collections-grid">';
+        
+        data.forEach(col => {
+            const linkUrl = col.collectionGoogleDriveURL || col.collectionVideo || `/garden/collection/${col.collectionUniqueID}/`;
+            html += `
+                <div class="collection-card">
+                    ${col.collectionPicture ? `<img src="${col.collectionPicture}" alt="${col.collectionName}" loading="lazy">` : ''}
+                    <h4>${col.name}</h4>
+                    <p>${col.address ? col.collectionDescription.substring(0, 130) + '...' : ' '}</p>
+
+                </div>
+            `;
+        });
+        html += '</div>';
+        html += `<p>Discover interactive collection cards on these places. !</p>`;
+        collectionsDiv.innerHTML = html;
+    })
+    .catch(err => {
+        console.error("Error fetching collections:", err);
+        document.getElementById("collections-loading").textContent = "Failed to load collections.";
     });
 }
 
@@ -716,6 +997,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     fetchAndInsertImages();
     getBlogLists();
+    fetchCollections();
 
 
     
@@ -729,16 +1011,46 @@ let bottomTriggered = false;
 });
   
 
-function toggleMenu() {
-  document.getElementById("blog-list").classList.toggle("open");
-}
+// Close dropdown when clicking outside (desktop & mobile)
+document.addEventListener('click', (ev) => {
+    const dropdown = document.getElementById('dropdowntoogle');
+    if (!dropdown) return;
+    const trigger = dropdown.querySelector('a');
+    const menu = dropdown.querySelector('.dropdown-menu');
+    if (dropdown.classList.contains('open') && !dropdown.contains(ev.target)) {
+        dropdown.classList.remove('open');
+    }
+});
 
+// Close on Escape key
+document.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Escape') {
+        const dropdown = document.getElementById('dropdowntoogle');
+        if (dropdown) dropdown.classList.remove('open');
+    }
+});
+  
+// Close dropdown when a blog link is clicked
+document.addEventListener('click', (ev) => {
+    const dropdown = document.getElementById('dropdowntoogle');
+    if (!dropdown) return;
+    const menu = dropdown.querySelector('.dropdown-menu');
+    if (menu && menu.contains(ev.target) && ev.target.tagName === 'A') {
+        dropdown.classList.remove('open');
+    }
+});
+  
 
 </script>
-
+    <ul class="cta-section">Tour Guide Contacts:
+        {% for tg in tourguide %}
+        <input type="text" value="{{ tg.mobile_number }}" readonly style="width: 100%; margin-top: 0.5rem; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem;">
+        {% endfor %}
+        
+    </ul>
   <footer>
   <form method="post" action="/apis/subscribe/" id="subscribeForm">
-    <input type="hidden" name="csrfmiddlewaretoken" value="DiXZhlAtLXcWp5nb1hryVsMPmMCIwJG7exRyQqlwi8RkQ6cxkBE2eV3Qk0hdTR0d">
+    <input type="hidden" name="csrfmiddlewaretoken" value="WIYVSx85LNeqtcg7zaM6lgFFzQKubgz3WI7yGVtKXk8cFqRjN1gPpWVwXxVrO8oF">
     <input type="email" name="email" placeholder="Your email" required>
     <input type="text" name="name" placeholder="Name (optional)">
     <input type="hidden" name="source" value="blog_footer">

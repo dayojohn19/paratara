@@ -1952,10 +1952,11 @@ def discussion(request, placeID):
                 early_check_prompt = f"""
 Analyze this message: "{message_content}"
 
-Is the user asking a question, looking for information, or requesting something?
+Is the user asking a question, looking for information, or requesting to create a blog?
 
 Respond with ONLY one word:
 - QUESTION (if asking, looking for info, requesting recommendations, or seeking help)
+- BLOG (if explicitly requesting to create a blog post about the place)
 - NOT_QUESTION (if just greeting, thanking, or making a statement with no question)
 
 """
@@ -1965,8 +1966,14 @@ Respond with ONLY one word:
                 )
                 early_result = early_check.choices[0].message.content.strip()
                 _step(f"Early AI check result: {early_result}")
-                
-                if early_result == "NOT_QUESTION":
+                if early_result == "QUESTION":
+                    _step("Early check: QUESTION - proceeding with full processing")
+
+                    # Continue to full processing (no return here)
+                elif early_result == "BLOG":
+                    _step("Early check: BLOG - saving message and returning")
+                    # Save user message as a discussion with a special flag (could be used for later blog generation)
+                elif early_result == "NOT_QUESTION":
                     _step("Early check: NOT_QUESTION - saving message and returning")
                     # Save user message
                     username_to_use = data.get('username') or (request.user.username if request.user.is_authenticated else 'Anonymous')
@@ -2072,7 +2079,7 @@ Respond with ONLY one word:
                 'guided tour', 'private guide', 'tourist guide'
             ]
             # Narrow blog keywords to avoid matching on generic question words
-            blog_keywords = ['blog','make a guide', 'precautions','how', 'guide', 'tips', 'get to', 'reach', 'best', 'top', 'places to visit', 'things to see', 'travel', 'visit', 'explore', 'discover', 'recommendations', 'suggestions', 'itinerary', 'planning', 'plan', 'advice', 'adventure']
+            blog_keywords = ['create a blog','blog','make a guide', 'precautions','how', 'guide', 'tips', 'get to', 'reach', 'best', 'top', 'places to visit', 'things to see', 'travel', 'visit', 'explore', 'discover', 'recommendations', 'suggestions', 'itinerary', 'planning', 'plan', 'advice', 'adventure']
 
             # Food-specific keywords (checked before generic blog keywords)
             food_keywords = ['food', 'restaurant', 'eat', 'dining', 'menu', 'dish', 'meal', 'cuisine', 'seafood', 'where to eat','drink','milk','tea','coffee','breakfast','lunch','dinner','snack','snacks','cafeteria','cafe','bakery','barbecue','bbq','grill']
@@ -2313,7 +2320,7 @@ Return only the JSON object.
                         print('Blog generation error:', e)
                         _step(f"Blog flow: error {type(e).__name__}")
                         blog_context = ""
-            
+                print('Blog context to be added:', blog_context)
             if is_about_events:
                 _step("Events flow: building upcoming events context")
                 from datetime import datetime
