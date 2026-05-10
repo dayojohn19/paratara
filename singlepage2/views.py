@@ -43,6 +43,11 @@ def ensure_blog_page_and_url(
     from .htmlwriter import generate_blog_page
  
     cover_image_url_to_use = cover_image_url or getattr(place, 'placePhoto', None) or "https://www.paratara.com/static/images/sugbalagoon-cover.jpg"
+    print('Generating blog page with cover image:', cover_image_url_to_use)
+    print('Blog title:', getattr(blog_obj, 'title', 'No title'))
+    print('-----cover image-----')
+    print('----------')
+    print('----------')
     htmlvalue = generate_blog_page(
         request,
         place_name=str(place_slug),

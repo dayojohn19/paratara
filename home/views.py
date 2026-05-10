@@ -1110,8 +1110,8 @@ def create_schedule_for_place(request, place_id):
         status=201,
     )
 
-from webSchedule.utils import getPlacePhoto
-
+# from webSchedule.utils import getPlacePhoto
+from imageapp.imageuploader import getPlacePhoto
 # # Make list_of_tourist_spot a key object where each list of tourist spots should be [{'name':'namevalue','latitude':'latvalue','longitude':'longvalue','picture':'picturevalue'}]
 def make_list_of_tourist_place(placename):
     """
@@ -1127,21 +1127,21 @@ def make_list_of_tourist_place(placename):
     """
 
     prompt = f"""
-List 5 tourist spots in {placename}.
+            List all most famous and under rated tourist spots in {placename}. maximum of 5
 
-Return ONLY a valid Python list like this:
+            Return ONLY a valid Python list like this:
 
-[
-    {{
-        "name": "Spot Name",
-        "latitude": "0.000",
-        "longitude": "0.000",
-        "picture": "https://example.com/image.jpg"
-    }}
-]
+            [
+                {{
+                    "name": "Spot Name",
+                    "latitude": "0.000",
+                    "longitude": "0.000",
+                    "picture": "https://example.com/image.jpg"
+                }}
+            ]
 
-No explanation.
-"""
+            No explanation.
+            """
 
     try:
         response = client.chat.completions.create(
@@ -1273,7 +1273,8 @@ def fill_tourist_spot_images(request):
     """
     from django.http import HttpResponseForbidden
     from .models import TouristSpot
-    from webSchedule.utils import getPlacePhoto
+    # from webSchedule.utils import getPlacePhoto
+    from imageapp.imageuploader import getPlacePhoto
 
     if not getattr(request, 'user', None) or not request.user.is_staff:
         return HttpResponseForbidden('staff only')
@@ -1371,6 +1372,13 @@ def viaje_v2(request):
             # End Adding Resort
             # getPlacePhoto(request, place)
             newPlace.placePhoto = getPlacePhoto(request, place)
+            print('Photo URL: ', newPlace.placePhoto)
+            print("new place photo")
+            import time
+            time.sleep(1)
+            print("new place photo")
+            time.sleep(1)
+            print("new place photo")
             newPlace.save()
             newPlace.placeID = newPlace.id
             newPlace.save()

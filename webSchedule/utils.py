@@ -170,6 +170,7 @@ def getPlacePhoto(request, placename):
                     print(f"Fallback search found image: {fallback}")
                     image_url = fallback
                     print(f"Setting background for {image_url}")
+                    return image_url
                     resp = requests.get(image_url, timeout=10)
                     resp.raise_for_status()
                     content = resp.content

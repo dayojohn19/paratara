@@ -51,8 +51,8 @@ def generate_blog_page(request,place_name, title, body_text, cover_image_url="/s
     canonical_url = f"https://www.paratara.com/pages/blog/{place_slug}/{title_slug}/"
 
     collections_html = f'''
-<div id="dynamic-collections" class="collection-section">
   <h2>📱 Local Collections & QR Experiences</h2>
+<div id="dynamic-collections" class="collection-section">
   <p id="collections-loading">Discover interactive collections nearby. Scan QR codes for memories! Loading...</p>
 </div>
     '''
@@ -956,7 +956,7 @@ async function fetchCollections() {{
         data.forEach(col => {{
             const linkUrl = col.collectionGoogleDriveURL || col.collectionVideo || `/garden/collection/${{col.collectionUniqueID}}/`;
             html += `
-                <div class="collection-card">
+                <div class="">
                     ${{col.collectionPicture ? `<img src="${{col.collectionPicture}}" alt="${{col.collectionName}}" loading="lazy">` : ''}}
                     <h4>${{col.name}}</h4>
                     <p>${{col.address ? col.collectionDescription.substring(0, 130) + '...' : ' '}}</p>
