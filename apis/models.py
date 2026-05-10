@@ -48,7 +48,7 @@ class EmailSubscribers(models.Model):
     email_open_count = models.IntegerField(default=0)
     link_click_count = models.IntegerField(default=0)
     
-    # Preferences
+    # Preferences 
     email_frequency = models.CharField(
         max_length=20, 
         choices=FREQUENCY_CHOICES, 
@@ -142,6 +142,7 @@ class Blogs(models.Model):
 
     blogplace = models.ForeignKey('home.Places_v2', on_delete=models.CASCADE, null=True, blank=True, related_name='blogplaceitem')
     title = models.CharField(max_length=64, blank=True)
+    textContent = models.TextField(blank=True, null=True)
     summarize = models.CharField(max_length=400, default='Discover more about this destination')
     readtime = models.IntegerField(default=5)
     

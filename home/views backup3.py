@@ -1115,92 +1115,107 @@ from webSchedule.utils import getPlacePhoto
 # # Make list_of_tourist_spot a key object where each list of tourist spots should be [{'name':'namevalue','latitude':'latvalue','longitude':'longvalue','picture':'picturevalue'}]
 def make_list_of_tourist_place(placename):
     """
-    Return tourist spots as:
-    [
-        {
-            'name': 'Spot Name',
-            'latitude': '0.000',
-            'longitude': '0.000',
-            'picture': 'https://image-url.com'
-        }
-    ]
+    Given a placename, ask GROK to list 10+ tourist places. Improved parsing + fallback.
     """
-
-    prompt = f"""
-List 5 tourist spots in {placename}.
-
-Return ONLY a valid Python list like this:
-
-[
-    {{
-        "name": "Spot Name",
-        "latitude": "0.000",
-        "longitude": "0.000",
-        "picture": "https://example.com/image.jpg"
-    }}
-]
-
-No explanation.
-"""
-
+    prompt = f"""List All top popular tourist places AND underrated hidden gems in {placename} maximum of 5. 
+Return EXACTLY this Python format - NO explanation, NO other text: 
+['Spot1', 'Spot2', 'Spot3', 'Spot4', 'Spot5']"""
+    print(f"[GPT-PLACES] Asking GROK: {prompt[:100]}...")
     try:
         response = client.chat.completions.create(
             model=settings.GROK_MODEL_NAME,
             messages=[
-                {
-                    "role": "system",
-                    "content": "Return ONLY a valid Python list of dictionaries."
-                },
-                {
-                    "role": "user",
-                    "content": prompt
-                },
+                {"role": "system", "content": "Return ONLY a Python list of 10+ place names as strings. No code blocks, no extras."},
+                {"role": "user", "content": prompt},
             ],
             temperature=0.3,
             max_tokens=2048,
         )
-
         gpt_reply = response.choices[0].message.content.strip()
-
         print(f"[GPT-PLACES] Raw: {gpt_reply}")
 
+        # Strip code blocks
+        gpt_reply = gpt_reply.strip('` \n')
+        if gpt_reply.startswith('python'):
+            gpt_reply = gpt_reply[6:].lstrip('\n')
+
+        # Try ast.literal_eval first
         import ast
+        try:
+            spots = ast.literal_eval(gpt_reply)
+            if isinstance(spots, list):
+                spots = [str(s).strip() for s in spots if str(s).strip()]
+                print(f"[GPT-PLACES] Parsed {len(spots)} via ast: {spots[:3]}...")
+                if len(spots) >= 3:
+                    return spots
+        except:
+            pass
 
-        # Remove markdown code blocks
-        gpt_reply = gpt_reply.strip("` \n")
+        # Fallback: regex extract quoted strings
+        import re
+        spots = re.findall(r"'([^']*)'|\"([^\"]*)\"", gpt_reply)
+        spots = [s[0] or s[1] for s in spots if (s[0] or s[1]).strip()]
+        spots = list(set(spots))[:15]  # dedupe, limit
+        print(f"[GPT-PLACES] Parsed {len(spots)} via regex: {spots[:3]}...")
 
-        if gpt_reply.startswith("python"):
-            gpt_reply = gpt_reply[6:].strip()
+        if len(spots) < 3:
+            # Hardcoded fallback
+            spots = [
+                f"{placename} Beach",
+                f"{placename} Viewpoint",
+                f"{placename} Market",
+                f"{placename} Waterfall",
+                f"{placename} Island",
+                "Local Church",
+                "Town Square",
+                "Night Market",
+                "Hiking Trail",
+                "Seafood Restaurant"
+            ]
+            print(f"[GPT-PLACES] Using fallback {len(spots)} spots")
 
-        places = ast.literal_eval(gpt_reply)
-
-        if not isinstance(places, list):
-            return []
-
-        cleaned_places = []
-
-        for place in places:
-            if isinstance(place, dict):
-                cleaned_places.append({
-                    "name": str(place.get("name", "")).strip(),
-                    "latitude": str(place.get("latitude", "")).strip(),
-                    "longitude": str(place.get("longitude", "")).strip(),
-                    "picture": str(place.get("picture", "")).strip(),
-                })
-
-        return cleaned_places
+        return spots[:15]  # cap at 15
 
     except Exception as e:
         print(f"[GPT-PLACES] Error: {e}")
-
+        # Fallback always
         return [
-            {
-                "name": f"{placename} Main Attraction",
-                "latitude": "",
-                "longitude": "",
-                "picture": "",
-            }
+            f"{placename} Beach",
+            f"{placename} Main Attraction",
+            f"{placename} Hidden Spot"
         ]
+            # Match variable assignments: var = [ ... ]
+        match = re.match(r'^[a-zA-Z0-9_]+\s*=\s*(\[.*\])$', line)
+        if match:
+            list_strs.append(match.group(1))
+        elif line.startswith('[') and line.endswith(']'):
+            list_strs.append(line)
+        if list_strs:
+            # Combine all lists into one
+            combined_items = []
+            for lst in list_strs:
+                try:
+                    items = ast.literal_eval(lst)
+                    if isinstance(items, list):
+                        combined_items.extend(items)
+                except Exception as e:
+                    print(f"[GPT-PLACES] Error parsing list: {e}")
+            places = combined_items
+        else:
+            # Try to parse the whole reply as a list
+            try:
+                places = ast.literal_eval(gpt_reply)
+                if not isinstance(places, list):
+                    raise ValueError("Not a list")
+            except Exception as e:
+                print(f"[GPT-PLACES] Failed to parse list: {e}")
+                places = []
+        print(f"[GPT-PLACES] Parsed places: {places}")
+        return places
+    except Exception as e:
+        print(f"[GPT-PLACES] Error: {e}")
+        return []
+
 
 def get_image_url_from_search(query):
     from ddgs import DDGS

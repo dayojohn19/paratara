@@ -542,7 +542,7 @@ class Places_v2(models.Model):
     class Meta:
         ordering = ["-id"]
 
-
+ 
 class Visit(models.Model):
     tourist_spot = models.ForeignKey('home.TouristSpot', on_delete=models.CASCADE)
     tourist = models.ForeignKey('userProfile.UserCredentials', on_delete=models.CASCADE)

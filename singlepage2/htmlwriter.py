@@ -7,6 +7,7 @@ import json
 from garden.models import Collection, CollectionGroup
 def generate_blog_page(request,place_name, title, body_text, cover_image_url="/static/images/default-cover.jpg", faq_entries=None):
     print("=== DEBUG: generate_blog_page called ===")
+    print(f"  HTML WRITER 2 Running //////")
     print(f"  request: {request} (type: {type(request)})")
     print(f"  place_name: '{place_name}'")
     print(f"  title: '{title}'")
@@ -920,7 +921,6 @@ async function getBlogLists() {{
             const link = document.createElement("a");
             link.href = blog.localurlpath;
             link.textContent = blog.title;
-            link.target = "_blank";
             item.appendChild(link);
             blogList.appendChild(item);
         }});
@@ -951,7 +951,7 @@ async function fetchCollections() {{
             return;
         }}
 
-        let html = '<div class="collections-grid">';
+        let html = '<div class="collection-card">';
         
         data.forEach(col => {{
             const linkUrl = col.collectionGoogleDriveURL || col.collectionVideo || `/garden/collection/${{col.collectionUniqueID}}/`;
@@ -965,7 +965,7 @@ async function fetchCollections() {{
             `;
         }});
         html += '</div>';
-        html += `<p>Discover interactive collection cards on these places. !</p>`;
+
         collectionsDiv.innerHTML = html;
     }})
     .catch(err => {{
@@ -1077,7 +1077,7 @@ document.addEventListener('click', (ev) => {{
   <p><strong>Location:</strong> {place_name}</p>
 
 
-    <p>Written by <strong>Foreign Travel Steps</strong> | <a href="#">Contact Me</a> | <a href="#">Instagram</a></p>
+    <p>Written by <strong><a href="https://foreigntravelsteps.com">Foreign Travel Steps</a></strong> | <a href="#">Contact Me at foreigntravelsteps@paratara.com</a> </p>
   
   
 

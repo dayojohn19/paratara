@@ -1,3 +1,5 @@
+
+# TODO chnage the uploading location
 from django.views.decorators.csrf import csrf_exempt
 from PIL import Image
 from io import BytesIO
@@ -232,11 +234,29 @@ def getPlacePhoto(request, placename):
         if data['results']:
             image_url = data['results'][0]['urls']['regular']
             print(f"Setting background for {image_url}")
+            time.sleep(1)
+            print(f"Setting background for {image_url}")
+
+            time.sleep(1)
+            print(f"Setting background for {image_url}")
+            time.sleep(1)
+            print(f"Setting background for {image_url}")
+            time.sleep(1)
+
             return image_url
         else:
+            #TODO find a new way to get image_url
             print(f"No image found for {placename}")
+            time.sleep(1)
+            print(f"No image found for {placename}")
+            time.sleep(1)
+            print(f"No image found for {placename}")
+            time.sleep(1)
             return None
     except requests.RequestException as e:
+        print(f"Error fetching Unsplash image: {e}")
+        print(f"Error fetching Unsplash image: {e}")
+        print(f"Error fetching Unsplash image: {e}")
         print(f"Error fetching Unsplash image: {e}")
         return None
 
@@ -320,6 +340,27 @@ def Upload_and_get_URL(request):
         if form.is_valid():
             # Start UPLOADING IN GOOGLE
             # from userProfile.GoogleforDrive import Create_Service
+            image_obj = form.save(commit=False)
+
+            # Get IP address
+            try:
+                x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+                if x_forwarded_for:
+                    ip = x_forwarded_for.split(',')[0]
+                else:
+                    ip = request.META.get('REMOTE_ADDR')
+                image_obj.ip_address = ip
+            except:
+                ip = None
+            
+                # TODO GET GEOLOCATOPN HERE from django.contrib.gis.geoip2 import GeoIP2
+            image_obj.ip_address = ip
+            # Track source and analytics
+            image_obj.source = request.POST.get('source', 'unknown')
+            image_obj.referrer_url = request.META.get('HTTP_REFERER', '')
+            image_obj.user_agent = request.META.get('HTTP_USER_AGENT', '')
+
+
             form.save()
             # from userProfile.GoogleInitService import filesUpload
             ImageObject = form.instance

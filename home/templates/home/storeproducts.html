@@ -1,10 +1,4 @@
-{% extends "home/layout.html" %}
-{% load static %}
 
-{% block body %}
-<link rel="stylesheet" href="{% static 'home/itemcontainer.css' %}" />
-<link rel="stylesheet" href="{% static 'home/index.css' %}" />
-<script src="{% static 'home/index.js' %}" defer></script>
 
 <div class="container-center" style="max-width: 1200px; margin: 0 auto; padding: 20px;">
     <h1 style="text-align: center; margin-bottom: 30px; color: #2a3556;">Store Products Management</h1>
@@ -59,7 +53,7 @@
         <!-- Products will be loaded here -->
     </div>
 </div>
-
+ 
 <script>
 let products = [];
 let editingProduct = null;
@@ -213,4 +207,3 @@ function getCookie(name) {
 }
 </script>
 
-{% endblock %}

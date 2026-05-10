@@ -26,6 +26,7 @@ def process_tourist_spot(spot_id):
         spot = TouristSpot.objects.get(id=spot_id)
         place = spot.place
         name = spot.name
+        touristplacepicture = ''
 
         # =========================
         # ✅ 1. Generate Description
@@ -73,6 +74,10 @@ Then exactly TWO NEWLINES
 
 Then HTML content using EXACT structure and CSS classes:
 
+
+ Use the provided image URL for the spot if relevant.
+Do not use markdown, only HTML. Use emojis in h2, make engaging/informative for tourists, include costs/tips/activities for {name} in {place.placename}.
+
 <article class="blog-post">
   <div class="intro-section">
     <h2>[Engaging intro title with emoji]</h2>
@@ -83,7 +88,7 @@ Then HTML content using EXACT structure and CSS classes:
     <h2>[Section 1 title emoji]</h2>
     <p>[Details]</p>
     <div class="highlight-box">
-      <h3>Key Benefits:</h3>
+      <h3>Famous for:</h3>
       <ul><li>✅ ...</li>...</ul>
     </div>
   </div>
@@ -123,7 +128,7 @@ Then HTML content using EXACT structure and CSS classes:
     <p>{{ hazards }}</p>
 
     <h3> Updates</h3>
-    <p>{{ latest place news incidents and accidents with regard to tourist and updates }} <small>{{date taken}}</small></p>
+    <p>{{ latest place specific news incidents and accidents with regard to tourist and updates }} <small>{{date taken}}</small></p>
 
   </div>
 </div>
@@ -180,7 +185,8 @@ Use emojis in h2, make engaging/informative for tourists, include costs/tips/act
                 category="Guide",
                 summarize=spot.desc[:140],
                 readtime=5,
-                localurlpath=f"/pages/blog/{place_slug}/{blog_slug}"
+                localurlpath=f"/pages/blog/{place_slug}/{blog_slug}",
+                textContent=blog_content
             )
 
             place.blog.add(blog)
@@ -192,7 +198,7 @@ Use emojis in h2, make engaging/informative for tourists, include costs/tips/act
         # ✅ 4. Generate QR
         # =========================
         try:
-            url = f"/{place.slug}/visit/{spot.slug}/"
+            url = f"https://www.paratara.com/{place.slug}/visit/{spot.slug}/"
 
             qr = qrcode.make(url)
             buffer = io.BytesIO()

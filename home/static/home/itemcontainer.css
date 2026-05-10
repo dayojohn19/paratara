@@ -684,7 +684,6 @@
     padding: 1.5rem 0;
     margin: 0 auto;
     list-style: none;
-    gap: 1.25rem;
   }
 
   .modal-content {
@@ -824,7 +823,7 @@
   }
 
   .container-item:hover {
-    transform: translateY(-6px) scale(1.03);
+
 
     filter: brightness(1.05);
   }
@@ -884,7 +883,6 @@
     /* Mobile styles for container elements */
     .container-list {
       padding: 1rem 0;
-      gap: 1rem;
     }
     
     .modal-content {

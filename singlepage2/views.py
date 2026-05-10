@@ -85,7 +85,7 @@ def create_blog_from_user_request(
     """Create a new blog record + page if a matching title doesn't already exist for the place."""
     from apis.models import Blogs
 
-    title = (title or '').strip() or f"Guide to {getattr(place, 'placename', 'this place')}"
+    title = (title or '').strip() or f"{category} to {getattr(place, 'placename', 'this place')}"
     title_slug = slugify(title)
 
     # Prevent duplicates by comparing slugified titles within the place.
@@ -94,7 +94,14 @@ def create_blog_from_user_request(
         if slugify(getattr(b, 'title', '') or '') == title_slug:
             return b
 
+
     text_content = _strip_html_tags(body_html)
+    print('')
+    print('')
+    print('Word count for blog content:', len(text_content.split()))
+    print('type of text_content:', type(text_content))
+    print('')
+    print('')
     word_count = len(text_content.split())
     read_time = max(1, round(word_count / 200))
 
@@ -103,6 +110,7 @@ def create_blog_from_user_request(
         title=title[:64],
         category=category,
         summarize=(summary or text_content[:140] or f"Guide to {getattr(place, 'placename', title)}")[:400],
+        textContent=text_content,
         readtime=read_time,
     )
 

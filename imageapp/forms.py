@@ -10,7 +10,8 @@ class ImageForm(forms.ModelForm):
         model = googleimagemodel
         fields = ('image',)
         widgets = {
-            "image": forms.FileInput(attrs={'onchange': "this.form.submit()",'class':"form-control", 'id':"validatedCustomFile" })
+            "image": forms.FileInput(attrs={'onchange': "this.form.submit()",'class':"form-control", 'id':"validatedCustomFile" }),
+            "description": forms.Textarea(attrs={'class':"form-control form-textarea"})
         }
         
 

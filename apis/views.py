@@ -1117,12 +1117,15 @@ def subscribe_email(request):
         subscriber = form.save(commit=False)
         
         # Get IP address
-        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-        if x_forwarded_for:
-            ip = x_forwarded_for.split(',')[0]
-        else:
-            ip = request.META.get('REMOTE_ADDR')
-        subscriber.ip_address = ip
+        try:
+            x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+            if x_forwarded_for:
+                ip = x_forwarded_for.split(',')[0]
+            else:
+                ip = request.META.get('REMOTE_ADDR')
+            subscriber.ip_address = ip
+        except:
+            ip = 'Failed'
         
         # Generate confirmation token
         subscriber.confirmation_token = secrets.token_urlsafe(32)
