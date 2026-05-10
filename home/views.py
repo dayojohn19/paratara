@@ -1127,7 +1127,7 @@ def make_list_of_tourist_place(placename):
     """
 
     prompt = f"""
-            List all most famous and under rated tourist spots in {placename}. maximum of 5
+            List all most famous and under rated tourist spots in {placename}. maximum of 10
 
             Return ONLY a valid Python list like this:
 
