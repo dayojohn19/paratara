@@ -4,29 +4,23 @@ import os
 from django.utils.text import slugify
 from django.conf import settings
 import json
+import logging
 from garden.models import Collection, CollectionGroup
-def generate_blog_page(request,place_name, title, body_text, cover_image_url="/static/images/default-cover.jpg", faq_entries=None):
-    print("=== DEBUG: generate_blog_page called ===")
-    print(f"  HTML WRITER 2 Running //////")
-    print(f"  request: {request} (type: {type(request)})")
-    print(f"  place_name: '{place_name}'")
-    print(f"  title: '{title}'")
-    print(f"  body_text len: {len(body_text) if body_text else 0}")
-    print(f"  cover_image_url: '{cover_image_url}'")
-    print(f"  faq_entries: {faq_entries} (len: {len(faq_entries) if faq_entries else 0})")
-    print("=======================================")
-    print("DEBUG: About to get CSRF token...")
+
+logger = logging.getLogger(__name__)
+
+def generate_blog_page(request, place_name, title, body_text, cover_image_url="/static/images/default-cover.jpg", faq_entries=None, blog_searchable_keys_description=None):
+    """Generate optimized blog HTML page with SEO and performance enhancements."""
+    logger.info(f"Generating blog page: {title} in {place_name}")
+    
+    csrf_token = ""
     if request is None:
-        print("ERROR: request is None! Cannot get CSRF token.")
-        csrf_token = ""  # fallback
+        logger.warning("Request object is None, CSRF token unavailable")
     else:
         try:
             csrf_token = get_token(request)
-            print(f"DEBUG: CSRF token obtained: {csrf_token[:10]}...")
         except Exception as e:
-            print(f"ERROR getting CSRF: {e}")
-            csrf_token = ""
-    print("DEBUG: CSRF step done.")
+            logger.error(f"Error obtaining CSRF token: {e}")
     upload_url = reverse("imageapp:uploadimage")
     subscribe_url = reverse("apis:subscribe_email")
 # def generate_blog_page(place_name, title, body_text, cover_image_url="/static/images/default-cover.jpg", faq_list=None):
@@ -41,31 +35,58 @@ def generate_blog_page(request,place_name, title, body_text, cover_image_url="/s
     )
 
     # Create folder if missing
-    os.makedirs(folder_path, exist_ok=True)
+    try:
+        os.makedirs(folder_path, exist_ok=True)
+    except OSError as e:
+        logger.error(f"Failed to create folder {folder_path}: {e}")
+        raise
 
     # The final HTML file location
     file_path = os.path.join(folder_path, f"{title_slug}.html")
-    print(f"DEBUG: Prepared file_path: {file_path}")
+    logger.debug(f"Output file path: {file_path}")
 
     # The canonical full URL on your live site
     canonical_url = f"https://www.paratara.com/pages/blog/{place_slug}/{title_slug}/"
 
     collections_html = f'''
   <h2>📱 Local Collections & QR Experiences</h2>
-<div id="dynamic-collections" class="collection-section">
   <p id="collections-loading">Discover interactive collections nearby. Scan QR codes for memories! Loading...</p>
+<div id="dynamic-collections" class="collection-section">
 </div>
     '''
 
-    # ✅ Build FAQ Schema if provided
-
-    faq_schema = f"""
+    # Build FAQ Schema and Article Schema
+    faq_schema = ""
+    if faq_entries:
+        faq_schema = f"""
 <script type="application/ld+json">
 {json.dumps({
     "@context": "https://schema.org",
     "@type": "FAQPage",
     "mainEntity": faq_entries
 }, indent=2)}
+</script>
+"""
+    
+    # Article schema for SEO
+    article_schema_dict = {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": f"{title} — {place_name}",
+        "description": blog_searchable_keys_description or f"Discover {title} in {place_name}",
+        "image": cover_image_url,
+        "author": {
+            "@type": "Organization",
+            "name": "Foreign Travel Steps",
+            "url": "https://foreigntravelsteps.com"
+        },
+        "datePublished": "2026-05-11",
+        "dateModified": "2026-05-11",
+        "url": f"https://www.paratara.com/pages/blog/{place_slug}/{title_slug}/"
+    }
+    article_schema = f"""
+<script type="application/ld+json">
+{json.dumps(article_schema_dict, indent=2)}
 </script>
 """
         
@@ -78,6 +99,11 @@ def generate_blog_page(request,place_name, title, body_text, cover_image_url="/s
         <html lang="en">
         <head>
                                             {faq_schema}
+                                            {article_schema}
+                                            <!-- Performance: DNS prefetch and preconnect -->
+                                            <link rel="dns-prefetch" href="//www.googletagmanager.com">
+                                            <link rel="dns-prefetch" href="//pagead2.googlesyndication.com">
+                                            <link rel="preconnect" href="https://fonts.googleapis.com">
                                             <!-- Google tag (gtag.js) -->
                                             <script> window.dataLayer = window.dataLayer || []; function gtag(){{dataLayer.push(arguments);}} gtag('js', new Date()); gtag('config', 'G-MH2W7TQEH3'); </script>
                                             <meta name="google-site-verification" content="8jqO-yxHVkp0mIbnh_nvbfA0N21q0QcCR4aDkFbb8rc" />
@@ -102,14 +128,14 @@ def generate_blog_page(request,place_name, title, body_text, cover_image_url="/s
 
                                                 <title>{title} — {place_name} Travel Guide</title>
 
-                                                <meta name="description" content="{title} in {place_name}. Learn how to visit, travel tips, prices, and the best time to explore.">
+                                                <meta name="description" content="{blog_searchable_keys_description if blog_searchable_keys_description else f'{title} in {place_name}. Learn how to visit, travel tips, prices, and the best time to explore.'}">
 
                                                 <!-- Canonical -->
                                                 <link rel="canonical" href="{canonical_url}">
 
                                                 <!-- Open Graph -->
                                                 <meta property="og:title" content="{title} — {place_name}">
-                                                <meta property="og:description" content="Travel guide for {place_name}. Includes how to get there, activities, fees, and tips.">
+                                                <meta property="og:description" content="{blog_searchable_keys_description if blog_searchable_keys_description else f'Discover {title} in {place_name}: Complete travel guide with directions, top activities, entrance fees, insider tips, and best times to visit for an unforgettable experience.'}">
                                                 <meta property="og:type" content="article">
                                                 <meta property="og:url" content="{canonical_url}">
                                                 <meta property="og:image" content="{cover_image_url}">
@@ -140,9 +166,9 @@ def generate_blog_page(request,place_name, title, body_text, cover_image_url="/s
     --text-gray: #64748b;
     --bg-light: #f8fafc;
     --white: #ffffff;
-    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
-    --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
-    --shadow-lg: 0 10px 30px rgba(0,0,0,0.12);
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 2px 8px rgba(0,0,0,0.05);
+    --shadow-lg: 0 6px 18px rgba(0,0,0,0.06);
 }}
 
 * {{ 
@@ -206,7 +232,6 @@ img {{
     height: auto;
     border-radius: 12px;
     margin: 1.5rem 0;
-    box-shadow: var(--shadow-md);
 }}
 
 /* Navigation */
@@ -220,8 +245,8 @@ img {{
     justify-content: space-between;
     padding: 1rem 1.5rem;
     background: #ffffff;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
     position: sticky;
+    border-bottom: 1px solid #e2e8f0;
     top: 0;
     z-index: 1000;
 }}
@@ -235,7 +260,7 @@ img {{
 /* Links */
 .nav-links {{
     list-style: none;
-    display: flex;
+    display: none;
     gap: 2rem;
 }}
 
@@ -260,11 +285,11 @@ img {{
     list-style: none;
     /* padding: 0.75rem 0; */
     border-radius: 12px;
-    box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+    box-shadow: none;
     opacity: 0;
     visibility: hidden;
     transform: translateY(10px);
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
 }}
 
 .dropdown-menu li a {{
@@ -279,17 +304,13 @@ img {{
     background: var(--light-blue);
     transform: translateX(4px);
 }}
-
-.dropdown-menu li a:hover {{
-    background: #f1f5f9;
-}}
 /* Main Content */
 #body-contents {{
     max-width: 900px;
     margin: 0 auto;
     padding: 3rem 2rem;
     background: var(--white);
-    box-shadow: var(--shadow-md);
+
 }}
 
 .blog-post {{
@@ -304,10 +325,11 @@ img {{
 .intro-section {{
     background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
     color: var(--white);
-    padding: 3rem;
-    border-radius: 16px;
-    margin-bottom: 3rem;
-    box-shadow: var(--shadow-lg);
+    padding: 2.5rem;
+    border-radius: 14px;
+    margin-bottom: 2.5rem;
+    border: 1px solid #dfe3ea;
+
 }}
 
 .intro-section h2 {{
@@ -455,16 +477,15 @@ img {{
 }}
 
 .collection-section .collection-card {{
-    background: var(--white);
-    border-radius: 12px;
+    background: #ffffff;
+
     padding: 1.5rem;
-    box-shadow: var(--shadow-md);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+    transition: background 0.2s ease;
 }}
 
 .collection-section .collection-card:hover {{
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
+background: #f8fafc;
 }}
 
 .collection-section .collection-card img {{
@@ -568,14 +589,14 @@ footer input[type="file"] {{
     cursor: pointer;
     padding: 5px;
     border-radius: 8px;
-    background: var(--light-blue);
-    box-shadow: var(--shadow-sm);
+    background: transparent;
+
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }}
 
 .hamburger:hover {{
     transform: scale(1.05);
-    box-shadow: var(--shadow-md);
+
 }}
 
 .hamburger:active {{
@@ -618,16 +639,17 @@ footer input[type="file"] {{
 .hamburger.open span:nth-child(3) {{
     transform: rotate(-45deg) translate(7px, -6px);
 }}
-   .hamburger {{
-        display: block;
-    }}
-    .dropdown:hover .dropdown-menu {{
-        opacity: 1;
-        visibility: visible;
-        transform: translateY(0);
-    }}    
 
-    .nav-links {{
+/* Mobile Menu Styles */
+.hamburger {{
+    display: block;
+}}
+
+.dropdown:hover .dropdown-menu {{
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}}
         overflow: scroll;
 
         top: 70px;
@@ -640,7 +662,7 @@ footer input[type="file"] {{
     }}
 
     .nav-links.open {{
-        display: flex;
+        display: block;
     }}
 
     .dropdown-menu {{
@@ -829,6 +851,16 @@ function toggleDropdown(e) {{
 var place_name = "{place_name}";
 var placename = "{place_name}";
 
+// Fisher-Yates shuffle algorithm for proper randomization
+function shuffleArray(array) {{
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {{
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }}
+    return shuffled;
+}}
+
 async function fetchAndInsertImages() {{
     try {{
         // Fetch images from Django
@@ -837,8 +869,8 @@ async function fetchAndInsertImages() {{
 
         const images = data.images.map(img => img.imbbURL); // array of URLs
 
-        // Shuffle array to pick random images
-        const shuffled = images.sort(() => 0.5 - Math.random());
+        // Shuffle array to pick random images using Fisher-Yates
+        const shuffled = shuffleArray(images);
 
         // Find all possible insertion points: content-sections, after h2/h3, after paragraphs
         const bodyContents = document.querySelector("#body-contents");
@@ -859,6 +891,8 @@ async function fetchAndInsertImages() {{
 
             const img = document.createElement("img");
             img.src = imgUrl;
+            img.loading = "lazy";
+            img.alt = "Blog content image";
             img.style.maxWidth = "100%";
             img.style.display = "block";
             img.style.margin = "1.5rem 0";
@@ -898,80 +932,86 @@ async function fetchAndInsertImages() {{
 
 
 
-async function getBlogLists() {{
-    csrftoken = getCookie('csrftoken');
-    
-    await fetch(`/apis/getPlaceBlogs/${{placename}}/`, {{
-        method: 'GET',
-        headers: {{
-            "X-Requested-With": "XMLHttpRequest",
-            "X-CSRFToken": csrftoken,
-        }}
-    }})
-    .then(res => res.json())
-    .then(data => {{
-        const blogList = document.getElementById("blog-list");
-
-        if (!data.length) {{
-            blogList.innerHTML = "<p>No blogs found for this place.</p>";
+// Consolidated fetch function with error handling
+async function fetchData(endpoint, elementId, templateFn, errorMsg) {{
+    const csrftoken = getCookie('csrftoken');
+    try {{
+        const response = await fetch(`/apis/${{endpoint}}/`, {{
+            method: 'GET',
+            headers: {{
+                "X-Requested-With": "XMLHttpRequest",
+                "X-CSRFToken": csrftoken,
+            }}
+        }});
+        
+        if (!response.ok) throw new Error(`HTTP ${{response.status}}`);
+        const data = await response.json();
+        
+        if (!data || !data.length) {{
+            const element = document.getElementById(elementId);
+            if (element) element.textContent = errorMsg;
             return;
         }}
+        
+        templateFn(data);
+    }} catch (err) {{
+        console.error(`Error fetching ${{endpoint}}:`, err);
+        const element = document.getElementById(elementId);
+        if (element) element.textContent = `Failed to load ${{endpoint}}`;
+    }}
+}}
+
+function getBlogLists() {{
+    fetchData('getPlaceBlogs/' + placename, 'blog-list', (data) => {{
+        const blogList = document.getElementById('blog-list');
+        const fragment = document.createDocumentFragment();
+        
         data.forEach(blog => {{
-            const item = document.createElement("li");
-            const link = document.createElement("a");
+            const item = document.createElement('li');
+            const link = document.createElement('a');
             link.href = blog.localurlpath;
             link.textContent = blog.title;
             item.appendChild(link);
-            blogList.appendChild(item);
+            fragment.appendChild(item);
         }});
-
-    }})
-    .catch(err => {{
-        console.error("Error fetching blogs:", err);
-    }});
+        
+        blogList.appendChild(fragment);
+    }}, 'No blogs found for this place.');
 }}
 
-async function fetchCollections() {{
-    csrftoken = getCookie('csrftoken');
-    
-    await fetch(`/apis/getPlaceCollections/${{placename}}/`, {{
-        method: 'GET',
-        headers: {{
-            "X-Requested-With": "XMLHttpRequest",
-            "X-CSRFToken": csrftoken,
-        }} 
-    }})
-    .then(res => res.json())
-    .then(data => {{
-        const collectionsDiv = document.querySelector("#dynamic-collections");
-        const loadingP = document.getElementById("collections-loading");
-
-        if (!data || !data.length) {{
-            loadingP.textContent = "No local collections found nearby.";
-            return;
-        }}
-
-        let html = '<div class="collection-card">';
+function fetchCollections() {{
+    fetchData('getPlaceCollections/' + placename, 'collections-loading', (data) => {{
+        const collectionsDiv = document.querySelector('#dynamic-collections');
+        const fragment = document.createDocumentFragment();
         
         data.forEach(col => {{
-            const linkUrl = col.collectionGoogleDriveURL || col.collectionVideo || `/garden/collection/${{col.collectionUniqueID}}/`;
-            html += `
-                <div class="">
-                    ${{col.collectionPicture ? `<img src="${{col.collectionPicture}}" alt="${{col.collectionName}}" loading="lazy">` : ''}}
-                    <h4>${{col.name}}</h4>
-                    <p>${{col.address ? col.collectionDescription.substring(0, 130) + '...' : ' '}}</p>
-
-                </div>
-            `;
+            const div = document.createElement('div');
+            div.className = 'collection-item';
+            
+            if (col.collectionPicture) {{
+                const img = document.createElement('img');
+                img.src = col.collectionPicture;
+                img.alt = col.collectionName || 'Collection image';
+                img.loading = 'lazy';
+                div.appendChild(img);
+            }}
+            
+            const h4 = document.createElement('h4');
+            h4.textContent = col.name || '';
+            div.appendChild(h4);
+            
+            if (col.address || col.collectionDescription) {{
+                const p = document.createElement('p');
+                p.textContent = (col.collectionDescription || '').substring(0, 130) + '...';
+                div.appendChild(p);
+            }}
+            
+            fragment.appendChild(div);
         }});
-        html += '</div>';
-
-        collectionsDiv.innerHTML = html;
-    }})
-    .catch(err => {{
-        console.error("Error fetching collections:", err);
-        document.getElementById("collections-loading").textContent = "Failed to load collections.";
-    }});
+        
+        collectionsDiv.appendChild(fragment);
+        document.getElementById('collections-loading').style.display = 'none';
+    }}, 'No local collections found nearby.');
 }}
 
 
@@ -1096,7 +1136,6 @@ document.addEventListener('click', (ev) => {{
 </body>
 </html>
 """
-    print(f"DEBUG: Generated HTML content (len: {len(html_content)})")
-    print("DEBUG: Function complete.")
+    logger.info(f"Blog page generated successfully: {len(html_content)} bytes")
     return html_content
 

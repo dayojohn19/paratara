@@ -23,17 +23,26 @@ client = OpenAI(api_key=settings.GROK_API_KEY, base_url='https://api.x.ai/v1')
 
 def process_tourist_spot(spot_id):
     try:
+        print(f"\n{'='*60}")
+        print(f"🚀 Starting process_tourist_spot for ID: {spot_id}")
+        print(f"{'='*60}")
+        
         spot = TouristSpot.objects.get(id=spot_id)
         place = spot.place
         name = spot.name
         touristplacepicture = ''
+        
+        print(f"📍 Processing: {name}")
+        print(f"📍 Location: {place.placename}")
+        print(f"📍 Spot ID: {spot_id}")
 
         # =========================
         # ✅ 1. Generate Description
         # =========================
+        print(f"\n[1/5] 📝 Checking description...")
         if not spot.desc:
             try:
-                print(f"Generating description for {name} in {place.placename}...")
+                print(f"   ⏳ Generating description...")
                 prompt = f"Write a short 1-2 sentence tourist description of {name} in {place.placename}"
                 res = client.chat.completions.create(
                     model=settings.GROK_MODEL_NAME,
@@ -42,27 +51,39 @@ def process_tourist_spot(spot_id):
                 )
                 spot.desc = res.choices[0].message.content.strip()
                 spot.save()
+                print(f"   ✅ Description saved: {spot.desc[:80]}...")
             except Exception as e:
                 print("DESC ERROR:", e)
+        else:
+            print(f"   ✅ Description already exists")
 
         # =========================
         # ✅ 2. Generate Image
         # =========================
+        print(f"\n[2/5] 🖼️  Checking image...")
         if not spot.img:
             try:
+                print(f"   ⏳ Fetching image...")
                 from webSchedule.utils import getPlacePhoto
                 
                 image = getPlacePhoto(None, name)
                 if image:
+                    print(f"   ⏳ Uploading image to imgbb...")
                     url = upload_to_imgbb(image)
                     spot.img = url
                     spot.save()
+                    print(f"   ✅ Image saved: {url}")
+                else:
+                    print(f"   ⚠️  No image found for {name}")
             except Exception as e:
                 print("IMG ERROR:", e)
+        else:
+            print(f"   ✅ Image already exists")
 
         # =========================
         # ✅ 3. Generate Blog
         # =========================
+        print(f"\n[3/5] 📰 Generating blog content...")
         try:
             print(f"Generating blog for {name} in {place.placename}...")
             blog_prompt = f'''Write a COMPLETE travel blog about "{name}" in "{place.placename}".
@@ -81,7 +102,7 @@ Do not use markdown, only HTML. Use emojis in h2, make engaging/informative for 
 <article class="blog-post">
   <div class="intro-section">
     <h2>[Engaging intro title with emoji]</h2>
-    <p>[Hook paragraph inviting reader]</p>
+    <p>[Hook paragraph inviting reader and create a story like of being here]</p>
   </div>
 
   <div class="content-section">
@@ -90,6 +111,18 @@ Do not use markdown, only HTML. Use emojis in h2, make engaging/informative for 
     <div class="highlight-box">
       <h3>Famous for:</h3>
       <ul><li>✅ ...</li>...</ul>
+    </div>
+  </div>
+
+  <div class="content-section">
+    <h2>Festivals [icon] </h2>
+    <div>
+    - insert any festivals and events with their dates in {place.placename}
+    </div>
+  </div>
+  <div class="content-section">
+    <div>
+    - Reasons to come here in {place.placename}
     </div>
   </div>
 
@@ -144,7 +177,7 @@ Use emojis in h2, make engaging/informative for tourists, include costs/tips/act
             res = client.chat.completions.create(
                 model=settings.GROK_MODEL_NAME,
                 messages=[{"role": "user", "content": blog_prompt}],
-                max_tokens=3000
+                max_tokens=4000
             )
 
             full_response = res.choices[0].message.content.strip()
@@ -156,29 +189,90 @@ Use emojis in h2, make engaging/informative for tourists, include costs/tips/act
 
             place_slug = slugify(place.placename)
             blog_slug = slugify(blog_title)
-            print(f"Generated blog content for {name}: {blog_content[:100]}...")
+            print(f"   ✅ Blog title: {blog_title}")
+            print(f"   ✅ Content generated: {len(blog_content)} characters")
+            
+            # =========================
+            # Generate Meta Description
+            # =========================
+            print(f"\n[3.1/5] 🔍 Generating SEO meta description...")
+            meta_description = ''
+            try:
+                meta_prompt = f'''Create an SEO-friendly meta description for a travel blog titled "{blog_title}" about "{name}" in "{place.placename}". 
+with like these keywords: {name}, {place.placename}, travel guide, things to do, entrance fee, tips, festivals and best time to visit.
+Keep it under 160 characters and make it enticing for travelers searching online.'''
+                meta_res = client.chat.completions.create(
+                    model=settings.GROK_MODEL_NAME,
+                    messages=[{"role": "user", "content": meta_prompt}],
+                    max_tokens=160
+                )
+                meta_description = meta_res.choices[0].message.content.strip().strip('"')
+            except Exception as e:
+                print("META DESCRIPTION ERROR:", e)
+                meta_description = f"Discover {blog_title} in {place.placename}: Complete travel guide with directions, top activities, entrance fees, insider tips, and best times to visit for an unforgettable experience."
+            
+            print(f"   ✅ Meta description: {meta_description[:60]}...")
+            
+            # =========================
+            # Generate FAQ Entries (for SEO Schema)
+            # =========================
+            print(f"\n[3.2/5] ❓ Generating FAQ entries...")
+            faq_entries = []
+            try:
+                faq_prompt = f'''Generate 5 common FAQs about visiting "{name}" in "{place.placename}". 
+                
+Return ONLY a valid JSON array with no markdown formatting. Format:
+[
+  {{"@type": "Question", "@id": "url#faq1", "name": "Question?", "acceptedAnswer": {{"@type": "Answer", "text": "Answer text."}}}},
+  ...
+]
+
+Questions should cover: best time to visit, entrance fee/cost, how to get there, what to bring, safety/tips.
+Keep answers concise (1-2 sentences).'''
+                
+                res = client.chat.completions.create(
+                    model=settings.GROK_MODEL_NAME,
+                    messages=[{"role": "user", "content": faq_prompt}],
+                    max_tokens=1000
+                )
+                
+                faq_text = res.choices[0].message.content.strip()
+                # Try to parse as JSON
+                faq_entries = ast.literal_eval(faq_text) if faq_text.startswith('[') else []
+                print(f"Generated {len(faq_entries)} FAQ entries")
+            except Exception as e:
+                print("FAQ GENERATION ERROR:", e)
+                faq_entries = []
+            
+            print(f"   ✅ Generated {len(faq_entries)} FAQ entries")
+            
+            print(f"\n[3.3/5] 🎨 Generating HTML page...")
             html = generate_blog_page(
                 None,
                 place_name=place.placename,
                 title=blog_title,
                 body_text=blog_content,
                 cover_image_url=spot.img,
-                faq_entries=[]
+                faq_entries=faq_entries,
+                blog_searchable_keys_description=meta_description
             )
-            print('Generated HTML length:', len(html))
+            print('   ✅ HTML generated: {} characters'.format(len(html)))
 
             folder = os.path.join(
                 os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                 "singlepage2", "templates", "blogs", place_slug
             )
-            print('Blog folder path:', folder)
+            print(f'   📁 Blog folder: {folder}')
             os.makedirs(folder, exist_ok=True)
 
             file_path = os.path.join(folder, f"{blog_slug}.html")
 
+            print(f"\n[3.4/5] 💾 Saving blog file...")
             with open(file_path, "w", encoding="utf-8") as f:
                 f.write(html)
-            print(f"Blog page saved to {file_path}")
+            print(f"   ✅ Saved to: {file_path}")
+            
+            print(f"\n[3.5/5] 🗂️  Creating database entry...")
             blog = Blogs.objects.create(
                 blogplace=place,
                 title=blog_title[:64],
@@ -190,6 +284,7 @@ Use emojis in h2, make engaging/informative for tourists, include costs/tips/act
             )
 
             place.blog.add(blog)
+            print(f"   ✅ Blog entry created in database")
 
         except Exception as e:
             print("BLOG ERROR:", e)
@@ -197,7 +292,9 @@ Use emojis in h2, make engaging/informative for tourists, include costs/tips/act
         # =========================
         # ✅ 4. Generate QR
         # =========================
+        print(f"\n[4/5] 🔗 Generating QR code...")
         try:
+            print(f"   ⏳ Creating QR code URL...")
             url = f"https://www.paratara.com/{place.slug}/visit/{spot.slug}/"
 
             qr = qrcode.make(url)
@@ -206,20 +303,28 @@ Use emojis in h2, make engaging/informative for tourists, include costs/tips/act
 
             from django.core.files.base import ContentFile
 
-            qr_file = ContentFile(buffer.getvalue())
-            qr_file.name = f"{spot.slug}-qr.png"
-
-            qr_url = upload_to_imgbb(qr_file) 
-            # file = buffer.getvalue()
-            # qr_url = upload_to_imgbb(file)
+            filename = f"{spot.slug}-qr.png"
+            qr_path = os.path.join(settings.MEDIA_ROOT, 'qr_codes', filename)
+            os.makedirs(os.path.dirname(qr_path), exist_ok=True)
+            
+            print(f"   ⏳ Saving QR code to disk...")
+            with open(qr_path, 'wb') as f:
+                f.write(buffer.getvalue())
+            
+            qr_url = f"{settings.MEDIA_URL}qr_codes/{filename}"
 
             spot.qr_code_url = qr_url
             spot.save()
+            print(f"   ✅ QR code saved: {qr_url}")
 
         except Exception as e:
             print("QR ERROR:", e)
 
-        print(f"✅ Finished processing {name}")
+        print(f"\n{'='*60}")
+        print(f"✅ COMPLETED: {name}")
+        print(f"{'='*60}\n")
 
     except Exception as e:
-        print("TASK ERROR:", e)
+        print(f"\n{'='*60}")
+        print(f"❌ TASK ERROR: {e}")
+        print(f"{'='*60}\n")

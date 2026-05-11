@@ -1364,7 +1364,7 @@ async function fetchLookPlaceData() {
               <p>{scannedPostcardDetails.location}</p>
               <p>{formatCollectedDate(scannedPostcardDetails.collected)}</p>
               <p>{scannedPostcardDetails.collector}</p>
-               <a href={`/places/${scannedPostcardDetails.collectionPlaceDirect}/${currentYear}/${currentMonth}`} class=""><p> Read here </p></a>
+               <a href={`/places/${scannedPostcardDetails.collectionPlaceDirect}/${currentYear}/${currentMonth}`} class=""><p> See More </p></a>
             </div>  
             
             

@@ -46,6 +46,8 @@ urlpatterns = [
 #     path("resort/<int:pk>", views.ResortsDetailView.as_view(),
 #          name="resort_details"),     
      path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='sitemap'),
+     path('robots.txt', views.robots_txt, name='robots_txt'),
+     path('privacy-policy/', views.privacy_policy, name='privacy_policy'),
      path('google48bcdfe5ffff5f5a.html', TemplateView.as_view(template_name="google48bcdfe5ffff5f5a.html"), name='google-site-verification'),    
      path('tourist-spot-create/', views.create_tourist_spot, name='create_tourist_spot'),    
 

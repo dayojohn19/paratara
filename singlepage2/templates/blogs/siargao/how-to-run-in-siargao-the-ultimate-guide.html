@@ -28,6 +28,29 @@
 }
 </script>
 
+                                            
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "How to Run in Siargao: The Ultimate Guide \u2014 Siargao",
+  "description": "Discover How to Run in Siargao: The Ultimate Guide in Siargao",
+  "image": "/static/images/siargao-running.jpg",
+  "author": {
+    "@type": "Organization",
+    "name": "Foreign Travel Steps",
+    "url": "https://foreigntravelsteps.com"
+  },
+  "datePublished": "2026-05-11",
+  "dateModified": "2026-05-11",
+  "url": "https://www.paratara.com/pages/blog/siargao/how-to-run-in-siargao-the-ultimate-guide/"
+}
+</script>
+
+                                            <!-- Performance: DNS prefetch and preconnect -->
+                                            <link rel="dns-prefetch" href="//www.googletagmanager.com">
+                                            <link rel="dns-prefetch" href="//pagead2.googlesyndication.com">
+                                            <link rel="preconnect" href="https://fonts.googleapis.com">
                                             <!-- Google tag (gtag.js) -->
                                             <script> window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-MH2W7TQEH3'); </script>
                                             <meta name="google-site-verification" content="8jqO-yxHVkp0mIbnh_nvbfA0N21q0QcCR4aDkFbb8rc" />
@@ -59,7 +82,7 @@
 
                                                 <!-- Open Graph -->
                                                 <meta property="og:title" content="How to Run in Siargao: The Ultimate Guide — Siargao">
-                                                <meta property="og:description" content="Travel guide for Siargao. Includes how to get there, activities, fees, and tips.">
+                                                <meta property="og:description" content="Discover How to Run in Siargao: The Ultimate Guide in Siargao: Complete travel guide with directions, top activities, entrance fees, insider tips, and best times to visit for an unforgettable experience.">
                                                 <meta property="og:type" content="article">
                                                 <meta property="og:url" content="https://www.paratara.com/pages/blog/siargao/how-to-run-in-siargao-the-ultimate-guide/">
                                                 <meta property="og:image" content="/static/images/siargao-running.jpg">
@@ -90,9 +113,9 @@
     --text-gray: #64748b;
     --bg-light: #f8fafc;
     --white: #ffffff;
-    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
-    --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
-    --shadow-lg: 0 10px 30px rgba(0,0,0,0.12);
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 2px 8px rgba(0,0,0,0.05);
+    --shadow-lg: 0 6px 18px rgba(0,0,0,0.06);
 }
 
 * { 
@@ -156,7 +179,6 @@ img {
     height: auto;
     border-radius: 12px;
     margin: 1.5rem 0;
-    box-shadow: var(--shadow-md);
 }
 
 /* Navigation */
@@ -170,8 +192,8 @@ img {
     justify-content: space-between;
     padding: 1rem 1.5rem;
     background: #ffffff;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
     position: sticky;
+    border-bottom: 1px solid #e2e8f0;
     top: 0;
     z-index: 1000;
 }
@@ -210,11 +232,11 @@ img {
     list-style: none;
     /* padding: 0.75rem 0; */
     border-radius: 12px;
-    box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+    box-shadow: none;
     opacity: 0;
     visibility: hidden;
     transform: translateY(10px);
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
 }
 
 .dropdown-menu li a {
@@ -229,17 +251,13 @@ img {
     background: var(--light-blue);
     transform: translateX(4px);
 }
-
-.dropdown-menu li a:hover {
-    background: #f1f5f9;
-}
 /* Main Content */
 #body-contents {
     max-width: 900px;
     margin: 0 auto;
     padding: 3rem 2rem;
     background: var(--white);
-    box-shadow: var(--shadow-md);
+
 }
 
 .blog-post {
@@ -254,10 +272,11 @@ img {
 .intro-section {
     background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
     color: var(--white);
-    padding: 3rem;
-    border-radius: 16px;
-    margin-bottom: 3rem;
-    box-shadow: var(--shadow-lg);
+    padding: 2.5rem;
+    border-radius: 14px;
+    margin-bottom: 2.5rem;
+    border: 1px solid #dfe3ea;
+
 }
 
 .intro-section h2 {
@@ -405,16 +424,15 @@ img {
 }
 
 .collection-section .collection-card {
-    background: var(--white);
-    border-radius: 12px;
+    background: #ffffff;
+
     padding: 1.5rem;
-    box-shadow: var(--shadow-md);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+    transition: background 0.2s ease;
 }
 
 .collection-section .collection-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
+background: #f8fafc;
 }
 
 .collection-section .collection-card img {
@@ -518,14 +536,14 @@ footer input[type="file"] {
     cursor: pointer;
     padding: 5px;
     border-radius: 8px;
-    background: var(--light-blue);
-    box-shadow: var(--shadow-sm);
+    background: transparent;
+
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .hamburger:hover {
     transform: scale(1.05);
-    box-shadow: var(--shadow-md);
+
 }
 
 .hamburger:active {
@@ -568,16 +586,17 @@ footer input[type="file"] {
 .hamburger.open span:nth-child(3) {
     transform: rotate(-45deg) translate(7px, -6px);
 }
-   .hamburger {
-        display: block;
-    }
-    .dropdown:hover .dropdown-menu {
-        opacity: 1;
-        visibility: visible;
-        transform: translateY(0);
-    }    
 
-    .nav-links {
+/* Mobile Menu Styles */
+.hamburger {
+    display: block;
+}
+
+.dropdown:hover .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
         overflow: scroll;
 
         top: 70px;
@@ -767,9 +786,9 @@ function toggleDropdown(e) {
 
   <article id="body-contents">
     
-<div id="dynamic-collections" class="collection-section">
   <h2>📱 Local Collections & QR Experiences</h2>
   <p id="collections-loading">Discover interactive collections nearby. Scan QR codes for memories! Loading...</p>
+<div id="dynamic-collections" class="collection-section">
 </div>
     
     <div class="intro-section">
@@ -811,6 +830,16 @@ function toggleDropdown(e) {
 var place_name = "Siargao";
 var placename = "Siargao";
 
+// Fisher-Yates shuffle algorithm for proper randomization
+function shuffleArray(array) {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+}
+
 async function fetchAndInsertImages() {
     try {
         // Fetch images from Django
@@ -819,8 +848,8 @@ async function fetchAndInsertImages() {
 
         const images = data.images.map(img => img.imbbURL); // array of URLs
 
-        // Shuffle array to pick random images
-        const shuffled = images.sort(() => 0.5 - Math.random());
+        // Shuffle array to pick random images using Fisher-Yates
+        const shuffled = shuffleArray(images);
 
         // Find all possible insertion points: content-sections, after h2/h3, after paragraphs
         const bodyContents = document.querySelector("#body-contents");
@@ -841,6 +870,8 @@ async function fetchAndInsertImages() {
 
             const img = document.createElement("img");
             img.src = imgUrl;
+            img.loading = "lazy";
+            img.alt = "Blog content image";
             img.style.maxWidth = "100%";
             img.style.display = "block";
             img.style.margin = "1.5rem 0";
@@ -880,81 +911,86 @@ async function fetchAndInsertImages() {
 
 
 
-async function getBlogLists() {
-    csrftoken = getCookie('csrftoken');
-    
-    await fetch(`/apis/getPlaceBlogs/${placename}/`, {
-        method: 'GET',
-        headers: {
-            "X-Requested-With": "XMLHttpRequest",
-            "X-CSRFToken": csrftoken,
-        }
-    })
-    .then(res => res.json())
-    .then(data => {
-        const blogList = document.getElementById("blog-list");
-
-        if (!data.length) {
-            blogList.innerHTML = "<p>No blogs found for this place.</p>";
+// Consolidated fetch function with error handling
+async function fetchData(endpoint, elementId, templateFn, errorMsg) {
+    const csrftoken = getCookie('csrftoken');
+    try {
+        const response = await fetch(`/apis/${endpoint}/`, {
+            method: 'GET',
+            headers: {
+                "X-Requested-With": "XMLHttpRequest",
+                "X-CSRFToken": csrftoken,
+            }
+        });
+        
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        
+        if (!data || !data.length) {
+            const element = document.getElementById(elementId);
+            if (element) element.textContent = errorMsg;
             return;
         }
-        data.forEach(blog => {
-            const item = document.createElement("li");
-            const link = document.createElement("a");
-            link.href = blog.localurlpath;
-            link.textContent = blog.title;
-            link.target = "_blank";
-            item.appendChild(link);
-            blogList.appendChild(item);
-        });
-
-    })
-    .catch(err => {
-        console.error("Error fetching blogs:", err);
-    });
+        
+        templateFn(data);
+    } catch (err) {
+        console.error(`Error fetching ${endpoint}:`, err);
+        const element = document.getElementById(elementId);
+        if (element) element.textContent = `Failed to load ${endpoint}`;
+    }
 }
 
-async function fetchCollections() {
-    csrftoken = getCookie('csrftoken');
-    
-    await fetch(`/apis/getPlaceCollections/${placename}/`, {
-        method: 'GET',
-        headers: {
-            "X-Requested-With": "XMLHttpRequest",
-            "X-CSRFToken": csrftoken,
-        } 
-    })
-    .then(res => res.json())
-    .then(data => {
-        const collectionsDiv = document.querySelector("#dynamic-collections");
-        const loadingP = document.getElementById("collections-loading");
+function getBlogLists() {
+    fetchData('getPlaceBlogs/' + placename, 'blog-list', (data) => {
+        const blogList = document.getElementById('blog-list');
+        const fragment = document.createDocumentFragment();
+        
+        data.forEach(blog => {
+            const item = document.createElement('li');
+            const link = document.createElement('a');
+            link.href = blog.localurlpath;
+            link.textContent = blog.title;
+            item.appendChild(link);
+            fragment.appendChild(item);
+        });
+        
+        blogList.appendChild(fragment);
+    }, 'No blogs found for this place.');
+}
 
-        if (!data || !data.length) {
-            loadingP.textContent = "No local collections found nearby.";
-            return;
-        }
-
-        let html = '<div class="collections-grid">';
+function fetchCollections() {
+    fetchData('getPlaceCollections/' + placename, 'collections-loading', (data) => {
+        const collectionsDiv = document.querySelector('#dynamic-collections');
+        const fragment = document.createDocumentFragment();
         
         data.forEach(col => {
-            const linkUrl = col.collectionGoogleDriveURL || col.collectionVideo || `/garden/collection/${col.collectionUniqueID}/`;
-            html += `
-                <div class="collection-card">
-                    ${col.collectionPicture ? `<img src="${col.collectionPicture}" alt="${col.collectionName}" loading="lazy">` : ''}
-                    <h4>${col.name}</h4>
-                    <p>${col.address ? col.collectionDescription.substring(0, 130) + '...' : ' '}</p>
-
-                </div>
-            `;
+            const div = document.createElement('div');
+            div.className = 'collection-item';
+            
+            if (col.collectionPicture) {
+                const img = document.createElement('img');
+                img.src = col.collectionPicture;
+                img.alt = col.collectionName || 'Collection image';
+                img.loading = 'lazy';
+                div.appendChild(img);
+            }
+            
+            const h4 = document.createElement('h4');
+            h4.textContent = col.name || '';
+            div.appendChild(h4);
+            
+            if (col.address || col.collectionDescription) {
+                const p = document.createElement('p');
+                p.textContent = (col.collectionDescription || '').substring(0, 130) + '...';
+                div.appendChild(p);
+            }
+            
+            fragment.appendChild(div);
         });
-        html += '</div>';
-        html += `<p>Discover interactive collection cards on these places. !</p>`;
-        collectionsDiv.innerHTML = html;
-    })
-    .catch(err => {
-        console.error("Error fetching collections:", err);
-        document.getElementById("collections-loading").textContent = "Failed to load collections.";
-    });
+        
+        collectionsDiv.appendChild(fragment);
+        document.getElementById('collections-loading').style.display = 'none';
+    }, 'No local collections found nearby.');
 }
 
 
@@ -1050,7 +1086,7 @@ document.addEventListener('click', (ev) => {
     </ul>
   <footer>
   <form method="post" action="/apis/subscribe/" id="subscribeForm">
-    <input type="hidden" name="csrfmiddlewaretoken" value="WIYVSx85LNeqtcg7zaM6lgFFzQKubgz3WI7yGVtKXk8cFqRjN1gPpWVwXxVrO8oF">
+    <input type="hidden" name="csrfmiddlewaretoken" value="N0f9CgDR820zMyLs2VU11cpYtWNcrk412Ow1rcejV0rnke5IVbKZg52HDk7HkEbB">
     <input type="email" name="email" placeholder="Your email" required>
     <input type="text" name="name" placeholder="Name (optional)">
     <input type="hidden" name="source" value="blog_footer">
@@ -1060,7 +1096,7 @@ document.addEventListener('click', (ev) => {
   <p><strong>Location:</strong> Siargao</p>
 
 
-    <p>Written by <strong>Foreign Travel Steps</strong> | <a href="#">Contact Me</a> | <a href="#">Instagram</a></p>
+    <p>Written by <strong><a href="https://foreigntravelsteps.com">Foreign Travel Steps</a></strong> | <a href="#">Contact Me at foreigntravelsteps@paratara.com</a> </p>
   
   
 

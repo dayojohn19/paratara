@@ -2109,6 +2109,11 @@ def discussion(request, placeID):
                                             </div>
                                             <p>[(body_html)]</p> 
                                             <div class="content-section">
+                                                <div>
+                                                - insert a reason for why and what in {place.placename}
+                                                </div>
+                                            </div>
+                                            <div class="content-section">
                                                 <h2>💰 Budget Breakdown</h2>
                                                 - If relevant, a clear cost breakdown list using PHP currency symbol ₱ with approximate costs (transport, fare, food, 1-night budget)
                                                 <div class="tip-box">
@@ -3588,4 +3593,19 @@ def add_facebook_page(request):
 
 def storeproducts_management(request):
     return render(request, 'home/storeproducts.html')
+
+
+def robots_txt(request):
+    """
+    Serve robots.txt file.
+    Instructs search engines how to crawl the site.
+    """
+    return render(request, 'robots.txt', content_type='text/plain')
+
+
+def privacy_policy(request):
+    """
+    Render privacy policy page.
+    """
+    return render(request, 'privacy_policy.html')
 
