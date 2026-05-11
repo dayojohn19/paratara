@@ -649,7 +649,10 @@ footer input[type="file"] {{
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
-}}
+
+        
+    }}
+    .nav-links {{        
         overflow: scroll;
 
         top: 70px;
@@ -661,7 +664,7 @@ footer input[type="file"] {{
 
     }}
 
-    .nav-links.open {{
+    .open {{
         display: block;
     }}
 
