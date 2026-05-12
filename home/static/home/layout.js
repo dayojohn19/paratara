@@ -15,7 +15,7 @@ function createViaje(){(dom=document.querySelector(".modal-container-main")).sty
             <div class="flexBox-option1">
               <input value="Driver" name="scheduleTypeAndMode" type="radio" id="Driver">
               <label for="Driver">Driver</label>
-            </div>
+            </div> 
             <div class="flexBox-option1">
               <input value="Passenger" name="scheduleTypeAndMode" type="radio" id="Passenger">
               <label for="Passenger">Passenger</label>

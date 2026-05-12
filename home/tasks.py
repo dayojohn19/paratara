@@ -59,31 +59,31 @@ def process_creating_blog(request, for_place,blog__title=None,to_title=None):
         print(f"\n[3/5] 📰 Generating blog content...")
         try:
             print(f"Generating blog for {blog__title} in {for_place.placename}...")
-            blog_prompt = f'''Write a COMPLETE travel blog about "{blog__title}" in "{for_place.placename}".
+            blog_prompt = f'''Write a COMPLETE luxurious blog about "{blog__title}" in "{for_place.placename}".
                 OUTPUT FORMAT - EXACTLY:
                 Title: [Catchy blog title max 60 chars]
                 Then exactly TWO NEWLINES
                 Then HTML content using EXACT structure and CSS classes:
                 Use the provided image URL for the spot if relevant.
                 Do not use markdown, only HTML. Use emojis in h2, make engaging/informative for tourists, include costs/tips/activities for {blog__title} in {for_place.placename}.
-                Include content appropriate to the user's request and double check if user is asking for a specific topic/subject and gave a url if so create a simple promotion 
-                !important  insert icons, links, and content relevant to the user's request and {for_place.placename}
+                Include content appropriate to the user's request and double check if user is asking for a specific topic/subject and provided a url if so create a simple promotion 
+                !important  insert icons, if link is preset add the links, and content relevant to the user's request and {for_place.placename}
                                 
                 <article class="blog-post">
                   <div class="intro-section">
                     <h2>[Engaging intro title with emoji]</h2>
-                    <p>Summary: [Hook paragraph inviting reader and create a story like of being here max of 10 words]</p>
+                    <p>[Summary: Hook paragraph inviting reader and create a story like of being here max of 15 words]</p>
                   </div>
                   <div class="content-section">
                     <h2>[Section 1 title emoji]</h2>
                     <p>[Details]</p>
                     <div class="highlight-box">
-                      <h3>Famous for:</h3>
+                      <h3>Known for:</h3>
                       <ul><li>✅ ...</li>...</ul>
                     </div>
                   </div>
                   <div class="content-section">
-                    <h2>Festivals [icon] </h2>
+                    <h2>[Festivals or event and an icon] </h2>
                     <div>
                     - insert any festivals and events with their dates in {for_place.placename}
                     </div>
@@ -113,7 +113,7 @@ def process_creating_blog(request, for_place,blog__title=None,to_title=None):
                       <h3>Hazards to Watch</h3>
                       <p>{{ hazards }}</p>
                       <h3> Updates</h3>
-                      <p>{{ current latest place specific news incidents and accidents with regard to tourist and updates }} <small>{{current date taken}}</small></p>
+                      <p>{{ current year latest place specific news incidents and accidents with regard to tourist and updates }} <small>{{current date taken}}</small></p>
                     </div>
                   </div>
                   <div class="cta-section">
@@ -151,6 +151,9 @@ def process_creating_blog(request, for_place,blog__title=None,to_title=None):
             
             summary_match = re.search(r'Summary:\s*([^\n]+)', full_response)
             blog_summary = summary_match.group(1).strip() if summary_match else f"Discover {blog__title} in {for_place.placename}"
+            # Remove "Summary:" prefix if it accidentally got included
+            if blog_summary.startswith('Summary:'):
+                blog_summary = blog_summary[8:].strip()
             
             # Extract HTML content (everything after the first double newline)
             blog_content = parts[1] if len(parts) > 1 else full_response

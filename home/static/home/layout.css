@@ -11,12 +11,10 @@ body{
 	color:var(--paratara-text);
 }
 
-.center-body{
-	padding:16px;
-}
+
 
 @media (min-width:768px){
-	.center-body{padding:24px}
+
 }
 
 footer{

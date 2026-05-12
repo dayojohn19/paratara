@@ -465,13 +465,9 @@ def viewCollection(request):
     return render(request, 'garden/qr_images.html')
 
 
-@api_view(['PUT'])
-def viewPlaces(request):
-    result = {
 
-        'data': 'result data'
-    }
-    return HttpResponse(json.dumps(result), content_type="application/json")
+def viewPlaces(request):
+    return render(request, 'garden/index.html')
 
 
 @api_view(['PUT'])

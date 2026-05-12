@@ -9,7 +9,7 @@ from django.contrib.sitemaps.views import sitemap
 from home.sitemaps import Places_v2Sitemap,ResortItemsSitemap, StaticViewsSitemap,BlogsSitemap
 
 
-
+ 
 
 sitemaps = {
     'blogs':BlogsSitemap,
