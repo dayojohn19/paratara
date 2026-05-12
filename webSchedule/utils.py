@@ -149,7 +149,7 @@ def getPlacePhoto(request, placename):
 
         if data['results']:
             image_url = data['results'][0]['urls']['regular']
-            print(f"Setting background for {image_url}")
+            print(f"Setting background for from webutils 152 {image_url}")
             resp = requests.get(image_url, timeout=10)
             resp.raise_for_status()
             content = resp.content
@@ -169,7 +169,7 @@ def getPlacePhoto(request, placename):
                 if fallback:
                     print(f"Fallback search found image: {fallback}")
                     image_url = fallback
-                    print(f"Setting background for {image_url}")
+                    print(f"Setting background for  webutils 172{image_url}")
                     return image_url
                     resp = requests.get(image_url, timeout=10)
                     resp.raise_for_status()
@@ -196,7 +196,7 @@ def getPlacePhoto(request, placename):
             if fallback:
                 print(f"Fallback search found image: {fallback}")
                 image_url = fallback
-                print(f"Setting background for {image_url}")
+                print(f"Setting background for from 199 from webschedule utils getplacephoto {image_url}")
                 resp = requests.get(image_url, timeout=10)
                 resp.raise_for_status()
                 content = resp.content

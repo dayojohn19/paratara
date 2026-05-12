@@ -107,14 +107,15 @@
     background: var(--page-bg);
     color: var(--text);
     min-height: 100vh;
+    margin: 0;
   }
 
   .page-container {
+    margin:8px ;
 
   }
 
   .hero {
-    display: flex;
     flex-wrap: wrap;
     gap: 24px;
     align-items: center;
@@ -451,7 +452,6 @@
     max-height: 560px;
     overflow-y: auto;
     padding: 5px;
-    display: flex;
     flex-direction: column-reverse;
     gap: 14px;
 
@@ -1364,7 +1364,7 @@
     }
 
     .top-nav {
-      position: sticky;
+      /* position: sticky; */
       top: 0;
       z-index: 1200;
       background: rgba(255, 255, 255, 0.9);
@@ -1407,15 +1407,13 @@
     }
 
     .top-nav__toggle {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 42px;
-      height: 42px;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border);
-      
-      cursor: pointer;
+    background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  cursor: pointer;
+  outline: inherit;
     }
 
     .top-nav__toggle svg {
@@ -1426,33 +1424,61 @@
 
     .top-nav__links {
       display: none;
-      padding: 0 14px 14px;
-      gap: 10px;
       flex-direction: column;
+      
     }
 
     .top-nav__links.is-open {
       display: flex;
     }
 
-    .top-nav__links a {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0.7rem 1rem;
-      border-radius: var(--radius-sm);
-      text-decoration: none;
-      color: var(--accent-dark);
-      border: 1px solid var(--border);
-      
-      font-weight: 700;
-    }
+.top-nav__links {
+  display: none;
+  flex-direction: column;
+}
 
+.top-nav__links.is-open {
+  display: flex;
+}
 
-    .top-nav__links a:hover {
-      background: #edf2ff;
-      border-color: #c3d1ff;
-    }
+.top-nav__links a {
+  position: relative; /* IMPORTANT */
+  
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0.7rem 1rem;
+  text-decoration: none;
+  color: var(--accent-dark);
+  font-weight: 700;
+}
+
+/* border ONLY between links */
+.top-nav__links a:not(:last-child)::after {
+  content: "";
+  position: absolute;
+
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+
+  width: 80%;
+  height: 2px;
+
+  background: var(--accent-dark);
+
+  /* pointed edges */
+  clip-path: polygon(
+    0% 50%,
+    3% 0%,
+    97% 0%,
+    100% 50%,
+    97% 100%,
+    3% 100%
+  );
+}
+
 
     #events,
     #community-bulletin,
@@ -2332,41 +2358,41 @@
   </div>
 </div>
 
-<div class="page-container" id="top">
-  <header class="top-nav" aria-label="Page navigation">
-    <div class="top-nav__inner">
-      <a class="top-nav__brand" href="#top">
-        <span class="top-nav__brand-badge" aria-hidden="true">
-          <svg viewBox="0 0 16 16">
-            <path d="M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A31.493 31.493 0 0 1 8 14.58a31.481 31.481 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94zM8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10z"></path>
-            <path d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path>
-          </svg>
-        </span>
-        <span id="place-name">Loading</span>
-      </a>
-
-      <button class="top-nav__toggle" id="placeNavToggle" type="button" aria-controls="placeNavMenu" aria-expanded="false" aria-label="Toggle navigation">
-        <svg viewBox="0 0 16 16" aria-hidden="true">
-          <path d="M1 3.5A.5.5 0 0 1 1.5 3h13a.5.5 0 0 1 0 1h-13A.5.5 0 0 1 1 3.5zm0 4A.5.5 0 0 1 1.5 7h13a.5.5 0 0 1 0 1h-13A.5.5 0 0 1 1 7.5zm.5 3.5a.5.5 0 0 0 0 1h13a.5.5 0 0 0 0-1h-13z" />
+<header class="top-nav" aria-label="Page navigation">
+  <div class="top-nav__inner">
+    <a class="top-nav__brand" href="#top">
+      <span class="top-nav__brand-badge" aria-hidden="true">
+        <svg viewBox="0 0 16 16">
+          <path d="M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A31.493 31.493 0 0 1 8 14.58a31.481 31.481 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94zM8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10z"></path>
+          <path d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path>
         </svg>
-      </button>
-    </div>
+      </span>
+      <span id="place-name">Loading</span>
+    </a>
 
-    <nav class="top-nav__links" id="placeNavMenu">
-      <a href="#things-to-do">Activities and Services</a>
-      <a href="#events-schedule-heading">Events</a>
-      <a href="#community-bulletin">Community Bulletin</a>
-      <a href="#schedules">Schedules</a>
-      <a href="#blogs">Blogs</a>
-      <a href="#" id="placeNavOpenMap" aria-label="Open map" role="button">
-        <span>Check Spots</span>
-      </a>
-      <br><br><br>
-      {% if request.user.is_authenticated %}
-      <a href="/est/resort/createnewresort">Add your Business Here</a>
-      {% endif %}
-    </nav>
-  </header>
+    <button class="top-nav__toggle" id="placeNavToggle" type="button" aria-controls="placeNavMenu" aria-expanded="false" aria-label="Toggle navigation">
+      <svg viewBox="0 0 16 16" aria-hidden="true">
+        <path d="M1 3.5A.5.5 0 0 1 1.5 3h13a.5.5 0 0 1 0 1h-13A.5.5 0 0 1 1 3.5zm0 4A.5.5 0 0 1 1.5 7h13a.5.5 0 0 1 0 1h-13A.5.5 0 0 1 1 7.5zm.5 3.5a.5.5 0 0 0 0 1h13a.5.5 0 0 0 0-1h-13z" />
+      </svg>
+    </button>
+  </div>
+
+  <nav class="top-nav__links" id="placeNavMenu">
+    <a href="#things-to-do">Activities and Services</a>
+    <a href="#events-schedule-heading">Events</a>
+    <a href="#community-bulletin">Community Bulletin</a>
+    <a href="#schedules">Schedules</a>
+    <a href="#blogs">Blogs</a>
+    <a href="#" id="placeNavOpenMap" aria-label="Open map" role="button">
+      <span>Check Spots</span>
+    </a>
+    <br><br><br>
+    {% if request.user.is_authenticated %}
+    <a href="/est/resort/createnewresort">Add your Business Here</a>
+    {% endif %}
+  </nav>
+</header>
+<div class="page-container" id="top">
 
   <div class="hero">
     <!-- <div class="hero__info">

@@ -5,12 +5,95 @@ from django.utils.text import slugify
 from django.conf import settings
 import json
 import logging
+import time
 from garden.models import Collection, CollectionGroup
-
+from openai import OpenAI
+import ast
+from home.models import Places_v2
+from apis.models import Blogs
+import re
+client = OpenAI(api_key=settings.GROK_API_KEY, base_url='https://api.x.ai/v1')
 logger = logging.getLogger(__name__)
 
-def generate_blog_page(request, place_name, title, body_text, cover_image_url="/static/images/default-cover.jpg", faq_entries=None, blog_searchable_keys_description=None):
+# USES call htmlwriter then calls generate_blog_object to save the blog in the database, then generates the html page with SEO optimizations, FAQ schema, and article schema for better search engine visibility. The generated HTML is saved in the appropriate folder structure for serving as a static page on the site.
+def generate_blog_object(request, place_name, title, category='Guide', summary='No Summary Provided', text_content=''):
+    place = Places_v2.objects.filter(placename__iexact=place_name).first()    
+    title_slug = slugify(title)
+    print('Word count for blog content:', len(text_content.split()))
+    print('type of text_content:', type(text_content))
+
+    place_blog_list = list(place.blog.all())
+    for b in place_blog_list:
+        if slugify(getattr(b, 'title', '') or '') == title_slug:
+            print('place place_')
+            return b    
+
+    blog_item = Blogs.objects.create(
+        category=category,
+        blogplace=place,
+        title=title,
+        textContent=text_content,
+        summarize=summary,
+
+    )
+    generate_blog_page(request, place_name, title, text_content, category=category)
+    place.blog.add(blog_item)
+
+    current_domain = request.build_absolute_uri('/').rstrip('/')
+    place_slug = slugify(getattr(place, 'slug', '') or place.placename)
+    title_slug = slugify(title)
+    blog_context = f"\n\nAvailable Blogs & Articles:\n📝 {title} - URL: {current_domain}/pages/blog/{place_slug}/{title_slug}/\n"
+    print(blog_context)
+
+def generate_blog_page(request, place_name, title, body_text, cover_image_url=None, faq_entries=None, blog_searchable_keys_description=None, category=None):
+    print('Generating blog page with title:', title)
+    def _get_image_cover(place_name, title):
+        from imageapp.imageuploader import getTitlePhoto
+        togen = f"{title} {place_name} travel guide cover photo, vibrant and eye-catching, showcasing the essence of the destination with iconic landmarks or scenic views, optimized for web display."
+        image_url = getTitlePhoto(request, togen)
+        return image_url
+        
+
+    def _strip_html_tags(html: str) -> str:
+        return re.sub('<[^<]+?>', '', html or '')
+    def create_blog_searchable_keys_description(title, place_name, category):
+        try:
+            meta_prompt = f'''Create an SEO-friendly meta description for a {category} blog titled "{title}" in "{place_name}". 
+                            with like these keywords: {title}, {place_name}, {category}, things to do, entrance fee, tips, festivals and best time to visit.
+                            Keep it under 160 characters and make it enticing for travelers searching online.'''
+            meta_res = client.chat.completions.create(
+                model=settings.GROK_MODEL_NAME,
+                messages=[{"role": "user", "content": meta_prompt}],
+                max_tokens=200
+            )
+            # Print token usage
+            if hasattr(meta_res, 'usage'):
+                print(f"Token usage for meta description: {meta_res.usage}")
+            else:
+                print("No token usage info for meta description")
+            _blog_searchable = meta_res.choices[0].message.content.strip().strip('"')
+            print('   ✅ Generated searchable keys description for SEO meta description.')
+            return _blog_searchable
+        except Exception as e:
+            print("META DESCRIPTION ERROR:", e)
+            _blog_searchable = f"Discover {title} in {place_name}: Complete travel guide with directions, top activities, entrance fees, insider tips, and best times to visit for an unforgettable experience."
+        
+        return _blog_searchable
+    
+    # if cover_image_url is None:
+    #     return _get_image_cover(place_name, title)
+    if blog_searchable_keys_description is None:
+        create_blog_searchable_keys_description = create_blog_searchable_keys_description(title, place_name, category)
+    title = (title or '').strip() or f"{category} to {place_name}"
+    text_content = _strip_html_tags(body_text)
+
     """Generate optimized blog HTML page with SEO and performance enhancements."""
+    # Print FAQ entries and searchable keys with 0.5s delays
+    # blog_obj = generate_blog_object(request, place_name, title, category=category, summary=blog_searchable_keys_description or "", text_content=body_text)
+
+    if blog_searchable_keys_description:
+        print(f"Searchable Keys Description: {blog_searchable_keys_description}")
+        time.sleep(0.5)
     logger.info(f"Generating blog page: {title} in {place_name}")
     
     csrf_token = ""
@@ -49,46 +132,94 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url="/
     canonical_url = f"https://www.paratara.com/pages/blog/{place_slug}/{title_slug}/"
 
     collections_html = f'''
-  <h2>📱 Local Collections & QR Experiences</h2>
-  <p id="collections-loading">Discover interactive collections nearby. Scan QR codes for memories! Loading...</p>
-<div id="dynamic-collections" class="collection-section">
-</div>
-    '''
+                        <h2>📱 Local Collections & QR Experiences</h2>
+                        <p id="collections-loading">Discover interactive collections nearby. Scan QR codes for memories! Loading...</p>
+                        <div id="dynamic-collections" class="collection-section">
+                        </div>
+                        '''
 
     # Build FAQ Schema and Article Schema
+    try:
+        faq_entries = []
+        faq_prompt = f'''Generate 5 common FAQs about "{title}" in "{place_name}".
+        
+                        Return ONLY a valid JSON array with no markdown formatting. Format:
+                        [
+                        {{"@type": "Question", "@id": "{canonical_url}#[question name]", "name": "Question?", "acceptedAnswer": {{"@type": "Answer", "text": "Answer text."}}}},
+                        ... 
+                        ]
+                        Use the page URL "{canonical_url}" in all "@id" fields (question name1, question name2, question name3, etc.)
+                        Questions should cover: best time to visit, entrance fee/cost, how to get there, what to bring, safety/tips.
+                        Keep answers concise (1-2 sentences).'''
+        res = client.chat.completions.create(
+            model=settings.GROK_MODEL_NAME,
+            messages=[{"role": "user", "content": faq_prompt}],
+            max_tokens=1000
+        )
+        # Print token usage
+        if hasattr(res, 'usage'):
+            print(f"Token usage for FAQ generation: {res.usage}")
+        else:
+            print("No token usage info for FAQ generation")
+        faq_text = res.choices[0].message.content.strip()
+    
+        # Try to parse as JSON
+        faq_entries = ast.literal_eval(faq_text) if faq_text.startswith('[') else []
+        
+        # Post-process: ensure all @id fields use the canonical URL
+        for idx, entry in enumerate(faq_entries, start=1):
+            if isinstance(entry, dict):
+                entry["@id"] = f"{canonical_url}#faq{idx}"
+        
+        print(f"Generated {len(faq_entries)} FAQ entries")
+    except Exception as e:
+        print("FAQ GENERATION ERROR:", e)
+        faq_entries = []
+    
+    print(f"   ✅ Generated {len(faq_entries)} FAQ entries")    
+    if faq_entries:
+        print("FAQ Entries:")
+        if isinstance(faq_entries, list):
+            for entry in faq_entries:
+                print(f"  {entry}")
+                time.sleep(0.5)
+        else:
+            print(f"  {faq_entries}")
+            time.sleep(0.5)
+        
     faq_schema = ""
     if faq_entries:
-        faq_schema = f"""
-<script type="application/ld+json">
-{json.dumps({
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": faq_entries
-}, indent=2)}
-</script>
-"""
+                faq_schema = f"""
+                    <script type="application/ld+json">
+                    {json.dumps({
+                        "@context": "https://schema.org",
+                        "@type": "FAQPage",
+                        "mainEntity": faq_entries
+                    }, indent=2)}
+                    </script>
+                """
     
     # Article schema for SEO
     article_schema_dict = {
-        "@context": "https://schema.org",
-        "@type": "Article",
-        "headline": f"{title} — {place_name}",
-        "description": blog_searchable_keys_description or f"Discover {title} in {place_name}",
-        "image": cover_image_url,
-        "author": {
-            "@type": "Organization",
-            "name": "Foreign Travel Steps",
-            "url": "https://foreigntravelsteps.com"
-        },
-        "datePublished": "2026-05-11",
-        "dateModified": "2026-05-11",
-        "url": f"https://www.paratara.com/pages/blog/{place_slug}/{title_slug}/"
-    }
+            "@context": "https://schema.org",
+            "@type": "Article",
+            "headline": f"{title} — {place_name}",
+            "description": blog_searchable_keys_description or f"Discover {title} in {place_name}",
+            "image": cover_image_url,
+            "author": {
+                "@type": "Organization",
+                "name": "Foreign Travel Steps",
+                "url": "https://foreigntravelsteps.com"
+            },
+            "datePublished": "2026-05-11",
+            "dateModified": "2026-05-11",
+            "url": f"https://www.paratara.com/pages/blog/{place_slug}/{title_slug}/"
+        }
     article_schema = f"""
-<script type="application/ld+json">
-{json.dumps(article_schema_dict, indent=2)}
-</script>
-"""
+                        <script type="application/ld+json">
+                        {json.dumps(article_schema_dict, indent=2)}
+                        </script>
+                    """
         
 
 
@@ -1140,5 +1271,32 @@ document.addEventListener('click', (ev) => {{
 </html>
 """
     logger.info(f"Blog page generated successfully: {len(html_content)} bytes")
+
+
+
+    print('   ✅ HTML generated: {} characters'.format(len(html_content)))
+    folder = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "singlepage2", "templates", "blogs", place_slug
+    )
+    print(f'   📁 Blog folder: {folder}')
+    os.makedirs(folder, exist_ok=True)
+
+    blog_slug = slugify(title)
+    file_path = os.path.join(folder, f"{blog_slug}.html")
+    print(f"\n[3.4/5] 💾 Saving blog file...")
+
+    with open(file_path, "w", encoding="utf-8") as f:
+        f.write(html_content)
+    print(f"   ✅ Saved to: {file_path}")
+# ------------
+    with open(file_path, 'w', encoding='utf-8') as f:
+        f.write(html_content)
+
+
+
+
+
+
     return html_content
 

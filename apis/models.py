@@ -145,7 +145,8 @@ class Blogs(models.Model):
     textContent = models.TextField(blank=True, null=True)
     summarize = models.CharField(max_length=400, default='Discover more about this destination')
     readtime = models.IntegerField(default=5)
-    
+
+
     longitude = models.CharField(blank=True, max_length=64)
     latitude = models.CharField(blank=True, max_length=64)
 
@@ -156,6 +157,16 @@ class Blogs(models.Model):
 
     def __str__(self):
         return f"{self.blogplace} {self.title} long: {self.latitude} lat: {self.longitude} "
+    
+    def save(self, *args, **kwargs):
+        if not self.localurlpath and self.blogplace and self.title:
+            self.localurlpath = f"/pages/blog/{slugify(self.blogplace.placename)}/{slugify(self.title)}/"
+        # Calculate readtime based on word count (assuming 200 words per minute)
+        if self.textContent:
+            word_count = len(self.textContent.split())
+            self.readtime = max(1, word_count // 185) # Ensure at least 1 minute read time
+        super().save(*args, **kwargs)
+
     def get_absolute_url(self):
             return reverse("singlepage2:bloghtmlpost", kwargs={
                 "slug": slugify(self.blogplace),

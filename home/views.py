@@ -43,7 +43,16 @@ auth = HTTPBasicAuth(SECRET_KEY, '')
 import requests
 # end paymongo
 from django import forms
+import threading
+from django.shortcuts import render, get_object_or_404
+from django.utils.text import slugify
+from django.views.decorators.csrf import csrf_exempt
 
+from .models import TouristSpot, Places_v2
+from resorts.models import resortItem as ResortItem
+
+from .tasks import process_creating_blog  # 👈 background logic
+from imageapp.imageuploader import getPlacePhoto
 
 class FacebookPageForm(forms.ModelForm):
     place = forms.ModelChoiceField(queryset=Places_v2.objects.all(), empty_label="Select a Place")
@@ -1121,7 +1130,6 @@ def make_list_of_tourist_place(placename):
             'name': 'Spot Name',
             'latitude': '0.000',
             'longitude': '0.000',
-            'picture': 'https://image-url.com'
         }
     ]
     """
@@ -1136,7 +1144,7 @@ def make_list_of_tourist_place(placename):
                     "name": "Spot Name",
                     "latitude": "0.000",
                     "longitude": "0.000",
-                    "picture": "https://example.com/image.jpg"
+                    
                 }}
             ]
 
@@ -1161,8 +1169,16 @@ def make_list_of_tourist_place(placename):
         )
 
         gpt_reply = response.choices[0].message.content.strip()
+        usage = getattr(response, 'usage', None)
 
-        print(f"[GPT-PLACES] Raw: {gpt_reply}")
+        if usage is not None:
+            print("Prompt tokens:", usage.prompt_tokens)
+            print("Completion tokens:", usage.completion_tokens)
+            print("TOURIST PLACES Total tokens:", usage.total_tokens)
+        else:
+            print("TOURIST PLACES usage info not available")
+        print('-----------------')      
+
 
         import ast
 
@@ -1185,7 +1201,8 @@ def make_list_of_tourist_place(placename):
                     "name": str(place.get("name", "")).strip(),
                     "latitude": str(place.get("latitude", "")).strip(),
                     "longitude": str(place.get("longitude", "")).strip(),
-                    "picture": str(place.get("picture", "")).strip(),
+                    "picture": getPlacePhoto(None,str(place.get("name", "")).strip()),
+                    
                 })
 
         return cleaned_places
@@ -1273,8 +1290,8 @@ def fill_tourist_spot_images(request):
     """
     from django.http import HttpResponseForbidden
     from .models import TouristSpot
-    # from webSchedule.utils import getPlacePhoto
-    from imageapp.imageuploader import getPlacePhoto
+
+
 
     if not getattr(request, 'user', None) or not request.user.is_staff:
         return HttpResponseForbidden('staff only')
@@ -1358,6 +1375,7 @@ def viaje_v2(request):
         try:
             newPlace = Places_v2.objects.get(placename__iexact=place)
         except:
+            print('place could not be found,\n.   creating new place: \n       ', place)
             # if failed to save add placeID=1
             place = ' '.join([f.capitalize() for f in place.split(' ')])
             newPlace = Places_v2.objects.create(placename=place)
@@ -1372,46 +1390,37 @@ def viaje_v2(request):
             # End Adding Resort
             # getPlacePhoto(request, place)
             newPlace.placePhoto = getPlacePhoto(request, place)
+            
+            print("new place photo")
             print('Photo URL: ', newPlace.placePhoto)
-            print("new place photo")
             import time
-            time.sleep(1)
-            print("new place photo")
-            time.sleep(1)
-            print("new place photo")
+            time.sleep(5)
             newPlace.save()
             newPlace.placeID = newPlace.id
             newPlace.save()
             # Finding / Adding Resort
 
-        list_of_tourist_spots = make_list_of_tourist_place(place)
+            list_of_tourist_spots = make_list_of_tourist_place(place)
 
-        # Make list_of_tourist_spot a key object where each list of tourist spots should be [{'name':'namevalue','latitude':'latvalue','longitude':'longvalue','picture':'picturevalue'}]
-        for idx, tourist_spot in enumerate(list_of_tourist_spots):
-            print(f"[TOURIST-SPOT] ({idx+1}/{len(list_of_tourist_spots)}) Preparing to add: {tourist_spot}")
-            data = request.POST.copy()
-            print(f"[TOURIST-SPOT] Copied POST data: {dict(data)}")
-            data['place'] = newPlace.id
+            # Make list_of_tourist_spot a key object where each list of tourist spots should be [{'name':'namevalue','latitude':'latvalue','longitude':'longvalue','picture':'picturevalue'}]
+            for idx, tourist_spot in enumerate(list_of_tourist_spots):
+                print(f"[TOURIST-SPOT] ({idx+1}/{len(list_of_tourist_spots)}) Preparing to add: {tourist_spot}")
+                data = request.POST.copy()
+                print(f"[TOURIST-SPOT] Copied POST data: {dict(data)}")
+                data['place'] = newPlace.id
 
-            
-            print(f"[TOURIST-SPOT] Set to: {tourist_spot}")
-            # print(f"[TOURIST-SPOT] Calling create_tourist_spot with data: {{'place': {data['place']}, 'name': {data['name']}}}")
-            data.method = 'POST'
-            data.META = request.META
-            data['name'] = tourist_spot['name']
-            data['latitude'] = tourist_spot['latitude']
-            data['longitude'] = tourist_spot['longitude']
-            data['picture'] = tourist_spot['picture']
-            create_tourist_spot(data)
-            print(f"[TOURIST-SPOT] Finished create_tourist_spot for: {tourist_spot}\n")
+                
+                print(f"[TOURIST-SPOT] Set to: {tourist_spot}")
+                # print(f"[TOURIST-SPOT] Calling create_tourist_spot with data: {{'place': {data['place']}, 'name': {data['name']}}}")
+                data.method = 'POST'
+                data.META = request.META
+                data['name'] = tourist_spot['name']
+                data['latitude'] = tourist_spot['latitude']
+                data['longitude'] = tourist_spot['longitude']
+                create_tourist_spot(data)
+                print(f"[TOURIST-SPOT] Finished create_tourist_spot for: {tourist_spot}\n")
 
-        
-        # place_id = request.POST.get('place')
-        # name = request.POST.get('name').strip()
         allMeetDate = request.POST.getlist('meetDate')
-        print("\n\n ALL MEET DATE: ", type(allMeetDate))
-        for i in allMeetDate:
-            print('EACH DATE: ', i, type(i))
 
         from userProfile.models import userPoster
         try:
@@ -2002,6 +2011,11 @@ def discussion(request, placeID):
             _step("Early AI check: determining message type")
             print(f'Received message: "{message_content}"')
             print('---')
+            
+            # Initialize variables to avoid UnboundLocalError if early check fails
+            is_about_blogs = False
+            blog_context = ""
+            
             try:
 
 
@@ -2011,7 +2025,7 @@ def discussion(request, placeID):
                 def Checkblog(human_message_prompt,place):
                     # Combined AI processing with one call
                     blog_keywords = ['create a blog','make a guide', 'make a blog']
-                    print('is about blog')
+                    _step('is about blog')
                     is_about_blogs = any(keyword in human_message_prompt for keyword in blog_keywords)
                     # If user explicitly asks to create a blog/article, we should generate a new one
                     # even if generic words match existing blog titles (e.g., "guide").
@@ -2022,35 +2036,24 @@ def discussion(request, placeID):
                         or ('blog' in human_message_prompt and any(v in human_message_prompt for v in create_blog_verbs))
                         or ('article' in human_message_prompt and any(v in human_message_prompt for v in create_blog_verbs))
                     )
-
                     if is_about_blogs or wants_new_blog:
-
-                        _step("Blog flow: searching/creating blog context")
                         _step("Its About Blogs/Articles")
                         import re
                         from difflib import SequenceMatcher
-
                         blogs = list(place.blogs.all())
-
-
                         matched_blogs = []
-
-
                         # direct token and n-gram matching
                         print('Looking for direct token matches in blogs...')
-                        
-                        _step("Blog flow: attempting direct token matching\n\n ")
                         _step(f"Checking blog:   {message_lower}")
                         print('---')
                         for b in blogs:
                             text = f"{getattr(b,'title','')} {getattr(b,'summarize','') or ''}".lower()
                             sim = SequenceMatcher(a=message_lower, b=text).ratio()
                             _step(f"          Checking blog:   {sim}    {b.title}")
-                            if sim > 0.35:
+                            if sim > 0.4:
                                 matched_blogs.append((b, [f'fuzzy:{sim:.2f}']))
                                 _step(f"DEBUG: fuzzy matched {b.title} (sim={sim:.2f})")
                                 _step('---------Adding to Existing Blog')
-
                         max_match_blog = 1
                         _step(f"Checking if blog matched is >= {max_match_blog}")
                         if len(matched_blogs) >= max_match_blog:
@@ -2089,6 +2092,7 @@ def discussion(request, placeID):
                             try:
                                 _step('No relevant blogs found, generating a new blog/article...')
                                 _step('Attempting to ASK AI for BLOG')
+                                _step('from this put it as a thread in task.py process_creating_blog(request,place,title) and make it so that it can be called from here and also from the admin panel when creating a new place')
                                 user_request_text = message_content
                                 prompt_blog = f"""
                                     User message: "{user_request_text}"
@@ -2184,26 +2188,38 @@ def discussion(request, placeID):
                                 body_html = blog_json.get('body_html', '')
                                 summary = blog_json.get('summary', '')
                                 blogcategory = blog_json.get('category', '')
-                                title = blog_json.get('title', f"{blogcategory} to {place.placename}")
+                                title = blog_json.get('title', '').strip()
+                                
+                                # Ensure title is never None or empty
+                                if not title:
+                                    if blogcategory:
+                                        title = f"{blogcategory} Guide for {place.placename}"
+                                    else:
+                                        title = f"Guide to {place.placename}"
+                                    _step(f"Blog flow: title was empty, using fallback: {title!r}")
+                                else:
+                                    _step(f"Blog flow: title from AI response: {title!r}")
 
                                 from django.utils.text import slugify
-                                from singlepage2.views import create_blog_from_user_request
-
-                                blog_obj = create_blog_from_user_request(
+                                from singlepage2.htmlwriter import generate_blog_object
+                                # SOON CHANGE THIS TOO
+                                # threading.Thread(
+                                #     target=process_creating_blog,
+                                #     args=(request,place,title,),
+                                #     daemon=True
+                                # ).start()
+                                # # FROM
+                                blog_obj = generate_blog_object(
                                     request,
-                                    place=place,
+                                    place_name=place.placename,
                                     title=title,
-                                    body_html=body_html,
-                                    summary=summary,
+                                    text_content=body_html,
+                                    summary=summary, 
                                     category=blogcategory,
-                                    cover_image_url=getattr(place, 'placePhoto', '') or None,
                                 )
                                 _step(f"Blog flow: saved new blog title={getattr(blog_obj,'title',None)!r}")
 
-                                current_domain = request.build_absolute_uri('/').rstrip('/')
-                                place_slug = slugify(getattr(place, 'slug', '') or place.placename)
-                                title_slug = slugify(blog_obj.title)
-                                blog_context = f"\n\nAvailable Blogs & Articles:\n📝 {blog_obj.title} - URL: {current_domain}/pages/blog/{place_slug}/{title_slug}/\n"
+
                             except Exception as e:
                                 print('Blog generation error:', e)
                                 _step(f"Blog flow: error {type(e).__name__}")
@@ -3291,15 +3307,6 @@ def search_tourist_spots_by_placename(request):
                 context['placename'] = placename
     return render(request, 'home/search_tourist_spots.html', context)
      
-import threading
-from django.shortcuts import render, get_object_or_404
-from django.utils.text import slugify
-from django.views.decorators.csrf import csrf_exempt
-
-from .models import TouristSpot, Places_v2
-from resorts.models import resortItem as ResortItem
-
-from .tasks import process_tourist_spot  # 👈 background logic
 
 
 @csrf_exempt
@@ -3330,14 +3337,6 @@ def create_tourist_spot(request):
         longitude = get_clean_value(data, "longitude")
         picture = get_clean_value(data, "picture")
 
-
-        # data = request.POST if hasattr(request, "POST") else request
-        # name = (data.get("name") or "").strip()
-        # place_id = data.get("place")
-        # slug = (data.get("slug") or "").strip() or slugify(name)
-        # desc = (data.get("desc") or "").strip()
-        # latitude = data.get("latitude")
-        # longitude = data.get("longitude")
         resort_ids = data.getlist("resortItem")
 
         if not name or not place_id:
@@ -3358,6 +3357,45 @@ def create_tourist_spot(request):
                 }
             except:
                 pass
+# ----------- Processing Spot
+        if not desc:
+            try:
+                print(f"   ⏳ Generating description...")
+                prompt = f"Write a short 1-2 sentence tourist description of {name} in {place.placename}"
+                res = client.chat.completions.create(
+                    model=settings.GROK_MODEL_NAME,
+                    messages=[{"role": "user", "content": prompt}],
+                    max_tokens=100
+                )
+                desc = res.choices[0].message.content.strip()
+                # spot.save()
+                print(f"   ✅ Description saved")
+            except Exception as e:
+                print("DESC ERROR:", e)
+        else:
+            print(f"   ✅ Description already exists")
+        if not picture:
+            try:
+                print(f"   ⏳ Fetching image...")
+
+                from webSchedule.utils import upload_to_imgbb
+                
+                image = getPlacePhoto(None, name)
+                if picture:
+                    try:
+                        print(f"   ⏳ Uploading image to imgbb...")
+                        picture = upload_to_imgbb(image)
+                    except:
+                        print("     Failed to upload in IMBB saving as url instead")
+                        picture = image
+
+                    print("   ✅ Image saved")
+                else:
+                    print(f"   ⚠️  No image found for {name}")
+            except Exception as e:
+                print("IMG ERROR:", e)
+        else:
+            print(f"   ✅ Image already exists")
 
         # ✅ Create immediately (FAST)
         spot = TouristSpot.objects.create(
@@ -3379,8 +3417,8 @@ def create_tourist_spot(request):
 
         # ✅ Run heavy tasks in background
         threading.Thread(
-            target=process_tourist_spot,
-            args=(spot.id,),
+            target=process_creating_blog,
+            args=(request,place,name,),
             daemon=True
         ).start()
 

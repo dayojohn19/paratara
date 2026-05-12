@@ -22,6 +22,7 @@ GROK_API_KEY = os.getenv('GROK_API_KEY')
 # GROK_MODEL_NAME = config("GROK_MODEL_NAME", default="grok-4")
 GROK_MODEL_NAME_EXPENSIVE = config("GROK_MODEL_NAME", default="grok-4")
 GROK_MODEL_NAME = config("GROK_MODEL_NAME", default="grok-4-1-fast-non-reasoning")
+XAI_IMAGE_MODEL = 'grok-imagine-image-quality' 
 # Replace the DATABASES section of your settings.py with this
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 CSRF_COOKIE_SAMESITE = None

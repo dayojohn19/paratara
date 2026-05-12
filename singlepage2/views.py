@@ -17,119 +17,91 @@ def _strip_html_tags(html: str) -> str:
     return re.sub('<[^<]+?>', '', html or '')
 
 
-def ensure_blog_page_and_url(
-    request: HttpRequest,
-    blog_obj,
-    *,
-    body_html: str,
-    cover_image_url: Optional[str] = None,
-):
+def ensure_blog_page_and_url(request: HttpRequest,blog_obj = None,*,body_html: str,cover_image_url: Optional[str] = None,):
+    print('Not Used: ensure_blog_page_and_url - changed to generate_blog_object')
+    return
     """Generate the blog HTML file using generate_blog_page and ensure localurlpath is set.
 
     Designed to be reused by both the admin blog creator (blogFunc) and automated blog creation.
     """
-    place = blog_obj.blogplace
-    if not place:
-        raise ValueError('blog_obj.blogplace is required')
+    # place = blog_obj.blogplace
+    # if not place:
+    #     raise ValueError('blog_obj.blogplace is required')
 
-    place_slug = slugify(getattr(place, 'slug', '') or getattr(place, 'placename', '') or str(place))
-    title_slug = slugify(getattr(blog_obj, 'title', '') or 'blog-post')
+    # place_slug = slugify(getattr(place, 'slug', '') or getattr(place, 'placename', '') or str(place))
+    # title_slug = slugify(getattr(blog_obj, 'title', '') or 'blog-post')
 
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    blog_folder = os.path.join(base_dir, 'templates', 'blogs', place_slug)
-    os.makedirs(blog_folder, exist_ok=True)
-    file_path = os.path.join(blog_folder, f"{title_slug}.html")
+    # base_dir = os.path.dirname(os.path.abspath(__file__))
+    # blog_folder = os.path.join(base_dir, 'templates', 'blogs', place_slug)
+    # os.makedirs(blog_folder, exist_ok=True)
+    # file_path = os.path.join(blog_folder, f"{title_slug}.html")
 
-    from .htmlwriter import generate_blog_page
+    from .htmlwriter import generate_blog_object
  
-    cover_image_url_to_use = cover_image_url or getattr(place, 'placePhoto', None) or "https://www.paratara.com/static/images/sugbalagoon-cover.jpg"
-    print('Generating blog page with cover image:', cover_image_url_to_use)
+    # cover_image_url_to_use = cover_image_url or getattr(place, 'placePhoto', None) or "https://www.paratara.com/static/images/sugbalagoon-cover.jpg"
+    # print('Generating blog page with cover image:', cover_image_url_to_use)
     print('Blog title:', getattr(blog_obj, 'title', 'No title'))
     print('-----cover image-----')
     print('----------')
     print('----------')
-    htmlvalue = generate_blog_page(
+    htmlvalue = generate_blog_object(
         request,
         place_name=str(place_slug),
         title=str(getattr(blog_obj, 'title', '') or 'Travel Guide'),
         body_text=body_html,
         cover_image_url=str(cover_image_url_to_use),
-        faq_entries=[
-            {
-                "@type": "Question",
-                "name": f"What to know about {getattr(place, 'placename', place_slug)}?",
-                "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": str(getattr(blog_obj, 'summarize', '') or f"Guide to {getattr(place, 'placename', place_slug)}")
-                }
-            },
-        ]
     )
 
-    with open(file_path, 'w', encoding='utf-8') as f:
-        f.write(htmlvalue)
-
-    desired_url = f"/pages/blog/{place_slug}/{title_slug}/"
-    if getattr(blog_obj, 'localurlpath', '') != desired_url:
-        blog_obj.localurlpath = desired_url
-        blog_obj.save(update_fields=['localurlpath'])
 
     return blog_obj
 
 
-def create_blog_from_user_request(
-    request: HttpRequest,
-    *,
-    place,
-    title: str,
-    body_html: str,
-    summary: Optional[str] = None,
-    category: str = 'Guide',
-    cover_image_url: Optional[str] = None,
-):
-    """Create a new blog record + page if a matching title doesn't already exist for the place."""
-    from apis.models import Blogs
+def create_blog_from_user_request(request: HttpRequest,*,place,title: str,body_html: str,summary: Optional[str] = None,category: str = 'Guide',cover_image_url: Optional[str] = None,):
+    print('Not Used: create_blog_from_user_request - changed to generate_blog_object')
+    return
+    # """Create a new blog record + page if a matching title doesn't already exist for the place."""
+    # from apis.models import Blogs
 
-    title = (title or '').strip() or f"{category} to {getattr(place, 'placename', 'this place')}"
-    title_slug = slugify(title)
+    # title = (title or '').strip() or f"{category} to {getattr(place, 'placename', 'this place')}"
+    # title_slug = slugify(title)
 
     # Prevent duplicates by comparing slugified titles within the place.
-    existing = list(place.blog.all())
-    for b in existing:
-        if slugify(getattr(b, 'title', '') or '') == title_slug:
-            return b
+    # existing = list(place.blog.all())
+    # for b in existing:
+    #     if slugify(getattr(b, 'title', '') or '') == title_slug:
+    #         print('place existing')
+    #         return b
 
 
-    text_content = _strip_html_tags(body_html)
-    print('')
-    print('')
-    print('Word count for blog content:', len(text_content.split()))
-    print('type of text_content:', type(text_content))
-    print('')
-    print('')
-    word_count = len(text_content.split())
-    read_time = max(1, round(word_count / 200))
+    # text_content = _strip_html_tags(body_html)
+    # print('')
+    # print('')
+    # # print('Word count for blog content:', len(text_content.split()))
+    # # print('type of text_content:', type(text_content))
+    # print('')
+    # print('')
 
-    blog_obj = Blogs.objects.create(
-        blogplace=place,
-        title=title[:64],
-        category=category,
-        summarize=(summary or text_content[:140] or f"Guide to {getattr(place, 'placename', title)}")[:400],
-        textContent=text_content,
-        readtime=read_time,
-    )
 
-    # Link to place (ManyToMany)
-    place.blog.add(blog_obj)
+    # blog_obj = Blogs.objects.create(
+    #     blogplace=place,
+    #     title=title[:64],
+    #     category=category,
+    #     summarize=(summary or text_content[:140] or f"Guide to {getattr(place, 'placename', title)}")[:400],
+    #     textContent=text_content,
+    #     readtime=read_time,
+    # )
+
+    # # Link to place (ManyToMany)
+    # place.blog.add(blog_obj)
 
     ensure_blog_page_and_url(
         request,
-        blog_obj,
+
         body_html=body_html,
         cover_image_url=cover_image_url,
     )
     return blog_obj
-
+# NOT USED
 def generate_blog_metadata(html_content):
     """Use OpenAI to generate title, summary, and estimated read time from HTML content"""
     client = OpenAI(api_key=settings.GROK_API_KEY, base_url='https://api.x.ai/v1')
@@ -179,7 +151,7 @@ Respond in JSON format:
             'read_time': read_time
         }
 
-
+# NOT USED
 def blogFunc(request):
     # class Places_v2(models.Model):
     # blog = models.ManyToManyField('apis.Blogs', blank=True, related_name="bloglists")
