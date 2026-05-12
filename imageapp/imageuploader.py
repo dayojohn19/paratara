@@ -265,13 +265,11 @@ def _sanitize_title_image_filename(title):
 
 def getTitlePhoto(request, title):
     """Generate an image from OpenAI for the given title, save it under MEDIA_ROOT, and return the local path."""
+    print('Generating title image for:', title)
     if not title or not title.strip():
         raise ValueError('Title must not be empty')
 
-    prompt = (
-        f"Generate a high-quality illustrative title image for the following title: {title}. "
-        "Make it visually appealing, clear, and suitable to use as a featured title photo."
-    )
+    prompt = ({title})
 
 
     client = OpenAI(api_key=settings.GROK_API_KEY, base_url='https://api.x.ai/v1')
@@ -303,9 +301,9 @@ def getTitlePhoto(request, title):
 
     if usage_info:
         if isinstance(usage_info, dict) and usage_info.get('total_tokens') is not None:
-            print(f"Token usage: {usage_info.get('total_tokens')} total tokens")
+            print(f" generate title Token usage: {usage_info.get('total_tokens')} total tokens")
         else:
-            print(f"Token usage: {usage_info}")
+            print(f"generate title Token usage: {usage_info}")
     else:
         print("No token usage info available in response")
 

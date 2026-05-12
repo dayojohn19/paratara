@@ -169,7 +169,8 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
         # Post-process: ensure all @id fields use the canonical URL
         for idx, entry in enumerate(faq_entries, start=1):
             if isinstance(entry, dict):
-                entry["@id"] = f"{canonical_url}#faq{idx}"
+                entry["@id"] = f"{canonical_url}#{slugify(entry['name'])}"
+                print(f"Processed FAQ entry {idx}: {entry['name']}")
         
         print(f"Generated {len(faq_entries)} FAQ entries")
     except Exception as e:
@@ -1251,7 +1252,7 @@ document.addEventListener('click', (ev) => {{
   <p><strong>Location:</strong> {place_name}</p>
 
 
-    <p>Written by <strong><a href="https://foreigntravelsteps.com">Foreign Travel Steps</a></strong> | <a href="#">Contact Me at foreigntravelsteps@paratara.com</a> </p>
+    <p>Written by <strong><a href="https://foreigntravelsteps.com">Foreign Travel Steps</a></strong> | Contact Me at <a href="#">foreigntravelsteps@paratara.com</a> </p>
   
   
 

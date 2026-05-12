@@ -134,6 +134,7 @@ class Blogs(models.Model):
         ('Story', 'Story'),
         ('Tip and Trick', 'Tip and Trick'),
         ('Explore', 'Explore'),
+        ('Product', 'Product'),
 
     )
 

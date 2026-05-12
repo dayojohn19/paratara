@@ -2043,14 +2043,13 @@ def discussion(request, placeID):
                         blogs = list(place.blogs.all())
                         matched_blogs = []
                         # direct token and n-gram matching
-                        print('Looking for direct token matches in blogs...')
                         _step(f"Checking blog:   {message_lower}")
                         print('---')
                         for b in blogs:
                             text = f"{getattr(b,'title','')} {getattr(b,'summarize','') or ''}".lower()
                             sim = SequenceMatcher(a=message_lower, b=text).ratio()
                             _step(f"          Checking blog:   {sim}    {b.title}")
-                            if sim > 0.4:
+                            if sim > 0.7:
                                 matched_blogs.append((b, [f'fuzzy:{sim:.2f}']))
                                 _step(f"DEBUG: fuzzy matched {b.title} (sim={sim:.2f})")
                                 _step('---------Adding to Existing Blog')
@@ -2090,140 +2089,142 @@ def discussion(request, placeID):
                         else:
                             # No relevant existing blog found — generate a short guide blog and save it
                             try:
-                                _step('No relevant blogs found, generating a new blog/article...')
-                                _step('Attempting to ASK AI for BLOG')
-                                _step('from this put it as a thread in task.py process_creating_blog(request,place,title) and make it so that it can be called from here and also from the admin panel when creating a new place')
-                                user_request_text = message_content
-                                prompt_blog = f"""
-                                    User message: "{user_request_text}"
-                                    - Produce a JSON object with keys: title, body_html, summary, category
-                                    (Title): short (<=60 chars). 
-                                    (Summary): one sentence if there is a link provided/included, use highlighted <a href="URL">name of the linked item</a> and do not include the URL in the text.  (<=140 chars) .
-                                    (body_html): valid HTML fragment only (no <html> wrapper). Include content appropriate to the user's request and double check if user is asking for a specific topic/subject and gave a url if so create a simple promotion that and connect it  to {place.placename} make sure blog consist 500 words but dont include how many words it is  !important  insert icons, links, and content relevant to the user's request and {place.placename}
+                                # _step('No relevant blogs found, generating a new blog/article...')
+                                # _step('Attempting to ASK AI for BLOG')
+                                # _step('from this put it as a thread in task.py process_creating_blog(request,place,title) and make it so that it can be called from here and also from the admin panel when creating a new place')
+                                # user_request_text = message_content
+                                # prompt_blog = f"""
+                                #     User message: "{user_request_text}"
+                                #     - Produce a JSON object with keys: title, body_html, summary, category
+                                #     (Title): short (<=60 chars). 
+                                #     (Summary): one sentence if there is a link provided/included, use highlighted <a href="URL">name of the linked item</a> and do not include the URL in the text.  (<=140 chars) .
+                                #     (body_html): valid HTML fragment only (no <html> wrapper). 
+                                #     Include content appropriate to the user's request and double check if user is asking for a specific topic/subject and gave a url if so create a simple promotion 
+                                #         !important  insert icons, links, and content relevant to the user's request and {place.placename}
                                     
-                                    Category: based on user message determine its category from the following 'Guide','Story','Tip and Trick','Explore'
+                                #     Category: based on user message determine its category from the following 'Guide','Story','Tip and Trick','Explore','Product'
 
-                                    HTML content using body_html structure:
+                                #     HTML content using body_html structure:
                                     
-                                    - A numbered step-by-step guide tailored to the user's request
-                                        <article class="blog-post">                                        
-                                            <div class="intro-section">
-                                                <h2>[emoji then (Title) ]</h2>
-                                                <p>[(Summary)] [image if provided]</p>
-                                            </div>
-                                            <p>[(body_html)]</p> 
-                                            <div class="content-section">
-                                                <div>
-                                                - insert a reason for why and what in {place.placename}
-                                                </div>
-                                            </div>
-                                            <div class="content-section">
-                                                <h2>💰 Budget Breakdown</h2>
-                                                - If relevant, a clear cost breakdown list using PHP currency symbol ₱ with approximate costs (transport, fare, food, 1-night budget)
-                                                <div class="tip-box">
-                                                <p><strong>💡 [Category]:</strong></p>
-                                                <ul><li>...</li></ul>
+                                #     - A numbered step-by-step guide tailored to the user's request
+                                #         <article class="blog-post">                                        
+                                #             <div class="intro-section">
+                                #                 <h2>[emoji then (Title) ]</h2>
+                                #                 <p>[(Summary)] [image if provided]</p>
+                                #             </div>
+                                #             <p>[(body_html)]</p> 
+                                #             <div class="content-section">
+                                #                 <div>
+                                #                 - insert a reason for why and what in {place.placename}
+                                #                 </div>
+                                #             </div>
+                                #             <div class="content-section">
+                                #                 <h2>💰 Budget Breakdown</h2>
+                                #                 - If relevant, a clear cost breakdown list using PHP currency symbol ₱ with approximate costs (transport, fare, food, 1-night budget)
+                                #                 <div class="tip-box">
+                                #                 <p><strong>💡 [Category]:</strong></p>
+                                #                 <ul><li>...</li></ul>
                                                 
-                                                </div>
-                                            </div>
-                                        </article>                                        
+                                #                 </div>
+                                #             </div>
+                                #         </article>                                        
                                                                                 
-                                    Keep the whole body concise . Do not produce extraneous text.
-                                    Place name: {place.placename}
-                                    Return only the JSON object.
-                                    """
+                                #     Keep the whole body concise . Do not produce extraneous text.
+                                #     Place name: {place.placename}
+                                #     Return only the JSON object.
+                                #     """
 
-                                ai_resp = client.chat.completions.create(
-                                    model=settings.GROK_MODEL_NAME_EXPENSIVE,
-                                    messages=[{"role": "user", "content": prompt_blog}],
-                                )
-                                _step("Blog flow: received OpenAI response for blog")
-                                usage = ai_resp.usage
+                                # ai_resp = client.chat.completions.create(
+                                #     model=settings.GROK_MODEL_NAME_EXPENSIVE,
+                                #     messages=[{"role": "user", "content": prompt_blog}],
+                                # )
+                                # _step("Blog flow: received OpenAI response for blog")
+                                # usage = ai_resp.usage
 
-                                print("Prompt tokens:", usage.prompt_tokens)
-                                print("Completion tokens:", usage.completion_tokens)
-                                print("Total tokens:", usage.total_tokens)  
-                                print('-----------------')                              
-                                print('-----------------')                              
-                                print('-----------------')                              
+                                # print("Prompt tokens:", usage.prompt_tokens)
+                                # print("Completion tokens:", usage.completion_tokens)
+                                # print("Total tokens:", usage.total_tokens)  
+                                # print('-----------------')                              
+                                # print('-----------------')                              
+                                # print('-----------------')                              
 
-                                ai_text = ai_resp.choices[0].message.content.strip()
+                                # ai_text = ai_resp.choices[0].message.content.strip()
 
-                                # Robust JSON parsing with fallback attempts
-                                blog_json = None
-                                try:
-                                    blog_json = json.loads(ai_text)
-                                except Exception:
-                                    import re
-                                    m = re.search(r"(\{.*\})", ai_text, re.DOTALL)
-                                    if m:
-                                        try:
-                                            blog_json = json.loads(m.group(1))
-                                        except Exception:
-                                            blog_json = None
+                                # # Robust JSON parsing with fallback attempts
+                                # blog_json = None
+                                # try:
+                                #     blog_json = json.loads(ai_text)
+                                # except Exception:
+                                #     import re
+                                #     m = re.search(r"(\{.*\})", ai_text, re.DOTALL)
+                                #     if m:
+                                #         try:
+                                #             blog_json = json.loads(m.group(1))
+                                #         except Exception:
+                                #             blog_json = None
 
-                                if not blog_json:
-                                    _step("Blog flow: JSON parse failed; retrying with stricter prompt")
-                                    retry_prompt = prompt_blog + "\n\nIMPORTANT: Return ONLY a single JSON object and nothing else. Use the exact keys: title, body_html, summary."
-                                    ai_resp2 = client.chat.completions.create(
-                                        model=settings.GROK_MODEL_NAME,
-                                        messages=[{"role": "user", "content": retry_prompt}],
-                                    )
-                                    ai_text2 = ai_resp2.choices[0].message.content.strip()
-                                    try:
-                                        blog_json = json.loads(ai_text2)
-                                    except Exception:
-                                        import re
-                                        m2 = re.search(r"(\{.*\})", ai_text2, re.DOTALL)
-                                        if m2:
-                                            try:
-                                                blog_json = json.loads(m2.group(1))
-                                            except Exception:
-                                                blog_json = None
+                                # if not blog_json:
+                                #     _step("Blog flow: JSON parse failed; retrying with stricter prompt")
+                                #     retry_prompt = prompt_blog + "\n\nIMPORTANT: Return ONLY a single JSON object and nothing else. Use the exact keys: title, body_html, summary."
+                                #     ai_resp2 = client.chat.completions.create(
+                                #         model=settings.GROK_MODEL_NAME,
+                                #         messages=[{"role": "user", "content": retry_prompt}],
+                                #     )
+                                #     ai_text2 = ai_resp2.choices[0].message.content.strip()
+                                #     try:
+                                #         blog_json = json.loads(ai_text2)
+                                #     except Exception:
+                                #         import re
+                                #         m2 = re.search(r"(\{.*\})", ai_text2, re.DOTALL)
+                                #         if m2:
+                                #             try:
+                                #                 blog_json = json.loads(m2.group(1))
+                                #             except Exception:
+                                #                 blog_json = None
 
-                                if not blog_json:
-                                    _step("Blog flow: failed to parse blog JSON after retry")
-                                    raise ValueError('Failed to parse blog JSON from AI response')
+                                # if not blog_json:
+                                #     _step("Blog flow: failed to parse blog JSON after retry")
+                                #     raise ValueError('Failed to parse blog JSON from AI response')
 
-                                body_html = blog_json.get('body_html', '')
-                                summary = blog_json.get('summary', '')
-                                blogcategory = blog_json.get('category', '')
-                                title = blog_json.get('title', '').strip()
+                                # body_html = blog_json.get('body_html', '')
+                                # summary = blog_json.get('summary', '')
+                                # blogcategory = blog_json.get('category', '')
+                                # title = blog_json.get('title', '').strip()
                                 
                                 # Ensure title is never None or empty
-                                if not title:
-                                    if blogcategory:
-                                        title = f"{blogcategory} Guide for {place.placename}"
-                                    else:
-                                        title = f"Guide to {place.placename}"
-                                    _step(f"Blog flow: title was empty, using fallback: {title!r}")
-                                else:
-                                    _step(f"Blog flow: title from AI response: {title!r}")
+                                # if not title:
+                                #     if blogcategory:
+                                #         title = f"{blogcategory} for {place.placename}"
+                                #     else:
+                                #         title = f"Guide to {place.placename}"
+                                #     _step(f"Blog flow: title was empty, using fallback: {title!r}")
+                                # else:
+                                #     _step(f"Blog flow: title from AI response: {title!r}")
 
                                 from django.utils.text import slugify
                                 from singlepage2.htmlwriter import generate_blog_object
                                 # SOON CHANGE THIS TOO
-                                # threading.Thread(
-                                #     target=process_creating_blog,
-                                #     args=(request,place,title,),
-                                #     daemon=True
-                                # ).start()
+                                threading.Thread(
+                                    target=process_creating_blog,
+                                    args=(request,place,None,message_lower,),
+                                    daemon=True
+                                ).start()
                                 # # FROM
-                                blog_obj = generate_blog_object(
-                                    request,
-                                    place_name=place.placename,
-                                    title=title,
-                                    text_content=body_html,
-                                    summary=summary, 
-                                    category=blogcategory,
-                                )
-                                _step(f"Blog flow: saved new blog title={getattr(blog_obj,'title',None)!r}")
+                                # blog_obj = generate_blog_object(
+                                #     request,
+                                #     place_name=place.placename,
+                                #     title=title,
+                                #     text_content=body_html,
+                                #     summary=summary, 
+                                #     category=blogcategory,
+                                # )
+                                # _step(f"Blog flow: saved new blog title={getattr(blog_obj,'title',None)!r}")
 
 
                             except Exception as e:
                                 print('Blog generation error:', e)
                                 _step(f"Blog flow: error {type(e).__name__}")
-                                blog_context = ""
+                        blog_context = ""
                         print('Blog context to be added:', blog_context)
                         return True
                     else:
@@ -2235,7 +2236,6 @@ def discussion(request, placeID):
                     
                     
                     return is_about_blogs
-                print('is about blog? \n\n\n')
                 is_about_blogs = Checkblog(message_lower, place)
 
                 print('\n\n is_about_blogs:', is_about_blogs)

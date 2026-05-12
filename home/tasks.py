@@ -21,13 +21,41 @@ from openai import OpenAI
 client = OpenAI(api_key=settings.GROK_API_KEY, base_url='https://api.x.ai/v1')
 
 
-def process_creating_blog(request, for_place,blog__title, is__Spot = True):
+def process_creating_blog(request, for_place,blog__title=None,to_title=None):
     try:
 
 
         # =========================
         # ✅  Generate Blog
         # =========================
+        if to_title is not None:
+            print('Creating blog title based on user input:', to_title)
+            # First, extract the key topic from natural language input
+            extract_prompt = f'''Extract the main topic/subject from this user request: "{to_title}"
+            Return ONLY the extracted topic (2-4 words), nothing else.
+            determine if its about promotion of a specific place, activity, or event in {for_place.placename} and if so extract that as the topic.'''
+            try:
+                extract_res = client.chat.completions.create(
+                    model=settings.GROK_MODEL_NAME,
+                    messages=[{"role": "user", "content": extract_prompt}],
+                    max_tokens=50
+                )
+                topic = extract_res.choices[0].message.content.strip()
+                print(f"   📍 Extracted topic: {topic}")
+                
+                # Now generate an engaging blog title based on the extracted topic
+                title_prompt = f'''Generate a single catchy and engaging blog title (max 60 characters) "{topic}" in "{for_place.placename}". 
+                Only return the title, nothing else.'''
+                title_res = client.chat.completions.create(
+                    model=settings.GROK_MODEL_NAME,
+                    messages=[{"role": "user", "content": title_prompt}],
+                    max_tokens=100
+                )
+                blog__title = title_res.choices[0].message.content.strip()
+                print(f"   ✅ Generated blog title: {blog__title}")
+            except Exception as e:
+                print(f"   ⚠️ Title generation failed: {e}, using default: {to_title}")
+                blog__title = to_title
         print(f"\n[3/5] 📰 Generating blog content...")
         try:
             print(f"Generating blog for {blog__title} in {for_place.placename}...")
@@ -38,10 +66,13 @@ def process_creating_blog(request, for_place,blog__title, is__Spot = True):
                 Then HTML content using EXACT structure and CSS classes:
                 Use the provided image URL for the spot if relevant.
                 Do not use markdown, only HTML. Use emojis in h2, make engaging/informative for tourists, include costs/tips/activities for {blog__title} in {for_place.placename}.
+                Include content appropriate to the user's request and double check if user is asking for a specific topic/subject and gave a url if so create a simple promotion 
+                !important  insert icons, links, and content relevant to the user's request and {for_place.placename}
+                                
                 <article class="blog-post">
                   <div class="intro-section">
                     <h2>[Engaging intro title with emoji]</h2>
-                    <p>Summary: [Hook paragraph inviting reader and create a story like of being here]</p>
+                    <p>Summary: [Hook paragraph inviting reader and create a story like of being here max of 10 words]</p>
                   </div>
                   <div class="content-section">
                     <h2>[Section 1 title emoji]</h2>
@@ -90,8 +121,8 @@ def process_creating_blog(request, for_place,blog__title, is__Spot = True):
                     <p>[Strong CTA]</p>
                   </div>
                 </article>
-                Category: based on user message determine its category from the following 'Guide','Story','Tip and Trick','Explore'
-                Use emojis in h2, make engaging/informative for tourists, include costs/tips/activities for {blog__title} in {for_place}.
+                Category: based on user message determine its category from the following 'Guide','Story','Tip and Trick','Explore','Product'
+                Use emojis in h2, make engaging/informative for tourists, include costs/tips/activities for {blog__title} in {for_place.placename}.
                 '''
 
             res = client.chat.completions.create(
@@ -110,11 +141,24 @@ def process_creating_blog(request, for_place,blog__title, is__Spot = True):
   
             # Parse title and HTML
             parts = full_response.split('\n\n', 1)
+            
+            # Extract Title (first line)
             blog_title = parts[0].replace('Title: ', '').strip() if parts[0].startswith('Title:') else f"Visit {blog__title}"
-            blog_category = parts[0].replace('Category: ', '').strip() if parts[0].startswith('Title:') else f"Guide"
-            blog_summary = parts[0].replace('Summary: ', '').strip() if parts[0].startswith('Title:') else f"Guide"
+            
+            # Extract Category and Summary from the full response
+            category_match = re.search(r'Category:\s*([^\n]+)', full_response)
+            blog_category = category_match.group(1).strip() if category_match else "Guide"
+            
+            summary_match = re.search(r'Summary:\s*([^\n]+)', full_response)
+            blog_summary = summary_match.group(1).strip() if summary_match else f"Discover {blog__title} in {for_place.placename}"
+            
+            # Extract HTML content (everything after the first double newline)
             blog_content = parts[1] if len(parts) > 1 else full_response
-
+            
+            print('Blog Category:', blog_category)
+            print('Blog Summary:', blog_summary[:50])
+            print('Blog Content:', blog_content[:50])
+            print('Blog Title:', blog_title[:50])
             place_slug = slugify(for_place.placename)
             
             print(f"   ✅ Blog title: {blog_title}")
