@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Garden • Home Smart Postcard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@400;500;600&display=swap');
+        
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+        
+        .logo-font {
+            font-family: 'Playfair Display', serif;
+        }
+
+
+        .hero-bg {
+            background-image: linear-gradient(rgba(74, 112, 67, 0.15), rgba(74, 112, 67, 0.15)), 
+                             url('https://picsum.photos/id/1015/1200/800');
+            background-size: cover;
+            background-position: center;
+        }
+
+
+        .postcard-frame {
+            border: 14px solid #f5f0e8;
+            box-shadow: 0 30px 60px -15px rgb(0 0 0 / 0.3);
+            background: white;
+        }
+
+
+        .nav-link {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .nav-link:hover {
+            color: #4a7043;
+            transform: translateY(-2px);
+        }
+
+
+        .example-card {
+            transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+        }
+        
+        .example-card:hover {
+            transform: translateY(-12px) scale(1.02);
+            box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+        }
+    </style>
+</head>
+<body class="bg-[#f8f1eb] text-[#3f2a1e] overflow-x-hidden">
+    <!-- Top bar -->
+    <div class="bg-[#8a9a7b] py-3 flex items-center justify-center text-white text-sm font-medium tracking-widest">
+        <i class="fa-solid fa-envelope mr-2"></i>
+        MEMORY GARDEN • HOME SMART POSTCARD
+    </div>
+
+
+    <div class="max-w-5xl mx-auto bg-white shadow-2xl">
+        <!-- Header -->
+        <header class="pt-10 pb-8 border-b border-[#e8d9c8]">
+            <div class="px-10 flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <div class="text-5xl">🌿</div>
+                    <div>
+                        <h1 class="logo-font text-5xl tracking-tighter text-[#2c3e1f]">Memory Garden</h1>
+                        <p class="text-[#6b5b4a] -mt-1 text-lg">Home Smart Postcard</p>
+                    </div>
+                </div>
+                
+                <nav class="flex gap-8 text-lg font-medium text-[#3f2a1e]">
+                    <a href="#" class="nav-link">Shop Postcards</a>
+                    <a href="#" class="nav-link">Garden Stories</a>
+                    <a href="#" class="nav-link">How It Works</a>
+                    <a href="#" class="nav-link">My Garden</a>
+                </nav>
+            </div>
+        </header>
+
+
+        <!-- Main Hero -->
+        <div class="relative bg-[#f8f1eb] px-10 pt-8 pb-6">
+            <div class="postcard-frame mx-auto max-w-3xl rounded-3xl overflow-hidden">
+                <!-- Postcard content -->
+                <div class="relative">
+                    <!-- Background garden image -->
+                    <img src="https://picsum.photos/id/1015/1200/650" 
+                         alt="Flower garden" 
+                         class="w-full h-[420px] object-cover">
+                    
+                    <!-- Overlaid elements -->
+                    <div class="absolute inset-0 p-8 flex flex-col md:flex-row gap-8">
+                        <!-- Left: flowers + note -->
+                        <div class="flex-1 flex flex-col">
+                            <div class="flex-1 relative">
+                                <img src="https://picsum.photos/id/1018/420/280" 
+                                     alt="Wildflowers" 
+                                     class="absolute inset-0 w-full h-full object-cover rounded-2xl shadow-lg">
+                            </div>
+                            
+                            <!-- Note card -->
+                            <div class="mt-6 bg-white/95 backdrop-blur p-6 rounded-2xl shadow text-sm leading-relaxed border border-[#e8d9c8]">
+                                <p class="italic text-[#3f2a1e]">“You have been loved longer than the oldest tree in the forest...”</p>
+                                <div class="mt-4 text-right text-xs text-[#6b5b4a]">— Love, Ellie</div>
+                            </div>
+                        </div>
+
+
+                        <!-- Right: grandma photo + voice -->
+                        <div class="w-full md:w-80 flex flex-col">
+                            <div class="bg-white rounded-3xl overflow-hidden shadow-xl">
+                                <img src="https://picsum.photos/id/64/380/260" 
+                                     alt="Grandma drinking coffee" 
+                                     class="w-full h-64 object-cover">
+                                <div class="p-5">
+                                    <button onclick="playVoiceDemo()" 
+                                            class="w-full bg-[#4a7043] hover:bg-[#3a5a35] text-white py-4 rounded-2xl flex items-center justify-center gap-3 transition-colors">
+                                        <i class="fa-solid fa-volume-high"></i>
+                                        <span class="font-medium">2:14 Voice Message Attached</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- QR Code -->
+                            <div class="mt-auto pt-6 flex justify-end">
+                                <div class="text-center">
+                                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&amp;data=https://memorygarden.co/demo&amp;color=4a7043" 
+                                         alt="QR Code" class="mx-auto border-4 border-white shadow-xl rounded-2xl">
+                                    <p class="text-xs text-[#6b5b4a] mt-2 font-medium tracking-wider">Scan to hear her voice</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- NFC badge -->
+                    <div class="absolute bottom-8 left-8 bg-white/95 backdrop-blur-md px-6 py-4 rounded-3xl shadow-xl flex items-center gap-4">
+                        <div class="text-3xl">📱</div>
+                        <div>
+                            <div class="font-semibold text-sm">Delivered to Grandma's fridge</div>
+                            <div class="text-xs text-emerald-700">Evergreen • Real-time • NFC</div>
+                        </div>
+                    </div>
+
+
+                    <!-- Postmark -->
+                    <div class="absolute top-8 right-8 bg-white px-8 py-6 rounded-2xl shadow-2xl rotate-12 border-4 border-[#4a7043]/20">
+                        <div class="text-center text-[#4a7043]">
+                            <div class="text-xs tracking-[3px] font-medium">MEMORY GARDEN</div>
+                            <div class="my-3 text-5xl">🌸</div>
+                            <div class="text-xs font-light">Born from love</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Main Headline -->
+        <div class="px-10 py-16 text-center bg-white">
+            <h2 class="text-6xl leading-none font-light text-[#2c3e1f]">
+                Send a <span class="font-semibold text-[#4a7043]">Living Postcard</span><br>
+                That Keeps Growing at Home
+            </h2>
+            <p class="mt-8 text-xl text-[#6b5b4a] max-w-lg mx-auto">
+                Smart postcards that bloom, play messages, and stay connected.<br>
+                Plant once. Remember forever.
+            </p>
+
+
+            <div class="mt-12 flex flex-col sm:flex-row gap-5 justify-center">
+                <button onclick="alert('Postcard designer opened 🌱')" 
+                        class="px-12 py-6 bg-[#4a7043] text-white rounded-3xl text-xl font-semibold flex items-center justify-center gap-4 hover:bg-[#3a5a35] transition-all active:scale-95">
+                    <span class="text-3xl">🌱</span>
+                    Design Your Postcard
+                </button>
+                
+                <button onclick="watchVideo()" 
+                        class="px-12 py-6 border-2 border-[#4a7043] text-[#4a7043] rounded-3xl text-xl font-semibold flex items-center justify-center gap-4 hover:bg-[#f8f1eb] transition-all">
+                    <i class="fa-solid fa-play text-2xl"></i>
+                    Watch 48-Second Video
+                </button>
+            </div>
+        </div>
+
+
+        <!-- Example Gardens -->
+        <div class="px-10 pb-16 bg-[#f8f1eb]">
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Grandma -->
+                <div class="example-card bg-white rounded-3xl overflow-hidden cursor-pointer border border-[#e8d9c8]" onclick="alert('Grandma’s Rose Garden example loaded ✨')">
+                    <div class="h-72 relative">
+                        <img src="https://picsum.photos/id/201/600/400" 
+                             alt="Pink roses" class="w-full h-full object-cover">
+                        <div class="absolute bottom-6 left-6 bg-white px-5 py-2 rounded-2xl shadow flex items-center gap-2 text-sm">
+                            <i class="fa-solid fa-music text-pink-600"></i>
+                            <span>Her favorite hymn</span>
+                        </div>
+                    </div>
+                    <div class="p-8">
+                        <div class="font-semibold text-2xl">Grandma’s Rose Garden</div>
+                        <div class="text-[#6b5b4a]">Pink roses • Grandma’s favorite hymn</div>
+                    </div>
+                </div>
+
+
+                <!-- Dad -->
+                <div class="example-card bg-white rounded-3xl overflow-hidden cursor-pointer border border-[#e8d9c8]" onclick="alert('Dad’s Fishing Pond example loaded 🎣')">
+                    <div class="h-72 relative">
+                        <img src="https://picsum.photos/id/1016/600/400" 
+                             alt="Water lilies" class="w-full h-full object-cover">
+                        <div class="absolute bottom-6 left-6 bg-emerald-700 text-white px-5 py-2 rounded-2xl shadow text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-leaf"></i>
+                            <span>New voice note from Ellie</span>
+                        </div>
+                    </div>
+                    <div class="p-8">
+                        <div class="font-semibold text-2xl">Dad’s Fishing Pond</div>
+                        <div class="text-[#6b5b4a]">Water lilies • “I caught the big one!”</div>
+                    </div>
+                </div>
+
+
+                <!-- Baby -->
+                <div class="example-card bg-white rounded-3xl overflow-hidden cursor-pointer border border-[#e8d9c8]" onclick="alert('Baby’s First Garden example loaded 👶')">
+                    <div class="h-72 relative">
+                        <img src="https://picsum.photos/id/133/600/400" 
+                             alt="Seedlings" class="w-full h-full object-cover">
+                        <div class="absolute top-6 right-6 bg-white p-3 rounded-2xl shadow">
+                            <img src="https://picsum.photos/id/201/90/90" class="rounded-2xl w-14 h-14 object-cover">
+                        </div>
+                    </div>
+                    <div class="p-8">
+                        <div class="font-semibold text-2xl">Baby’s First Garden</div>
+                        <div class="text-[#6b5b4a]">Sunflowers • Growth timeline</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- As seen in -->
+        <div class="px-10 py-10 bg-white flex flex-wrap justify-center items-center gap-x-12 gap-y-6 text-xl font-medium">
+            <div class="flex items-center gap-2">
+                <span class="text-red-600 font-bold">AARP</span>
+            </div>
+            <div class="h-8 w-px bg-[#d4b89f]"></div>
+            <div>WIRED</div>
+            <div class="h-8 w-px bg-[#d4b89f]"></div>
+            <div>Garden &amp; Gun</div>
+        </div>
+
+
+        <!-- Footer features -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8 px-10 py-16 bg-[#f8f1eb] text-center">
+            <div>
+                <div class="text-5xl mb-4">💧</div>
+                <div class="font-semibold">Waterproof</div>
+            </div>
+            <div>
+                <div class="text-5xl mb-4">📡</div>
+                <div class="font-semibold">NFC + QR</div>
+            </div>
+            <div>
+                <div class="text-5xl mb-4">🌱</div>
+                <div class="font-semibold">Seeds Included</div>
+            </div>
+            <div>
+                <div class="text-5xl mb-4">♻️</div>
+                <div class="font-semibold">100% Biodegradable</div>
+            </div>
+        </div>
+
+
+        <!-- Final footer -->
+        <footer class="bg-[#2c3e1f] text-[#d4c3a8] py-16 px-10">
+            <div class="max-w-4xl mx-auto text-center text-sm">
+                © 2026 Memory Garden, Inc. • Made with love for memories that never fade.<br>
+                <span class="opacity-70">Waterproof • NFC • Real Seeds • Biodegradable Paper</span>
+            </div>
+        </footer>
+    </div>
+
+
+    <script>
+        function playVoiceDemo() {
+            const utterance = new SpeechSynthesisUtterance("Hello my darling. I just wanted to tell you how much these flowers remind me of you. I love you so much.");
+            utterance.pitch = 1.15;
+            utterance.rate = 0.92;
+            speechSynthesis.speak(utterance);
+        }
+        
+        function watchVideo() {
+            alert("🎬 In the real product this plays a beautiful 48-second video showing the living postcard experience.");
+        }
+        
+        console.log('%c✅ Memory Garden page loaded exactly as requested 🌱', 'color:#4a7043;font-size:14px;font-family:monospace');
+    </script>
+</body>
+</html>

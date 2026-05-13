@@ -988,7 +988,7 @@ def create_wordart(
     #         odraw.text((text_x + dx, text_y + dy), text, font=font, fill=(text_outline_color))
     fill = tuple(random.randint(0, 255) for _ in range(3)) + (255,)
     # outline_thickness = 5
-    outline_thickness = random.randint(1, 5)
+    outline_thickness = random.randint(1, 2)
     # for dx in range(-3, 4):
     for dx in range(-outline_thickness, outline_thickness + 1):
         # for dy in range(-3, 4):
@@ -1129,7 +1129,7 @@ def CreateQRCode(request, collectionObj, appDownloadLink, customTitle="", includ
     margin = ImageDraw.Draw(placeImage)
     w, h = 220, 190
 
-    shape = [(0, 0), (placeImage.width, placeImage.height)]
+    shape = [(10, 10), (placeImage.width - 10, placeImage.height - 10)]
 
     # Finish adding margin
     # Adding Texts
@@ -1230,48 +1230,12 @@ def CreateQRCode(request, collectionObj, appDownloadLink, customTitle="", includ
         if text_w <= max_width and text_h <= max_height:
             break
         font_size -= 2
-    # Calculate position: center horizontally, add top margin
-    x = (placeImage.width - text_w) // 2
-    y = int(placeImage.height * 0.035)
+    # Position at upper left with small margin
+    x = int(placeImage.width * 0.025)
+    y = int(placeImage.height * 0.025)
     # --- Fix: Ensure text is never cut off (robust version) ---
     # Add extra generous padding to the text image to prevent any clipping
     # --- Final fix: Render text in a large temp image, crop exactly to bounding box, then paste ---
-    temp_w, temp_h = placeImage.width, int(placeImage.height * 0.35)
-    temp_img = Image.new("RGBA", (temp_w, temp_h), (0, 0, 0, 0))
-    temp_draw = ImageDraw.Draw(temp_img)
-    # Draw outline first
-    for dx in [-5, -3, -1, 1, 3, 5]:
-        for dy in [-5, -3, -1, 1, 3, 5]:
-            temp_draw.multiline_text((40+dx, 20+dy), title_text, font=font, fill=(255,215,0,255), spacing=8, align="center")
-    # Draw gradient text
-        bbox = temp_draw.multiline_textbbox((40, 20), title_text, font=font, spacing=8)
-        text_w = bbox[2] - bbox[0]
-        text_h = bbox[3] - bbox[1]
-        gradient, mask = gradient_text(temp_draw, title_text, font, (0, 0), (text_w, text_h), ("#FFD700", "#FFA500"))
-        text_img = Image.new("RGBA", (text_w, text_h), (0, 0, 0, 0))
-        text_img.paste(gradient, (0, 0), mask)
-        temp_img.paste(text_img, (40, 20), text_img)
-        # Top gradient text layer for shine
-        top_gradient, top_mask = gradient_text(temp_draw, title_text, font, (0, 0), (text_w, text_h), ("#FFFFFF", "#F0F8FF"))
-        top_text_img = Image.new("RGBA", (text_w, text_h), (0, 0, 0, 0))
-        top_text_img.paste(top_gradient, (0, 0), top_mask)
-        temp_img.paste(top_text_img, (40, 20), top_text_img)
-        # Crop to the bounding box (including outline)
-        crop_left = bbox[0] - 8
-        crop_top = bbox[1] - 8
-        crop_right = bbox[2] + 8
-        crop_bottom = bbox[3] + 8
-        cropped = temp_img.crop((crop_left, crop_top, crop_right, crop_bottom))
-    # Center horizontally, paste at the top with margin
-    x_centered = (placeImage.width - cropped.width) // 2
-    y_safe = max(0, int(placeImage.height * 0.025))
-    placeImage.paste(cropped, (x_centered, y_safe), cropped)
-    if collectionObj.collectionTheme == None:
-        # new_color = get_dominant_color(placeImage)
-        new_color = get_contrast_color(placeImage)
-    else :
-        new_color = collectionObj.collectionTheme
-
     COLOR_MAP = {
         "black": "#000000",
         "gold": "#FFD700",
@@ -1284,8 +1248,13 @@ def CreateQRCode(request, collectionObj, appDownloadLink, customTitle="", includ
         "pearl": "#FDEEF4",
         "bronze": "#CD7F32",
     }
-
     # Preserve hex colors (e.g. "#FFFFFF", "#FFD700") and only map named themes.
+    if collectionObj.collectionTheme == None:
+        # new_color = get_dominant_color(placeImage)
+        new_color = get_contrast_color(placeImage)
+    else :
+        new_color = collectionObj.collectionTheme
+
     if isinstance(new_color, str):
         theme_key = new_color.strip().lower()
         if theme_key in COLOR_MAP:
@@ -1294,16 +1263,20 @@ def CreateQRCode(request, collectionObj, appDownloadLink, customTitle="", includ
             new_color = theme_key
         else:
             new_color = "#000000"
-    border_w = max(6, int(10 * scale))
+    draw.multiline_text((x, y), title_text, font=font, fill=new_color, spacing=8, align="left")
+
+
+
+    border_w = 2
     margin.rectangle(shape, fill=None, outline=new_color, width=border_w)
 
     # Keep text simple: no description and no text background box.
     text_secondary = "#FFFFFF"
 
     footer_text = f"{collectionObj.collectionGroup}".strip()
-    footer_x = placeImage.width - int(placeImage.width * 0.025)  # small right margin
+    footer_x = placeImage.width - 20  # small right margin inside border
     # Move these labels higher from the bottom and keep clear of the border
-    small_margin_bottm = placeImage.height - border_w - max(15, int(35 * scale))
+    small_margin_bottm = placeImage.height - 20
 
     subtitle_canvas.text(
         (footer_x, small_margin_bottm),

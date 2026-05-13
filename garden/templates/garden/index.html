@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Garden</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --bg: #f4eee6;
+            --panel: #fff6ea;
+            --text: #2d342e;
+            --muted: #6b6254;
+            --accent: #61723b;
+            --accent-soft: #8b3e7a;
+            --accent-dark: #3a431d;
+            --shadow: 0 24px 60px rgba(52, 46, 39, 0.12);
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: radial-gradient(circle at top, #f8f2e8 0%, #e9dbc9 40%, #f3ede9 100%);
+            color: var(--text);
+            line-height: 1.5;
+        }
+        img { display: block; max-width: 100%; }
+        a { color: inherit; text-decoration: none; }
+        .page {
+            min-height: 100vh;
+            padding: 32px 24px 48px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            width: min(1160px, 100%);
+        }
+        .top-icon {
+            margin: 0 auto 22px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: #7a9361;
+            display: grid;
+            place-items: center;
+            box-shadow: 0 20px 40px rgba(74, 79, 45, 0.16);
+        }
+        .top-icon svg {
+            width: 26px;
+            height: 26px;
+            fill: white;
+            opacity: 0.95;
+        }
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 8px 0 22px;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .brand-circle {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #f9f4ea, #a2b15f);
+            display: grid;
+            place-items: center;
+            color: #3d4d20;
+            font-size: 18px;
+            font-weight: 700;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.75);
+        }
+        .brand-text h1 {
+            margin: 0;
+            font-size: 1.35rem;
+            letter-spacing: -0.04em;
+        }
+        .brand-text p {
+            margin: 2px 0 0;
+            font-size: 0.92rem;
+            color: var(--muted);
+        }
+        nav {
+            display: flex;
+            gap: 18px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            font-size: 0.95rem;
+            color: #5f3c7d;
+            font-weight: 600;
+        }
+        nav a:hover { color: #3f2b51; }
+        .hero {
+            background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,251,247,0.98));
+            border-radius: 36px;
+            box-shadow: var(--shadow);
+            padding: 38px;
+            display: grid;
+            gap: 36px;
+        }
+        .hero-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.14fr) minmax(360px, 1fr);
+            gap: 36px;
+            align-items: center;
+        }
+        .hero-copy h2 {
+            margin: 0 0 16px;
+            font-size: clamp(2.2rem, 4vw, 3.4rem);
+            line-height: 1.04;
+            letter-spacing: -0.045em;
+            color: #5a3c2e;
+        }
+        .hero-copy h2 em {
+            font-style: normal;
+            color: #4f6e32;
+        }
+        .hero-copy p {
+            margin: 0 0 28px;
+            max-width: 630px;
+            color: #5e5548;
+            font-size: 1rem;
+        }
+        .button-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 200px;
+            border-radius: 999px;
+            padding: 14px 24px;
+            font-weight: 700;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .btn-primary {
+            background: #697e42;
+            color: white;
+            box-shadow: 0 14px 26px rgba(81, 99, 49, 0.24);
+        }
+        .btn-secondary {
+            border: 2px solid #7c5290;
+            color: #5c3d73;
+            background: rgba(255,255,255,0.92);
+        }
+        .btn:hover { transform: translateY(-1px); }
+        .hero-card {
+            position: relative;
+            border-radius: 36px;
+            background: #f7efe3;
+            padding: 24px;
+            box-shadow: 0 30px 64px rgba(47, 46, 39, 0.12);
+        }
+        .hero-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: radial-gradient(circle at top left, rgba(113, 152, 73, 0.16), transparent 24%),
+                        radial-gradient(circle at bottom right, rgba(192, 142, 97, 0.14), transparent 25%);
+            border-radius: 36px;
+        }
+        .postcard {
+            position: relative;
+            border-radius: 34px;
+            background: #fff4e7;
+            padding: 24px;
+            overflow: hidden;
+            box-shadow: 0 24px 58px rgba(38, 33, 26, 0.12);
+        }
+        .postcard::before,
+        .postcard::after {
+            content: "";
+            position: absolute;
+            inset: -16px;
+            z-index: -1;
+            border-radius: 42px;
+            background: repeating-linear-gradient(45deg, rgba(169,149,115,0.16) 0 14px, transparent 14px 28px);
+        }
+        .postcard::after {
+            inset: -20px;
+            opacity: 0.38;
+            filter: blur(5px);
+        }
+        .card-inner {
+            display: grid;
+            grid-template-columns: minmax(0, 1.14fr) 300px;
+            gap: 24px;
+        }
+        .card-main {
+            display: grid;
+            gap: 20px;
+        }
+        .card-photo {
+            position: relative;
+            border-radius: 30px;
+            overflow: hidden;
+            min-height: 360px;
+            background: #e7dccb;
+        }
+        .card-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .note-badge {
+            position: absolute;
+            left: 24px;
+            bottom: 24px;
+            z-index: 1;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 22px;
+            background: rgba(255,255,255,0.94);
+            box-shadow: 0 18px 36px rgba(30, 32, 24, 0.14);
+        }
+        .note-badge svg { width: 22px; height: 22px; }
+        .note-badge strong { display:block; font-size: 0.98rem; color: #2f361c; }
+        .note-badge span { display:block; color: #6f675d; font-size: 0.92rem; }
+        .postcard-right {
+            display: grid;
+            gap: 18px;
+            align-items: start;
+        }
+        .polaroid {
+            border-radius: 24px;
+            background: white;
+            box-shadow: 0 22px 48px rgba(33, 34, 25, 0.12);
+            overflow: hidden;
+        }
+        .polaroid img {
+            width: 100%;
+            height: 260px;
+            object-fit: cover;
+            display: block;
+        }
+        .polaroid-caption {
+            padding: 18px;
+            font-size: 0.94rem;
+            color: #5f564a;
+        }
+        .stamp-block {
+            position: relative;
+            padding: 20px 18px 18px 20px;
+            border-radius: 24px;
+            background: #f6e8d9;
+            border: 1px solid rgba(130, 92, 54, 0.1);
+            min-height: 230px;
+        }
+        .stamp-round {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            width: 86px;
+            height: 86px;
+            border-radius: 50%;
+            border: 2px dashed #9e7e5f;
+            display: grid;
+            place-items: center;
+            color: #7c5d3f;
+            font-size: 0.75rem;
+            text-align: center;
+            line-height: 1.25;
+        }
+        .stamp-round strong { display:block; font-size: 0.88rem; margin-bottom: 4px; }
+        .stamp-block h3 {
+            margin: 0 0 8px;
+            font-size: 1rem;
+            color: #5f4534;
+        }
+        .stamp-block p {
+            margin: 0 0 16px;
+            color: #6b5f52;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        .qr-box {
+            margin-top: 10px;
+            width: 100%;
+            background: white;
+            border-radius: 18px;
+            padding: 14px;
+            display: grid;
+            justify-items: center;
+            gap: 12px;
+            box-shadow: inset 0 0 0 1px rgba(159, 129, 98, 0.08);
+        }
+        .qr-box img { width: 100%; max-width: 150px; height: auto; }
+        .qr-box span { font-size: 0.85rem; color: #5b4d43; text-align: center; }
+        .headline {
+            margin-top: 18px;
+            border-top: 1px solid rgba(109, 94, 79, 0.12);
+            padding-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .headline-text {
+            color: #4c3b2f;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+        .headline-text strong { color: #6f7d49; }
+        .vine-divider {
+            display: flex;
+            justify-content: center;
+            margin: 34px auto 20px;
+            width: min(420px, 100%);
+            color: #8b7e63;
+            font-size: 1.15rem;
+        }
+        .showcase {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+            margin-top: 12px;
+        }
+        .mini-card {
+            border-radius: 26px;
+            background: #fbf4e8;
+            padding: 16px;
+            box-shadow: 0 20px 40px rgba(62, 53, 44, 0.1);
+            display: grid;
+            gap: 12px;
+        }
+        .mini-card img {
+            width: 100%;
+            border-radius: 20px;
+            display: block;
+            height: 176px;
+            object-fit: cover;
+        }
+        .mini-card-title {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #453b31;
+        }
+        .mini-card-note {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            border-radius: 999px;
+            background: rgba(92, 115, 64, 0.1);
+            color: #4f5e38;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        .feature-bar {
+            margin-top: 38px;
+            padding: 18px 20px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.96);
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+            color: #5b533f;
+            font-size: 0.95rem;
+            text-align: center;
+            box-shadow: 0 18px 35px rgba(65, 52, 39, 0.08);
+        }
+        .feature-bar span {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .feature-icon {
+            width: 18px;
+            height: 18px;
+            display: inline-grid;
+            place-items: center;
+            color: #627147;
+        }
+        @media (max-width: 1080px) {
+            .hero-grid, .feature-bar { grid-template-columns: 1fr; }
+            .card-inner { grid-template-columns: 1fr; }
+            .showcase { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 720px) {
+            .page { padding: 18px 16px 26px; }
+            header { flex-direction: column; align-items: stretch; }
+            .hero { padding: 24px; }
+            .card-photo { min-height: 260px; }
+            .polaroid img { height: 220px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <div class="container">
+            <div class="top-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V6a1 1 0 011-1zm0 2v.01M20 6v.01M4 18v.01M20 18v.01M5 8l7 5 7-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+            </div>
+            <header>
+                <div class="brand">
+                    <div class="brand-circle">M</div>
+                    <div class="brand-text">
+                        <h1>Memory Garden</h1>
+                        <p>Home Smart Postcard</p>
+                    </div>
+                </div>
+                <nav>
+                    <a href="#shop">Shop Postcards</a>
+                    <a href="#stories">Garden Stories</a>
+                    <a href="#how">How It Works</a>
+                    <a href="#mygarden">My Garden</a>
+                </nav>
+            </header>
+
+            <section class="hero">
+                <div class="hero-grid">
+                    <div class="hero-copy">
+                        <h2>Send a Living Postcard That <em>Keeps Growing</em> at Home</h2>
+                        <p>Smart postcards that bloom, play messages, and stay connected. Plant once. Remember forever.</p>
+                        <div class="button-row">
+                            <a class="btn btn-primary" href="#design">Design Your Postcard</a>
+                            <a class="btn btn-secondary" href="#video">Watch 48-Second Video</a>
+                        </div>
+                    </div>
+
+                    <div class="hero-card">
+                        <div class="postcard">
+                            <div class="card-inner">
+                                <div class="card-main">
+                                    <div class="card-photo">
+                                        <img src="https://images.unsplash.com/photo-1490818387583-1baba5e638af?auto=format&fit=crop&w=1000&q=80" alt="Floral postcard with seeds">
+                                        <div class="note-badge">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="#4a5a30" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                                            <div>
+                                                <strong>Delivered to Grandma's fridge</strong>
+                                                <span>Sealed in remembrance home</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="postcard-right">
+                                    <div class="polaroid">
+                                        <img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=700&q=80" alt="Woman with lavender on a postcard">
+                                        <div class="polaroid-caption">A sweet moment captured in lavender</div>
+                                    </div>
+                                    <div class="stamp-block">
+                                        <div class="stamp-round">
+                                            <strong>Memory</strong>
+                                            Garden Postcard
+                                        </div>
+                                        <h3>2:14 voice message attached</h3>
+                                        <p>A new voice note from Ellie arrives with every planted card.</p>
+                                        <div class="qr-box">
+                                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://example.com" alt="QR code">
+                                            <span>Scan to hear her voice</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="headline">
+                                <span class="headline-text">Featured on: <strong>AARP</strong> · <strong>Wired</strong> · <strong>Garden & Gun</strong></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="vine-divider">🌿</div>
+
+                <div class="showcase" id="stories">
+                    <div class="mini-card">
+                        <img src="https://images.unsplash.com/photo-1517957754646-5e197c5e7c26?auto=format&fit=crop&w=800&q=80" alt="Grandma's Rose Garden">
+                        <p class="mini-card-title">Grandma's Rose Garden</p>
+                        <p class="mini-card-note">Her favorite bloom</p>
+                    </div>
+                    <div class="mini-card">
+                        <img src="https://images.unsplash.com/photo-1470770903676-69b98201ea1c?auto=format&fit=crop&w=800&q=80" alt="Dad's Fishing Pond">
+                        <p class="mini-card-title">Dad's Fishing Pond</p>
+                        <p class="mini-card-note">New voice note from Ellie</p>
+                    </div>
+                    <div class="mini-card">
+                        <img src="https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=800&q=80" alt="Baby's First Garden">
+                        <p class="mini-card-title">Baby's First Garden</p>
+                        <p class="mini-card-note">Seeds included</p>
+                    </div>
+                </div>
+
+                <div class="feature-bar">
+                    <span><span class="feature-icon">💧</span>Waterproof</span>
+                    <span><span class="feature-icon">📳</span>NFC + QR</span>
+                    <span><span class="feature-icon">🌱</span>Seeds Included</span>
+                    <span><span class="feature-icon">📄</span>100% Biodegradable Paper</span>
+                </div>
+            </section>
+        </div>
+    </div>
+</body>
+</html>

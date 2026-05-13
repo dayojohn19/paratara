@@ -290,7 +290,7 @@ def _draw_postcard_layout(borders_collage, x, y, w, h, rotate_90, place_logo_pat
             if logo_img.width > max_dw or logo_img.height > max_dw:
                 logo_img = fit_image_preserve_aspect(logo_img, max_dw, max_dw)
             # paste_x = int(w * 0.6)
-            right_padding = int(w * 0.03) 
+            right_padding = int(w * 0.13) 
             # paste_x = w - logo_img.width - right_padding
             print('Checking if rotate_90 :', rotate_90)
             if rotate_90:
@@ -327,36 +327,29 @@ def _draw_postcard_layout(borders_collage, x, y, w, h, rotate_90, place_logo_pat
         site_text = f"{itemgroupname}"
         # site_text = f" in  at paratara.com"
         try:
-            bottom_font = ImageFont.truetype("arial.ttf", int(h * 2))
+            font_size = max(10, int(h * 0.04))
+            bottom_font = ImageFont.truetype("arial.ttf", font_size)
         except Exception:
             bottom_font = font_small
-        try:
-            text_w, text_h = bottom_font.getsize(site_text)
-        except AttributeError:
-            bbox = bottom_font.getbbox(site_text)
-            text_w, text_h = bbox[2] - bbox[0], bbox[3] - bbox[1]
+
+        bbox = bottom_font.getbbox(site_text)
+        text_w = bbox[2] - bbox[0]
+        text_h = bbox[3] - bbox[1]
+        padding = int(h * 0.03)
+
         if rotate_90:
-            from PIL import Image, ImageDraw 
-            padding = int(h * 0.02)
-            text_y = h - text_w - padding  # position at bottom with small padding
-            print(f"Calculated text_y: {text_y} for image height {h}")
-            text_x = w - text_h - int(w * 0.03)  # small right padding
-            left, top, right, bottom = bottom_font.getbbox(site_text)
-            text_w, text_h = right - left, bottom - top
-            
-            # 2. Create layer using text dimensions, NOT coordinates
+            from PIL import Image, ImageDraw
             txt_layer = Image.new('RGBA', (text_w, text_h), (255, 255, 255, 0))
             d = ImageDraw.Draw(txt_layer)
-            
-            # 3. Actually draw the text on the layer (at 0,0)
-            d.text((0, 0), site_text, fill=(0, 0, 0), font=bottom_font)
-            
-            # 4. Rotate and Paste
+            d.text((-bbox[0], -bbox[1]), site_text, fill=(0, 0, 0), font=bottom_font)
+
             rotated_txt = txt_layer.rotate(90, expand=True)
+            rot_w, rot_h = rotated_txt.size
+            text_x = w - rot_w - int(w * 0.05)
+            text_y = h - rot_h - padding
             postcard_img.paste(rotated_txt, (text_x, text_y), rotated_txt)
 
-        else:   
-            padding = int(h * 0.02)
+        else:
             text_x = (w - text_w) // 2
             text_y = h - text_h - padding  # position at bottom with small padding
             draw.text((text_x, text_y), site_text, fill=(0, 0, 0), font=bottom_font)
