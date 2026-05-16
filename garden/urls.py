@@ -18,7 +18,9 @@ urlpatterns = [
 
     path('', views.viewPlaces),
     path('look/<str:collectionStr>/', views.look),
+    path('home/<str:collectionStr>/', views.look),
     path('look/<str:collectionStr>', views.look),
+    path('home/<str:collectionStr>', views.look),
     path('look/', views.lookPlace),
     path('look', views.lookPlace),
     path('visitor/', views.visitorModel),

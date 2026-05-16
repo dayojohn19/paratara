@@ -1099,7 +1099,7 @@ def CreateQRCode(request, collectionObj, appDownloadLink, customTitle="", includ
         box_size=10,
         border=2,  # default is 4; 2 is ~50% smaller
     )
-    qr_builder.add_data(f'https://paratara.com/garden/home/{collectionObj.collectionUniqueID}')
+    qr_builder.add_data(f'https://www.paratara.com/garden/home/{collectionObj.collectionUniqueID}')
     qr_builder.make(fit=True)
     qrImage = qr_builder.make_image(fill_color="black", back_color="white")
     response = requests.get(collectionObj.collectionPicture)
