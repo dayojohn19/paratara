@@ -82,25 +82,30 @@
 
 <style>
   :root {
-    --surface: #ffffff;
-    --surface-alt: #f7f9fc;
-    --page-bg: #f0f2f8;
-    --accent: #667eea;
-    --accent-dark: #4c51bf;
-    --accent-light: #764ba2;
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-     --text: #2d3748;
-    --text-muted: #718096;
-    --border: #e2e8f0;
-    --shadow-sm: 0 8px 24px rgba(15, 41, 107, 0.08);
-    --shadow-md: 0 14px 44px rgba(15, 41, 107, 0.12);
+    /* Main Palette Inspired by Uploaded Theme */
+    --surface: #fdfbf5;
+    --surface-alt: #f4f0e4;
+    --page-bg: #eef1e4;
+
+    --accent: #556b2f;
+    --accent-dark: #38461f;
+    --accent-light: #8c6b4f;
+
+    --text: #3f3a2f;
+    --text-muted: #7a7468;
+
+    --border: #d8d2c3;
+
+    --shadow-sm: 0 6px 18px rgba(56, 70, 31, 0.08);
+    --shadow-md: 0 12px 34px rgba(56, 70, 31, 0.12);
+
     --radius-lg: 0px;
     --radius-md: 0px;
     --radius-sm: 0px;
+
     --transition: 0.2s ease;
   }
+
 
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", sans-serif;
@@ -270,6 +275,7 @@
     display: flex;
     flex-direction: column;
     gap: 20px;
+    padding: 1em;
   }
 
   .panel__body {
@@ -706,20 +712,58 @@
   }
 
   .blog-category {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 6px 14px;
-    border-radius: 999px;
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    color: #ffffff;
-    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 999px;
 
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+
+  color: #fff;
+  background: var(--accent);
+
+  line-height: 1;
+  white-space: nowrap;
+
+  border: 1px solid rgba(255,255,255,0.08);
   }
+.blog-category {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 999px;
 
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+
+  color: #fff;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* Category Colors */
+.category-guide {
+  background: #caeb25;
+}
+
+.category-story {
+  background: #7f3aed;
+}
+
+.category-tip {
+  background: #499605;
+}
+
+.category-explore {
+  background: #ea0ce3;
+}
+
+.category-product {
+  background: #dc2626;
+}
   .blog-title {
     font-size: 1.25rem;
     color: var(--text);
@@ -1680,6 +1724,36 @@
 } */
 /* END HIDING  */
 
+.modal-for-blog {
+  position: fixed;
+  top: 0;
+  right: -100%;
+  width: 100%;
+  height: 100%;
+  background: white;
+  z-index: 1000;
+  transition: right 0.4s ease;
+  overflow-y: auto;
+}
+/* Active state */
+.modal-for-blog.show {
+  right: 0;
+}
+
+/* Close button */
+.close-modal-for-blog {
+  position: absolute;
+  z-index: 1;
+  top: 20px;
+  right: 20px;
+  cursor: pointer;
+  font-size: 32px;
+}
+#modalforblogContentframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
 </style>
 
 <script>
@@ -2142,7 +2216,20 @@
     const firstDiscussionMessage = discusslists.firstChild;
     discusslists.insertBefore(discussContainer, firstDiscussionMessage);
   }
+
+
 </script>
+<div class="modal-for-blog">
+  <a href="page2.html" id="openPage">Open Page</a>
+</div>
+
+<div class="modal-for-blog" id="modal-for-blog-id">
+  
+  <span class="close-modal-for-blog" id="closemodalpageBtn">&times;</span>
+  <!-- <div id="modalforblogContent"></div> -->
+  <iframe id="modalforblogContentframe"></iframe>
+</div>
+
 
 <!-- Additional Details Modal -->
 <div class="additionalDetailsModal modal">
@@ -2825,6 +2912,39 @@
 </div>
 
 <script>
+
+
+function openModalWithContent(event, url){
+  event.preventDefault();
+  let modal = document.getElementById("modal-for-blog-id");
+  let modalContentframe = document.getElementById("modalforblogContentframe");
+  modalContentframe.src = url;
+  try {
+    console.log("Loading page:", url);
+
+    // Fetch page
+    // let response = await fetch(url);
+    // let html = await response.text();
+
+    console.log("Page content loaded");
+
+    // Insert page content
+    // modalContent.innerHTML = html;
+
+    // Show modal
+    modal.classList.add("show");
+
+  } catch (error) {
+    console.error("Failed to load page:", error);
+  }
+}
+
+// Close button
+document.getElementById("closemodalpageBtn").addEventListener("click", () => {
+  document.getElementById("modal-for-blog-id").classList.remove("show");
+});
+
+
   function formatModelDate(datestr) {
     let d = new Date(datestr)
     return d.toLocaleDateString('en-US', {
@@ -2835,7 +2955,7 @@
   }
 
   let currentPage = 1;
-  const blogsPerPage = 6;
+  const blogsPerPage = 4;
   let allBlogs = [];
 
   async function loadBlogs(placeName) {
@@ -2863,26 +2983,44 @@
     const endIndex = startIndex + blogsPerPage;
     const blogsToShow = allBlogs.slice(startIndex, endIndex);
 
-    const cards = blogsToShow
-      .map(blog => `
-        <div class="blog-post">
-          <h3 class="blog-title">${blog.title}</h3>
-          <span class="blog-category">${blog.category}</span>
-          <p class="blog-excerpt">${blog.summarize}</p>
-          <div class="blog-meta">
-            <div class="blog-meta-left">
-              <span class="blog-meta-item">📅 ${formatModelDate(blog.timestamp)}</span>
-              <span class="blog-meta-item">⏱️ ${blog.readtime} min read</span>
-            </div>
-            <a href="${blog.localurlpath}/"  class="blog-card">
-              <span>Read here →</span>
-            </a>
-          </div>
-        </div>
-      `)
-      .join("");
-    container.innerHTML = cards;
 
+const cards = blogsToShow
+  .map(blog => {
+    const categoryClass = blog.category
+      .toLowerCase()
+      .replace(/\s+/g, '-');
+
+    return `
+      <div class="blog-post">
+        <h3 class="blog-title">${blog.title}</h3>
+
+        <span class="blog-category category-${categoryClass}">
+          ${blog.category}
+        </span>
+
+        <p class="blog-excerpt">${blog.summarize}</p>
+
+        <div class="blog-meta">
+          <div class="blog-meta-left">
+            <span class="blog-meta-item">
+              📅 ${formatModelDate(blog.timestamp)}
+            </span>
+
+            <span class="blog-meta-item">
+              ⏱️ ${blog.readtime} min read
+            </span>
+          </div>
+
+          <a href="${blog.localurlpath}/" class="blog-card" onclick="openModalWithContent(event, this.href)" >
+            <span>Read here →</span>
+          </a>
+        </div>
+      </div>
+    `;
+  })
+  .join("");
+
+container.innerHTML = cards;
     // Render pagination controls
     renderPagination(totalPages);
   }

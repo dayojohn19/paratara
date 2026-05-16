@@ -2,7 +2,8 @@
   "dependencies": {
     "@tailwindcss/cli": "^4.1.11",
     "mongodb": "6.12",
-    "mongoose": "^8.9.2"
+    "mongoose": "^8.9.2",
+    "svelte": "^5.55.7"
   },
   "scripts": {
     "watch:css": "npx @tailwindcss/cli -i ./home/static/src/styles.css -o ./home/static/dist/output.css --watch"

@@ -2,7 +2,7 @@ from django.urls import path
 from . import views
 from django.views.generic import TemplateView
 
-
+ 
 app_name = "singlepage2" 
 urlpatterns = [
     path("blog/", views.blogFunc, name="blogFunc"),

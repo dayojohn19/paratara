@@ -142,7 +142,7 @@ class Blogs(models.Model):
     category = models.CharField(choices=category_choices,max_length=24,default='Guide')    
 
     blogplace = models.ForeignKey('home.Places_v2', on_delete=models.CASCADE, null=True, blank=True, related_name='blogplaceitem')
-    title = models.CharField(max_length=64, blank=True)
+    title = models.CharField(max_length=6400, blank=True)
     textContent = models.TextField(blank=True, null=True)
     summarize = models.CharField(max_length=400, default='Discover more about this destination')
     readtime = models.IntegerField(default=5)
@@ -154,7 +154,7 @@ class Blogs(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
 
 
-    localurlpath = models.CharField(max_length=125, blank=True)
+    localurlpath = models.CharField(max_length=2555, blank=True)
 
     def __str__(self):
         return f"{self.blogplace} {self.title} long: {self.latitude} lat: {self.longitude} "

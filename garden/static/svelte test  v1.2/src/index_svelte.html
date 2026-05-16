@@ -1,7 +1,4 @@
 <script>
-import GardenHeadLogo from '$lib/assets/gardenhead.png';
-import GardenBodyLogo from '$lib/assets/gardenbody.png';
-import GardenBorderLogo from '$lib/assets/gardenborder.png';
   import { onMount } from 'svelte';
   import { session, setSession, initializeGuestSession } from './stores/session.js';
   import markdownConfig from '../JAVASCRIPT_FUNCTIONS_AND_APIS.md?raw';
@@ -1292,16 +1289,17 @@ async function fetchLookPlaceData() {
 
 <svelte:head>
   <script defer type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@700&family=Roboto:wght@400&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&display=swap" rel="stylesheet">
+
 
 </svelte:head>
 
 <svelte:window on:keydown={handleWindowKeydown} />
 
 <div class="page">
-
   <header class="topbar">
+    <h1 class="memory-logo">Memory Garden Logo</h1>
+    <div class="brand">{t('brandTitle')}</div>
     <div class="account-chip" aria-live="polite">
       <span>{t('welcome', { name: $session.isGuest ? t('guest') : activeUsername || t('guest') })}</span>
       <div class="lang-switch" role="group" aria-label="Language selector">
@@ -1331,36 +1329,12 @@ async function fetchLookPlaceData() {
           {t('enterAccount')}
         </button>
       {/if}
-    </div>  
-    <div class="gardenheadcontainer">
-      <img style="width:inherit; " src="{GardenHeadLogo}" alt="Memory Garden Home Logo" class="logo" />
     </div>
-    <div class="sub-brand">Memory Garden Home Smart Postcard</div>
-
-
-    <nav class="account-chip-above" aria-live="polite">
-      <a href="#">Shop Postcards</a>
-      <a href="#">Garden Stories</a>
-      <a href="#">How It Works</a>
-      <a href="#">My Garden</a>
-    </nav>        
-
-    <div class="gardenheadcontainer">
-      <img style="width:inherit;" src="{GardenBodyLogo}" alt="Memory Garden Home Logo" class="logo" />
-    </div>
-    <div class="gardenbordercontainer">
-      <img style="width:inherit;" src="{GardenBorderLogo}" alt="Memory Garden Home Logo" class="logo" />
-    </div>
-
-    
-
-
-
-
   </header>
 
-
   <section class="hero">
+
+
     {#if showCredentialsForm}
       <div class="credentials-box" aria-live="polite">
         <h3>{t('enterAccount')}</h3>
@@ -1475,7 +1449,7 @@ async function fetchLookPlaceData() {
       </div>
     {/if}
   </section>
-  <div class="brand">{t('brandTitle')}</div>
+
   <section class="collection-memory">
 
 
@@ -1581,7 +1555,6 @@ async function fetchLookPlaceData() {
   .page {
     max-width: 1080px;
     margin: 0 auto;
-    background-color: #fcfcfe;
 
   }
 
@@ -1590,79 +1563,34 @@ async function fetchLookPlaceData() {
     align-items: center;
     gap: 1rem;
     justify-content: space-between;
-
-    background-color: rgb(252	252	254	);
+    padding: 0.5rem 0;
   }
 
   .brand {
-    font-family: 'Cormorant Garamond', serif;
     padding:1em;
-
-    font-size: 1.75rem !important;
     font-weight: 800;
-    color: rgb(18,	29,	3	);
-    letter-spacing: -0.5px;
-    display: inline-block;
-    text-align:center;
-    padding-bottom: 0;
-
-  }
-  .sub-brand {
-    font-family: 'Roboto', sans-serif;
-    padding:0;
-
-    font-size: 1.05rem !important;
-    font-weight: 400;
-
-    color: #A3502A;
-    margin: 0 auto;
-    letter-spacing: -0.5px;
+    font-size: 1.5rem;
+    color: #00a8ff;
+    letter-spacing: -0.02em;
     display: inline-block;
     transform-origin: left top;
     transform: perspective(700px) rotateX(8deg);
-    text-align:center;
-    margin-bottom: 1.5em;
+    text-shadow:
+      0 1px 0 rgba(0, 0, 0, 0.28),
+      0 2px 0 rgba(0, 0, 0, 0.2),
+      0 10px 20px rgba(0, 0, 0, 0.38);
   }
 
-    .account-chip-above {
-      width: 100%;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      white-space: normal;
-    font-size:small;
-      border-radius: 0;
-
-      text-align: center;
-    }
-    .account-chip-above {
-      font-size: 16px;
-      color: #5C3B6B; /* purple/mauve */
-    }
-    .account-chip-above a {
-      text-decoration: none;
-      color: #5C3B6B;
-      margin: 0 10px;
-      position: relative;
-    }
-
-    /* Add dot separators */
-    .account-chip-above a:not(:last-child)::after {
-      content: "•";
-      margin-left: 10px;
-      color: #5C3B6B;
-    }
-
-    .account-chip-above a:hover {
-      text-decoration: underline;
-    }
   .account-chip {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    font-size: 0.62rem;
-    background-color: rgb(252	252	254	);
-    padding: 0 0.7rem;
+    font-size: 0.82rem;
+    color: #b3c1d8;
+    background: #121825;
+    border: 1px solid #252f44;
+    border-radius: 999px;
+    padding: 0.4rem 0.7rem;
     white-space: nowrap;
   }
 
@@ -1698,6 +1626,7 @@ async function fetchLookPlaceData() {
   .lang-btn {
     font: inherit;
     border-radius: 999px;
+    border: 1px solid #37445f;
     background: #0b1222;
     color: #dbe5f7;
     min-height: 2rem;
@@ -1706,19 +1635,6 @@ async function fetchLookPlaceData() {
     font-size: 0.72rem;
     line-height: 1;
     font-weight: 600;
-
-
-
-  
-
-
-
-
-  border: 0 !important;
-
-  
-  /* Essential for usability once reset */
-  cursor: pointer !important;
   }
 
   .lang-btn.is-active {
@@ -1733,16 +1649,12 @@ async function fetchLookPlaceData() {
   }
 
   :global(body[data-theme='light'] .brand) {
-    color: #3B4A2F;
-    body[data-theme='light'] .brand
-  }
-  :global(body[data-theme='dark'] .brand) {
-    color: #ffffff;
+    color: #0077c8;
   }
 
   :global(body[data-theme='light'] .account-chip) {
     color: #465a7b;
-     background-color: rgb(252	252	254	);
+    background: #e1e9f7;
     border-color: #c8d5eb;
   }
 
@@ -1763,7 +1675,8 @@ async function fetchLookPlaceData() {
   }
 
   :global(body[data-theme='light'] .lang-btn.is-active) {
-    background: rgb(138	,154	,108)	;
+    background: #0077c8;
+    border-color: #0077c8;
     color: #ffffff;
   }
 
@@ -1881,9 +1794,8 @@ async function fetchLookPlaceData() {
   }
 
   .hero {
-      padding-left:1.5em;
-      padding-right:1.5em;
-    margin:1em;
+    padding: 3.5rem 1em 2rem;
+    
     max-width: 700px;
   }
 
@@ -2152,7 +2064,7 @@ async function fetchLookPlaceData() {
   }
 
   .postcard-frame {
-
+    margin-top: 1rem;
     width: min(100%, 640px);
     min-height: 180px;
 
@@ -2403,12 +2315,11 @@ async function fetchLookPlaceData() {
 
     .brand {
       font-size: 1.22rem;
-
+      width: 100%;
     }
 
     .hero {
-      padding-left:1.5em;
-      padding-right:1.5em;
+      padding: 3.5rem 1em 2rem;
     }
 
     .subtext {
@@ -2416,17 +2327,15 @@ async function fetchLookPlaceData() {
       line-height: 1.5;
     }
 
-
-
     .account-chip {
       width: 100%;
       justify-content: space-between;
       flex-wrap: wrap;
       gap: 0.5rem;
       white-space: normal;
+      order: 2;
       border-radius: 0;
-
-      padding-bottom: 0;
+      padding: 0.5rem 0.65rem;
     }
 
     .account-chip span {
@@ -2450,7 +2359,7 @@ async function fetchLookPlaceData() {
     .lang-btn {
       min-height: 2.15rem;
       padding: 0.3rem 0.55rem;
-      font-size: 0.5rem;
+      font-size: 0.7rem;
     }
 
     .postcard-frame {
@@ -2545,7 +2454,7 @@ async function fetchLookPlaceData() {
     .topbar {
       flex-wrap: wrap;
       align-items: flex-start;
-      gap: 0;
+      gap: 0.65rem;
     }
 
   }
@@ -2567,8 +2476,7 @@ async function fetchLookPlaceData() {
     }
 
     .hero {
-      padding-left:1.5em;
-      padding-right:1.5em;
+      padding: 3.5rem 1em 2rem;
     }
 
     .postcard-frame,
@@ -2634,21 +2542,12 @@ async function fetchLookPlaceData() {
   }
 
 .memory-logo{
-    font-family: 'Cormorant Garamond', serif;
+    
     font-size: 72px;
-    color: #3f5b2c;
-    font-weight: 400;
-    letter-spacing: -1px;
+    
+    
+    
 }
-.gardenheadcontainer{
-  width:100%;
-  padding-left: 5em;
-padding-right: 5em;
-padding-top: 1em;
-}
-.gardenbordercontainer{
-  width:100%;
 
-}
 
 </style> 

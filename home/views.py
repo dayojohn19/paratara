@@ -2036,6 +2036,7 @@ def discussion(request, placeID):
                         or ('blog' in human_message_prompt and any(v in human_message_prompt for v in create_blog_verbs))
                         or ('article' in human_message_prompt and any(v in human_message_prompt for v in create_blog_verbs))
                     )
+                    
                     if is_about_blogs or wants_new_blog:
                         _step("Its About Blogs/Articles")
                         import re

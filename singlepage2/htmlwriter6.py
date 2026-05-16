@@ -11,7 +11,6 @@ from openai import OpenAI
 import ast
 from home.models import Places_v2
 from apis.models import Blogs
-from singlepage2.pyhtmlopt import optimize_file
 import re
 client = OpenAI(api_key=settings.GROK_API_KEY, base_url='https://api.x.ai/v1')
 logger = logging.getLogger(__name__)
@@ -1190,7 +1189,7 @@ document.addEventListener("DOMContentLoaded", () => {{
     }});
 
     fetchAndInsertImages();
-    // getBlogLists();
+    getBlogLists();
     fetchCollections();
 
 
@@ -1293,20 +1292,10 @@ document.addEventListener('click', (ev) => {{
         f.write(html_content)
     print(f"   ✅ Saved to: {file_path}")
 # ------------
-    with open(file_path, 'w', encoding='utf-8') as f:
-        f.write(html_content)
-        time.sleep(0.5)
-        f.flush()
-        time.sleep(0.5)
-        f.close()
 
 
-    try:
-        print('   ✅ File write complete, starting optimization...')
-        optimize_file(file_path)
-        print('   ✅ Optimization complete!')
-    except Exception as e:
-        print('   ⚠️ Optimization failed:', e)  
+
+
 
 
     return html_content

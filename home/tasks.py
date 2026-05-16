@@ -16,6 +16,8 @@ import requests
 from io import BytesIO
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from singlepage2.htmlwriter import generate_blog_object
+
+
 from openai import OpenAI
 
 client = OpenAI(api_key=settings.GROK_API_KEY, base_url='https://api.x.ai/v1')
@@ -30,9 +32,9 @@ def process_creating_blog(request, for_place,blog__title=None,to_title=None):
         # =========================
         if to_title is not None:
             print('Creating blog title based on user input:', to_title)
-            # First, extract the key topic from natural language input
             extract_prompt = f'''Extract the main topic/subject from this user request: "{to_title}"
-            Return ONLY the extracted topic (2-4 words), nothing else.
+            # First, extract the key topic from natural language input
+            Return ONLY the extracted topic (2-4 words) and if there is a link provided add a link <a href="[the link given]">[insert name here]</a> tag with href that full link , dont include the link on the text, nothing else.
             determine if its about promotion of a specific place, activity, or event in {for_place.placename} and if so extract that as the topic.'''
             try:
                 extract_res = client.chat.completions.create(
@@ -44,14 +46,15 @@ def process_creating_blog(request, for_place,blog__title=None,to_title=None):
                 print(f"   📍 Extracted topic: {topic}")
                 
                 # Now generate an engaging blog title based on the extracted topic
-                title_prompt = f'''Generate a single catchy and engaging blog title (max 60 characters) "{topic}" in "{for_place.placename}". 
-                Only return the title, nothing else.'''
-                title_res = client.chat.completions.create(
-                    model=settings.GROK_MODEL_NAME,
-                    messages=[{"role": "user", "content": title_prompt}],
-                    max_tokens=100
-                )
-                blog__title = title_res.choices[0].message.content.strip()
+                # title_prompt = f'''Generate a single catchy and engaging blog title (max 60 characters) "{topic}" in "{for_place.placename}". 
+                # Only return the title, nothing else.'''
+                # title_res = client.chat.completions.create(
+                #     model=settings.GROK_MODEL_NAME,
+                #     messages=[{"role": "user", "content": title_prompt}],
+                #     max_tokens=100
+                # )
+                # blog__title = title_res.choices[0].message.content.strip()
+                blog__title = topic
                 print(f"   ✅ Generated blog title: {blog__title}")
             except Exception as e:
                 print(f"   ⚠️ Title generation failed: {e}, using default: {to_title}")
@@ -67,7 +70,7 @@ def process_creating_blog(request, for_place,blog__title=None,to_title=None):
                 Use the provided image URL for the spot if relevant.
                 Do not use markdown, only HTML. Use emojis in h2, make engaging/informative for tourists, include costs/tips/activities for {blog__title} in {for_place.placename}.
                 Include content appropriate to the user's request and double check if user is asking for a specific topic/subject and provided a url if so create a simple promotion 
-                !important  insert icons, if link is preset add the links, and content relevant to the user's request and {for_place.placename}
+                !important  insert icons, if link is also there add the link, and content relevant to the user's request and {for_place.placename}
                                 
                 <article class="blog-post">
                   <div class="intro-section">
@@ -143,8 +146,28 @@ def process_creating_blog(request, for_place,blog__title=None,to_title=None):
             parts = full_response.split('\n\n', 1)
             
             # Extract Title (first line)
-            blog_title = parts[0].replace('Title: ', '').strip() if parts[0].startswith('Title:') else f"Visit {blog__title}"
-            
+            import re
+
+            raw_title = parts[0]
+
+            # If there's an <a> tag, capture everything through </a>
+            a_match = re.search(r'<a\b[^>]*>.*?</a>', raw_title, re.IGNORECASE | re.DOTALL)
+
+            if a_match:
+                cleaned_title = a_match.group(0)
+            else:
+                cleaned_title = raw_title
+
+            blog_title = (
+                cleaned_title.replace('Title: ', '').strip()
+                if cleaned_title.startswith('Title:')
+                else f"Visit {blog__title}"
+            )
+            blog_title = parts[0].replace('Title: ', '').strip()
+
+
+
+            blog_title = blog_title if blog_title.startswith('Title:') else f"Visit {blog__title}"
             # Extract Category and Summary from the full response
             category_match = re.search(r'Category:\s*([^\n]+)', full_response)
             blog_category = category_match.group(1).strip() if category_match else "Guide"
@@ -157,9 +180,17 @@ def process_creating_blog(request, for_place,blog__title=None,to_title=None):
             
             # Extract HTML content (everything after the first double newline)
             blog_content = parts[1] if len(parts) > 1 else full_response
-            
-            print('Blog Category:', blog_category)
+            import re
+
+            # blog_summary = re.sub(r'<a[^>]*>(.*?)</a>', r'\1', blog_summary, flags=re.IGNORECASE)
+            # blog_title = re.sub(r'<a[^>]*>(.*?)</a>', r'\1', blog_title, flags=re.IGNORECASE)
+            blog_title = re.sub(r'<a\b[^>]*>(.*?)</a>',r'\1',blog_title,flags=re.IGNORECASE | re.DOTALL)            
+            blog_summary = re.sub(r'<a\b[^>]*>(.*?)</a>', r'\1', blog_summary, flags=re.IGNORECASE | re.DOTALL)
+            if '<a' in blog_title:
+                blog_title += '</a>'
+            print('Blog Category:', blog_category) 
             print('Blog Summary:', blog_summary[:50])
+
             print('Blog Content:', blog_content[:50])
             print('Blog Title:', blog_title[:50])
             place_slug = slugify(for_place.placename)

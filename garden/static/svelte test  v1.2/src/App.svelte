@@ -1,4 +1,7 @@
 <script>
+import GardenHeadLogo from '$lib/assets/gardenhead.png';
+import GardenBodyLogo from '$lib/assets/gardenbody.png';
+import GardenBorderLogo from '$lib/assets/gardenborder.png';
   import { onMount } from 'svelte';
   import { session, setSession, initializeGuestSession } from './stores/session.js';
   import markdownConfig from '../JAVASCRIPT_FUNCTIONS_AND_APIS.md?raw';
@@ -402,6 +405,7 @@ const ACCEPT_HEADER = 'application/json';
   let lightboxImageSrc = '';
   let currentLanguage = 'en';
   let lightboxImageAlt = 'Image preview';
+  let lightboxImageUrl = '';
   let activeUsername = API_USERNAME;
   let activeUserId = API_USER_ID;
   let activeTheme = 'dark';
@@ -1119,18 +1123,20 @@ async function fetchLookPlaceData() {
     await loadPostcardData();
   }
 
-  function openImagePreview(src, alt = t('imagePreview')) {
+  function openImagePreview(src, alt = t('imagePreview') , urlpassed = null) {
     if (!src) {
       return;
     }
-
+    console.log('url for preview is', urlpassed);
     lightboxImageSrc = src;
     lightboxImageAlt = alt;
+    lightboxImageUrl = urlpassed;
   }
 
   function closeImagePreview() {
     lightboxImageSrc = '';
     lightboxImageAlt = t('imagePreview');
+    lightboxImageUrl = null;
   }
 
   function getSuggestionLastSentKey(username) {
@@ -1289,13 +1295,16 @@ async function fetchLookPlaceData() {
 
 <svelte:head>
   <script defer type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@700&family=Roboto:wght@400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400&display=swap" rel="stylesheet">
+
 </svelte:head>
 
 <svelte:window on:keydown={handleWindowKeydown} />
 
 <div class="page">
+
   <header class="topbar">
-    <div class="brand">{t('brandTitle')}</div>
     <div class="account-chip" aria-live="polite">
       <span>{t('welcome', { name: $session.isGuest ? t('guest') : activeUsername || t('guest') })}</span>
       <div class="lang-switch" role="group" aria-label="Language selector">
@@ -1325,12 +1334,31 @@ async function fetchLookPlaceData() {
           {t('enterAccount')}
         </button>
       {/if}
+    </div>  
+    <div class="gardenheadcontainer">
+      <img style="width:inherit; " src="{GardenHeadLogo}" alt="Memory Garden Home Logo" class="logo" />
     </div>
+    <div class="sub-brand">Memory Garden Home Smart Postcard</div>
+
+
+ 
+
+    <div class="gardenheadcontainer">
+      <img style="width:inherit;" src="{GardenBodyLogo}" alt="Memory Garden Home Logo" class="logo" />
+    </div>
+    <div class="gardenbordercontainer">
+      <img style="width:inherit;" src="{GardenBorderLogo}" alt="Memory Garden Home Logo" class="logo" />
+    </div>
+
+    
+
+
+
+
   </header>
 
+
   <section class="hero">
-
-
     {#if showCredentialsForm}
       <div class="credentials-box" aria-live="polite">
         <h3>{t('enterAccount')}</h3>
@@ -1364,7 +1392,7 @@ async function fetchLookPlaceData() {
               <p>{scannedPostcardDetails.location}</p>
               <p>{formatCollectedDate(scannedPostcardDetails.collected)}</p>
               <p>{scannedPostcardDetails.collector}</p>
-               <a href={`/places/${scannedPostcardDetails.collectionPlaceDirect}/${currentYear}/${currentMonth}`} class=""><p> See More </p></a>
+               <a href={`/places/${scannedPostcardDetails.collectionPlaceDirect}/${currentYear}/${currentMonth}/`} class=""><p> See More </p></a>
             </div>  
             
             
@@ -1445,6 +1473,9 @@ async function fetchLookPlaceData() {
       </div>
     {/if}
   </section>
+  <div class="brand">{t('brandTitle')}</div>
+
+
 
   <section class="collection-memory">
 
@@ -1463,6 +1494,7 @@ async function fetchLookPlaceData() {
                 on:click={() => openImagePreview(memory.image, memory.about)}
               >
                 <img class="memory-image" src={memory.image} alt={memory.about} />
+                
               </button>
             {/if}
         {/each}
@@ -1472,21 +1504,20 @@ async function fetchLookPlaceData() {
     {/if}
   </section>
 
-  <h2 class="grid-title">{t('gridTitle')}</h2>
-  <section class="grid">
+  
+  <section class="memory-container">
+    <h2 class="grid-title">{t('gridTitle')}</h2>
     {#each postcardMemories as postcard}
-      <article class="card">
-        <button class="image-trigger" type="button" on:click={() => openImagePreview(postcard.src, postcard.title)}>
-          <img class="collection-image" src={postcard.src} alt={postcard.title} />
-        </button>
-        <h2>{postcard.title}</h2>
-        <p>{postcard.body}</p>
-        {#if postcard.id}
-          <a class="view-collection-link" href={`/${postcard.id}`} aria-label={`View collection ${postcard.title}`}>
-            View
-          </a>
-        {/if}
-      </article>
+
+
+  <div class="memory-card">
+    <button class="image-trigger" type="button" on:click={() => openImagePreview(postcard.src, postcard.title, `/garden/look/${postcard.id}/`)}>
+      <div class="memory-image-collection" style="background-image: url({postcard.src}) "></div>
+    </button>    
+  </div>
+
+
+
     {/each}
   </section>
 
@@ -1535,6 +1566,14 @@ async function fetchLookPlaceData() {
         {#if lightboxImageAlt}
           <p class="lightbox-caption">{lightboxImageAlt}</p>
         {/if}
+        
+
+            <a class="view-collection-link" href={lightboxImageUrl} target="" rel="noopener noreferrer">
+              View this Collection
+            </a>
+
+
+   
       </div>
     </button>
   {/if}
@@ -1551,6 +1590,7 @@ async function fetchLookPlaceData() {
   .page {
     max-width: 1080px;
     margin: 0 auto;
+    background-color: #fcfcfe;
 
   }
 
@@ -1559,34 +1599,79 @@ async function fetchLookPlaceData() {
     align-items: center;
     gap: 1rem;
     justify-content: space-between;
-    padding: 0.5rem 0;
+
+    background-color: rgb(252	252	254	);
   }
 
   .brand {
+    font-family: 'Cormorant Garamond', serif;
     padding:1em;
+
+    font-size: 1.75rem !important;
     font-weight: 800;
-    font-size: 1.5rem;
-    color: #00a8ff;
-    letter-spacing: -0.02em;
+    color: rgb(18,	29,	3	);
+    letter-spacing: -0.5px;
+    display: inline-block;
+    text-align:center;
+    padding-bottom: 0;
+
+  }
+  .sub-brand {
+    font-family: 'Roboto', sans-serif;
+    padding:0;
+
+    font-size: 1.05rem !important;
+    font-weight: 400;
+
+    color: #A3502A;
+    margin: 0 auto;
+    letter-spacing: -0.5px;
     display: inline-block;
     transform-origin: left top;
     transform: perspective(700px) rotateX(8deg);
-    text-shadow:
-      0 1px 0 rgba(0, 0, 0, 0.28),
-      0 2px 0 rgba(0, 0, 0, 0.2),
-      0 10px 20px rgba(0, 0, 0, 0.38);
+    text-align:center;
+    margin-bottom: 1.5em;
   }
 
+    .account-chip-above {
+      width: 100%;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      white-space: normal;
+    font-size:small;
+      border-radius: 0;
+
+      text-align: center;
+    }
+    .account-chip-above {
+      font-size: 16px;
+      color: #5C3B6B; /* purple/mauve */
+    }
+    .account-chip-above a {
+      text-decoration: none;
+      color: #5C3B6B;
+      margin: 0 10px;
+      position: relative;
+    }
+
+    /* Add dot separators */
+    .account-chip-above a:not(:last-child)::after {
+      content: "•";
+      margin-left: 10px;
+      color: #5C3B6B;
+    }
+
+    .account-chip-above a:hover {
+      text-decoration: underline;
+    }
   .account-chip {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    font-size: 0.82rem;
-    color: #b3c1d8;
-    background: #121825;
-    border: 1px solid #252f44;
-    border-radius: 999px;
-    padding: 0.4rem 0.7rem;
+    font-size: 0.62rem;
+    background-color: rgb(252	252	254	);
+    padding: 0 0.7rem;
     white-space: nowrap;
   }
 
@@ -1622,7 +1707,6 @@ async function fetchLookPlaceData() {
   .lang-btn {
     font: inherit;
     border-radius: 999px;
-    border: 1px solid #37445f;
     background: #0b1222;
     color: #dbe5f7;
     min-height: 2rem;
@@ -1631,6 +1715,19 @@ async function fetchLookPlaceData() {
     font-size: 0.72rem;
     line-height: 1;
     font-weight: 600;
+
+
+
+  
+
+
+
+
+  border: 0 !important;
+
+  
+  /* Essential for usability once reset */
+  cursor: pointer !important;
   }
 
   .lang-btn.is-active {
@@ -1645,12 +1742,16 @@ async function fetchLookPlaceData() {
   }
 
   :global(body[data-theme='light'] .brand) {
-    color: #0077c8;
+    color: #3B4A2F;
+    body[data-theme='light'] .brand
+  }
+  :global(body[data-theme='dark'] .brand) {
+    color: #ffffff;
   }
 
   :global(body[data-theme='light'] .account-chip) {
     color: #465a7b;
-    background: #e1e9f7;
+     background-color: rgb(252	252	254	);
     border-color: #c8d5eb;
   }
 
@@ -1671,8 +1772,7 @@ async function fetchLookPlaceData() {
   }
 
   :global(body[data-theme='light'] .lang-btn.is-active) {
-    background: #0077c8;
-    border-color: #0077c8;
+    background: rgb(138	,154	,108)	;
     color: #ffffff;
   }
 
@@ -1687,13 +1787,13 @@ async function fetchLookPlaceData() {
   }
 
   :global(body[data-theme='light'] .postcard-frame),
-  :global(body[data-theme='light'] .card) {
+  :global(body[data-theme='light'] ) {
     background: #ffffff;
     border-color: #d3deef;
   }
 
   :global(body[data-theme='light'] .postcard-meta) {
-    background: #f5f8ff;
+
     border-top-color: #d3deef;
   }
 
@@ -1790,8 +1890,8 @@ async function fetchLookPlaceData() {
   }
 
   .hero {
-    padding: 3.5rem 1em 2rem;
-    
+      padding-left:1.5em;
+      padding-right:1.5em;
     max-width: 700px;
   }
 
@@ -2060,7 +2160,7 @@ async function fetchLookPlaceData() {
   }
 
   .postcard-frame {
-    margin-top: 1rem;
+
     width: min(100%, 640px);
     min-height: 180px;
 
@@ -2210,11 +2310,7 @@ async function fetchLookPlaceData() {
     font-size: 0.92rem;
   }
 
-  .card {
-    background: #171d29;
-    border-radius: 0;
-    padding: 0.75rem;
-  }
+
 
   .collection-image {
     display: block;
@@ -2311,11 +2407,12 @@ async function fetchLookPlaceData() {
 
     .brand {
       font-size: 1.22rem;
-      width: 100%;
+
     }
 
     .hero {
-      padding: 3.5rem 1em 2rem;
+      padding-left:1.5em;
+      padding-right:1.5em;
     }
 
     .subtext {
@@ -2323,15 +2420,17 @@ async function fetchLookPlaceData() {
       line-height: 1.5;
     }
 
+
+
     .account-chip {
       width: 100%;
       justify-content: space-between;
       flex-wrap: wrap;
       gap: 0.5rem;
       white-space: normal;
-      order: 2;
       border-radius: 0;
-      padding: 0.5rem 0.65rem;
+
+      padding-bottom: 0;
     }
 
     .account-chip span {
@@ -2355,7 +2454,7 @@ async function fetchLookPlaceData() {
     .lang-btn {
       min-height: 2.15rem;
       padding: 0.3rem 0.55rem;
-      font-size: 0.7rem;
+      font-size: 0.5rem;
     }
 
     .postcard-frame {
@@ -2450,7 +2549,7 @@ async function fetchLookPlaceData() {
     .topbar {
       flex-wrap: wrap;
       align-items: flex-start;
-      gap: 0.65rem;
+      gap: 0;
     }
 
   }
@@ -2472,11 +2571,12 @@ async function fetchLookPlaceData() {
     }
 
     .hero {
-      padding: 3.5rem 1em 2rem;
+      padding-left:1.5em;
+      padding-right:1.5em;
     }
 
     .postcard-frame,
-    .card,
+
     .memory-card {
     }
 
@@ -2536,4 +2636,53 @@ async function fetchLookPlaceData() {
       height: 80px;
     }
   }
-</style>
+
+.memory-logo{
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 72px;
+    color: #3f5b2c;
+    font-weight: 400;
+    letter-spacing: -1px;
+}
+.gardenheadcontainer{
+  width:100%;
+  padding-left: 5em;
+padding-right: 5em;
+padding-top: 1em;
+}
+.gardenbordercontainer{
+  width:100%;
+
+}
+.memory-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+
+  gap: 6px;
+  padding: 20px;
+}
+
+.memory-card {
+  min-width: 0;
+  text-align: center;
+}
+
+.memory-image-collection {
+  width: 100%;
+  aspect-ratio: 1.2 / 1;
+
+
+  border-radius: 8px;
+
+  margin-bottom: 12px;
+
+  background-size: cover;
+  background-position: center;
+}
+
+.memory-card h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+</style> 

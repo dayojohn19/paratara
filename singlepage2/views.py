@@ -37,7 +37,7 @@ def ensure_blog_page_and_url(request: HttpRequest,blog_obj = None,*,body_html: s
     # file_path = os.path.join(blog_folder, f"{title_slug}.html")
 
     from .htmlwriter import generate_blog_object
- 
+  
     # cover_image_url_to_use = cover_image_url or getattr(place, 'placePhoto', None) or "https://www.paratara.com/static/images/sugbalagoon-cover.jpg"
     # print('Generating blog page with cover image:', cover_image_url_to_use)
     print('Blog title:', getattr(blog_obj, 'title', 'No title'))
