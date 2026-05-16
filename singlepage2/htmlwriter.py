@@ -1190,7 +1190,7 @@ document.addEventListener("DOMContentLoaded", () => {{
     }});
 
     fetchAndInsertImages();
-    // getBlogLists();
+    getBlogLists();
     fetchCollections();
 
 
