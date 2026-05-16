@@ -6,7 +6,7 @@ Disallow: /accounts/
 Disallow: /api-auth/
 
 # Sitemap
-Sitemap: {{ request.build_absolute_uri '/sitemap.xml' }}
+Sitemap: {{ '/sitemap.xml' }}
 
 # Crawl delay for bot optimization
 Crawl-delay: 1
