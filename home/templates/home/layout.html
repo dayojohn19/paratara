@@ -15,20 +15,62 @@
 
     <meta name="description" content="{{ place.placename }}">
     <meta name="keywords" content="the best and the Great Application Assisting in Carpool transportation travel to go in {{ place.placename }}">
-    <meta name="author" content="johnwebsietprojects@gmail.com">
+    <meta name="author" content="info@paratara.com">
 
     <link rel="canonical" href="{{ request.build_absolute_uri }}">
 
     <meta property="og:title" content="Paratara — Carpool and Resorts">
     <meta property="og:description" content="the best and the Great Application Assisting in Carpool transportation travel to go in {{ place.placename }}">
     <meta property="og:url" content="{{ request.build_absolute_uri }}">
-    <meta property="og:image" content="https://511nyrideshare.org/documents/13062580/13063312/5cf107d7-1710-4076-b902-1aa0e6f554ea.jpg/f64aa95e-0a8c-6aca-470d-eef4ca2002ff?t=1562101484722">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="facebook-domain-verification" content="ipbhywz4h0d53irtzu1edqioym14dj">
+    
+    <meta property="og:image" content="https://511nyrideshare.org/documents/13062580/13063312/5cf107d7-1710-4076-b902-1aa0e6f554ea.jpg/f64aa95e-0a8c-6aca-470d-eef4ca2002ff?t=1562101484722">
+<!-- Primary Meta Tags -->
+<title>{{ place.placename }} Travel Guide, Resorts, Events & Itinerary | Paratara</title>
 
+<meta name="description" content="Discover travel guides, itineraries, resorts, accommodations, local events, tips, and destination insights in {{ place.placename }} with Paratara.">
+
+<meta name="keywords" content="{{ place.placename }}, travel guide, itinerary, resorts, accommodations, tourist destinations, events, travel tips, carpool travel, vacation ideas, hotels, things to do">
+
+<meta name="author" content="Paratara">
+<meta name="robots" content="index, follow">
+
+<link rel="canonical" href="{{ request.build_absolute_uri }}">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Paratara">
+<meta property="og:title" content="{{ place.placename }} Travel Guide, Resorts & Events | Paratara">
+
+<meta property="og:description" content="Explore resorts, accommodations, travel itineraries, events, and local destination guides in {{ place.placename }}.">
+
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+
+<meta property="og:image" content="{{ place.image.url }}">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+
+<meta name="twitter:title" content="{{ place.placename }} Travel Guide & Resorts | Paratara">
+
+<meta name="twitter:description" content="Find the best travel guides, accommodations, itineraries, and destination tips in {{ place.placename }}.">
+
+<meta name="twitter:image" content="{{ place.image.url }}">
+
+<!-- Facebook Verification -->
+<meta name="facebook-domain-verification" content="ipbhywz4h0d53irtzu1edqioym14dj">    
     <link rel="stylesheet" href="{% static 'home/layout.css' %}">
     <script src="{% static 'home/layoutScheduleModal.js' %}"></script>
-
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TravelGuide",
+  "name": "{{ place.placename }}",
+  "description": "Travel guides, itineraries, resorts, accommodations, and destination tips for {{ place.placename }}.",
+  "url": "{{ request.build_absolute_uri }}"
+}
+</script>
     <!-- Cookies consent: load Cookiebot only on non-localhosts to avoid dev errors -->
     <script>
         (function () {

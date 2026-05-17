@@ -11,7 +11,7 @@ class allSchedulesSitemap(Sitemap):
     def lastmod(self, obj):
         return obj.timestamp
 
-class BlogsSitemap(Sitemap):
+class BlogsSitemap(Sitemap): 
 
     changefreq = "monthly"
     priority = 0.7

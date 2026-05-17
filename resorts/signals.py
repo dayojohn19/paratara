@@ -267,7 +267,7 @@ def create_event_on_resort_tour_add(sender, instance, action, pk_set, **kwargs):
                                 host_name=instance.RealName or instance.name,
                                 host_link=f"/resorts/{instance.slug or instance.name}/",
                                 scheduleTypeAndMode="Resort Tour Package",
-                                scheduleWebsite=f"https://paratara.com/resorts/{instance.slug or instance.name}/",
+                                scheduleWebsite=f"https://www.paratara.com/resorts/{instance.slug or instance.name}/",
                                 dateN=dn,
                                 monthN=mn,
                                 yearN=yn,

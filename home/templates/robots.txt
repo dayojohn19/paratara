@@ -5,8 +5,8 @@ Disallow: /api/
 Disallow: /accounts/
 Disallow: /api-auth/
 
-# Sitemap
-Sitemap: {{ '/sitemap.xml' }}
+# Sitemap (Full URL required)
+Sitemap: https://www.paratara.com/sitemap.xml
 
 # Crawl delay for bot optimization
 Crawl-delay: 1

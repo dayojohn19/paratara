@@ -295,7 +295,7 @@ class CommunityBulletinPost(models.Model):
                 place_link = None
                 try:
                     from django.conf import settings
-                    base_url = (getattr(settings, 'SITE_URL', None) or 'https://paratara.com').rstrip('/')
+                    base_url = (getattr(settings, 'SITE_URL', None) or 'https://www.paratara.com').rstrip('/')
                     place_path = None
                     try:
                         place_path = self.place.get_absolute_url()

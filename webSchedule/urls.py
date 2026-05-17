@@ -30,7 +30,7 @@ from django.contrib.sitemaps import GenericSitemap
 # new TODO https://learndjango.com/tutorials/django-sitemap-tutorial
 from django.contrib.sitemaps.views import sitemap
 from home.models import allSchedules
-from home.sitemaps import allSchedulesSitemap
+from home.sitemaps import allSchedulesSitemap,BlogsSitemap
 from resortManagement import views as resortManagement_views
 
 info_dict = {
@@ -81,7 +81,7 @@ urlpatterns = [
         "sitemap.xml",
         sitemap,
         # {"sitemaps": {"PagesInSiteMap": GenericSitemap(info_dict)}},
-        {"sitemaps": {"PagesInSiteMap": allSchedulesSitemap}},
+        {"sitemaps": {"PagesInSiteMap": BlogsSitemap}},
     ),
 ]
 

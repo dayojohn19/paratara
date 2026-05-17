@@ -165,7 +165,7 @@ class resortItem(models.Model):
         if self.place and not self.websiteURL:
             place_slug = self.place.slug if self.place.slug else slugify(self.place.placename)
             resort_slug = self.slug
-            self.websiteURL = f'https://paratara.com/{place_slug}/check/{resort_slug}'
+            self.websiteURL = f'https://www.paratara.com/{place_slug}/check/{resort_slug}'
         # Update last_visited to now if not set
         from django.utils import timezone
         if not self.last_visited:
