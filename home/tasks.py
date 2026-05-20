@@ -75,11 +75,11 @@ def process_creating_blog(request, for_place,blog__title=None,to_title=None):
                 <article class="blog-post">
                   <div class="intro-section">
                     <h2>[Engaging intro title with emoji]</h2>
-                    <p>[Summary: Hook paragraph inviting reader and create a story like of being here max of 15 words]</p>
+                    <p>[Summary: Hook paragraph inviting reader and create a story like of being here max of 150 words]</p>
                   </div>
                   <div class="content-section">
                     <h2>[Section 1 title emoji]</h2>
-                    <p>[Details]</p>
+                    <p>[Details around 300 words]</p>
                     <div class="highlight-box">
                       <h3>Known for:</h3>
                       <ul><li>✅ ...</li>...</ul>

@@ -28,8 +28,11 @@ def generate_blog_object(request, place_name, title, category='Guide', summary='
         if slugify(getattr(b, 'title', '') or '') == title_slug:
             print('place place_')
             return b    
+    print('TItle before process:   ', title)
     title = re.sub(r'<a\b[^>]*>(.*?)</a>',r'\1',title,flags=re.IGNORECASE | re.DOTALL)            
     summary = re.sub(r'<a\b[^>]*>(.*?)</a>', r'\1', summary, flags=re.IGNORECASE | re.DOTALL)
+    print('Title after process:   ', title)
+
     blog_item = Blogs.objects.create(
         category=category,
         blogplace=place,
@@ -447,7 +450,9 @@ img {{
 
 }}
 
-
+.blog-post {{
+    animation: fadeIn 0.6s ease-in;
+}}
 
 @keyframes fadeIn {{
     from {{ opacity: 0; transform: translateY(20px); }}
@@ -1244,7 +1249,7 @@ document.addEventListener('click', (ev) => {{
   <form method="post" action="{subscribe_url}" id="subscribeForm">
     <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
     <input type="email" name="email" placeholder="Your email" required>
-    <input type="text" name="name" placeholder="Name (optional)" type="text">
+    <input type="text" name="name" placeholder="Name (optional)">
     <input type="hidden" name="source" value="blog_footer">
     <button type="submit">Subscribe</button>
 </form>

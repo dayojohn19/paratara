@@ -212,9 +212,7 @@
     transition: transform var(--transition), box-shadow var(--transition);
   }
 
-  .ask-send-btn:hover {
-    transform: translateY(-1px);
-  }
+
 
   .button {
     display: inline-flex;
@@ -243,10 +241,7 @@
     color: #ffffff;
   }
 
-  .button--primary:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-  }
+
 
   .button--ghost {
     
@@ -702,14 +697,6 @@
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   }
 
-  .blog-post {
-    transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
-  }
-
-  .blog-post:hover {
-    transform: translateY(-3px);
-    border-color: var(--accent);
-  }
 
   .blog-category {
   display: inline-block;
@@ -1754,6 +1741,37 @@
   height: 100%;
   border: none;
 }
+
+/*  */
+.ask-box {
+  position: relative;
+}
+
+.ask-input {
+  width: 100%;
+  padding: 12px 48px 12px 12px; /* extra right padding for button */
+  border: 1px solid #ccc;
+  border-radius: 999px;
+  box-sizing: border-box;
+}
+
+.ask-send-btn {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+}
 </style>
 
 <script>
@@ -2491,9 +2509,9 @@
     <div class="hero__actions">
       <div class="ask-box">
         <input type="text" id="quick-ask-input" placeholder="Ask us" class="ask-input">
-        <button id="quick-ask-send" class="button button--primary ask-send-btn">
+        <button id="quick-ask-send" class="ask-send-btn">
           <svg viewBox="0 0 16 16" width="16" height="16">
-            <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z"></path>
+            <path fill="white" d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z"></path>
           </svg>
         </button>
       </div>
@@ -3111,6 +3129,7 @@ container.innerHTML = cards;
       })
       .then((data) => {
         document.querySelector("#place-name").innerText = data['placeName'];
+        document.querySelector("#endPlace").value = data['placeName']
         xx = "/garden/map/"
         y = `${data['placeName'].toLowerCase().replace(/\s+/g, "-")}`
         c = xx + y
@@ -3529,17 +3548,19 @@ container.innerHTML = cards;
     const dayInput = document.getElementById('dateN');
     const monthInput = document.getElementById('monthN');
     const yearInput = document.getElementById('yearN');
+    const endPlaceInput = document.getElementById('endPlace');
 
     function prefillScheduleFields() {
       const now = new Date();
       if (dayInput) dayInput.value = now.getDate();
       if (monthInput) monthInput.value = now.getMonth() + 1;
       if (yearInput) yearInput.value = now.getFullYear();
+      // if (endPlaceInput) endPlaceInput.value = now.getFullYear();
     }
 
     if (openAddScheduleBtn && addScheduleModal) {
       openAddScheduleBtn.addEventListener('click', () => {
-        // prefillScheduleFields(); 
+        prefillScheduleFields(); 
         if (addScheduleStatus) addScheduleStatus.textContent = '';
         addScheduleModal.style.display = 'block';
       });
