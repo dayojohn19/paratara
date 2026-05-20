@@ -143,6 +143,23 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
     # Build FAQ Schema and Article Schema
     try:
         faq_entries = []
+        faq_questions = [
+    "What is the best time to visit?",
+    "How much is the entrance fee or total cost?",
+    "How do I get there?",
+    "What should I bring for the trip?",
+    "Is it safe to visit and what travel tips should I know?"
+]
+        if category == 'Product':
+            print('Category is about product\n')
+            faq_questions = [
+    "What is the best product to buy in 2026?",
+    "Where is the best place to buy it?",
+    "How much does it currently cost?",
+    "What are the top alternatives or competitors?",
+    "Is it worth buying in 2026?"
+]
+
         faq_prompt = f'''Generate 5 common FAQs about "{title}" in "{place_name}".
         
                         Return ONLY a valid JSON array with no markdown formatting. Format:
@@ -151,7 +168,7 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
                         ... 
                         ]
                         Use the page URL "{canonical_url}" in all "@id" fields (question name1, question name2, question name3, etc.)
-                        Questions should cover: best time to visit, entrance fee/cost, how to get there, what to bring, safety/tips.
+                        Questions should cover: {faq_questions}
                         Keep answers concise (1-2 sentences).'''
         res = client.chat.completions.create(
             model=settings.GROK_MODEL_NAME,
