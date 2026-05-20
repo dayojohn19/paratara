@@ -291,14 +291,19 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
     transform: translateY(0);
 }}
 :root {{
-    --primary-blue: #0ea5e9;
-    --dark-blue: #0369a1;
-    --light-blue: #e0f2fe;
-    --accent-orange: #fb923c;
-    --light-orange: #fff7ed;
-    --text-dark: #1e293b;
-    --text-gray: #64748b;
-    --bg-light: #f8fafc;
+    --surface: #fdfbf5;
+    --surface-alt: #f4f0e4;
+    --page-bg: #eef1e4;
+
+    --accent: #556b2f;
+    --accent-dark: #38461f;
+    --accent-light: #8c6b4f;
+
+    --text: #3f3a2f;
+    --text-muted: #7a7468;
+
+    --border: #d8d2c3;
+
     --white: #ffffff;
     --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
     --shadow-md: 0 2px 8px rgba(0,0,0,0.05);
@@ -314,15 +319,15 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
 body {{
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
     line-height: 1.7;
-    color: var(--text-dark);
-    background: var(--bg-light);
+    color: var(--text);
+    background: var(--page-bg);
     font-size: 16px;
 }}
 
 h1, h2, h3 {{ 
     font-weight: 700;
     line-height: 1.3;
-    color: var(--text-dark);
+    color: var(--text);
 }}
 
 h1 {{ 
@@ -332,25 +337,25 @@ h1 {{
 
 h2 {{ 
     font-size: 1.875rem;
-    color: var(--primary-blue);
+    color: var(--accent);
     margin: 2.5rem 0 1.25rem;
     padding-bottom: 0.5rem;
-    border-bottom: 3px solid var(--light-blue);
+    border-bottom: 3px solid var(--surface-alt);
 }}
 
 h3 {{ 
     font-size: 1.375rem;
     margin: 1.75rem 0 0.875rem;
-    color: var(--dark-blue);
+    color: var(--accent-dark);
 }}
 
 p {{
     margin-bottom: 1.25rem;
-    color: var(--text-dark);
+    color: var(--text);
 }}
 
 strong {{
-    color: var(--text-dark);
+    color: var(--text);
     font-weight: 600;
 }}
 
@@ -358,7 +363,7 @@ strong {{
 
 li {{
     margin-bottom: 0.625rem;
-    color: var(--text-dark);
+    color: var(--text);
 }}
 
 img {{
@@ -435,7 +440,7 @@ img {{
 }}
 
 .dropdown-menu li a:hover {{
-    background: var(--light-blue);
+    background: var(--surface-alt);
     transform: translateX(4px);
 }}
 /* Main Content */
@@ -455,12 +460,12 @@ img {{
 }}
 
 .intro-section {{
-    background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+    background: linear-gradient(135deg, var(--accent), var(--accent-dark));
     color: var(--white);
     padding: 2.5rem;
     border-radius: 14px;
     margin-bottom: 2.5rem;
-    border: 1px solid #dfe3ea;
+    border: 1px solid var(--border);
 
 }}
 
@@ -483,8 +488,8 @@ img {{
 
 /* Info Boxes */
 .highlight-box {{
-    background: var(--light-blue);
-    border-left: 5px solid var(--primary-blue);
+    background: var(--surface-alt);
+    border-left: 5px solid var(--accent);
     padding: 1.75rem;
     border-radius: 12px;
     margin: 2rem 0;
@@ -492,7 +497,7 @@ img {{
 }}
 
 .highlight-box h3 {{
-    color: var(--primary-blue);
+    color: var(--accent);
     margin-top: 0;
 }}
 
@@ -501,8 +506,8 @@ img {{
 }}
 
 .tip-box {{
-    background: var(--light-orange);
-    border-left: 5px solid var(--accent-orange);
+    background: var(--surface-alt);
+    border-left: 5px solid var(--accent-light);
     padding: 1.75rem;
     border-radius: 12px;
     margin: 2rem 0;
@@ -510,20 +515,20 @@ img {{
 }}
 
 .tip-box p strong {{
-    color: var(--accent-orange);
+    color: var(--accent-light);
 }}
 
 .mindset-box {{
-    background: linear-gradient(to right, #f0f9ff, #e0f2fe);
+    background: linear-gradient(to right, var(--surface), var(--surface-alt));
     padding: 2rem;
     border-radius: 16px;
     margin: 2rem 0;
-    border: 2px solid var(--light-blue);
+    border: 2px solid var(--surface-alt);
     box-shadow: var(--shadow-md);
 }}
 
 .mindset-box h3 {{
-    color: var(--primary-blue);
+    color: var(--accent);
     margin-top: 1.5rem;
     font-size: 1.25rem;
 }}
@@ -533,13 +538,13 @@ img {{
 }}
 
 .mindset-box p {{
-    color: var(--text-dark);
+    color: var(--text);
     margin-bottom: 0;
 }}
 
 /* CTA Section */
 .cta-section {{
-    background: linear-gradient(135deg, var(--accent-orange), #f97316);
+    background: linear-gradient(135deg, var(--accent), var(--accent-dark));
     color: var(--white);
     padding: 3rem;
     text-align: center;
@@ -592,13 +597,13 @@ img {{
 #blog-list a {{
     text-decoration: none;
     font-size: 0.875rem;
-    color: var(--text-gray);
+    color: var(--text-muted);
     display: block;
     
 }}
 
 #blog-list a:hover {{
-    color: var(--primary-blue);
+    color: var(--accent);
 }}
 
 .collection-section .collections-grid {{
@@ -631,18 +636,18 @@ background: #f8fafc;
 .collection-section .collection-card h4 {{
     font-size: 1.25rem;
     margin-bottom: 0.5rem;
-    color: var(--primary-blue);
+    color: var(--accent);
 }}
 
 .collection-section .collection-card p {{
-    color: var(--text-gray);
+    color: var(--text-muted);
     margin-bottom: 1rem;
     line-height: 1.5;
 }}
 
 .collection-section .collection-link {{
     display: inline-block;
-    background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+    background: linear-gradient(135deg, var(--accent), var(--accent-dark));
     color: white;
     padding: 0.75rem 1.5rem;
     border-radius: 8px;
@@ -659,7 +664,7 @@ background: #f8fafc;
 footer {{
     text-align: center;
     padding: 3rem 2rem;
-    background: linear-gradient(135deg, var(--dark-blue), var(--primary-blue));
+    background: linear-gradient(135deg, var(--accent-dark), var(--accent));
     color: var(--white);
     margin-top: 0;
 }}
@@ -739,7 +744,7 @@ footer input[type="file"] {{
     display: block;
     height: 3px;
     width: 100%;
-    background: var(--primary-blue);
+    background: var(--accent);
     border-radius: 3px;
     
     box-shadow: 0 1px 2px rgba(0,0,0,0.1);
@@ -979,7 +984,7 @@ function toggleDropdown(e) {{
   
 
 
-
+ 
 
 <script>
 

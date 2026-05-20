@@ -25,7 +25,27 @@ client = OpenAI(api_key=settings.GROK_API_KEY, base_url='https://api.x.ai/v1')
 
 def process_creating_blog(request, for_place,blog__title=None,to_title=None):
     try:
+        link_promotion_present = None
+        import re
+        if ThereisLink := re.search(r'(https?://\S+)', to_title):
 
+            text = """
+            create a blog for https://www.amazon.com/dp/B0CP7SV7XV?pd_rd_w=xjvsm&content-id=abc123
+            """
+            text = to_title
+
+            # Find the URL
+            url_pattern = r'https?://[^\s]+'
+            match = re.search(url_pattern, text)
+
+            link = match.group(0) if match else ""
+
+            # Remove the URL from the string
+            remaining_text = re.sub(url_pattern, '', text).strip()
+            to_title = remaining_text
+            link_promotion_present = f'promoting link include this exactly <a href="{link}" target="_blank" class="promotion-link">Check it out here</a>'
+            print("Link:", link_promotion_present)
+            print("Remaining Text:", remaining_text)
 
         # =========================
         # ✅  Generate Blog
@@ -34,7 +54,7 @@ def process_creating_blog(request, for_place,blog__title=None,to_title=None):
             print('Creating blog title based on user input:', to_title)
             extract_prompt = f'''Extract the main topic/subject from this user request: "{to_title}"
             # First, extract the key topic from natural language input
-            Return ONLY the extracted topic (2-4 words) and if there is a link provided add a link <a href="[the link given]">[insert name here]</a> tag with href that full link , dont include the link on the text, nothing else.
+            Return ONLY the extracted topic (2-4 words) 
             determine if its about promotion of a specific place, activity, or event in {for_place.placename} and if so extract that as the topic.'''
             try:
                 extract_res = client.chat.completions.create(
@@ -62,71 +82,66 @@ def process_creating_blog(request, for_place,blog__title=None,to_title=None):
         print(f"\n[3/5] 📰 Generating blog content...")
         try:
             print(f"Generating blog for {blog__title} in {for_place.placename}...")
-            blog_prompt = f'''Write a COMPLETE luxurious blog about "{blog__title}" in "{for_place.placename}".
-                OUTPUT FORMAT - EXACTLY:
-                Title: [Catchy blog title max 60 chars]
-                Then exactly TWO NEWLINES
-                Then HTML content using EXACT structure and CSS classes:
-                Use the provided image URL for the spot if relevant.
-                Do not use markdown, only HTML. Use emojis in h2, make engaging/informative for tourists, include costs/tips/activities for {blog__title} in {for_place.placename}.
-                Include content appropriate to the user's request and double check if user is asking for a specific topic/subject and provided a url if so create a simple promotion 
-                !important  insert icons, if link is also there add the link, and content relevant to the user's request and {for_place.placename}
-                                
-                <article class="blog-post">
-                  <div class="intro-section">
-                    <h2>[Engaging intro title with emoji]</h2>
-                    <p>[Summary: Hook paragraph inviting reader and create a story like of being here max of 150 words]</p>
-                  </div>
-                  <div class="content-section">
-                    <h2>[Section 1 title emoji]</h2>
-                    <p>[Details around 300 words]</p>
-                    <div class="highlight-box">
-                      <h3>Known for:</h3>
-                      <ul><li>✅ ...</li>...</ul>
-                    </div>
-                  </div>
-                  <div class="content-section">
-                    <h2>[Festivals or event and an icon] </h2>
-                    <div>
-                    - insert any festivals and events with their dates in {for_place.placename}
-                    </div>
-                  </div>
-                  <div class="content-section">
-                    <div>
-                    - Reasons to come here in {for_place.placename}
-                    </div>
-                  </div>
-                  <div class="content-section">
-                    <h2>💰 Budget Breakdown</h2>
-                    ...
-                    <div class="tip-box">
-                      <p><strong>💡 Tips:</strong></p>
-                      <ul><li>...</li></ul>
-                    </div>
-                  </div>
-                  <div class="content-section">
-                    <h2>🤝 How to Get There</h2>
-                    <p>...</p>
-                  </div>
-                  <div class="mindset-box">
-                    <h2>⚠️ Safety, Hazards & Local Updates</h2>
-                    <div class="cta-section">
-                      <h3>Safety Tips</h3>
-                      <p>{{ safety_tips }}</p>
-                      <h3>Hazards to Watch</h3>
-                      <p>{{ hazards }}</p>
-                      <h3> Updates</h3>
-                      <p>{{ current year latest place specific news incidents and accidents with regard to tourist and updates }} <small>{{current date taken}}</small></p>
-                    </div>
-                  </div>
-                  <div class="cta-section">
-                    <h2>Ready to Visit?</h2>
-                    <p>[Strong CTA]</p>
-                  </div>
-                </article>
-                Category: based on user message determine its category from the following 'Guide','Story','Tip and Trick','Explore','Product'
-                Use emojis in h2, make engaging/informative for tourists, include costs/tips/activities for {blog__title} in {for_place.placename}.
-                '''
+
+
+            blog_prompt = f'''Generate a luxurious, engaging blog post about "{blog__title}" "{link_promotion_present}" in "{for_place.placename}" for tourists.
+
+RESPONSE FORMAT (EXACTLY):
+Title: [Catchy title, max 60 chars]
+
+[HTML content below]
+
+REQUIREMENTS:
+- HTML only (no markdown)
+- Use CSS classes: blog-post, intro-section, content-section, highlight-box, tip-box, mindset-box, cta-section
+- Include emojis in all h2 headings
+- Write for tourist audience: engaging, informative, practical
+- Include estimated costs, insider tips, and key activities
+- If a URL was provided, include it as a link with context
+
+CONTENT STRUCTURE (must include ALL sections):
+1. Intro Section (150 words max) - Hook the reader with an engaging story
+2. What Makes It Special (300 words) - Key features, attractions, what it's known for
+3. Festivals & Events - Local events with dates in {for_place.placename}
+4. Why Visit - Reasons to come to {for_place.placename} for this attraction
+5. Budget Breakdown - Costs (entrance, food, activities, etc.) with practical tips
+6. How to Get There - Directions and transportation options
+7. Safety & Local Updates - Current news, safety tips, hazards to watch (include current year info)
+8. Call to Action - Strong closing statement
+
+EXTRACT AT END:
+Category: [Choose ONE: 'Guide', 'Story', 'Tip and Trick', 'Explore', 'Product']
+Summary: [One-line summary for preview, max 140 chars]
+
+HTML TEMPLATE EXAMPLE:
+<article class="blog-post">
+  <div class="intro-section">
+    <h2>🎯 [Emoji + Title]</h2>
+    <p>[Engaging intro paragraph]</p>
+  </div>
+  <div class="content-section">
+    <h2>✨ [Feature Title]</h2>
+    <p>[Details and descriptions]</p>
+    <div class="highlight-box">
+      <h3>Known for:</h3>
+      <ul><li>✅ Item 1</li><li>✅ Item 2</li></ul>
+    </div>
+  </div>
+  [Additional sections...]
+  <div class="tip-box">
+    <p><strong>💡 Pro Tips:</strong></p>
+    <ul><li>Tip 1</li><li>Tip 2</li></ul>
+  </div>
+  <div class="mindset-box">
+    <h2>⚠️ Safety & Updates</h2>
+    <p>[Safety information and current local news]</p>
+  </div>
+  <div class="cta-section">
+    <h2>🚀 Ready to Visit?</h2>
+    <p>[Strong call to action]</p>
+  </div>
+</article>
+'''
 
             res = client.chat.completions.create(
                 model=settings.GROK_MODEL_NAME,
