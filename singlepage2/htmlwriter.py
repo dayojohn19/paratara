@@ -1162,10 +1162,43 @@ function fetchCollections() {{
                 p.textContent = (col.collectionDescription || '').substring(0, 130) + '...';
                 div.appendChild(p);
             }}
-            
+
+            // Add Directions link with icon
+            const address = col.address || col.name || '';
+            if (address) {{
+                const directionsLink = document.createElement('a');
+                directionsLink.href = `https://www.google.com/maps/search/?api=1&query=${{encodeURIComponent(address)}}`;
+                directionsLink.target = '_blank';
+                directionsLink.rel = 'noopener noreferrer';
+                directionsLink.style.display = 'inline-flex';
+                directionsLink.style.alignItems = 'center';
+                directionsLink.style.gap = '0.4em';
+                directionsLink.style.marginTop = '0.5rem';
+                directionsLink.style.color = '#2563eb';
+                directionsLink.style.fontWeight = 'bold';
+
+                // SVG icon for directions (Google Maps style)
+                const svgIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svgIcon.setAttribute('width', '20');
+                svgIcon.setAttribute('height', '20');
+                svgIcon.setAttribute('viewBox', '0 0 24 24');
+                svgIcon.setAttribute('fill', 'none');
+                svgIcon.setAttribute('stroke', '#2563eb');
+                svgIcon.setAttribute('stroke-width', '2');
+                svgIcon.setAttribute('stroke-linecap', 'round');
+                svgIcon.setAttribute('stroke-linejoin', 'round');
+                svgIcon.innerHTML = `<path d="M21.71 11.29l-9-9a1 1 0 0 0-1.42 0l-9 9a1 1 0 0 0 0 1.42l9 9a1 1 0 0 0 1.42 0l9-9a1 1 0 0 0 0-1.42z"/><circle cx="12" cy="12" r="3"/>`;
+
+                directionsLink.appendChild(svgIcon);
+                const span = document.createElement('span');
+                span.textContent = 'Directions';
+                directionsLink.appendChild(span);
+                div.appendChild(directionsLink);
+            }}
+
             fragment.appendChild(div);
         }});
-        
+
         collectionsDiv.appendChild(fragment);
         document.getElementById('collections-loading').style.display = 'none';
     }}, 'No local collections found nearby.');
