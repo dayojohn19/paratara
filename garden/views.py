@@ -168,6 +168,9 @@ def secret_page(request):
 def index(request, collectionStr):
     return render(request, 'garden/index.html', {'collectionStr': collectionStr})
 
+def order_page(request):
+    return render(request, 'garden/landing_page.html')
+
 def collection_list_api(request):
     data = json.loads(request.body)
     user = data['username']
