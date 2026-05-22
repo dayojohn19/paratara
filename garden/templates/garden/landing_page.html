@@ -267,6 +267,7 @@
         </form>
     </section>
 
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <script>
     // Auto-fill order summary
     function updateOrderSummary() {
@@ -290,11 +291,85 @@
     document.querySelectorAll('.product-qty, .product-comment').forEach(input => {
         input.addEventListener('input', updateOrderSummary);
     });
-    // Optionally, prevent form submit for demo
-    document.getElementById('orderForm').addEventListener('submit', function(e) {
-        // e.preventDefault();
-        // alert('Order submitted!');
+
+    // EmailJS config (replace with your own IDs)
+    const EMAILJS_SERVICE_ID = 'service_jv335d7';
+    const EMAILJS_TEMPLATE_ID = 'template_hzlk188';
+    const EMAILJS_PUBLIC_KEY = 'kPR5fCmH0j3E0NSyr';
+
+    // Initialize EmailJS
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.emailjs) {
+            window.emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+        }
     });
+
+    // Handle order form submit
+    document.getElementById('orderForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        // Compile order details
+        const qtyInputs = document.querySelectorAll('.product-qty');
+        const commentInputs = document.querySelectorAll('.product-comment');
+        let orderDetails = '';
+        qtyInputs.forEach((qtyInput, idx) => {
+            const qty = parseInt(qtyInput.value, 10) || 0;
+            const product = qtyInput.getAttribute('data-product');
+            const comment = commentInputs[idx].value.trim();
+            if (qty > 0) {
+                orderDetails += `${product}: ${qty}`;
+                if (comment) orderDetails += ` ("${comment}")`;
+                orderDetails += '\n';
+            }
+        });
+        if (!orderDetails) {
+            alert('Please select at least one product.');
+            return;
+        }
+
+        // Compile address and contact
+        const name = document.querySelector('input[name="name"]').value;
+        const email = document.querySelector('input[name="email"]').value;
+        const contact = document.querySelector('input[name="contact"]').value;
+        const street = document.getElementById('address-street').value;
+        const city = document.getElementById('address-city').value;
+        const state = document.getElementById('address-state').value;
+        const zip = document.getElementById('address-zip').value;
+        const country = document.getElementById('address-country').value;
+        const notes = document.querySelector('textarea[name="notes"]').value;
+        const fullAddress = `${street}, ${city}, ${state}, ${zip}, ${country}`;
+
+        // Prepare message
+        const message = `Order Details:\n${orderDetails}\nName: ${name}\nEmail: ${email}\nContact: ${contact}\nAddress: ${fullAddress}\nNotes: ${notes}`;
+
+        // EmailJS send
+        try {
+            await window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+                to_name: 'dayo_john16@yahoo.com',
+                from_name: name,
+                reply_to: 'dayo_john16@yahoo.com',
+                sender_contact: contact,
+                address: fullAddress,
+                message: message
+
+                // 
+                        // to_name: EMAILJS_TO_NAME,
+                        // from_name: normalizedName,
+                        // sender_contact: normalizedContact,
+                        // reply_to: EMAILJS_REPLY_TO,
+                        // guest_contact: 'none',
+                        // resort_id: activeUsername || normalizedName,
+                        // message: bookingMessage
+            });
+            alert('Order submitted! We will contact you soon.');
+            e.target.reset();
+            updateOrderSummary();
+        } catch (err) {
+            alert('Order could not be sent. Please try again later.');
+            console.error('EmailJS error:', err);
+        }
+    });
+
     // Auto-fill full address
     function updateFullAddress() {
         const street = document.getElementById('address-street').value.trim();
