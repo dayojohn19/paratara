@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -96,7 +97,7 @@
             </div>
             <div class="relative flex justify-center" style="background-color: transparent;">
                 
-                    <img src="picture_front.png" alt="Smart Postcard Design" class="w-full h-full object-cover">
+                    <img src="{% static 'garden/picture_front.png' %}" alt="Smart Postcard Design" class="w-full h-full object-cover">
                 
             </div>
         </div>
@@ -114,7 +115,8 @@
             <!-- Feature 1: Personalized -->
             <div class="lux-card flex flex-col md:flex-row items-center md:items-stretch text-center md:text-left p-0 overflow-hidden">
                 <div class="md:w-1/2 w-full h-48 md:h-auto flex-shrink-0 flex items-center justify-center bg-slate-100">
-                    <img src="picture_personalized.jpg" alt="Personalized Postcard" class="w-full h-full object-cover order-img cursor-pointer">
+                    
+                    <img src="{% static 'garden/picture_personalized.jpg' %}" alt="Personalized Postcard" class="w-full h-full object-cover order-img cursor-pointer">
                 </div>
                 <div class="flex-1 min-h-[12rem] md:min-h-full p-6 md:p-8 flex flex-col justify-center bg-white/90 md:bg-white">
                     <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mb-6 mx-auto md:mx-0">
@@ -142,7 +144,8 @@
             <!-- Feature 3: Versatile -->
             <div class="lux-card flex flex-col md:flex-row items-center md:items-stretch text-center md:text-left p-0 overflow-hidden">
                 <div class="md:w-1/2 w-full h-48 md:h-auto flex-shrink-0 flex items-center justify-center bg-slate-100">
-                    <img src="picture_versatile.jpg" alt="Versatile Postcard" class="w-full h-full object-cover order-img cursor-pointer">
+
+                    <img src="{% static 'garden/picture_versatile.jpg' %}" alt="Versatile Postcard" class="w-full h-full object-cover order-img cursor-pointer">
                 </div>
                 <div class="flex-1 min-h-[12rem] md:min-h-full p-6 md:p-8 flex flex-col justify-center bg-white/90 md:bg-white">
                     <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center mb-6 mx-auto md:mx-0">
@@ -157,7 +160,8 @@
             <!-- Feature 4: Collectibles -->
             <div class="lux-card flex flex-col md:flex-row items-center md:items-stretch text-center md:text-left p-0 overflow-hidden">
                 <div class="md:w-1/2 w-full h-48 md:h-auto flex-shrink-0 flex items-center justify-center bg-slate-100 order-2 md:order-1">
-                    <img src="picture_collectibles.png" alt="Collectible Postcard" class="w-full h-full object-cover order-img cursor-pointer">
+                    
+                    <img src="{% static 'garden/picture_collectibles.png' %}" alt="Collectible Postcard" class="w-full h-full object-cover order-img cursor-pointer">
 
                 </div>
                 <div class="flex-1 min-h-[12rem] md:min-h-full p-6 md:p-8 flex flex-col justify-center order-1 md:order-2 bg-white/90 md:bg-white">
@@ -187,7 +191,8 @@
         <div class="grid md:grid-cols-3 gap-8 mb-12">
             <!-- Product 1 -->
             <div class="lux-card p-6 flex flex-col gap-4">
-                <img src="picture_infographic.png" alt="Classic Postcard" class="rounded-xl w-full h-40 object-cover mb-2 order-img cursor-pointer" tabindex="0">
+                
+                <img src="{% static 'garden/picture_infographic.png' %}" alt="Classic Postcard" class="rounded-xl w-full h-40 object-cover mb-2 order-img cursor-pointer" tabindex="0">
                 <h3 class="text-xl font-bold text-slate-900">Visual info graphic</h3>
                 <p class="text-slate-600 text-sm mb-2">Key facts about the place..</p>
                 <small>available with magnet </small>
@@ -198,7 +203,8 @@
             </div>
             <!-- Product 2 -->
             <div class="lux-card p-6 flex flex-col gap-4">
-                <img src="picture_scenic.png" alt="Travel Edition" class="rounded-xl w-full h-40 object-cover mb-2 order-img cursor-pointer" tabindex="0">
+                <img src="{% static 'garden/picture_scenic.png' %}" alt="Travel Edition" class="rounded-xl w-full h-40 object-cover mb-2 order-img cursor-pointer" tabindex="0">
+                
                 <h3 class="text-xl font-bold text-slate-900">Raw Location Image</h3>
                 <p class="text-slate-600 text-sm mb-2">Original photo of the real-world place. </p>
                 <small>available with magnet </small>
