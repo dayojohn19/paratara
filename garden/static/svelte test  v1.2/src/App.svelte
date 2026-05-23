@@ -1335,21 +1335,6 @@ async function fetchLookPlaceData() {
         </button>
       {/if}
     </div>  
-    <div class="gardenheadcontainer">
-      <img style="width:inherit; " src="{GardenHeadLogo}" alt="Memory Garden Home Logo" class="logo" />
-    </div>
-    <div class="sub-brand">Memory Garden Home Smart Postcard</div>
-
-
- 
-
-    <div class="gardenheadcontainer">
-      <img style="width:inherit;" src="{GardenBodyLogo}" alt="Memory Garden Home Logo" class="logo" />
-    </div>
-    <div class="gardenbordercontainer">
-      <img style="width:inherit;" src="{GardenBorderLogo}" alt="Memory Garden Home Logo" class="logo" />
-    </div>
-
     
 
 
@@ -1357,6 +1342,19 @@ async function fetchLookPlaceData() {
 
   </header>
 
+  <div class="gardenhead">
+    <div class="postcard-head-title">
+      <img style="width:inherit; " src="{GardenHeadLogo}" alt="Memory Garden Home Logo" class="logo" />
+      <div class="sub-brand">Memory Garden Home Smart Postcard</div>
+    </div>
+    <div class="postcard-frame">
+      <img style="width:inherit;" src="{GardenBodyLogo}" alt="Memory Garden Home Logo" class="logo" />
+    </div>
+    <div class="postcard-frame">
+      <img style="width:inherit;" src="{GardenBorderLogo}" alt="Memory Garden Home Logo" class="logo" />
+    </div>
+  </div>
+    
 
   <section class="hero">
     {#if showCredentialsForm}
@@ -1630,7 +1628,7 @@ async function fetchLookPlaceData() {
     transform-origin: left top;
     transform: perspective(700px) rotateX(8deg);
     text-align:center;
-    margin-bottom: 1.5em;
+
   }
 
     .account-chip-above {
@@ -1877,22 +1875,26 @@ async function fetchLookPlaceData() {
     cursor: pointer;
   }
 
+
   .cta {
-    background: #00a8ff;
-    color: #00121d;
+    background: #8a9a6c;
+    color: #fff;
     font-weight: 700;
+    border: none;
+    transition: background 0.2s;
   }
 
   .ghost {
     background: transparent;
-    color: #dbe5f7;
-    border: 1px solid #37445f;
+    color: #8a9a6c;
+    border: 1px solid #8a9a6c;
+    transition: color 0.2s, border 0.2s;
   }
 
   .hero {
       padding-left:1.5em;
       padding-right:1.5em;
-    max-width: 700px;
+
   }
 
   .eyebrow {
@@ -2017,8 +2019,8 @@ async function fetchLookPlaceData() {
     border-radius: 0.35rem;
     padding: 0.8rem 1rem;
     width: min(100%, 640px);
-    min-height: 4rem;
-    height: auto;
+    min-height: 16rem;
+
     line-height: 1.4;
     flex: 1 1 100%;
     box-sizing: border-box;
@@ -2158,13 +2160,18 @@ async function fetchLookPlaceData() {
     gap: 0.65rem;
     flex-wrap: wrap;
   }
-
+  .postcard-head-title {
+    width: min(100%,640px); margin: 0 auto;
+  }
   .postcard-frame {
 
-    width: min(100%, 640px);
-    min-height: 180px;
-
+    width: min(100%, 840px);
+    min-height: 130px;
+    margin: 0 auto;
     overflow: hidden;
+    display: flex;
+flex-direction: row;
+justify-content: flex-end;
   }
 
   .loading-state {
@@ -2404,7 +2411,9 @@ async function fetchLookPlaceData() {
 
   @media (max-width: 680px) {
 
-
+    .image-field-input{
+      min-height: 4rem;
+    }
     .brand {
       font-size: 1.22rem;
 
@@ -2459,6 +2468,7 @@ async function fetchLookPlaceData() {
 
     .postcard-frame {
       width: 100%;
+      flex-direction:column;
     }
 
     .credentials-box {
@@ -2644,16 +2654,11 @@ async function fetchLookPlaceData() {
     font-weight: 400;
     letter-spacing: -1px;
 }
-.gardenheadcontainer{
-  width:100%;
-  padding-left: 5em;
-padding-right: 5em;
-padding-top: 1em;
-}
-.gardenbordercontainer{
-  width:100%;
+.gardenhead{
 
+text-align: center;
 }
+
 .memory-container {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
