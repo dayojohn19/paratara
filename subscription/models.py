@@ -1,4 +1,5 @@
 # subscriptions/models.py
+from django.conf import settings
 from django.db import models
 from resorts.models import resortItem
 
@@ -17,6 +18,13 @@ class PayPalCustomerSubscription(models.Model):
         related_name="paypal_subscriptions",
         blank=True,
         null=True
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="paypal_customer_subscriptions",
+        blank=True,
+        null=True,
     )
     name = models.CharField(max_length=150, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
@@ -42,11 +50,13 @@ class PayPalCustomerSubscription(models.Model):
     last_payment = models.JSONField(default=dict, blank=True)
     last_payment_amount_value = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     last_payment_amount_currency = models.CharField(max_length=10, blank=True, null=True)
-    due_date = models.DateTimeField(null=True, blank=True)
     receipt_number = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):
-        return f"{self.paypal_subscription_id} - {self.subscription_status}"
+        status_label = self.get_status_display() if self.status else (self.subscription_status or "Unknown")
+        last_payment = self.last_payment_date.strftime("%Y-%m-%d") if self.last_payment_date else "N/A"
+        next_billing = self.next_billing_time.strftime("%Y-%m-%d") if self.next_billing_time else "N/A"
+        return f"{status_label} | Last payment: {last_payment} | Next billing: {next_billing}"
 
 
 class SubscriptionPlan(models.Model):

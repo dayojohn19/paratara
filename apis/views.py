@@ -7,11 +7,10 @@ from rest_framework.response import Response
 from .serializers import PaymentSerializer,ScheduleSerializer,BloggerSerializer,BlogsSerializer,StoreproductsSerializer
 from .models import Payments,Transaction, Blogger, Blogs, EmailSubscribers, Storeproducts
 from home.models import allSchedules
-from userProfile.models import userPoster
 from django.shortcuts import redirect
 from .forms import BlogsForm,BloggerForm, EmailSubscriberForm
 from userProfile.forms import ImageForm
-from userProfile.models import userPoster
+from userProfile.services import ensure_user_profile, get_user_profile_by_id
 from django.http import JsonResponse
 from django.utils.text import slugify
 from calendar import HTMLCalendar
@@ -294,20 +293,21 @@ def NewblogUser(request,message=None):
     try:
         if Blogger.objects.get(userCredential=request.user):
             currentUser = Blogger.objects.get(userCredential=request.user)
+            profile = ensure_user_profile(request.user)
             context = {
                 'blogForm':BlogsForm,
                 'bloggerForm':BloggerForm,
                 'currentUser':currentUser,
                 'form':ImageForm,
-                # 'profile_link':userPoster.objects.get(userID=request.user.id).photo
-                'profile_link':userPoster.objects.get(userID=request.user.id).photo
+                'profile_link':profile.photo
 
             }
         else:
+            profile = ensure_user_profile(request.user)
             context = {
                 'blogForm':BlogsForm,
                 'bloggerForm':BloggerForm,
-                'profile_link':userPoster.objects.get(userID=request.user.id).photo
+                'profile_link':profile.photo
             }
 
     except:
@@ -329,7 +329,7 @@ def makepayment(request, pk):
         data = request.data
         amount = data['amount']
     print('\nAmount: ',amount)
-    originalUser = userPoster.objects.get(userID=request.user.id)
+    originalUser = ensure_user_profile(request.user)
     if len(originalUser.hashes) < int(amount):
         return Response({'message':'Balance not enough'})   
     return recordTransaction(request,pk,int(amount),originalUser)
@@ -363,7 +363,7 @@ def confirmTransaction(request, pk):
 
 
 def recordTransaction(request,targetID, amount,originalUser):
-    targetUser = userPoster.objects.get(userID=targetID)
+    targetUser = get_user_profile_by_id(targetID)
     originalHash, currentHash = originalUser.hashes[amount:],originalUser.hashes[:amount]
     originalUser.hashes = originalHash # deducted from the original
     try:

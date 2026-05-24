@@ -111,6 +111,13 @@ class userPoster(models.Model):
     myTransactions = models.ManyToManyField(
         'apis.Transaction', blank=True, related_name='User_TransactionList')
     hashes = models.TextField(default='')
+    paypal_customer_subscription = models.ForeignKey(
+        'subscription.PayPalCustomerSubscription',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='user_posters',
+    )
  
     class Meta:
         unique_together = [['userID', 'name']]

@@ -3,8 +3,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponseServerError, HttpResponse, JsonResponse
 from resorts.models import Packages, resortPackages,resortItem
 from userProfile.models import UserCredentials
+from userProfile.services import ensure_user_profile
 from .forms import CheckinForm
-from userProfile.models import userPoster
 from .models import Checkins, CheckinDay, ResortManager, ResortSubscription
 import calendar
 from django.db.models.functions import ExtractDay
@@ -405,7 +405,6 @@ def generate_calendar(request,target_model):
         'day' :day,
     }
     return context
- 
 
 def viewGuestlists(request, resort_id):
     # try:
@@ -697,7 +696,7 @@ def room_checkin(request):
                     print('cant add checkin id')
                 checkin_instance.save()
                 try:
-                    user = userPoster.objects.get(userID=request.user.id)
+                    user = ensure_user_profile(request.user)
                     manager = ResortManager.objects.get_or_create(profile=user)[0]
                     checkin_instance.checked_in_by = manager                
                     manager.checked_visitor.add(checkin_instance)
@@ -802,5 +801,4 @@ def room_list(request, resortPackage_id=None):
         # 'whatstepvalue':'upload_id'
         
     }
-    return render(request, "resortManagement/room_list.html", context)    
- 
+    return render(request, "resortManagement/room_list.html", context)

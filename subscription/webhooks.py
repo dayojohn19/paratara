@@ -3,12 +3,176 @@ import json
 import time
 from decimal import Decimal, InvalidOperation
 import requests
+from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 from django.utils.dateparse import parse_datetime
+from django.utils.text import slugify
 from django.views.decorators.csrf import csrf_exempt
 
 from .models import PayPalCustomerSubscription
 from .paypal import get_paypal_access_token
+from userProfile.models import UserCredentialsBackUP
+from userProfile.services import ensure_user_profile
+
+
+PAYPAL_DETAILS_MAX_ATTEMPTS = 4
+PAYPAL_DETAILS_RETRY_STATUS_CODES = {408, 409, 425, 429, 500, 502, 503, 504}
+PAYPAL_DETAILS_RETRY_DELAYS = (1, 2, 4)
+
+
+def _is_retryable_paypal_error(exc):
+    response = getattr(exc, "response", None)
+    status_code = getattr(response, "status_code", None)
+    return status_code in PAYPAL_DETAILS_RETRY_STATUS_CODES or response is None
+
+
+def _fetch_paypal_subscription_details(subscription_id, access_token, paypal_api_base):
+    last_error = None
+    for attempt in range(1, PAYPAL_DETAILS_MAX_ATTEMPTS + 1):
+        try:
+            print(
+                f"[subscription.webhooks] PayPal details attempt {attempt}/{PAYPAL_DETAILS_MAX_ATTEMPTS}: {subscription_id}",
+                flush=True,
+            )
+            details_response = requests.get(
+                f"{paypal_api_base}/v1/billing/subscriptions/{subscription_id}",
+                headers={
+                    "Authorization": f"Bearer {access_token}",
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                },
+                timeout=20,
+            )
+            details_response.raise_for_status()
+            return details_response.json()
+        except requests.RequestException as exc:
+            last_error = exc
+            if attempt >= PAYPAL_DETAILS_MAX_ATTEMPTS or not _is_retryable_paypal_error(exc):
+                raise
+
+            delay = PAYPAL_DETAILS_RETRY_DELAYS[min(attempt - 1, len(PAYPAL_DETAILS_RETRY_DELAYS) - 1)]
+            print(
+                f"[subscription.webhooks] PayPal details fetch failed, retrying in {delay}s: {exc}",
+                flush=True,
+            )
+            time.sleep(delay)
+
+    raise last_error
+
+
+def _normalize_username(value):
+    username = slugify(value or "").replace("-", "_").lower().strip("_")
+    return username or "paypal_user"
+
+
+def _unique_username(UserModel, base_username):
+    username_field = UserModel.USERNAME_FIELD
+    max_length = UserModel._meta.get_field(username_field).max_length or 150
+    base_username = _normalize_username(base_username)[:max_length] or "paypal_user"
+    candidate = base_username
+    counter = 1
+
+    while UserModel._default_manager.filter(**{username_field: candidate}).exists():
+        suffix = f"_{counter}"
+        candidate = f"{base_username[:max_length - len(suffix)]}{suffix}"
+        counter += 1
+
+    return candidate
+
+
+def _paypal_backup_password(*, payer_id, subscription_id):
+    backup_value = f"paypal:{payer_id or subscription_id or 'subscription'}"
+    max_length = UserCredentialsBackUP._meta.get_field("userPassword").max_length
+    return backup_value[:max_length]
+
+
+def _ensure_paypal_user_backup(user, *, payer_id, subscription_id):
+    if UserCredentialsBackUP.objects.filter(userID=user.pk).exists():
+        return
+
+    UserCredentialsBackUP.objects.create(
+        userID=user.pk,
+        userPassword=_paypal_backup_password(
+            payer_id=payer_id,
+            subscription_id=subscription_id,
+        ),
+    )
+
+
+def _get_or_create_paypal_user(*, email, full_name, subscriber_name, payer_id, subscription_id):
+    UserModel = get_user_model()
+    given_name = (subscriber_name.get("given_name") or "").strip()
+    surname = (subscriber_name.get("surname") or "").strip()
+
+    if email:
+        existing_user = UserModel._default_manager.filter(email__iexact=email).order_by("id").first()
+        if existing_user is not None:
+            changed_fields = []
+            if given_name and not existing_user.first_name:
+                existing_user.first_name = given_name
+                changed_fields.append("first_name")
+            if surname and not existing_user.last_name:
+                existing_user.last_name = surname
+                changed_fields.append("last_name")
+            if changed_fields:
+                existing_user.save(update_fields=changed_fields)
+            ensure_user_profile(
+                existing_user,
+                name=full_name or existing_user.username,
+                contact=email,
+            )
+            _ensure_paypal_user_backup(
+                existing_user,
+                payer_id=payer_id,
+                subscription_id=subscription_id,
+            )
+            return existing_user
+
+    if email:
+        base_username = email.split("@", 1)[0]
+    elif payer_id:
+        base_username = f"paypal_{payer_id}"
+    else:
+        base_username = f"paypal_{subscription_id}"
+
+    username_field = UserModel.USERNAME_FIELD
+    max_length = UserModel._meta.get_field(username_field).max_length or 150
+    normalized_base_username = _normalize_username(base_username)[:max_length] or "paypal_user"
+    if not email:
+        existing_user = UserModel._default_manager.filter(
+            **{username_field: normalized_base_username}
+        ).order_by("id").first()
+        if existing_user is not None:
+            ensure_user_profile(
+                existing_user,
+                name=full_name or existing_user.username,
+                contact=payer_id or subscription_id,
+            )
+            _ensure_paypal_user_backup(
+                existing_user,
+                payer_id=payer_id,
+                subscription_id=subscription_id,
+            )
+            return existing_user
+
+    user = UserModel._default_manager.create_user(
+        username=_unique_username(UserModel, normalized_base_username),
+        email=email or "",
+        password=None,
+        first_name=given_name,
+        last_name=surname,
+    )
+    ensure_user_profile(
+        user,
+        name=full_name or user.username,
+        contact=email or payer_id or subscription_id,
+    )
+    _ensure_paypal_user_backup(
+        user,
+        payer_id=payer_id,
+        subscription_id=subscription_id,
+    )
+    return user
 
 
 @csrf_exempt
@@ -52,23 +216,21 @@ def paypal_onapprove_webhook(request):
         paypal_api_base = getattr(settings, "PAYPAL_API_BASE", "https://api-m.sandbox.paypal.com")
         print(f"[subscription.webhooks] fetching PayPal subscription details: {subscription_id}", flush=True)
         time.sleep(1)
-        details_response = requests.get(
-            f"{paypal_api_base}/v1/billing/subscriptions/{subscription_id}",
-            headers={
-                "Authorization": f"Bearer {access_token}",
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-            },
-            timeout=20,
-        )
-        details_response.raise_for_status()
-        details = details_response.json()
+        details = _fetch_paypal_subscription_details(subscription_id, access_token, paypal_api_base)
         print("[subscription.webhooks] PayPal subscription details retrieved", flush=True)
         time.sleep(1)
     except requests.RequestException as exc:
         print(f"[subscription.webhooks] failed to fetch PayPal details: {exc}", flush=True)
         time.sleep(1)
-        return JsonResponse({"ok": False, "error": f"Failed to fetch PayPal subscription details: {exc}"}, status=400)
+        status_code = 503 if _is_retryable_paypal_error(exc) else 400
+        return JsonResponse(
+            {
+                "ok": False,
+                "error": f"Failed to fetch PayPal subscription details: {exc}",
+                "retryable": status_code == 503,
+            },
+            status=status_code,
+        )
 
     subscriber = details.get("subscriber") or {}
     subscriber_name = subscriber.get("name") or {}
@@ -81,6 +243,13 @@ def paypal_onapprove_webhook(request):
         ]
         if part
     ).strip() or None
+    subscription_user = _get_or_create_paypal_user(
+        email=email,
+        full_name=full_name,
+        subscriber_name=subscriber_name,
+        payer_id=payer_id,
+        subscription_id=subscription_id,
+    )
 
     paypal_subscription_id = (details.get("id") or "").strip() or subscription_id
     plan_id = (details.get("plan_id") or "").strip() or ""
@@ -112,6 +281,7 @@ def paypal_onapprove_webhook(request):
         paypal_subscription_id=paypal_subscription_id,
         defaults={
             "name": full_name,
+            "user": subscription_user,
             "email": email,
             "paypal_payer_id": payer_id,
             "plan_id": plan_id,
@@ -134,6 +304,15 @@ def paypal_onapprove_webhook(request):
             "last_payment_amount_currency": last_payment_amount.get("currency_code"),
         },
     )
+    profile = ensure_user_profile(
+        subscription_user,
+        name=full_name or getattr(subscription_user, "username", ""),
+        contact=email or payer_id or paypal_subscription_id,
+    )
+    if profile.paypal_customer_subscription_id != obj.id:
+        profile.paypal_customer_subscription = obj
+        profile.save(update_fields=["paypal_customer_subscription"])
+
     print(f"[subscription.webhooks] subscription saved: {obj.paypal_subscription_id}", flush=True)
     time.sleep(1)
 

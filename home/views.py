@@ -27,8 +27,9 @@ import uuid
 import io
 import base64
 import qrcode
-from userProfile.models import userPoster, UserCredentials
+from userProfile.models import UserCredentials
 from userProfile.models import TourGuide
+from userProfile.services import create_user_with_profile, ensure_user_profile
 from openai import OpenAI
 from django.conf import settings
 from .models import PlaceDiscussion, TouristSpot, Visit
@@ -416,32 +417,25 @@ def visit_spot(request, place_slug, spot_slug):
             if UserCredentials.objects.filter(username=username).exists():
                 user = UserCredentials.objects.get(username=username)
                 if user.check_password(password):
+                    ensure_user_profile(
+                        user,
+                        contact=contact_number,
+                        age_range=age_range,
+                        gender=gender,
+                    )
                     login(request, user)
                     return render(request, 'home/visit_recorded.html')
                 else:
                     form.add_error('password', 'Incorrect password or username already exist')
             else:
-                user = UserCredentials.objects.create_user(username=username, password=password)
-                
-                # Create or update userPoster with contact info
-                from userProfile.models import userPoster
-                poster, created = userPoster.objects.get_or_create(
-                    userID=user.id,
-                    defaults={
-                        'name': username,
-                        'contact': contact_number,
-                        'age_range': age_range,
-                        'gender': gender
-                    }
+                user, poster = create_user_with_profile(
+                    username=username,
+                    password=password,
+                    profile_name=username,
+                    contact=contact_number,
+                    age_range=age_range,
+                    gender=gender,
                 )
-                if not created:
-                    poster.contact = contact_number
-                    poster.age_range = age_range
-                    poster.gender = gender
-                    poster.save()
-                
-                user.additionalCreds = poster
-                user.save()
                 
                 login(request, user)
                 return render(request, 'home/visit_recorded.html')
@@ -571,7 +565,6 @@ def autopopulate(request):
     import os
     import json
     import random
-    from userProfile.models import userPoster
     import random
 
     first_names = ["Anna", "Jake", "Liam", "Sofia", "Noah", "Ella", "Mia", "Ethan", "Grace", "Leo"]
@@ -592,11 +585,7 @@ def autopopulate(request):
     def generate_random_meetplace():
         return random.choice(data)["name"]
 
-    try:
-        poster = userPoster.objects.get(userID=request.user.id)
-    except:
-        poster = userPoster.objects.create(
-            userID=request.user.id, name=request.user.username, contact=request.user.email)
+    poster = ensure_user_profile(request.user)
 
 
     print('\nMaking Cities')
@@ -1417,12 +1406,7 @@ def viaje_v2(request):
 
         allMeetDate = request.POST.getlist('meetDate')
 
-        from userProfile.models import userPoster
-        try:
-            poster = userPoster.objects.get(userID=request.user.id)
-        except:
-            poster = userPoster.objects.create(
-                userID=request.user.id, name=request.user.username, contact=request.user.email)
+        poster = ensure_user_profile(request.user)
         for eachDate in allMeetDate:
 
             newSchedule = allSchedules()
@@ -1866,21 +1850,14 @@ def discussion_new(request, placeID):
         if not message:
             return JsonResponse({"error": "Message is empty"}, status=400)
 
-        # Get or create user
         if request.user.is_authenticated:
-            user, created = userPoster.objects.get_or_create(
-                userID=request.user.id,
-                defaults={"name": request.user.username, "contact": request.user.email}
-            )
-        else:
-            user = None
+            ensure_user_profile(request.user)
 
         # Save user discussion
         discuss = PlaceDiscussion.objects.create(
             discuss=message,
-            discusser=user,
             place=place,
-            discusserName=request.user.username if user else "Anonymous"
+            discusserName=request.user.username if request.user.is_authenticated else "Anonymous"
         )
         place.discussion.add(discuss)
 
@@ -2281,13 +2258,10 @@ def discussion(request, placeID):
                     # Save user message
                     username_to_use = data.get('username') or (request.user.username if request.user.is_authenticated else 'Anonymous')
                     try:
-                        try:
-                            user = userPoster.objects.get(userID=request.user.id)
-                        except:
-                            user = userPoster.objects.create(
-                                userID=request.user.id, name=request.user.username, contact=request.user.email)
+                        if request.user.is_authenticated:
+                            ensure_user_profile(request.user)
                         discuss = PlaceDiscussion.objects.create(discuss=message_content,
-                            discusser=user, place=place, discusserName=username_to_use)
+                            place=place, discusserName=username_to_use)
                     except:
                         discuss = PlaceDiscussion.objects.create( 
                             discuss=message_content, place=place, discusserName=username_to_use)
@@ -2302,15 +2276,11 @@ def discussion(request, placeID):
                 try:
                     username_to_use = data.get('username') or (request.user.username if request.user.is_authenticated else 'Anonymous')
                     _step(f"Resolved username={username_to_use!r} authenticated={request.user.is_authenticated}")
-                    try:
-                        user = userPoster.objects.get(userID=request.user.id)
-                        _step("UserPoster found")
-                    except:
-                        user = userPoster.objects.create(
-                            userID=request.user.id, name=request.user.username, contact=request.user.email)
-                        _step("UserPoster created")
+                    if request.user.is_authenticated:
+                        ensure_user_profile(request.user)
+                        _step("UserPoster synchronized")
                     discuss = PlaceDiscussion.objects.create(discuss=message_content,
-                        discusser=user, place=place, discusserName=username_to_use)
+                        place=place, discusserName=username_to_use)
                     _step("Saved user discussion (with userPoster)")
                 except:
                     discuss = PlaceDiscussion.objects.create( 

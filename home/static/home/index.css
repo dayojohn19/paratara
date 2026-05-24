@@ -13,7 +13,7 @@
 
 .home-page {
   min-height: 100vh;
-  padding: 1.5rem;
+
   color: var(--home-text);
   background: linear-gradient(180deg, #fbfcfa 0%, var(--home-bg) 100%);
 }
@@ -39,14 +39,14 @@
 .home-search-panel {
   max-width: 1120px;
   margin: 0 auto 1.25rem;
-  padding: 1.25rem;
+  padding: 1em;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(300px, 480px);
   gap: 1.25rem;
   align-items: end;
   background: var(--home-surface);
   border: 1px solid var(--home-border);
-  border-radius: 8px;
+
   box-shadow: var(--home-shadow);
 }
 
@@ -228,6 +228,7 @@
 .container-center {
   max-width: 1120px;
   margin: 0 auto;
+  padding: 1em;
 }
 
 .landing-message,
@@ -254,13 +255,11 @@
 }
 
 @media (max-width: 760px) {
-  .home-page {
-    padding: 0.9rem;
-  }
+
 
   .home-search-panel {
     grid-template-columns: 1fr;
-    padding: 1rem;
+
   }
 
   .home-search-copy h1 {

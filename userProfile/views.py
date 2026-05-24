@@ -8,9 +8,10 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 #
 import os
-from .models import UserCredentials, UserCredentialsBackUP, userPoster,chat_room_item
+from .models import UserCredentialsBackUP, userPoster
 import json
 from .forms import ImageForm
+from .services import create_user_with_profile, ensure_user_profile, ensure_user_profile_by_id
 from django.shortcuts import render, redirect, get_object_or_404
 # Create your views here.
 def show_html(request):
@@ -35,7 +36,9 @@ def render_template(request, template_name, context=None):
 def Messages_Room(request):
     # if request.method == 'POST':
     #     new_room = chat_room_item.objects.get_or_create()[0]
-    user = userPoster.objects.get(userID=request.user.id)
+    if not request.user.is_authenticated:
+        return redirect('userProfile:loginUser')
+    user = ensure_user_profile(request.user)
     context = {
         'currentUser': user
     }
@@ -59,16 +62,15 @@ def gettingUserPoster(request, csrf_token=None, userID=None):
     print('Current USEDR: ',userID)
     if userID is not None:
         try:
-            # user = userPoster.objects.get(userID=userID)
-            user = userPoster.objects.get_or_create(userID=userID)[0]
+            user = ensure_user_profile_by_id(userID)
             request.session.setdefault('how_many_visits', 0)
             request.session['how_many_visits'] += 1
             if (userID != request.user.id and int(request.session['how_many_visits']) < 2):
                 user.reputations += 1
                 user.save()
             # return HttpResponseRedirect(reverse("userProfile:profileOf", request.user.id))
-            UserVisitor = request.user.additionalCreds
-            if UserVisitor != user:
+            UserVisitor = ensure_user_profile(request.user) if request.user.is_authenticated else None
+            if UserVisitor is not None and UserVisitor != user:
                 print(UserVisitor.MyVisitors)
                 print(UserVisitor.MyVisitations)
                 UserVisitor.visitedUser.add(user)
@@ -95,16 +97,14 @@ def gettingUserPoster(request, csrf_token=None, userID=None):
             #     UserVisitor.save()
 
         except Exception as e:
-            user = userPoster.objects.get(userID=userID)
+            user = ensure_user_profile_by_id(userID)
             print(e)
             # return HttpResponseRedirect(reverse("userProfile:profileOf", request.user.id))
     else:
-        user = userPoster.objects.get(userID=userID)
+        user = ensure_user_profile_by_id(userID)
     if request.user.is_authenticated:
         try:
-            # pageviewer = userPoster.objects.get(id=request.user.id)
-            
-            pageviewer = userPoster.objects.get(id=userID)
+            pageviewer = ensure_user_profile(request.user)
         except:
             print('User Logged in but cant find in userPoster', userID)
             pageviewer = None
@@ -127,14 +127,18 @@ def gettingUserPoster(request, csrf_token=None, userID=None):
 def functiontoregisterfromFacebook(request, social_auth_obj):
     print('registering')
     try:
-        NewFacePoster = userPoster.objects.get_or_create(
-            userID=request.user.id, name=social_auth_obj['name'], photo=social_auth_obj['picture']['data']['url'], signedFrom='facebook')[0]
-        userBackUp = UserCredentialsBackUP.objects.create(
-            userID=request.user.id, userPassword=social_auth_obj['id'])    # Creating BackUp
-        userBackUp.save()
-        request.user.additionalCreds = NewFacePoster
-        request.user.photoLink = social_auth_obj['picture']['data']['url']
-        request.user.save()
+        photo_url = social_auth_obj.get('picture', {}).get('data', {}).get('url', '')
+        NewFacePoster = ensure_user_profile(
+            request.user,
+            name=social_auth_obj.get('name') or request.user.username,
+            photo=photo_url,
+            signed_from='facebook',
+            overwrite=True,
+        )
+        UserCredentialsBackUP.objects.update_or_create(
+            userID=request.user.id,
+            defaults={'userPassword': social_auth_obj.get('id', '')}
+        )
         print('New Poster Created')
         return NewFacePoster
     except Exception as e:
@@ -147,21 +151,25 @@ def functiontoregisterfromFacebook(request, social_auth_obj):
 
 
 def profile(request):
-    if request.user:
+    if request.user.is_authenticated:
         try:     
-            if request.user.additionalCreds is None:  # if first time logging
+            user = None
+            if request.user.additionalCreds_id is None:  # if first time logging
                 print('first TIme Logging\n\n\n\n')
-                from social_django.models import UserSocialAuth
-                social_auth_obj = UserSocialAuth.objects.get(
-                    user=request.user).extra_data
-                print('made New User')
-                # if log from facebook
-                if request.user.social_auth.values_list('provider')[0][0] == 'facebook':
-                    print('using Facebook')
-                    user = functiontoregisterfromFacebook(
-                        request, social_auth_obj)
-            else:
-                user = userPoster.objects.get(userID=request.user.id)
+                try:
+                    from social_django.models import UserSocialAuth
+                    social_auth_obj = UserSocialAuth.objects.get(
+                        user=request.user).extra_data
+                    print('made New User')
+                    # if log from facebook
+                    if request.user.social_auth.values_list('provider')[0][0] == 'facebook':
+                        print('using Facebook')
+                        user = functiontoregisterfromFacebook(
+                            request, social_auth_obj)
+                except Exception as e:
+                    print('Social profile sync skipped:', e)
+            if user is None:
+                user = ensure_user_profile(request.user)
                 print('Old Timer')
             context = {
                 'message': '. . . . ',
@@ -313,20 +321,16 @@ def registerUser(request, previouspath=None):
         return render_template(request, 'userProfile/index.html', {"message": "Passwords must match."})  
     print('\nprevious path: ', previouspath)
     try:
-        user = UserCredentials.objects.create_user(
-            userName, userEmail, userPassword)
-        user.save()
+        user, NewuserPoster = create_user_with_profile(
+            username=userName,
+            email=userEmail,
+            password=userPassword,
+            profile_name=userName,
+            contact=userEmail,
+            save_password_backup=True,
+        )
         print('\nUSER ID : ', user.id)
-        userBackUp = UserCredentialsBackUP.objects.create(
-            userID=user.id, userPassword=userPassword)
-        userBackUp.save()
-        print('\nuserID: ', userBackUp.userID, userBackUp.id)
-        NewuserPoster = userPoster.objects.create(
-            userID=user.id, name=user.username, contact=userEmail)
-        NewuserPoster.save()
         print('\nUserID: ', NewuserPoster.userID, NewuserPoster.id)
-        user.additionalCreds = NewuserPoster
-        user.save()
 
     except IntegrityError:
         # return render(request, "userProfile/index.html", {
@@ -363,7 +367,6 @@ def deleteUser(request):
 
 # @csrf_protect
 
- 
 @csrf_exempt
 def registerUserJSON(request):
     print('\n\nRegistering User JSON\n\n')
@@ -418,35 +421,27 @@ def registerUserJSON(request):
         except Exception as e:
             print(e)
 
-        poster, _ = userPoster.objects.get_or_create(
-            userID=user.id,
-            name=(user.username or contact_value),
-            defaults={'contact': contact_value},
+        ensure_user_profile(
+            user,
+            name=putname or user.username or contact_value,
+            contact=contact_value,
+            photo=photo_url,
+            overwrite=True,
         )
-        if contact_value and not poster.contact:
-            poster.contact = contact_value
-
-        if photo_url:
-            poster.photo = photo_url
-            user.photoLink = photo_url
-        if putname:
-            if not userPoster.objects.filter(userID=user.id, name=putname).exclude(id=poster.id).exists():
-                poster.name = putname
-
-        poster.save()
-        if user.additionalCreds_id != poster.id:
-            user.additionalCreds = poster
-            user.save()
 
         return JsonResponse(['Logged In'], safe=False)
 
     # 2) Otherwise create a new user safely.
     try:
         print('Creating New User and Credentials')
-        newUser = UserCredentials.objects.create_user(
+        newUser, poster = create_user_with_profile(
             username=userName,
             email=userEmail or '',
             password=userPassword,
+            profile_name=putname or userName,
+            contact=contact_value,
+            photo=photo_url,
+            save_password_backup=True,
         )
     except IntegrityError:
         return JsonResponse(['Username already taken.'], safe=False, status=409)
@@ -459,33 +454,6 @@ def registerUserJSON(request):
     except Exception as e:
         print(e)
 
-    try:
-        UserCredentialsBackUP.objects.update_or_create(
-            userID=newUser.id,
-            defaults={'userPassword': userPassword},
-        )
-    except Exception as e:
-        print(e)
-
-    poster, _ = userPoster.objects.get_or_create(
-        userID=newUser.id,
-        name=(userName or contact_value),
-        defaults={'contact': contact_value},
-    )
-    if contact_value and poster.contact != contact_value:
-        poster.contact = contact_value
-
-    if photo_url:
-        poster.photo = photo_url
-        newUser.photoLink = photo_url
-    if putname:
-        if not userPoster.objects.filter(userID=newUser.id, name=putname).exclude(id=poster.id).exists():
-            poster.name = putname
-
-    poster.save()
-    newUser.additionalCreds = poster
-    newUser.save()
-
     login(request, newUser, backend='django.contrib.auth.backends.ModelBackend')
     print('Created New User and Credentials')
     return JsonResponse(['Thank you for coming..'], safe=False)
@@ -495,7 +463,7 @@ def uploadPhoto(request):
     if request.method == 'POST':
         # TODO Changing FilePath Upload on Webdriver, segregate profile pictures from verification ID
         # TODO Made filename to 'userID__**fileName'
-        user = userPoster.objects.get(userID=request.user.id)
+        user = ensure_user_profile(request.user)
         Imageurls = Upload_and_get_URL(request)
         print('\n\n\n\n\n\n')
         print('Image URL LOCAL: ', Imageurls[2])
@@ -645,28 +613,16 @@ def tour_guide_register(request, place_slug=None):
                 photo_url = uploadtoCloudinary(request, selfie, f"tour_guide_{username}_selfie")
                 print(f"DEBUG: Photo uploaded successfully: {photo_url}")
                 
-                # Create user account
-                user = UserCredentials.objects.create_user(
+                # Create user account and linked profile through one path
+                user, poster = create_user_with_profile(
                     username=username,
                     email=email or None,  # Use None if email is empty
-                    password=password
+                    password=password,
+                    profile_name=display_name or username,
+                    contact=email or '',
+                    photo=photo_url,
+                    save_password_backup=True,
                 )
-                
-                # Create backup
-                userBackUp = UserCredentialsBackUP.objects.create(
-                    userID=user.id, 
-                    userPassword=password
-                )
-                
-                # Create userPoster
-                poster = userPoster.objects.create(
-                    userID=user.id,
-                    name=display_name or username,
-                    contact=email or '',  # Use empty string if no email
-                    photo=photo_url
-                )
-                user.additionalCreds = poster
-                user.save()
                 
                 # Create tour guide profile
                 tour_guide = form.save(commit=False)
@@ -798,4 +754,3 @@ def toggle_tour_guide_status(request, guide_id):
         return JsonResponse({'success': False, 'message': 'Tour guide not found'}, status=404)
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)}, status=500)
- 

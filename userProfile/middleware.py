@@ -23,7 +23,9 @@ class RequestMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        # Store request in thread-local storage
         _thread_locals.request = request
-        response = self.get_response(request)
-        return response
+        try:
+            return self.get_response(request)
+        finally:
+            if hasattr(_thread_locals, 'request'):
+                del _thread_locals.request

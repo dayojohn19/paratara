@@ -21,12 +21,38 @@
         .badge { display: inline-block; font-size: 12px; background: #e8f1ff; color: #1d4ed8; border-radius: 999px; padding: 4px 8px; }
         .empty { background: #fff; border: 1px dashed #cbd5e1; border-radius: 10px; padding: 18px; }
         .paypal-btn { margin-top: 12px; min-height: 42px; }
+        .checkout-status {
+            display: none;
+            margin: 12px 0 18px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid #bfdbfe;
+            background: #eff6ff;
+            color: #1e3a8a;
+            font-size: 14px;
+        }
+        .checkout-status.is-warn {
+            border-color: #fde68a;
+            background: #fffbeb;
+            color: #92400e;
+        }
+        .checkout-status.is-error {
+            border-color: #fecaca;
+            background: #fef2f2;
+            color: #991b1b;
+        }
+        .checkout-status.is-success {
+            border-color: #bbf7d0;
+            background: #f0fdf4;
+            color: #166534;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Available Subscription Plans</h1>
         <p class="sub">Browse all active plans currently available.</p>
+        <div id="checkout-status" class="checkout-status" role="status" aria-live="polite"></div>
 
         {% if product_rows %}
             <div class="product-list">
@@ -82,6 +108,18 @@
     </div>
 
     <script>
+        function showCheckoutStatus(message, variant) {
+            const statusEl = document.getElementById("checkout-status");
+            if (!statusEl) return;
+
+            statusEl.className = "checkout-status";
+            if (variant) {
+                statusEl.classList.add("is-" + variant);
+            }
+            statusEl.textContent = message;
+            statusEl.style.display = "block";
+        }
+
         async function loadPayPalSdk(clientId) {
             const sdkUrl = "https://www.paypal.com/sdk/js?client-id=" + encodeURIComponent(clientId) + "&vault=true&intent=subscription";
             return new Promise((resolve, reject) => {
@@ -111,27 +149,38 @@
                             plan_id: planId
                         });
                     },
-                    async onApprove(data) {
-                        try {
-                            const saveResponse = await fetch("{% url 'subscription:paypal_onapprove_webhook' %}", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({
-                                    subscription_id: data.subscriptionID
-                                })
+                    onClick() {
+                        showCheckoutStatus("A PayPal window has opened. Complete checkout there, then return to this page.", "warn");
+                    },
+                    onApprove(data) {
+                        showCheckoutStatus("Subscription approved. Finalizing your account access...", "warn");
+                        // alert("Subscription successful. ID: " + data.subscriptionID);
+                        fetch("{% url 'subscription:paypal_onapprove_webhook' %}", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                subscription_id: data.subscriptionID
+                            })
+                        })
+                            .then((saveResponse) => saveResponse.json().then((saveData) => ({ saveResponse, saveData })))
+                            .then(({ saveResponse, saveData }) => {
+                                if (!saveResponse.ok || !saveData.ok) {
+                                    throw new Error(saveData.error || "Failed to save subscription.");
+                                }
+                                showCheckoutStatus("Subscription completed successfully.", "success");
+                            })
+                            .catch((err) => {
+                                console.error("Failed to save onApprove subscription:", err);
+                                showCheckoutStatus("Subscription approved, but we could not save it yet. Please refresh in a moment.", "error");
+                                alert("Subscription approved, but we could not save it yet.");
                             });
-                            const saveData = await saveResponse.json();
-                            if (!saveResponse.ok || !saveData.ok) {
-                                throw new Error(saveData.error || "Failed to save subscription.");
-                            }
-                            alert("Subscription successful. ID: " + data.subscriptionID);
-                        } catch (err) {
-                            console.error("Failed to save onApprove subscription:", err);
-                            alert("Subscription approved, but we could not save it yet.");
-                        }
+                    },
+                    onCancel() {
+                        showCheckoutStatus("Checkout was canceled.", "error");
                     },
                     onError(err) {
                         console.error("PayPal error:", err);
+                        showCheckoutStatus("Payment failed. Please try again.", "error");
                         alert("Payment failed. Please try again.");
                     }
                 }).render("#" + container.id);

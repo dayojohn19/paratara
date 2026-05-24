@@ -6,7 +6,6 @@ from django.forms import ModelForm, Textarea
 
 
 from .models import resortItem
-from userProfile.models import userPoster
 
 
 
