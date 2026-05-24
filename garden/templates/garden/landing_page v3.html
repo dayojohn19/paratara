@@ -934,17 +934,34 @@
             ].join('\n');
 
             try {
-                await window.emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-                    to_name: 'Smart Postcard Orders',
+                await window.emailjs.send(
+                EMAILJS_SERVICE_ID,
+                EMAILJS_TEMPLATE_ID,
+                {
+                    to_name: 'info@yahoo.com',
                     from_name: name,
-                    business_name: business,
-                    reply_to: email,
-                    customer_email: email,
-                    sender_contact: contact,
-                    address: fullAddress,
-                    order_details: orderDetails,
-                    message: message
-                });
+                    message: `
+                New Smart Postcard Order
+
+                Name: ${name}
+
+                Business: ${business}
+
+                Email: ${email}
+
+                Phone: ${contact}
+
+                Address:
+                ${fullAddress}
+
+                Order Details:
+                ${orderDetails}
+
+                Message:
+                ${message}
+                    `
+                }
+                );
 
                 alert('Stock request submitted. We will contact you soon.');
                 event.target.reset();

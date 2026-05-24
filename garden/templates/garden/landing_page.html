@@ -1,3 +1,1237 @@
-{% load static %} <!doctype html><html lang=en><meta charset=UTF-8><meta content="width=device-width,initial-scale=1.0" name=viewport><title>Smart Postcard - Patented Souvenir Postcards Made in the Philippines</title><script src=https://cdn.tailwindcss.com></script><style>html{scroll-behavior:smooth}body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;font-family:Inter,Segoe UI,Arial,sans-serif;position:relative;overflow-x:hidden}.page-bg{background-color:#0000;background-image:linear-gradient(120deg,#14b8a629 0%,#0000 34%),linear-gradient(240deg,#f59e0b2e 0%,#0000 30%),linear-gradient(160deg,#0ea5e926 0%,#0000 42%),linear-gradient(135deg,#f8fafc 0%,#ecfdf5 42%,#eff6ff 74%,#fff7ed 100%);background-position:0 0,0 0,0 0,0 0;background-repeat:repeat,repeat,repeat,repeat;background-size:180% 180%;background-attachment:fixed;background-origin:padding-box,padding-box,padding-box,padding-box;background-clip:border-box,border-box,border-box,border-box;animation:18s ease-in-out infinite alternate pageGradientShift}header,main,footer{z-index:1;position:relative}.flower-field{z-index:0;pointer-events:none;contain:layout paint;position:fixed;inset:0;overflow:hidden}.flower{bottom:-12vh;left:var(--x);width:var(--size);aspect-ratio:1;opacity:0;animation:flowerFloat var(--duration)linear infinite;animation-delay:var(--delay);will-change:transform,opacity;background:radial-gradient(circle,#facc15eb 0 12%,#0000 14%),radial-gradient(circle at 50% 15%,#c084fcc7 0 18%,#0000 20%),radial-gradient(circle at 84%,#a855f7b8 0 18%,#0000 20%),radial-gradient(circle at 50% 85%,#7e22ce9e 0 18%,#0000 20%),radial-gradient(circle at 16%,#d8b4feb8 0 18%,#0000 20%);border-radius:50%;position:absolute;transform:translate(0,0)}.flower:first-child{--x:8%;--size:1.25rem;--drift:7vw;--spin:160deg;--duration:24s;--delay:-12s;--flower-opacity:.3}.flower:nth-child(2){--x:18%;--size:.9rem;--drift:-5vw;--spin:-210deg;--duration:28s;--delay:-6s;--flower-opacity:.24}.flower:nth-child(3){--x:31%;--size:1.45rem;--drift:9vw;--spin:260deg;--duration:31s;--delay:-20s;--flower-opacity:.2}.flower:nth-child(4){--x:44%;--size:1rem;--drift:-8vw;--spin:-180deg;--duration:25s;--delay:-2s;--flower-opacity:.26}.flower:nth-child(5){--x:57%;--size:1.35rem;--drift:6vw;--spin:220deg;--duration:30s;--delay:-16s;--flower-opacity:.22}.flower:nth-child(6){--x:68%;--size:.85rem;--drift:-6vw;--spin:-240deg;--duration:23s;--delay:-9s;--flower-opacity:.28}.flower:nth-child(7){--x:79%;--size:1.2rem;--drift:8vw;--spin:190deg;--duration:27s;--delay:-18s;--flower-opacity:.24}.flower:nth-child(8){--x:88%;--size:1.55rem;--drift:-7vw;--spin:-170deg;--duration:34s;--delay:-25s;--flower-opacity:.18}.flower:nth-child(9){--x:96%;--size:.95rem;--drift:-10vw;--spin:280deg;--duration:26s;--delay:-4s;--flower-opacity:.24}main h1,main h2{color:#0f172a}#products h2{color:#fff}@supports ((-webkit-background-clip:text) or (background-clip:text)){main h1,main h2{background:linear-gradient(100deg,#0f172a 0%,#0f766e 38%,#0284c7 70%,#d97706 100%) 0 0/180%;-webkit-text-fill-color:transparent;-webkit-background-clip:text;background-clip:text;animation:8s ease-in-out infinite alternate titleGradientFlow}#products h2{background:linear-gradient(100deg,#fff 0%,#5eead4 34%,#38bdf8 68%,#fbbf24 100%) 0 0/180%;-webkit-text-fill-color:transparent;-webkit-background-clip:text;background-clip:text}}.lux-card{backdrop-filter:blur(14px);background:#ffffffe6;border:1px solid #e2e8f0e6;border-radius:.5rem;transition:transform .25s,box-shadow .25s,border-color .25s,background .25s;box-shadow:0 14px 34px #0f172a14}.lux-card:not(form):hover{background:#fffffff7;border-color:#14b8a657;transform:translateY(-4px);box-shadow:0 22px 48px #0f172a21}header nav a{transition:color .2s,transform .2s}header nav a:not(.lux-btn):hover{transform:translateY(-1px)}.lux-btn{border-radius:9999px;font-weight:700;transition:transform .22s,box-shadow .22s,background .22s,color .22s,border-color .22s;box-shadow:0 10px 24px #0f172a14}.lux-btn:hover{transform:translateY(-2px);box-shadow:0 16px 30px #0f172a24}.lux-btn:focus-visible,.order-img:focus-visible,.qty-btn:focus-visible,input:focus-visible,textarea:focus-visible{outline-offset:3px;outline:3px solid #14b8a659}.lux-btn-primary{color:#fff;background:linear-gradient(135deg,#0f172a 0%,#164e63 52%,#0f766e 100%)}.lux-btn-primary:hover{background:linear-gradient(135deg,#0f766e 0%,#164e63 54%,#0f172a 100%)}.lux-btn-outline{color:#0f172a;background:#ffffffdb;border:1px solid #cbd5e1f2}.lux-btn-outline:hover{color:#0f766e;background:#fff;border-color:#0f766e}.product-image{aspect-ratio:4/5;background:linear-gradient(145deg,#f8fafcf2,#ecfdf5d1),#f8fafc;transition:transform .35s,filter .35s}.order-img{transition:transform .25s,box-shadow .25s;overflow:hidden}.order-img>img{transition:transform .35s,filter .35s}.order-img:hover .product-image,.order-img:focus-visible .product-image,.order-img:hover>img,.order-img:focus-visible>img{filter:saturate(1.08)contrast(1.02);transform:scale(1.035)}#products article{border-radius:.5rem;transition:transform .25s,box-shadow .25s;overflow:hidden}#products article:hover{transform:translateY(-5px);box-shadow:0 28px 54px #00000047}input,textarea{border-radius:.375rem;transition:border-color .2s,box-shadow .2s,background .2s}input:focus,textarea:focus{border-color:#0f766e;outline:none;box-shadow:0 0 0 4px #14b8a624}.qty-btn{transition:transform .18s,box-shadow .18s,background .18s}.qty-btn:hover{transform:translateY(-1px)scale(1.03);box-shadow:0 10px 18px #0f172a1f}#img-modal{animation:.18s modalFade}#img-modal-img{border-radius:.5rem;animation:.22s modalImageRise}.modal-open{overflow:hidden}@keyframes pageGradientShift{0%{background-position:0%}to{background-position:100%}}@keyframes titleGradientFlow{0%{background-position:0%}to{background-position:100%}}@keyframes flowerFloat{0%{opacity:0;transform:translateY(8vh)rotate(0)scale(.82)}12%,82%{opacity:var(--flower-opacity)}to{opacity:0;transform:translate3d(var(--drift),-118vh,0)rotate(var(--spin))scale(1.08)}}@keyframes modalFade{0%{opacity:0}to{opacity:1}}@keyframes modalImageRise{0%{opacity:0;transform:translateY(10px)scale(.98)}to{opacity:1;transform:translateY(0)scale(1)}}@media (width<=640px){.page-bg{background-attachment:scroll}.flower:nth-child(n+7){display:none}}@media (prefers-reduced-motion:reduce){*,:before,:after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}}</style><body class="min-h-screen page-bg text-slate-900"><div aria-hidden=true class=flower-field><span class=flower></span><span class=flower></span><span class=flower></span><span class=flower></span><span class=flower></span><span class=flower></span><span class=flower></span><span class=flower></span><span class=flower></span></div><header class="container mx-auto px-5 py-6"><div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><a class="flex items-center gap-3" href=#> <span class="flex h-11 w-11 items-center justify-center rounded-full bg-teal-700 text-white"> <svg class="h-6 w-6" viewbox="0 0 24 24" aria-hidden=true fill=none stroke=currentColor><rect height=14 rx=2 stroke-width=2 width=18 x=3 y=5 /><path d="M3 7l9 6 9-6" stroke-width=2 /></svg> </span> <span class="text-2xl font-black tracking-tight sm:text-3xl">Smart Postcard</span> </a><nav class="flex flex-wrap items-center gap-3 text-sm font-semibold text-slate-700"><a class=hover:text-teal-700 href=#why-stock>Why Stock It</a><a class=hover:text-teal-700 href=#products>Products</a><a class="lux-btn lux-btn-primary px-5 py-2.5" href=#order>Request Stock</a></nav></div></header><main><section class="container mx-auto px-5 pb-14 pt-10 lg:pb-20 lg:pt-16"><div class="grid items-center gap-12 lg:grid-cols-[1.02fr_0.98fr]"><div><div class="mb-5 inline-flex items-center gap-2 rounded-full border border-teal-200 bg-white px-4 py-2 text-sm font-bold text-teal-800"><span class="h-2 w-2 rounded-full bg-amber-500"></span> Patented Postcards</div><h1 class="max-w-3xl text-4xl font-black leading-tight tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">A water-resistant postcard tourists can collect for decades.</h1><p class="mt-6 max-w-2xl text-lg leading-8 text-slate-700 sm:text-xl">Smart Postcard gives souvenir and store managers a new kind of travel keepsake: durable print, a digital experience, and a collectible gallery of places in one product. It is proudly made in the Philippines and designed to stand apart from ordinary postcards.<div class="mt-8 flex flex-wrap gap-3"><a class="lux-btn lux-btn-primary inline-flex items-center gap-2 px-7 py-3.5 shadow-lg shadow-slate-300/60" href=#order> Request Starter Stock <svg class="h-5 w-5" viewbox="0 0 24 24" aria-hidden=true fill=none stroke=currentColor><path d="M5 12h14M12 5l7 7-7 7" stroke-linecap=round stroke-width=2 /></svg> </a><a class="lux-btn lux-btn-outline px-7 py-3.5" href=#products>View Product Types</a></div><dl class="mt-10 grid max-w-2xl grid-cols-1 gap-4 sm:grid-cols-3"><div class="border-l-4 border-teal-600 bg-white/70 p-4"><dt class="text-sm font-bold uppercase tracking-wide text-slate-500">Built For<dd class="mt-1 text-lg font-black text-slate-950">Souvenir sales</div><div class="border-l-4 border-amber-500 bg-white/70 p-4"><dt class="text-sm font-bold uppercase tracking-wide text-slate-500">Material<dd class="mt-1 text-lg font-black text-slate-950">Water-resistant</div><div class="border-l-4 border-sky-600 bg-white/70 p-4"><dt class="text-sm font-bold uppercase tracking-wide text-slate-500">Origin<dd class="mt-1 text-lg font-black text-slate-950">Philippines</div></dl></div><div class=relative><img alt="Smart Postcard sample design" class="mx-auto w-full max-w-xl object-contain drop-shadow-2xl" src="{% static 'garden/picture_front.png' %}"></div></div></section><section class="bg-white/80 py-16 lg:py-20" id=why-stock><div class="container mx-auto px-5"><div class="mx-auto max-w-3xl text-center"><p class="text-sm font-black uppercase tracking-[0.22em] text-teal-700">For stores, resorts, tour desks, and attractions<h2 class="mt-3 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">Why managers should carry Smart Postcard</h2><p class="mt-4 text-lg leading-8 text-slate-600">Tourists already buy memories. This gives them a souvenir that survives water, carries a story, encourages them to collect more places over time, and helps more travelers discover your store through our tourist blog features.</div><div class="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-5"><article class="lux-card p-6"><div class="mb-5 flex h-12 w-12 items-center justify-center rounded-lg bg-teal-700 text-white"><svg class="h-6 w-6" viewbox="0 0 24 24" aria-hidden=true fill=none stroke=currentColor><path d="M4 7h16M4 12h16M4 17h10" stroke-linecap=round stroke-width=2 /></svg></div><h3 class="text-xl font-black">Easy to explain</h3><p class="mt-3 leading-7 text-slate-600">A physical postcard customers understand immediately, upgraded with a scan-to-open digital memory.</article><article class="lux-card p-6"><div class="mb-5 flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-700 text-white"><svg class="h-6 w-6" viewbox="0 0 24 24" aria-hidden=true fill=none stroke=currentColor><path d="M4 11v2a2 2 0 002 2h2l5 4V5L8 9H6a2 2 0 00-2 2z" stroke-linejoin=round stroke-width=2 /><path d="M16 9a4 4 0 010 6M19 6a8 8 0 010 12" stroke-linecap=round stroke-width=2 /></svg></div><h3 class="text-xl font-black">More store visitors</h3><p class="mt-3 leading-7 text-slate-600">Partner stores are automatically featured in new tourist blogs, helping travelers find your shop before or during their trip.</article><article class="lux-card p-6"><div class="mb-5 flex h-12 w-12 items-center justify-center rounded-lg bg-amber-500 text-white"><svg class="h-6 w-6" viewbox="0 0 24 24" aria-hidden=true fill=none stroke=currentColor><path d="M8 3h8l3 5v11a2 2 0 01-2 2H7a2 2 0 01-2-2V8l3-5z" stroke-linejoin=round stroke-width=2 /><path d="M9 13h6M9 17h4" stroke-linecap=round stroke-width=2 /></svg></div><h3 class="text-xl font-black">Made to last</h3><p class="mt-3 leading-7 text-slate-600">Water-resistant construction helps the postcard stay bright and display-worthy for years, even decades.</article><article class="lux-card p-6"><div class="mb-5 flex h-12 w-12 items-center justify-center rounded-lg bg-sky-700 text-white"><svg class="h-6 w-6" viewbox="0 0 24 24" aria-hidden=true fill=none stroke=currentColor><path d="M4 6h16v12H4z" stroke-linejoin=round stroke-width=2 /><path d="M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01" stroke-linecap=round stroke-width=3 /></svg></div><h3 class="text-xl font-black">Collectible by place</h3><p class="mt-3 leading-7 text-slate-600">Each destination can become part of a personal gallery, giving customers a reason to buy the next location.</article><article class="lux-card p-6"><div class="mb-5 flex h-12 w-12 items-center justify-center rounded-lg bg-rose-600 text-white"><svg class="h-6 w-6" viewbox="0 0 24 24" aria-hidden=true fill=none stroke=currentColor><path d="M12 3l7 4v5c0 5-3.5 8-7 9-3.5-1-7-4-7-9V7l7-4z" stroke-linejoin=round stroke-width=2 /><path d="M9 12l2 2 4-5" stroke-linecap=round stroke-linejoin=round stroke-width=2 /></svg></div><h3 class="text-xl font-black">Protected idea</h3><p class="mt-3 leading-7 text-slate-600">The patented format helps your shelf offer something customers will not find on an ordinary postcard rack.</article></div></div></section><section class="container mx-auto px-5 py-16 lg:py-20"><div class="grid items-center gap-10 lg:grid-cols-2"><div class="grid gap-5 sm:grid-cols-2"><img alt="Personalized smart postcard preview" class="h-full min-h-72 w-full object-cover shadow-xl" src="{% static 'garden/picture_personalized.jpg' %}"><img alt="Collectible smart postcard gallery preview" class="h-full min-h-72 w-full object-cover shadow-xl" src="{% static 'garden/picture_collectibles.png' %}"></div><div><p class="text-sm font-black uppercase tracking-[0.22em] text-teal-700">More than print<h2 class="mt-3 text-3xl font-black tracking-tight sm:text-4xl">The postcard becomes a small gallery of the trip.</h2><p class="mt-5 text-lg leading-8 text-slate-700">A tourist can keep it on a desk, fridge, album, wall, or gift box. When scanned, it can open destination media, stories, maps, promos, or a custom page connected to the place they visited.<div class="mt-8 grid gap-4"><div class="flex gap-4"><span class="mt-1 h-6 w-6 flex-none rounded-full bg-teal-700"></span><p class="leading-7 text-slate-700"><strong class=text-slate-950>Good for display:</strong> postcard or magnet options work well for counters, racks, and impulse-buy areas.</div><div class="flex gap-4"><span class="mt-1 h-6 w-6 flex-none rounded-full bg-amber-500"></span><p class="leading-7 text-slate-700"><strong class=text-slate-950>Good for local pride:</strong> each design can highlight the real location, culture, and story of the destination.</div><div class="flex gap-4"><span class="mt-1 h-6 w-6 flex-none rounded-full bg-sky-700"></span><p class="leading-7 text-slate-700"><strong class=text-slate-950>Good for repeat sales:</strong> visitors can collect cards from different places and build their own travel gallery.</div></div></div></div></section><section class="bg-slate-950 py-16 text-white lg:py-20" id=products><div class="container mx-auto px-5"><div class="mx-auto max-w-3xl text-center"><p class="text-sm font-black uppercase tracking-[0.22em] text-amber-300">Product options<h2 class="mt-3 text-3xl font-black tracking-tight sm:text-4xl">Choose the postcard style your customers will understand fastest.</h2><p class="mt-4 text-lg leading-8 text-slate-300">Start with destination-ready designs, real location photos, or your own store artwork. Magnet option is available for each style.</div><div class="mt-12 grid gap-7 lg:grid-cols-3"><article class="bg-white text-slate-900 shadow-2xl"><button class="order-img block w-full text-left" data-img-alt="Place infographic smart postcard" data-img-src="{% static 'garden/picture_infographic.png' %}" type=button><img alt="Place infographic smart postcard" class="product-image w-full object-cover" src="{% static 'garden/picture_infographic.png' %}"></button><div class=p-6><h3 class="text-2xl font-black">Place Infographic</h3><p class="mt-3 leading-7 text-slate-600">Best for facts, highlights, landmarks, and quick stories about the destination.<p class="mt-4 text-sm font-bold uppercase tracking-wide text-teal-700">Available with magnet</div></article><article class="bg-white text-slate-900 shadow-2xl"><button class="order-img block w-full text-left" data-img-alt="Scenic location smart postcard" data-img-src="{% static 'garden/picture_scenic.png' %}" type=button><img alt="Scenic location smart postcard" class="product-image w-full object-cover" src="{% static 'garden/picture_scenic.png' %}"></button><div class=p-6><h3 class="text-2xl font-black">Scenic Location</h3><p class="mt-3 leading-7 text-slate-600">Best for real photos of beaches, resorts, landmarks, restaurants, and attractions.<p class="mt-4 text-sm font-bold uppercase tracking-wide text-teal-700">Available with magnet</div></article><article class="bg-white text-slate-900 shadow-2xl"><button class="order-img flex product-image w-full items-center justify-center p-6" data-img-alt="Custom smart postcard design" data-img-src="{% static 'garden/picture_front-removebg-preview.png' %}" type=button><img alt="Custom smart postcard design" class="max-h-full w-full object-contain" src="{% static 'garden/picture_front-removebg-preview.png' %}"></button><div class=p-6><h3 class="text-2xl font-black">Custom Store Design</h3><p class="mt-3 leading-7 text-slate-600">Best when you already have artwork, branding, or a specific destination collection in mind.<p class="mt-4 text-sm font-bold uppercase tracking-wide text-teal-700">Available with magnet</div></article></div></div></section><section class="container mx-auto px-5 py-16 lg:py-20"><div class="mx-auto max-w-3xl text-center"><p class="text-sm font-black uppercase tracking-[0.22em] text-teal-700">Simple store workflow<h2 class="mt-3 text-3xl font-black tracking-tight sm:text-4xl">How it works</h2></div><div class="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4"><div class="border-t-4 border-teal-700 bg-white p-6 shadow-md"><p class="text-4xl font-black text-slate-200">01<h3 class="mt-5 text-xl font-black">Pick designs</h3><p class="mt-3 leading-7 text-slate-600">Choose infographic, scenic, or custom postcards for your location.</div><div class="border-t-4 border-amber-500 bg-white p-6 shadow-md"><p class="text-4xl font-black text-slate-200">02<h3 class="mt-5 text-xl font-black">Add the smart link</h3><p class="mt-3 leading-7 text-slate-600">Connect each design to a digital page, media, map, or destination story.</div><div class="border-t-4 border-sky-700 bg-white p-6 shadow-md"><p class="text-4xl font-black text-slate-200">03<h3 class="mt-5 text-xl font-black">Stock your shelf</h3><p class="mt-3 leading-7 text-slate-600">Display them like premium souvenirs at your counter, rack, or gift area.</div><div class="border-t-4 border-rose-600 bg-white p-6 shadow-md"><p class="text-4xl font-black text-slate-200">04<h3 class="mt-5 text-xl font-black">Grow the gallery</h3><p class="mt-3 leading-7 text-slate-600">Add more places over time so customers can keep collecting.</div></div></section><section class="bg-white/90 py-16 lg:py-20" id=order><div class="container mx-auto px-5"><div class="mx-auto max-w-3xl text-center"><p class="text-sm font-black uppercase tracking-[0.22em] text-teal-700">Request stock<h2 class="mt-3 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">Tell us what your store wants to carry.</h2><p class="mt-4 text-lg leading-8 text-slate-600">Choose quantities, add product notes, and send your store details. We will contact you about design, production, delivery, and how your store can be featured in tourist blogs that help visitors find you.</div><div class="mt-12 grid gap-8 lg:grid-cols-[0.92fr_1.08fr]"><div class=space-y-5><div class="lux-card p-5"><h3 class="text-xl font-black">Place Infographic</h3><p class="mt-2 text-sm leading-6 text-slate-600">Facts, highlights, and local story design.<p class="mt-3 text-xs font-bold uppercase tracking-wide text-teal-700">Magnet option available</p><label class="mt-4 block text-sm font-bold text-slate-700">Order Quantity</label><div class="mt-2 flex items-center gap-2"><button aria-label="Decrease Place Infographic quantity" class="qty-btn decrement flex h-10 w-10 items-center justify-center rounded-full bg-slate-200 text-xl font-black text-slate-900" type=button>−</button><input class="product-qty h-10 w-20 border border-slate-300 px-3 text-center" data-product="Place Infographic Smart Postcard" max=99 min=0 type=number value=0><button aria-label="Increase Place Infographic quantity" class="qty-btn increment flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-xl font-black text-white" type=button>+</button></div><label class="mt-4 block text-sm font-bold text-slate-700">Product Note</label><input class="product-comment mt-2 w-full border border-slate-300 px-3 py-2" data-product="Place Infographic Smart Postcard" placeholder="Destination name, magnet request, or design note"></div><div class="lux-card p-5"><h3 class="text-xl font-black">Scenic Location</h3><p class="mt-2 text-sm leading-6 text-slate-600">Real location image for places tourists recognize.<p class="mt-3 text-xs font-bold uppercase tracking-wide text-teal-700">Magnet option available</p><label class="mt-4 block text-sm font-bold text-slate-700">Order Quantity</label><div class="mt-2 flex items-center gap-2"><button aria-label="Decrease Scenic Location quantity" class="qty-btn decrement flex h-10 w-10 items-center justify-center rounded-full bg-slate-200 text-xl font-black text-slate-900" type=button>−</button><input class="product-qty h-10 w-20 border border-slate-300 px-3 text-center" data-product="Scenic Location Smart Postcard" max=99 min=0 type=number value=0><button aria-label="Increase Scenic Location quantity" class="qty-btn increment flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-xl font-black text-white" type=button>+</button></div><label class="mt-4 block text-sm font-bold text-slate-700">Product Note</label><input class="product-comment mt-2 w-full border border-slate-300 px-3 py-2" data-product="Scenic Location Smart Postcard" placeholder="Destination name, magnet request, or design note"></div><div class="lux-card p-5"><h3 class="text-xl font-black">Custom Store Design</h3><p class="mt-2 text-sm leading-6 text-slate-600">Your artwork, store brand, or destination collection.<p class="mt-3 text-xs font-bold uppercase tracking-wide text-teal-700">Magnet option available</p><label class="mt-4 block text-sm font-bold text-slate-700">Order Quantity</label><div class="mt-2 flex items-center gap-2"><button aria-label="Decrease Custom Store Design quantity" class="qty-btn decrement flex h-10 w-10 items-center justify-center rounded-full bg-slate-200 text-xl font-black text-slate-900" type=button>−</button><input class="product-qty h-10 w-20 border border-slate-300 px-3 text-center" data-product="Custom Store Design Smart Postcard" max=99 min=0 type=number value=0><button aria-label="Increase Custom Store Design quantity" class="qty-btn increment flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-xl font-black text-white" type=button>+</button></div><label class="mt-4 block text-sm font-bold text-slate-700">Product Note</label><input class="product-comment mt-2 w-full border border-slate-300 px-3 py-2" data-product="Custom Store Design Smart Postcard" placeholder="Destination name, magnet request, or design note"></div></div><form class="lux-card p-6 sm:p-8" id=orderForm><h3 class="text-2xl font-black text-slate-950">Order Summary & Details</h3><div class="mt-5 bg-slate-50 p-4 text-sm leading-6 text-slate-700" id=orderSummary>No products selected yet.</div><div class="mt-6 grid gap-4 md:grid-cols-2"><div><label class="block text-sm font-bold text-slate-700">Business / Store Name</label><input class="mt-1 w-full border border-slate-300 px-3 py-2" name=business required></div><div><label class="block text-sm font-bold text-slate-700">Buyer Name</label><input class="mt-1 w-full border border-slate-300 px-3 py-2" name=name required></div><div><label class="block text-sm font-bold text-slate-700">Email</label><input class="mt-1 w-full border border-slate-300 px-3 py-2" name=email required type=email></div><div><label class="block text-sm font-bold text-slate-700">Contact Number</label><input class="mt-1 w-full border border-slate-300 px-3 py-2" placeholder="+63 912 345 6789" name=contact required type=tel></div></div><div class="mt-6 grid gap-4 md:grid-cols-2"><div class=md:col-span-2><label class="block text-sm font-bold text-slate-700">Street Address</label><input class="mt-1 w-full border border-slate-300 px-3 py-2" placeholder="Street address" id=address-street name=street required></div><div><label class="block text-sm font-bold text-slate-700">City</label><input class="mt-1 w-full border border-slate-300 px-3 py-2" id=address-city name=city placeholder=City required></div><div><label class="block text-sm font-bold text-slate-700">State / Province</label><input class="mt-1 w-full border border-slate-300 px-3 py-2" placeholder="State or Province" id=address-state name=state required></div><div><label class="block text-sm font-bold text-slate-700">ZIP / Postal Code</label><input class="mt-1 w-full border border-slate-300 px-3 py-2" placeholder="ZIP or Postal Code" id=address-zip name=zip required></div><div><label class="block text-sm font-bold text-slate-700">Country</label><input class="mt-1 w-full border border-slate-300 px-3 py-2" id=address-country name=country placeholder=Country required></div><div class=md:col-span-2><label class="block text-sm font-bold text-slate-700">Full Address</label><input class="mt-1 w-full border border-slate-300 bg-slate-100 px-3 py-2 text-slate-600" placeholder="Full address will appear here" id=address-full readonly></div></div><div class=mt-6><label class="block text-sm font-bold text-slate-700">Additional Notes</label><textarea class="mt-1 w-full border border-slate-300 px-3 py-2" placeholder="Preferred delivery schedule, destination collection, or other details" name=notes rows=3></textarea></div><button class="lux-btn lux-btn-primary mt-6 w-full px-8 py-3.5 sm:w-auto">Submit Stock Request</button></form></div></div></section></main><footer class="container mx-auto px-5 py-10"><div class="flex flex-col gap-4 border-t border-slate-300 pt-8 sm:flex-row sm:items-center sm:justify-between"><div><p class="text-lg font-black">Smart Postcard<p class="mt-1 text-sm text-slate-600">Patented souvenir postcards proudly made in the Philippines.</div><p class="text-sm text-slate-600">© 2026 Smart Postcard. All rights reserved.</div></footer><script src=https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js></script><script>const EMAILJS_SERVICE_ID=`service_jv335d7`,EMAILJS_TEMPLATE_ID=`template_hzlk188`,EMAILJS_PUBLIC_KEY=`kPR5fCmH0j3E0NSyr`;function escapeHtml(value){return value.replace(/[&<>"']/g,function(char){return{"&":`&amp;`,"<":`&lt;`,">":`&gt;`,'"':`&quot;`,"'":`&#039;`}[char]})}function getSelectedProducts(){let qtyInputs=document.querySelectorAll(`.product-qty`),commentInputs=document.querySelectorAll(`.product-comment`);return Array.from(qtyInputs).map(function(qtyInput,index){let qty=Math.max(0,parseInt(qtyInput.value,10)||0);return{product:qtyInput.getAttribute(`data-product`),qty,comment:commentInputs[index].value.trim()}}).filter(function(item){return item.qty>0})}function updateOrderSummary(){let selectedProducts=getSelectedProducts(),orderSummary=document.getElementById(`orderSummary`);if(!selectedProducts.length){orderSummary.innerHTML=`No products selected yet.`;return}orderSummary.innerHTML=selectedProducts.map(function(item){let comment=item.comment?` <span class="italic text-slate-500">("`+escapeHtml(item.comment)+`")</span>`:``;return`<div class="mb-2"><strong>`+escapeHtml(item.product)+`</strong>: `+item.qty+comment+`</div>`}).join(``)}function updateFullAddress(){let full=[`address-street`,`address-city`,`address-state`,`address-zip`,`address-country`].map(function(id){return document.getElementById(id).value.trim()}).filter(Boolean).join(`, `);document.getElementById(`address-full`).value=full}function showImgModal(src,alt){let modal=document.getElementById(`img-modal`),modalImg=document.getElementById(`img-modal-img`);modalImg.src=src,modalImg.alt=alt,modal.classList.remove(`hidden`),modal.classList.add(`flex`),document.body.classList.add(`modal-open`)}function hideImgModal(){let modal=document.getElementById(`img-modal`),modalImg=document.getElementById(`img-modal-img`);modal.classList.add(`hidden`),modal.classList.remove(`flex`),modalImg.src=``,document.body.classList.remove(`modal-open`)}document.addEventListener(`DOMContentLoaded`,function(){window.emailjs&&window.emailjs.init({publicKey:`kPR5fCmH0j3E0NSyr`}),document.querySelectorAll(`.product-qty, .product-comment`).forEach(function(input){input.addEventListener(`input`,updateOrderSummary)}),document.querySelectorAll(`.qty-btn`).forEach(function(button){button.addEventListener(`click`,function(){let input=button.parentElement.querySelector(`.product-qty`),min=parseInt(input.min,10),max=parseInt(input.max,10),value=parseInt(input.value,10)||0;button.classList.contains(`increment`)&&value<max&&(value+=1),button.classList.contains(`decrement`)&&value>min&&--value,input.value=value,input.dispatchEvent(new Event(`input`,{bubbles:!0}))})}),[`address-street`,`address-city`,`address-state`,`address-zip`,`address-country`].forEach(function(id){document.getElementById(id).addEventListener(`input`,updateFullAddress)}),document.querySelectorAll(`.order-img`).forEach(function(button){button.addEventListener(`click`,function(){showImgModal(button.getAttribute(`data-img-src`),button.getAttribute(`data-img-alt`))})}),document.getElementById(`orderForm`).addEventListener(`submit`,async function(event){event.preventDefault();let selectedProducts=getSelectedProducts();if(!selectedProducts.length){alert(`Please select at least one product.`);return}if(!window.emailjs){alert(`Order could not be sent. Please try again later.`);return}let business=document.querySelector(`input[name="business"]`).value.trim(),name=document.querySelector(`input[name="name"]`).value.trim(),email=document.querySelector(`input[name="email"]`).value.trim(),contact=document.querySelector(`input[name="contact"]`).value.trim(),notes=document.querySelector(`textarea[name="notes"]`).value.trim(),fullAddress=document.getElementById(`address-full`).value.trim(),orderDetails=selectedProducts.map(function(item){return item.product+`: `+item.qty+(item.comment?` ("`+item.comment+`")`:``)}).join(`
-`),message=[`Order Details:`,orderDetails,``,`Business / Store: `+business,`Buyer Name: `+name,`Email: `+email,`Contact: `+contact,`Address: `+fullAddress,`Notes: `+notes].join(`
-`);try{await window.emailjs.send(`service_jv335d7`,`template_hzlk188`,{to_name:`Smart Postcard Orders`,from_name:name,business_name:business,reply_to:email,customer_email:email,sender_contact:contact,address:fullAddress,order_details:orderDetails,message}),alert(`Stock request submitted. We will contact you soon.`),event.target.reset(),updateOrderSummary(),updateFullAddress()}catch(err){alert(`Order could not be sent. Please try again later.`),console.error(`EmailJS error:`,err)}}),document.getElementById(`img-modal-backdrop`).addEventListener(`click`,hideImgModal),document.getElementById(`img-modal-close`).addEventListener(`click`,hideImgModal),document.addEventListener(`keydown`,function(event){event.key===`Escape`&&hideImgModal()})});</script><div aria-label="Product image preview" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/90 p-4" aria-modal=true id=img-modal role=dialog><button aria-label="Close image preview" class="absolute inset-0" id=img-modal-backdrop type=button></button><img class="relative max-h-[90vh] max-w-[92vw] bg-white object-contain shadow-2xl" alt id=img-modal-img><button aria-label="Close image preview" class="absolute right-5 top-5 flex h-11 w-11 items-center justify-center rounded-full bg-white text-2xl font-black text-slate-950 shadow-lg" id=img-modal-close type=button>×</button></div>
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Postcard - Patented Souvenir Postcards Made in the Philippines</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            position: relative;
+            overflow-x: hidden;
+            font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
+        }
+
+        .page-bg {
+            background:
+                linear-gradient(120deg, rgba(20, 184, 166, 0.16) 0%, transparent 34%),
+                linear-gradient(240deg, rgba(245, 158, 11, 0.18) 0%, transparent 30%),
+                linear-gradient(160deg, rgba(14, 165, 233, 0.15) 0%, transparent 42%),
+                linear-gradient(135deg, #f8fafc 0%, #ecfdf5 42%, #eff6ff 74%, #fff7ed 100%);
+            background-attachment: fixed;
+            background-size: 180% 180%;
+            animation: pageGradientShift 18s ease-in-out infinite alternate;
+        }
+
+        header,
+        main,
+        footer {
+            position: relative;
+            z-index: 1;
+        }
+
+        .flower-field {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+            contain: layout paint;
+        }
+
+        .flower {
+            position: absolute;
+            bottom: -12vh;
+            left: var(--x);
+            width: var(--size);
+            aspect-ratio: 1;
+            opacity: 0;
+            background:
+                radial-gradient(circle at 50% 50%, rgba(250, 204, 21, 0.92) 0 12%, transparent 14%),
+                radial-gradient(circle at 50% 15%, rgba(192, 132, 252, 0.78) 0 18%, transparent 20%),
+                radial-gradient(circle at 84% 50%, rgba(168, 85, 247, 0.72) 0 18%, transparent 20%),
+                radial-gradient(circle at 50% 85%, rgba(126, 34, 206, 0.62) 0 18%, transparent 20%),
+                radial-gradient(circle at 16% 50%, rgba(216, 180, 254, 0.72) 0 18%, transparent 20%);
+            border-radius: 50%;
+            transform: translate3d(0, 0, 0);
+            animation: flowerFloat var(--duration) linear infinite;
+            animation-delay: var(--delay);
+            will-change: transform, opacity;
+        }
+
+        .flower:nth-child(1) {
+            --x: 8%;
+            --size: 1.25rem;
+            --drift: 7vw;
+            --spin: 160deg;
+            --duration: 24s;
+            --delay: -12s;
+            --flower-opacity: 0.3;
+        }
+
+        .flower:nth-child(2) {
+            --x: 18%;
+            --size: 0.9rem;
+            --drift: -5vw;
+            --spin: -210deg;
+            --duration: 28s;
+            --delay: -6s;
+            --flower-opacity: 0.24;
+        }
+
+        .flower:nth-child(3) {
+            --x: 31%;
+            --size: 1.45rem;
+            --drift: 9vw;
+            --spin: 260deg;
+            --duration: 31s;
+            --delay: -20s;
+            --flower-opacity: 0.2;
+        }
+
+        .flower:nth-child(4) {
+            --x: 44%;
+            --size: 1rem;
+            --drift: -8vw;
+            --spin: -180deg;
+            --duration: 25s;
+            --delay: -2s;
+            --flower-opacity: 0.26;
+        }
+
+        .flower:nth-child(5) {
+            --x: 57%;
+            --size: 1.35rem;
+            --drift: 6vw;
+            --spin: 220deg;
+            --duration: 30s;
+            --delay: -16s;
+            --flower-opacity: 0.22;
+        }
+
+        .flower:nth-child(6) {
+            --x: 68%;
+            --size: 0.85rem;
+            --drift: -6vw;
+            --spin: -240deg;
+            --duration: 23s;
+            --delay: -9s;
+            --flower-opacity: 0.28;
+        }
+
+        .flower:nth-child(7) {
+            --x: 79%;
+            --size: 1.2rem;
+            --drift: 8vw;
+            --spin: 190deg;
+            --duration: 27s;
+            --delay: -18s;
+            --flower-opacity: 0.24;
+        }
+
+        .flower:nth-child(8) {
+            --x: 88%;
+            --size: 1.55rem;
+            --drift: -7vw;
+            --spin: -170deg;
+            --duration: 34s;
+            --delay: -25s;
+            --flower-opacity: 0.18;
+        }
+
+        .flower:nth-child(9) {
+            --x: 96%;
+            --size: 0.95rem;
+            --drift: -10vw;
+            --spin: 280deg;
+            --duration: 26s;
+            --delay: -4s;
+            --flower-opacity: 0.24;
+        }
+
+        main h1,
+        main h2 {
+            color: #0f172a;
+        }
+
+        #products h2 {
+            color: #ffffff;
+        }
+
+        @supports ((-webkit-background-clip: text) or (background-clip: text)) {
+            main h1,
+            main h2 {
+                background: linear-gradient(100deg, #0f172a 0%, #0f766e 38%, #0284c7 70%, #d97706 100%);
+                background-size: 180% auto;
+                -webkit-background-clip: text;
+                background-clip: text;
+                -webkit-text-fill-color: transparent;
+                animation: titleGradientFlow 8s ease-in-out infinite alternate;
+            }
+
+            #products h2 {
+                background: linear-gradient(100deg, #ffffff 0%, #5eead4 34%, #38bdf8 68%, #fbbf24 100%);
+                background-size: 180% auto;
+                -webkit-background-clip: text;
+                background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+        }
+
+        .lux-card {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            border-radius: 0.5rem;
+            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
+            -webkit-backdrop-filter: blur(14px);
+            backdrop-filter: blur(14px);
+            transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+        }
+
+        .lux-card:not(form):hover {
+            transform: translateY(-4px);
+            background: rgba(255, 255, 255, 0.97);
+            border-color: rgba(20, 184, 166, 0.34);
+            box-shadow: 0 22px 48px rgba(15, 23, 42, 0.13);
+        }
+
+        header nav a {
+            transition: color 0.2s ease, transform 0.2s ease;
+        }
+
+        header nav a:not(.lux-btn):hover {
+            transform: translateY(-1px);
+        }
+
+        .lux-btn {
+            border-radius: 9999px;
+            font-weight: 700;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+            transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.22s ease, color 0.22s ease, border-color 0.22s ease;
+        }
+
+        .lux-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 30px rgba(15, 23, 42, 0.14);
+        }
+
+        .lux-btn:focus-visible,
+        .order-img:focus-visible,
+        .qty-btn:focus-visible,
+        input:focus-visible,
+        textarea:focus-visible {
+            outline: 3px solid rgba(20, 184, 166, 0.35);
+            outline-offset: 3px;
+        }
+
+        .lux-btn-primary {
+            background: linear-gradient(135deg, #0f172a 0%, #164e63 52%, #0f766e 100%);
+            color: #fff;
+        }
+
+        .lux-btn-primary:hover {
+            background: linear-gradient(135deg, #0f766e 0%, #164e63 54%, #0f172a 100%);
+        }
+
+        .lux-btn-outline {
+            background: rgba(255, 255, 255, 0.86);
+            color: #0f172a;
+            border: 1px solid rgba(203, 213, 225, 0.95);
+        }
+
+        .lux-btn-outline:hover {
+            border-color: #0f766e;
+            color: #0f766e;
+            background: #ffffff;
+        }
+
+        .product-image {
+            aspect-ratio: 4 / 5;
+            background:
+                linear-gradient(145deg, rgba(248, 250, 252, 0.95), rgba(236, 253, 245, 0.82)),
+                #f8fafc;
+            transition: transform 0.35s ease, filter 0.35s ease;
+        }
+
+        .order-img {
+            overflow: hidden;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .order-img > img {
+            transition: transform 0.35s ease, filter 0.35s ease;
+        }
+
+        .order-img:hover .product-image,
+        .order-img:focus-visible .product-image,
+        .order-img:hover > img,
+        .order-img:focus-visible > img {
+            transform: scale(1.035);
+            filter: saturate(1.08) contrast(1.02);
+        }
+
+        #products article {
+            border-radius: 0.5rem;
+            overflow: hidden;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        #products article:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 28px 54px rgba(0, 0, 0, 0.28);
+        }
+
+        input,
+        textarea {
+            border-radius: 0.375rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        }
+
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #0f766e;
+            box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.14);
+        }
+
+        .order-form {
+            position: relative;
+            overflow: hidden;
+            border-color: rgba(20, 184, 166, 0.28);
+            box-shadow: 0 26px 70px rgba(15, 23, 42, 0.14);
+        }
+
+        .order-form::before {
+            content: "";
+            position: absolute;
+            inset: 0 auto 0 0;
+            width: 5px;
+            background: linear-gradient(180deg, #0f766e 0%, #0284c7 54%, #f59e0b 100%);
+        }
+
+        .order-form > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .order-form-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        #orderSummary {
+            border: 1px solid rgba(203, 213, 225, 0.86);
+            border-radius: 0.5rem;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        .form-progress {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            min-height: 2rem;
+        }
+
+        .form-progress-dot {
+            display: block;
+            width: 0.58rem;
+            height: 0.58rem;
+            border-radius: 9999px;
+            background: #cbd5e1;
+            transition: width 0.22s ease, background 0.22s ease, box-shadow 0.22s ease;
+        }
+
+        .form-progress-dot.is-active {
+            width: 1.65rem;
+            background: #0f766e;
+            box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.12);
+        }
+
+        .form-section {
+            margin-top: 1rem;
+            border: 1px solid rgba(203, 213, 225, 0.72);
+            border-radius: 0.5rem;
+            background: rgba(248, 250, 252, 0.72);
+            padding: 1rem;
+            transition: border-color 0.22s ease, box-shadow 0.22s ease, background 0.22s ease, transform 0.22s ease;
+        }
+
+        .form-section:focus-within {
+            border-color: rgba(20, 184, 166, 0.62);
+            background: rgba(255, 255, 255, 0.96);
+            box-shadow: 0 16px 34px rgba(15, 23, 42, 0.11);
+            transform: translateY(-1px);
+        }
+
+        .form-section-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .form-step-badge {
+            display: inline-flex;
+            width: 2rem;
+            height: 2rem;
+            flex: none;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9999px;
+            background: #0f766e;
+            color: #ffffff;
+            font-size: 0.875rem;
+            font-weight: 900;
+            box-shadow: 0 9px 18px rgba(15, 118, 110, 0.22);
+        }
+
+        .form-field label {
+            transition: color 0.18s ease;
+        }
+
+        .form-field:focus-within label {
+            color: #0f766e;
+        }
+
+        .order-form input,
+        .order-form textarea {
+            background: #ffffff;
+        }
+
+        .order-form input:hover,
+        .order-form textarea:hover {
+            border-color: #94a3b8;
+        }
+
+        .order-form input[readonly] {
+            cursor: default;
+        }
+
+        .progressive-step.is-unlocked {
+            animation: revealStep 0.26s ease both;
+        }
+
+        .progressive-step[hidden] {
+            display: none;
+        }
+
+        .qty-btn {
+            transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+        }
+
+        .qty-btn:hover {
+            transform: translateY(-1px) scale(1.03);
+            box-shadow: 0 10px 18px rgba(15, 23, 42, 0.12);
+        }
+
+        #img-modal {
+            animation: modalFade 0.18s ease;
+        }
+
+        #img-modal-img {
+            border-radius: 0.5rem;
+            animation: modalImageRise 0.22s ease;
+        }
+
+        .modal-open {
+            overflow: hidden;
+        }
+
+        @keyframes pageGradientShift {
+            from {
+                background-position: 0% 50%;
+            }
+
+            to {
+                background-position: 100% 50%;
+            }
+        }
+
+        @keyframes titleGradientFlow {
+            from {
+                background-position: 0% 50%;
+            }
+
+            to {
+                background-position: 100% 50%;
+            }
+        }
+
+        @keyframes flowerFloat {
+            0% {
+                opacity: 0;
+                transform: translate3d(0, 8vh, 0) rotate(0deg) scale(0.82);
+            }
+
+            12%,
+            82% {
+                opacity: var(--flower-opacity);
+            }
+
+            100% {
+                opacity: 0;
+                transform: translate3d(var(--drift), -118vh, 0) rotate(var(--spin)) scale(1.08);
+            }
+        }
+
+        @keyframes modalFade {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes modalImageRise {
+            from {
+                opacity: 0;
+                transform: translateY(10px) scale(0.98);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes revealStep {
+            from {
+                opacity: 0;
+                transform: translateY(-6px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .page-bg {
+                background-attachment: scroll;
+            }
+
+            .flower:nth-child(n+7) {
+                display: none;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                scroll-behavior: auto !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen page-bg text-slate-900">
+    <div class="flower-field" aria-hidden="true">
+        <span class="flower"></span>
+        <span class="flower"></span>
+        <span class="flower"></span>
+        <span class="flower"></span>
+        <span class="flower"></span>
+        <span class="flower"></span>
+        <span class="flower"></span>
+        <span class="flower"></span>
+        <span class="flower"></span>
+    </div>
+
+    <header class="container mx-auto px-5 py-6">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <a href="#" class="flex items-center gap-3">
+                <span class="flex h-11 w-11 items-center justify-center rounded-full bg-teal-700 text-white">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <rect x="3" y="5" width="18" height="14" rx="2" stroke-width="2"/>
+                        <path d="M3 7l9 6 9-6" stroke-width="2"/>
+                    </svg>
+                </span>
+                <span class="text-2xl font-black tracking-tight sm:text-3xl">Smart Postcard</span>
+            </a>
+            <nav class="flex flex-wrap items-center gap-3 text-sm font-semibold text-slate-700">
+                <a href="#why-stock" class="hover:text-teal-700">Why Stock It</a>
+                <a href="#products" class="hover:text-teal-700">Products</a>
+                <a href="#order" class="lux-btn lux-btn-primary px-5 py-2.5">Request Stock</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="container mx-auto px-5 pb-14 pt-10 lg:pb-20 lg:pt-16">
+            <div class="grid items-center gap-12 lg:grid-cols-[1.02fr_0.98fr]">
+                <div>
+                    <div class="mb-5 inline-flex items-center gap-2 rounded-full border border-teal-200 bg-white px-4 py-2 text-sm font-bold text-teal-800">
+                        <span class="h-2 w-2 rounded-full bg-amber-500"></span>
+                        Patented Postcards
+                    </div>
+                    <h1 class="max-w-3xl text-4xl font-black leading-tight tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
+                        A water-resistant postcard tourists can collect for decades.
+                    </h1>
+                    <p class="mt-6 max-w-2xl text-lg leading-8 text-slate-700 sm:text-xl">
+                        Smart Postcard gives souvenir and store managers a new kind of travel keepsake: durable print, a digital experience, and a collectible gallery of places in one product. It is proudly made in the Philippines and designed to stand apart from ordinary postcards.
+                    </p>
+                    <div class="mt-8 flex flex-wrap gap-3">
+                        <a href="#order" class="lux-btn lux-btn-primary inline-flex items-center gap-2 px-7 py-3.5 shadow-lg shadow-slate-300/60">
+                            Request Starter Stock
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M5 12h14M12 5l7 7-7 7" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </a>
+                        <a href="#products" class="lux-btn lux-btn-outline px-7 py-3.5">View Product Types</a>
+                    </div>
+                    <dl class="mt-10 grid max-w-2xl grid-cols-1 gap-4 sm:grid-cols-3">
+                        <div class="border-l-4 border-teal-600 bg-white/70 p-4">
+                            <dt class="text-sm font-bold uppercase tracking-wide text-slate-500">Built For</dt>
+                            <dd class="mt-1 text-lg font-black text-slate-950">Souvenir sales</dd>
+                        </div>
+                        <div class="border-l-4 border-amber-500 bg-white/70 p-4">
+                            <dt class="text-sm font-bold uppercase tracking-wide text-slate-500">Material</dt>
+                            <dd class="mt-1 text-lg font-black text-slate-950">Water-resistant</dd>
+                        </div>
+                        <div class="border-l-4 border-sky-600 bg-white/70 p-4">
+                            <dt class="text-sm font-bold uppercase tracking-wide text-slate-500">Origin</dt>
+                            <dd class="mt-1 text-lg font-black text-slate-950">Philippines</dd>
+                        </div>
+                    </dl>
+                </div>
+                <div class="relative">
+                    <img src="{% static 'garden/picture_front.png' %}" alt="Smart Postcard sample design" class="mx-auto w-full max-w-xl object-contain drop-shadow-2xl">
+                </div>
+            </div>
+        </section>
+
+        <section id="why-stock" class="bg-white/80 py-16 lg:py-20">
+            <div class="container mx-auto px-5">
+                <div class="mx-auto max-w-3xl text-center">
+                    <p class="text-sm font-black uppercase tracking-[0.22em] text-teal-700">For stores, resorts, tour desks, and attractions</p>
+                    <h2 class="mt-3 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">Why managers should carry Smart Postcard</h2>
+                    <p class="mt-4 text-lg leading-8 text-slate-600">
+                        Tourists already buy memories. This gives them a souvenir that survives water, carries a story, encourages them to collect more places over time, and helps more travelers discover your store through our tourist blog features.
+                    </p>
+                </div>
+                <div class="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-5">
+                    <article class="lux-card p-6">
+                        <div class="mb-5 flex h-12 w-12 items-center justify-center rounded-lg bg-teal-700 text-white">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M4 7h16M4 12h16M4 17h10" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-black">Easy to explain</h3>
+                        <p class="mt-3 leading-7 text-slate-600">A physical postcard customers understand immediately, upgraded with a scan-to-open digital memory.</p>
+                    </article>
+                    <article class="lux-card p-6">
+                        <div class="mb-5 flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-700 text-white">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M4 11v2a2 2 0 002 2h2l5 4V5L8 9H6a2 2 0 00-2 2z" stroke-width="2" stroke-linejoin="round"/>
+                                <path d="M16 9a4 4 0 010 6M19 6a8 8 0 010 12" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-black">More store visitors</h3>
+                        <p class="mt-3 leading-7 text-slate-600">Partner stores are automatically featured in new tourist blogs, helping travelers find your shop before or during their trip.</p>
+                    </article>
+                    <article class="lux-card p-6">
+                        <div class="mb-5 flex h-12 w-12 items-center justify-center rounded-lg bg-amber-500 text-white">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M8 3h8l3 5v11a2 2 0 01-2 2H7a2 2 0 01-2-2V8l3-5z" stroke-width="2" stroke-linejoin="round"/>
+                                <path d="M9 13h6M9 17h4" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-black">Made to last</h3>
+                        <p class="mt-3 leading-7 text-slate-600">Water-resistant construction helps the postcard stay bright and display-worthy for years, even decades.</p>
+                    </article>
+                    <article class="lux-card p-6">
+                        <div class="mb-5 flex h-12 w-12 items-center justify-center rounded-lg bg-sky-700 text-white">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M4 6h16v12H4z" stroke-width="2" stroke-linejoin="round"/>
+                                <path d="M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01" stroke-width="3" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-black">Collectible by place</h3>
+                        <p class="mt-3 leading-7 text-slate-600">Each destination can become part of a personal gallery, giving customers a reason to buy the next location.</p>
+                    </article>
+                    <article class="lux-card p-6">
+                        <div class="mb-5 flex h-12 w-12 items-center justify-center rounded-lg bg-rose-600 text-white">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M12 3l7 4v5c0 5-3.5 8-7 9-3.5-1-7-4-7-9V7l7-4z" stroke-width="2" stroke-linejoin="round"/>
+                                <path d="M9 12l2 2 4-5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-black">Protected idea</h3>
+                        <p class="mt-3 leading-7 text-slate-600">The patented format helps your shelf offer something customers will not find on an ordinary postcard rack.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="container mx-auto px-5 py-16 lg:py-20">
+            <div class="grid items-center gap-10 lg:grid-cols-2">
+                <div class="grid gap-5 sm:grid-cols-2">
+                    <img src="{% static 'garden/picture_personalized.jpg' %}" alt="Personalized smart postcard preview" class="h-full min-h-72 w-full object-cover shadow-xl">
+                    <img src="{% static 'garden/picture_collectibles.png' %}" alt="Collectible smart postcard gallery preview" class="h-full min-h-72 w-full object-cover shadow-xl">
+                </div>
+                <div>
+                    <p class="text-sm font-black uppercase tracking-[0.22em] text-teal-700">More than print</p>
+                    <h2 class="mt-3 text-3xl font-black tracking-tight sm:text-4xl">The postcard becomes a small gallery of the trip.</h2>
+                    <p class="mt-5 text-lg leading-8 text-slate-700">
+                        A tourist can keep it on a desk, fridge, album, wall, or gift box. When scanned, it can open destination media, stories, maps, promos, or a custom page connected to the place they visited.
+                    </p>
+                    <div class="mt-8 grid gap-4">
+                        <div class="flex gap-4">
+                            <span class="mt-1 h-6 w-6 flex-none rounded-full bg-teal-700"></span>
+                            <p class="leading-7 text-slate-700"><strong class="text-slate-950">Good for display:</strong> postcard or magnet options work well for counters, racks, and impulse-buy areas.</p>
+                        </div>
+                        <div class="flex gap-4">
+                            <span class="mt-1 h-6 w-6 flex-none rounded-full bg-amber-500"></span>
+                            <p class="leading-7 text-slate-700"><strong class="text-slate-950">Good for local pride:</strong> each design can highlight the real location, culture, and story of the destination.</p>
+                        </div>
+                        <div class="flex gap-4">
+                            <span class="mt-1 h-6 w-6 flex-none rounded-full bg-sky-700"></span>
+                            <p class="leading-7 text-slate-700"><strong class="text-slate-950">Good for repeat sales:</strong> visitors can collect cards from different places and build their own travel gallery.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="products" class="bg-slate-950 py-16 text-white lg:py-20">
+            <div class="container mx-auto px-5">
+                <div class="mx-auto max-w-3xl text-center">
+                    <p class="text-sm font-black uppercase tracking-[0.22em] text-amber-300">Product options</p>
+                    <h2 class="mt-3 text-3xl font-black tracking-tight sm:text-4xl">Choose the postcard style your customers will understand fastest.</h2>
+                    <p class="mt-4 text-lg leading-8 text-slate-300">
+                        Start with destination-ready designs, real location photos, or your own store artwork. Magnet option is available for each style.
+                    </p>
+                </div>
+
+                <div class="mt-12 grid gap-7 lg:grid-cols-3">
+                    <article class="bg-white text-slate-900 shadow-2xl">
+                        <button type="button" class="order-img block w-full text-left" data-img-src="{% static 'garden/picture_infographic.png' %}" data-img-alt="Place infographic smart postcard">
+                            <img src="{% static 'garden/picture_infographic.png' %}" alt="Place infographic smart postcard" class="product-image w-full object-cover">
+                        </button>
+                        <div class="p-6">
+                            <h3 class="text-2xl font-black">Place Infographic</h3>
+                            <p class="mt-3 leading-7 text-slate-600">Best for facts, highlights, landmarks, and quick stories about the destination.</p>
+                            <p class="mt-4 text-sm font-bold uppercase tracking-wide text-teal-700">Available with magnet</p>
+                        </div>
+                    </article>
+
+                    <article class="bg-white text-slate-900 shadow-2xl">
+                        <button type="button" class="order-img block w-full text-left" data-img-src="{% static 'garden/picture_scenic.png' %}" data-img-alt="Scenic location smart postcard">
+                            <img src="{% static 'garden/picture_scenic.png' %}" alt="Scenic location smart postcard" class="product-image w-full object-cover">
+                        </button>
+                        <div class="p-6">
+                            <h3 class="text-2xl font-black">Scenic Location</h3>
+                            <p class="mt-3 leading-7 text-slate-600">Best for real photos of beaches, resorts, landmarks, restaurants, and attractions.</p>
+                            <p class="mt-4 text-sm font-bold uppercase tracking-wide text-teal-700">Available with magnet</p>
+                        </div>
+                    </article>
+
+                    <article class="bg-white text-slate-900 shadow-2xl">
+                        <button type="button" class="order-img flex product-image w-full items-center justify-center p-6" data-img-src="{% static 'garden/picture_front-removebg-preview.png' %}" data-img-alt="Custom smart postcard design">
+                            <img src="{% static 'garden/picture_front-removebg-preview.png' %}" alt="Custom smart postcard design" class="max-h-full w-full object-contain">
+                        </button>
+                        <div class="p-6">
+                            <h3 class="text-2xl font-black">Custom Store Design</h3>
+                            <p class="mt-3 leading-7 text-slate-600">Best when you already have artwork, branding, or a specific destination collection in mind.</p>
+                            <p class="mt-4 text-sm font-bold uppercase tracking-wide text-teal-700">Available with magnet</p>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="container mx-auto px-5 py-16 lg:py-20">
+            <div class="mx-auto max-w-3xl text-center">
+                <p class="text-sm font-black uppercase tracking-[0.22em] text-teal-700">Simple store workflow</p>
+                <h2 class="mt-3 text-3xl font-black tracking-tight sm:text-4xl">How it works</h2>
+            </div>
+            <div class="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                <div class="border-t-4 border-teal-700 bg-white p-6 shadow-md">
+                    <p class="text-4xl font-black text-slate-200">01</p>
+                    <h3 class="mt-5 text-xl font-black">Pick designs</h3>
+                    <p class="mt-3 leading-7 text-slate-600">Choose infographic, scenic, or custom postcards for your location.</p>
+                </div>
+                <div class="border-t-4 border-amber-500 bg-white p-6 shadow-md">
+                    <p class="text-4xl font-black text-slate-200">02</p>
+                    <h3 class="mt-5 text-xl font-black">Add the smart link</h3>
+                    <p class="mt-3 leading-7 text-slate-600">Connect each design to a digital page, media, map, or destination story.</p>
+                </div>
+                <div class="border-t-4 border-sky-700 bg-white p-6 shadow-md">
+                    <p class="text-4xl font-black text-slate-200">03</p>
+                    <h3 class="mt-5 text-xl font-black">Stock your shelf</h3>
+                    <p class="mt-3 leading-7 text-slate-600">Display them like premium souvenirs at your counter, rack, or gift area.</p>
+                </div>
+                <div class="border-t-4 border-rose-600 bg-white p-6 shadow-md">
+                    <p class="text-4xl font-black text-slate-200">04</p>
+                    <h3 class="mt-5 text-xl font-black">Grow the gallery</h3>
+                    <p class="mt-3 leading-7 text-slate-600">Add more places over time so customers can keep collecting.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white/90 py-16 lg:py-20" id="order">
+            <div class="container mx-auto px-5">
+                <div class="mx-auto max-w-3xl text-center">
+                    <p class="text-sm font-black uppercase tracking-[0.22em] text-teal-700">Request stock</p>
+                    <h2 class="mt-3 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">Tell us what your store wants to carry.</h2>
+                    <p class="mt-4 text-lg leading-8 text-slate-600">
+                        Choose quantities, add product notes, and send your store details. We will contact you about design, production, delivery, and how your store can be featured in tourist blogs that help visitors find you.
+                    </p>
+                </div>
+
+                <div class="mt-12 grid gap-8 lg:grid-cols-[0.92fr_1.08fr]">
+                    <div class="space-y-5">
+                        <div class="lux-card p-5">
+                            <h3 class="text-xl font-black">Place Infographic</h3>
+                            <p class="mt-2 text-sm leading-6 text-slate-600">Facts, highlights, and local story design.</p>
+                            <p class="mt-3 text-xs font-bold uppercase tracking-wide text-teal-700">Magnet option available</p>
+                            <label class="mt-4 block text-sm font-bold text-slate-700">Order Quantity</label>
+                            <div class="mt-2 flex items-center gap-2">
+                                <button type="button" class="qty-btn decrement flex h-10 w-10 items-center justify-center rounded-full bg-slate-200 text-xl font-black text-slate-900" aria-label="Decrease Place Infographic quantity">&minus;</button>
+                                <input type="number" min="0" max="99" value="0" class="product-qty h-10 w-20 border border-slate-300 px-3 text-center" data-product="Place Infographic Smart Postcard">
+                                <button type="button" class="qty-btn increment flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-xl font-black text-white" aria-label="Increase Place Infographic quantity">+</button>
+                            </div>
+                            <label class="mt-4 block text-sm font-bold text-slate-700">Product Note</label>
+                            <input type="text" class="product-comment mt-2 w-full border border-slate-300 px-3 py-2" placeholder="Destination name, magnet request, or design note" data-product="Place Infographic Smart Postcard">
+                        </div>
+
+                        <div class="lux-card p-5">
+                            <h3 class="text-xl font-black">Scenic Location</h3>
+                            <p class="mt-2 text-sm leading-6 text-slate-600">Real location image for places tourists recognize.</p>
+                            <p class="mt-3 text-xs font-bold uppercase tracking-wide text-teal-700">Magnet option available</p>
+                            <label class="mt-4 block text-sm font-bold text-slate-700">Order Quantity</label>
+                            <div class="mt-2 flex items-center gap-2">
+                                <button type="button" class="qty-btn decrement flex h-10 w-10 items-center justify-center rounded-full bg-slate-200 text-xl font-black text-slate-900" aria-label="Decrease Scenic Location quantity">&minus;</button>
+                                <input type="number" min="0" max="99" value="0" class="product-qty h-10 w-20 border border-slate-300 px-3 text-center" data-product="Scenic Location Smart Postcard">
+                                <button type="button" class="qty-btn increment flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-xl font-black text-white" aria-label="Increase Scenic Location quantity">+</button>
+                            </div>
+                            <label class="mt-4 block text-sm font-bold text-slate-700">Product Note</label>
+                            <input type="text" class="product-comment mt-2 w-full border border-slate-300 px-3 py-2" placeholder="Destination name, magnet request, or design note" data-product="Scenic Location Smart Postcard">
+                        </div>
+
+                        <div class="lux-card p-5">
+                            <h3 class="text-xl font-black">Custom Store Design</h3>
+                            <p class="mt-2 text-sm leading-6 text-slate-600">Your artwork, store brand, or destination collection.</p>
+                            <p class="mt-3 text-xs font-bold uppercase tracking-wide text-teal-700">Magnet option available</p>
+                            <label class="mt-4 block text-sm font-bold text-slate-700">Order Quantity</label>
+                            <div class="mt-2 flex items-center gap-2">
+                                <button type="button" class="qty-btn decrement flex h-10 w-10 items-center justify-center rounded-full bg-slate-200 text-xl font-black text-slate-900" aria-label="Decrease Custom Store Design quantity">&minus;</button>
+                                <input type="number" min="0" max="99" value="0" class="product-qty h-10 w-20 border border-slate-300 px-3 text-center" data-product="Custom Store Design Smart Postcard">
+                                <button type="button" class="qty-btn increment flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-xl font-black text-white" aria-label="Increase Custom Store Design quantity">+</button>
+                            </div>
+                            <label class="mt-4 block text-sm font-bold text-slate-700">Product Note</label>
+                            <input type="text" class="product-comment mt-2 w-full border border-slate-300 px-3 py-2" placeholder="Destination name, magnet request, or design note" data-product="Custom Store Design Smart Postcard">
+                        </div>
+                    </div>
+
+                    <form id="orderForm" class="lux-card order-form p-6 sm:p-8">
+                        <div class="order-form-header">
+                            <div>
+                                <p class="text-xs font-black uppercase tracking-[0.18em] text-teal-700">Stock request</p>
+                                <h3 class="mt-1 text-2xl font-black text-slate-950">Order Summary &amp; Details</h3>
+                            </div>
+                            <div class="form-progress" aria-label="Order form progress">
+                                <span class="form-progress-dot is-active" data-progress-step="1" aria-hidden="true"></span>
+                                <span class="form-progress-dot" data-progress-step="2" aria-hidden="true"></span>
+                                <span class="form-progress-dot" data-progress-step="3" aria-hidden="true"></span>
+                                <span class="form-progress-dot" data-progress-step="4" aria-hidden="true"></span>
+                            </div>
+                        </div>
+                        <div id="orderSummary" class="mt-5 bg-slate-50 p-4 text-sm leading-6 text-slate-700">
+                            No products selected yet.
+                        </div>
+
+                        <div class="form-section">
+                            <div class="form-section-header">
+                                <span class="form-step-badge">1</span>
+                                <h4 class="text-lg font-black text-slate-950">Store Basics</h4>
+                            </div>
+                            <div class="mt-4 grid gap-4 md:grid-cols-2">
+                                <div class="form-field">
+                                    <label class="block text-sm font-bold text-slate-700">Business / Store Name</label>
+                                    <input type="text" name="business" required class="mt-1 w-full border border-slate-300 px-3 py-2">
+                                </div>
+                                <div class="form-field">
+                                    <label class="block text-sm font-bold text-slate-700">Buyer Name</label>
+                                    <input type="text" name="name" required class="mt-1 w-full border border-slate-300 px-3 py-2">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section progressive-step" data-progressive-step="contact">
+                            <div class="form-section-header">
+                                <span class="form-step-badge">2</span>
+                                <h4 class="text-lg font-black text-slate-950">Contact Details</h4>
+                            </div>
+                            <div class="mt-4 grid gap-4 md:grid-cols-2">
+                                <div class="form-field">
+                                    <label class="block text-sm font-bold text-slate-700">Email</label>
+                                    <input type="email" name="email" required class="mt-1 w-full border border-slate-300 px-3 py-2">
+                                </div>
+                                <div class="form-field">
+                                    <label class="block text-sm font-bold text-slate-700">Contact Number</label>
+                                    <input type="tel" name="contact" required class="mt-1 w-full border border-slate-300 px-3 py-2" placeholder="+63 912 345 6789">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section progressive-step" data-progressive-step="address">
+                            <div class="form-section-header">
+                                <span class="form-step-badge">3</span>
+                                <h4 class="text-lg font-black text-slate-950">Delivery Address</h4>
+                            </div>
+                            <div class="mt-4 grid gap-4 md:grid-cols-2">
+                                <div class="form-field md:col-span-2">
+                                    <label class="block text-sm font-bold text-slate-700">Street Address</label>
+                                    <input type="text" name="street" id="address-street" required class="mt-1 w-full border border-slate-300 px-3 py-2" placeholder="Street address">
+                                </div>
+                                <div class="form-field">
+                                    <label class="block text-sm font-bold text-slate-700">City</label>
+                                    <input type="text" name="city" id="address-city" required class="mt-1 w-full border border-slate-300 px-3 py-2" placeholder="City">
+                                </div>
+                                <div class="form-field">
+                                    <label class="block text-sm font-bold text-slate-700">State / Province</label>
+                                    <input type="text" name="state" id="address-state" required class="mt-1 w-full border border-slate-300 px-3 py-2" placeholder="State or Province">
+                                </div>
+                                <div class="form-field">
+                                    <label class="block text-sm font-bold text-slate-700">ZIP / Postal Code</label>
+                                    <input type="text" name="zip" id="address-zip" required class="mt-1 w-full border border-slate-300 px-3 py-2" placeholder="ZIP or Postal Code">
+                                </div>
+                                <div class="form-field">
+                                    <label class="block text-sm font-bold text-slate-700">Country</label>
+                                    <input type="text" name="country" id="address-country" required class="mt-1 w-full border border-slate-300 px-3 py-2" placeholder="Country">
+                                </div>
+                                <div class="form-field md:col-span-2">
+                                    <label class="block text-sm font-bold text-slate-700">Full Address</label>
+                                    <input type="text" id="address-full" class="mt-1 w-full border border-slate-300 bg-slate-100 px-3 py-2 text-slate-600" placeholder="Full address will appear here" readonly>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section progressive-step" data-progressive-step="finish">
+                            <div class="form-section-header">
+                                <span class="form-step-badge">4</span>
+                                <h4 class="text-lg font-black text-slate-950">Final Notes</h4>
+                            </div>
+                            <div class="form-field mt-4">
+                                <label class="block text-sm font-bold text-slate-700">Additional Notes</label>
+                                <textarea name="notes" class="mt-1 w-full border border-slate-300 px-3 py-2" rows="3" placeholder="Preferred delivery schedule, destination collection, or other details"></textarea>
+                            </div>
+
+                            <button type="submit" class="lux-btn lux-btn-primary mt-6 w-full px-8 py-3.5 sm:w-auto">Submit Stock Request</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="container mx-auto px-5 py-10">
+        <div class="flex flex-col gap-4 border-t border-slate-300 pt-8 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <p class="text-lg font-black">Smart Postcard</p>
+                <p class="mt-1 text-sm text-slate-600">Patented souvenir postcards proudly made in the Philippines.</p>
+            </div>
+            <p class="text-sm text-slate-600">&copy; 2026 Smart Postcard. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script>
+    const EMAILJS_SERVICE_ID = 'service_jv335d7';
+    const EMAILJS_TEMPLATE_ID = 'template_hzlk188';
+    const EMAILJS_PUBLIC_KEY = 'kPR5fCmH0j3E0NSyr';
+
+    function escapeHtml(value) {
+        return value.replace(/[&<>"']/g, function(char) {
+            return ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            })[char];
+        });
+    }
+
+    function getSelectedProducts() {
+        const qtyInputs = document.querySelectorAll('.product-qty');
+        const commentInputs = document.querySelectorAll('.product-comment');
+
+        return Array.from(qtyInputs).map(function(qtyInput, index) {
+            const qty = Math.max(0, parseInt(qtyInput.value, 10) || 0);
+            const product = qtyInput.getAttribute('data-product');
+            const comment = commentInputs[index].value.trim();
+
+            return { product, qty, comment };
+        }).filter(function(item) {
+            return item.qty > 0;
+        });
+    }
+
+    function updateOrderSummary() {
+        const selectedProducts = getSelectedProducts();
+        const orderSummary = document.getElementById('orderSummary');
+
+        if (!selectedProducts.length) {
+            orderSummary.innerHTML = 'No products selected yet.';
+            return;
+        }
+
+        orderSummary.innerHTML = selectedProducts.map(function(item) {
+            const comment = item.comment
+                ? ' <span class="italic text-slate-500">("' + escapeHtml(item.comment) + '")</span>'
+                : '';
+
+            return '<div class="mb-2"><strong>' + escapeHtml(item.product) + '</strong>: ' + item.qty + comment + '</div>';
+        }).join('');
+    }
+
+    function updateFullAddress() {
+        const fields = ['address-street', 'address-city', 'address-state', 'address-zip', 'address-country'];
+        const full = fields.map(function(id) {
+            return document.getElementById(id).value.trim();
+        }).filter(Boolean).join(', ');
+
+        document.getElementById('address-full').value = full;
+    }
+
+    function hasFilledValue(field) {
+        return field && field.value.trim().length > 0;
+    }
+
+    function setProgressiveStep(section, isUnlocked) {
+        if (!section) {
+            return;
+        }
+
+        const controls = section.querySelectorAll('input, textarea, select, button');
+        section.hidden = !isUnlocked;
+        section.setAttribute('aria-hidden', isUnlocked ? 'false' : 'true');
+        section.classList.toggle('is-unlocked', isUnlocked);
+
+        controls.forEach(function(control) {
+            control.disabled = !isUnlocked;
+        });
+    }
+
+    function updateFormProgress(activeStep) {
+        document.querySelectorAll('[data-progress-step]').forEach(function(dot, index) {
+            dot.classList.toggle('is-active', index < activeStep);
+        });
+    }
+
+    function updateProgressiveForm() {
+        const orderForm = document.getElementById('orderForm');
+
+        if (!orderForm) {
+            return;
+        }
+
+        const business = orderForm.querySelector('input[name="business"]');
+        const buyer = orderForm.querySelector('input[name="name"]');
+        const email = orderForm.querySelector('input[name="email"]');
+        const contact = orderForm.querySelector('input[name="contact"]');
+        const addressFields = [
+            document.getElementById('address-street'),
+            document.getElementById('address-city'),
+            document.getElementById('address-state'),
+            document.getElementById('address-zip'),
+            document.getElementById('address-country')
+        ];
+
+        const storeComplete = hasFilledValue(business) && hasFilledValue(buyer);
+        const contactComplete = storeComplete && hasFilledValue(email) && hasFilledValue(contact);
+        const addressComplete = contactComplete && addressFields.every(hasFilledValue);
+
+        setProgressiveStep(orderForm.querySelector('[data-progressive-step="contact"]'), storeComplete);
+        setProgressiveStep(orderForm.querySelector('[data-progressive-step="address"]'), contactComplete);
+        setProgressiveStep(orderForm.querySelector('[data-progressive-step="finish"]'), addressComplete);
+
+        updateFormProgress(1 + (storeComplete ? 1 : 0) + (contactComplete ? 1 : 0) + (addressComplete ? 1 : 0));
+    }
+
+    function setupProgressiveForm() {
+        const orderForm = document.getElementById('orderForm');
+
+        if (!orderForm) {
+            return;
+        }
+
+        orderForm.classList.add('is-progressive');
+        orderForm.querySelectorAll('input, textarea').forEach(function(input) {
+            input.addEventListener('input', updateProgressiveForm);
+        });
+        updateProgressiveForm();
+    }
+
+    function showImgModal(src, alt) {
+        const modal = document.getElementById('img-modal');
+        const modalImg = document.getElementById('img-modal-img');
+
+        modalImg.src = src;
+        modalImg.alt = alt;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.classList.add('modal-open');
+    }
+
+    function hideImgModal() {
+        const modal = document.getElementById('img-modal');
+        const modalImg = document.getElementById('img-modal-img');
+
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        modalImg.src = '';
+        document.body.classList.remove('modal-open');
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.emailjs) {
+            window.emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+        }
+
+        document.querySelectorAll('.product-qty, .product-comment').forEach(function(input) {
+            input.addEventListener('input', updateOrderSummary);
+        });
+
+        document.querySelectorAll('.qty-btn').forEach(function(button) {
+            button.addEventListener('click', function() {
+                const input = button.parentElement.querySelector('.product-qty');
+                const min = parseInt(input.min, 10);
+                const max = parseInt(input.max, 10);
+                let value = parseInt(input.value, 10) || 0;
+
+                if (button.classList.contains('increment') && value < max) {
+                    value += 1;
+                }
+
+                if (button.classList.contains('decrement') && value > min) {
+                    value -= 1;
+                }
+
+                input.value = value;
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+            });
+        });
+
+        ['address-street', 'address-city', 'address-state', 'address-zip', 'address-country'].forEach(function(id) {
+            document.getElementById(id).addEventListener('input', updateFullAddress);
+        });
+
+        setupProgressiveForm();
+
+        document.querySelectorAll('.order-img').forEach(function(button) {
+            button.addEventListener('click', function() {
+                showImgModal(button.getAttribute('data-img-src'), button.getAttribute('data-img-alt'));
+            });
+        });
+
+        document.getElementById('orderForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const selectedProducts = getSelectedProducts();
+            if (!selectedProducts.length) {
+                alert('Please select at least one product.');
+                return;
+            }
+
+            if (!window.emailjs) {
+                alert('Order could not be sent. Please try again later.');
+                return;
+            }
+
+            const business = document.querySelector('input[name="business"]').value.trim();
+            const name = document.querySelector('input[name="name"]').value.trim();
+            const email = document.querySelector('input[name="email"]').value.trim();
+            const contact = document.querySelector('input[name="contact"]').value.trim();
+            const notes = document.querySelector('textarea[name="notes"]').value.trim();
+            const fullAddress = document.getElementById('address-full').value.trim();
+            const orderDetails = selectedProducts.map(function(item) {
+                return item.product + ': ' + item.qty + (item.comment ? ' ("' + item.comment + '")' : '');
+            }).join('\n');
+            const message = [
+                'Order Details:',
+                orderDetails,
+                '',
+                'Business / Store: ' + business,
+                'Buyer Name: ' + name,
+                'Email: ' + email,
+                'Contact: ' + contact,
+                'Address: ' + fullAddress,
+                'Notes: ' + notes
+            ].join('\n');
+
+            try {
+                await window.emailjs.send(
+                EMAILJS_SERVICE_ID,
+                EMAILJS_TEMPLATE_ID,
+                {
+                    to_name: 'john.dayo@paratara.com',
+                    from_name: name,
+                    message: `
+                New Smart Postcard Order
+
+                Name: ${name}
+
+                Business: ${business}
+
+                Email: ${email}
+
+                Phone: ${contact}
+
+                Address:
+                ${fullAddress}
+
+                Order Details:
+                ${orderDetails}
+
+                Message:
+                ${message}
+                    `
+                }
+                );
+
+                alert('Stock request submitted. We will contact you soon.');
+                event.target.reset();
+                updateOrderSummary();
+                updateFullAddress();
+                updateProgressiveForm();
+            } catch (err) {
+                alert('Order could not be sent. Please try again later.');
+                console.error('EmailJS error:', err);
+            }
+        });
+
+        document.getElementById('img-modal-backdrop').addEventListener('click', hideImgModal);
+        document.getElementById('img-modal-close').addEventListener('click', hideImgModal);
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                hideImgModal();
+            }
+        });
+    });
+    </script>
+
+    <div id="img-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/90 p-4" role="dialog" aria-modal="true" aria-label="Product image preview">
+        <button type="button" id="img-modal-backdrop" class="absolute inset-0" aria-label="Close image preview"></button>
+        <img id="img-modal-img" src="" alt="" class="relative max-h-[90vh] max-w-[92vw] bg-white object-contain shadow-2xl">
+        <button type="button" id="img-modal-close" class="absolute right-5 top-5 flex h-11 w-11 items-center justify-center rounded-full bg-white text-2xl font-black text-slate-950 shadow-lg" aria-label="Close image preview">&times;</button>
+    </div>
+</body>
+</html>
