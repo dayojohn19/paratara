@@ -11,28 +11,19 @@ def _split_csv(value):
     return [item.strip() for item in value.split(",") if item.strip()]
 
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
-
 # Ensure environment variables from the project-level .env are available via os.getenv.
-_PROJECT_ROOT = BASE_DIR
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
 load_dotenv(dotenv_path=_PROJECT_ROOT / ".env", override=False)
 
-# External service and API variables
 OPENAI_API_KEY = config("OPENAI_API_KEY", default="")
+
 GROK_API_KEY = os.getenv('GROK_API_KEY')
+
+# GROK_MODEL_NAME = config("GROK_MODEL_NAME", default="grok-4")
 GROK_MODEL_NAME_EXPENSIVE = config("GROK_MODEL_NAME", default="grok-4")
 GROK_MODEL_NAME = config("GROK_MODEL_NAME", default="grok-4.3")
-XAI_IMAGE_MODEL = 'grok-imagine-image-quality'
-IMGBB_API_KEY = os.getenv("IMGBB_API_KEY", "65ed182b008522d2c762031a3ff4953b")
-PAYPAL_CLIENT_ID = os.getenv("PAYPAL_CLIENT_ID", "")
-PAYPAL_CLIENT_SECRET = os.getenv("PAYPAL_CLIENT_SECRET", "")
-SEMAPHORE_API_KEY = "d143175c87ef8d34892002f91838e75e"
-TWILIO_ACCOUNT_SID = "AC399079d8a6451adf9101db54846fa291"
-TWILIO_AUTH_TOKEN = "be7efdf77d17897a382fba5c3a78ea65"
-TWILIO_PHONE_NUMBER = "+17656663702"
-TWILIO_RECOVERY = "7DD7XW9846U21JHWR81MRH8Q"
-
+XAI_IMAGE_MODEL = 'grok-imagine-image-quality' 
+# Replace the DATABASES section of your settings.py with this
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 CSRF_COOKIE_SAMESITE = None
 # Force HTTPS redirect
@@ -165,6 +156,14 @@ CACHE_MIDDLEWARE_KEY_PREFIX = 'paratara'
 # ---------------------------------------------
 
 
+IMGBB_API_KEY = os.getenv("IMGBB_API_KEY", "65ed182b008522d2c762031a3ff4953b")
+PAYPAL_CLIENT_ID = os.getenv("PAYPAL_CLIENT_ID", "")
+PAYPAL_CLIENT_SECRET = os.getenv("PAYPAL_CLIENT_SECRET", "")
+SEMAPHORE_API_KEY = "d143175c87ef8d34892002f91838e75e"
+TWILIO_ACCOUNT_SID = "AC399079d8a6451adf9101db54846fa291"
+TWILIO_AUTH_TOKEN = "be7efdf77d17897a382fba5c3a78ea65"
+TWILIO_PHONE_NUMBER = "+17656663702"
+TWILIO_RECOVERY = "7DD7XW9846U21JHWR81MRH8Q"
 _default_csrf_trusted_origins = [
     'http://localhost:8000',
     'http://localhost:8000/',
@@ -207,6 +206,9 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
+# BASE_DIR = Path(__file__).resolve().parent.parent
 GEOIP_PATH = os.path.join(BASE_DIR, "geoip")
 
 # Quick-start development settings - unsuitable for production

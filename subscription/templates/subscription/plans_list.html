@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscription Plans</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 24px; background: #f7f8fa; color: #1f2937; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        h1 { margin-bottom: 8px; }
+        .sub { color: #6b7280; margin-top: 0; }
+        .product-list { display: grid; gap: 16px; margin-top: 20px; }
+        .plan-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 14px; }
+        .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .product-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px; }
+        .product-meta { margin: 0; color: #6b7280; font-size: 14px; }
+        .price { font-size: 24px; font-weight: 700; margin: 8px 0; }
+        .meta { font-size: 14px; color: #4b5563; margin: 4px 0; }
+        .desc { margin: 12px 0; }
+        .features { margin: 10px 0 0 18px; padding: 0; }
+        .badge { display: inline-block; font-size: 12px; background: #e8f1ff; color: #1d4ed8; border-radius: 999px; padding: 4px 8px; }
+        .empty { background: #fff; border: 1px dashed #cbd5e1; border-radius: 10px; padding: 18px; }
+        .paypal-btn { margin-top: 12px; min-height: 42px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Available Subscription Plans</h1>
+        <p class="sub">Browse all active plans currently available.</p>
+
+        {% if product_rows %}
+            <div class="product-list">
+                {% for row in product_rows %}
+                    <section class="product-card">
+                        <h2>{{ row.product.name }}</h2>
+                        <p class="product-meta">Product ID: {{ row.product.paypal_product_id }}</p>
+                        {% if row.product.description %}
+                            <p class="desc">{{ row.product.description }}</p>
+                        {% endif %}
+
+                        {% if row.plans %}
+                            <div class="plan-grid">
+                                {% for plan in row.plans %}
+                                    <article class="card">
+                                        <span class="badge">{{ plan.get_type_display }}</span>
+                                        <h3>{{ plan.name }}</h3>
+                                        <p class="price">{{ plan.currency }} {{ plan.price }}</p>
+                                        <p class="meta">Billing: {{ plan.get_billingInterval_display }}</p>
+                                        <p class="meta">Slug: {{ plan.slug }}</p>
+                                        <p class="meta">PayPal Plan ID: {{ plan.paypalPlanId|default:"-" }}</p>
+                                        {% if plan.paypalPlanId %}
+                                            <div
+                                                id="paypal-button-container-{{ plan.id }}"
+                                                class="paypal-btn"
+                                                data-paypal-plan-id="{{ plan.paypalPlanId }}"
+                                            ></div>
+                                        {% endif %}
+
+                                        {% if plan.description %}
+                                            <p class="desc">{{ plan.description }}</p>
+                                        {% endif %}
+
+                                        {% if plan.features %}
+                                            <ul class="features">
+                                                {% for feature in plan.features %}
+                                                    <li>{{ feature }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% endif %}
+                                    </article>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="empty">No active plans under this product.</div>
+                        {% endif %}
+                    </section>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty">No products are available right now.</div>
+        {% endif %}
+    </div>
+
+    <script>
+        async function loadPayPalSdk(clientId) {
+            const sdkUrl = "https://www.paypal.com/sdk/js?client-id=" + encodeURIComponent(clientId) + "&vault=true&intent=subscription";
+            return new Promise((resolve, reject) => {
+                const script = document.createElement("script");
+                script.src = sdkUrl;
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+
+        function renderPayPalButtons() {
+            const containers = document.querySelectorAll("[data-paypal-plan-id]");
+            containers.forEach((container) => {
+                const planId = container.getAttribute("data-paypal-plan-id");
+                if (!planId || !window.paypal) return;
+
+                paypal.Buttons({
+                    style: {
+                        shape: "rect",
+                        color: "gold",
+                        layout: "vertical",
+                        label: "subscribe"
+                    },
+                    createSubscription(data, actions) {
+                        return actions.subscription.create({
+                            plan_id: planId
+                        });
+                    },
+                    async onApprove(data) {
+                        try {
+                            const saveResponse = await fetch("{% url 'subscription:paypal_onapprove_webhook' %}", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    subscription_id: data.subscriptionID
+                                })
+                            });
+                            const saveData = await saveResponse.json();
+                            if (!saveResponse.ok || !saveData.ok) {
+                                throw new Error(saveData.error || "Failed to save subscription.");
+                            }
+                            alert("Subscription successful. ID: " + data.subscriptionID);
+                        } catch (err) {
+                            console.error("Failed to save onApprove subscription:", err);
+                            alert("Subscription approved, but we could not save it yet.");
+                        }
+                    },
+                    onError(err) {
+                        console.error("PayPal error:", err);
+                        alert("Payment failed. Please try again.");
+                    }
+                }).render("#" + container.id);
+            });
+        }
+
+        (async function () {
+            try {
+                const response = await fetch("{% url 'subscription:paypal_client_config' %}");
+                const data = await response.json();
+                if (!response.ok || !data.ok || !data.client_id) {
+                    throw new Error(data.error || "Unable to load PayPal config.");
+                }
+                await loadPayPalSdk(data.client_id);
+                renderPayPalButtons();
+            } catch (err) {
+                console.error("PayPal initialization failed:", err);
+            }
+        })();
+    </script>
+</body>
+</html>

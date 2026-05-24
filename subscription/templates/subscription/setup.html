@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscription Setup</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 24px; }
+        .container { max-width: 760px; }
+        .card { border: 1px solid #ddd; border-radius: 8px; padding: 16px; }
+        .btn { padding: 10px 14px; border: 0; border-radius: 6px; cursor: pointer; }
+        .btn-primary { background: #0b5ed7; color: #fff; }
+        .result { margin-top: 16px; white-space: pre-wrap; word-break: break-word; background: #f6f6f6; padding: 12px; border-radius: 6px; }
+        .error { color: #b00020; }
+        .label { color: #555; margin: 0 0 8px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Subscription Setup</h1>
+        <div class="card">
+            <p class="label">Click to request a PayPal access token from backend using credentials in <code>settings.py</code>.</p>
+            <form id="token-form">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary" id="get-token-btn">Get Access Token</button>
+            </form>
+            <div id="token-result" class="result" style="display:none;"></div>
+
+            <hr style="margin: 20px 0;">
+
+
+
+            <div id="product-section" style="display:none;">
+                <p class="label">Create a PayPal product (submitted via JavaScript).</p>
+                <form id="product-form">
+                    <p><input name="name" type="text" value="Premium Membership" required style="width:100%;padding:8px;"></p>
+                    <p><textarea name="description" rows="3" style="width:100%;padding:8px;">Premium Subscription</textarea></p>
+                    <p><input name="type" type="text" value="SERVICE" style="width:100%;padding:8px;"></p>
+                    <p><input name="category" type="text" value="SOFTWARE" style="width:100%;padding:8px;"></p>
+                    <button type="submit" class="btn btn-primary" id="create-product-btn">Create Product</button>
+                </form>
+                <div id="product-result" class="result" style="display:none;"></div>
+                <hr style="margin: 20px 0;">
+            </div>
+            <div id="plan-section" style="display:none;">
+                <p class="label">Create a <code>SubscriptionPlan</code> record.</p>
+                <form id="plan-form">
+                    <p><input name="name" type="text" placeholder="Name" required style="width:100%;padding:8px;"></p>
+                    <p><input name="slug" type="text" placeholder="Slug (optional)" style="width:100%;padding:8px;"></p>
+                    <p><textarea name="description" placeholder="Description (optional)" rows="3" style="width:100%;padding:8px;"></textarea></p>
+                    <p><input name="price" type="number" step="0.01" placeholder="Price" required style="width:100%;padding:8px;"></p>
+                    <p><input name="currency" type="text" value="USD" placeholder="Currency" style="width:100%;padding:8px;"></p>
+                    <p>
+                        <select name="billingInterval" required style="width:100%;padding:8px;">
+                            <option value="">Select Billing Interval</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="yearly">Yearly</option>
+                        </select>
+                    </p>
+                    <p>
+                        <select name="type" style="width:100%;padding:8px;">
+                            <option value="subscription">Subscription</option>
+                            <option value="one_time">One Time</option>
+                        </select>
+                    </p>
+                    <p>
+                        <select name="status" style="width:100%;padding:8px;">
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </p>
+                    <p><textarea name="features" placeholder="Features (comma or new line separated)" rows="3" style="width:100%;padding:8px;"></textarea></p>
+                    <p><input name="imageUrl" type="url" placeholder="Image URL (optional)" style="width:100%;padding:8px;"></p>
+                    <p><input name="paypalProductId" type="text" placeholder="PayPal Product ID (optional)" style="width:100%;padding:8px;"></p>
+                    <p><input name="paypalPlanId" type="text" placeholder="PayPal Plan ID (optional)" style="width:100%;padding:8px;"></p>
+                    <button type="submit" class="btn btn-primary" id="create-plan-btn">Create Subscription Plan</button>
+                </form>
+                <div id="plan-result" class="result" style="display:none;"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const tokenForm = document.getElementById("token-form");
+        const tokenButton = document.getElementById("get-token-btn");
+        const tokenResult = document.getElementById("token-result");
+        const productSection = document.getElementById("product-section");
+        const productForm = document.getElementById("product-form");
+        const productButton = document.getElementById("create-product-btn");
+        const productResult = document.getElementById("product-result");
+        const planSection = document.getElementById("plan-section");
+        const planForm = document.getElementById("plan-form");
+        const planButton = document.getElementById("create-plan-btn");
+        const planResult = document.getElementById("plan-result");
+        let accessTokenLoaded = false;
+        let accessTokenValue = "";
+
+        tokenForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const csrfToken = tokenForm.querySelector("input[name='csrfmiddlewaretoken']").value;
+
+            tokenButton.disabled = true;
+            tokenButton.textContent = "Loading...";
+            tokenResult.style.display = "none";
+            tokenResult.classList.remove("error");
+
+            try {
+                const response = await fetch("{% url 'subscription:subscription_get_access_token' %}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken
+                    },
+                    body: JSON.stringify({})
+                });
+
+                const data = await response.json();
+                tokenResult.style.display = "block";
+
+                if (response.ok && data.ok) {
+                    accessTokenLoaded = true;
+                    accessTokenValue = data.access_token;
+                    productSection.style.display = "block";
+                    planSection.style.display = "block";
+                    tokenResult.textContent = "Access Token:\n" + data.access_token;
+                } else {
+                    accessTokenLoaded = false;
+                    accessTokenValue = "";
+                    productSection.style.display = "none";
+                    planSection.style.display = "none";
+                    tokenResult.classList.add("error");
+                    tokenResult.textContent = "Error: " + (data.error || "Failed to get token.");
+                }
+            } catch (err) {
+                accessTokenLoaded = false;
+                accessTokenValue = "";
+                productSection.style.display = "none";
+                planSection.style.display = "none";
+                tokenResult.style.display = "block";
+                tokenResult.classList.add("error");
+                tokenResult.textContent = "Error: " + err.message;
+            } finally {
+                tokenButton.disabled = false;
+                tokenButton.textContent = "Get Access Token";
+            }
+        });
+
+
+
+        productForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            if (!accessTokenLoaded || !accessTokenValue) {
+                productResult.style.display = "block";
+                productResult.classList.add("error");
+                productResult.textContent = "Error: Get access token first.";
+                return;
+            }
+
+            const csrfToken = tokenForm.querySelector("input[name='csrfmiddlewaretoken']").value;
+            const formData = new FormData(productForm);
+            const payload = {
+                access_token: accessTokenValue,
+                name: formData.get("name"),
+                description: formData.get("description"),
+                type: formData.get("type"),
+                category: formData.get("category")
+            };
+
+            productButton.disabled = true;
+            productButton.textContent = "Creating...";
+            productResult.style.display = "none";
+            productResult.classList.remove("error");
+
+            try {
+                const response = await fetch("{% url 'subscription:subscription_create_product' %}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                productResult.style.display = "block";
+
+                if (response.ok && data.ok) {
+                    productResult.textContent = "Product created. Product ID: " + (data.product_id || "N/A");
+                    if (data.product_id) {
+                        const paypalProductInput = planForm.querySelector("input[name='paypalProductId']");
+                        if (paypalProductInput) paypalProductInput.value = data.product_id;
+                    }
+                } else {
+                    productResult.classList.add("error");
+                    productResult.textContent = "Error: " + (data.error || "Failed to create product.");
+                }
+            } catch (err) {
+                productResult.style.display = "block";
+                productResult.classList.add("error");
+                productResult.textContent = "Error: " + err.message;
+            } finally {
+                productButton.disabled = false;
+                productButton.textContent = "Create Product";
+            }
+        });
+
+        planForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            if (!accessTokenLoaded) {
+                planResult.style.display = "block";
+                planResult.classList.add("error");
+                planResult.textContent = "Error: Get access token first.";
+                return;
+            }
+
+            const csrfToken = tokenForm.querySelector("input[name='csrfmiddlewaretoken']").value;
+            const formData = new FormData(planForm);
+            const featuresRaw = (formData.get("features") || "").toString();
+            const features = featuresRaw
+                .split(/\n|,/)
+                .map((item) => item.trim())
+                .filter(Boolean);
+
+            const payload = {
+                name: formData.get("name"),
+                slug: formData.get("slug"),
+                description: formData.get("description"),
+                price: formData.get("price"),
+                currency: formData.get("currency"),
+                billingInterval: formData.get("billingInterval"),
+                type: formData.get("type"),
+                status: formData.get("status"),
+                features: features,
+                imageUrl: formData.get("imageUrl"),
+                paypalProductId: formData.get("paypalProductId"),
+                paypalPlanId: formData.get("paypalPlanId")
+            };
+
+            planButton.disabled = true;
+            planButton.textContent = "Saving...";
+            planResult.style.display = "none";
+            planResult.classList.remove("error");
+
+            try {
+                const response = await fetch("{% url 'subscription:subscription_create_plan' %}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": csrfToken
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                planResult.style.display = "block";
+
+                if (response.ok && data.ok) {
+                    planResult.textContent = "Saved plan: " + data.plan.name + " (slug: " + data.plan.slug + ")";
+                    planForm.reset();
+                } else {
+                    planResult.classList.add("error");
+                    planResult.textContent = "Error: " + (data.error || "Failed to create plan.");
+                }
+            } catch (err) {
+                planResult.style.display = "block";
+                planResult.classList.add("error");
+                planResult.textContent = "Error: " + err.message;
+            } finally {
+                planButton.disabled = false;
+                planButton.textContent = "Create Subscription Plan";
+            }
+        });
+    </script>
+</body>
+</html>

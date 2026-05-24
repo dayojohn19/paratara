@@ -1,22 +1,83 @@
-<script src="https://www.paypal.com/sdk/js?client-id=AREL4vTRiJV97jXqNzJkFn2dwjMsUhdmsFRORX5yv8WnqErFYPh7gi1Qy8UVm3KY1TS_DmZCRSzougyu&vault=true&intent=subscription"></script>
-<div id="paypal-button-{{ resort.id }}"></div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PayPal Subscription</title>
+</head>
+<body>
+    <div id="paypal-button-container-P-9XK09297RX297133ENIJPDJA"></div>
 
-<script>
-paypal.Buttons({
-    createSubscription: function () {
-        return fetch("/subscriptions/create/", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": "{{ csrf_token }}"
+    <script src="https://www.paypal.com/sdk/js?client-id=ARKKOiHvrJzGY75xfDmq4mv6BDNRFSFmKsP3h5GnqWyaRIIWKD2kHlKbPTzoGl-v5_7gF422TiIe0Vux&vault=true&intent=subscription"></script>
+    <script>
+        const PAYPAL_PLAN_ID = "P-2J964652J9176444BNIJPMDQ";
+        const PAYPAL_BUTTON_CONTAINER = "#paypal-button-container-P-9XK09297RX297133ENIJPDJA";
+
+        paypal.Buttons({
+            style: {
+                shape: "rect",
+                color: "gold",
+                layout: "vertical",
+                label: "subscribe"
             },
-            body: JSON.stringify({
-                plan_id: "P-XXXXXXXX",
-                resort_id: {{ resort.id }}
-            })
-        })
-        .then(res => res.json())
-        .then(data => data.id);
-    }
-}).render("#paypal-button-{{ resort.id }}");
-</script>
+
+            createSubscription(data, actions) {
+                return actions.subscription.create({
+                    plan_id: PAYPAL_PLAN_ID
+                });
+            },
+
+            async onApprove(data) {
+                console.log("Subscription ID:", data.subscriptionID);
+
+                const subscription = await getSubscriptionDetails(data.subscriptionID);
+                const subscriber = formatSubscriber(subscription);
+
+                console.log("Subscriber:", subscriber);
+                console.log("Full subscription info:", subscription);
+
+                alert(
+                    `Subscribed: ${subscriber.status}\n` +
+                    `Name: ${subscriber.name || "N/A"}\n` +
+                    `Email: ${subscriber.email || "N/A"}`
+                );
+            },
+
+            onError(err) {
+                console.error("PayPal error:", err);
+            }
+        }).render(PAYPAL_BUTTON_CONTAINER);
+
+        async function getSubscriptionDetails(subscriptionID) {
+            const response = await fetch("/api/paypal/subscription-details", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ subscriptionID })
+            });
+
+            if (!response.ok) {
+                throw new Error("Could not load PayPal subscription details.");
+            }
+
+            return response.json();
+        }
+
+        function formatSubscriber(subscription) {
+            const name = subscription.subscriber?.name;
+
+            return {
+                subscription_id: subscription.id,
+                plan_id: subscription.plan_id,
+                status: subscription.status,
+                email: subscription.subscriber?.email_address || null,
+                name: name
+                    ? `${name.given_name || ""} ${name.surname || ""}`.trim()
+                    : null,
+                payer_id: subscription.subscriber?.payer_id || null
+            };
+        }
+    </script>
+</body>
+</html>
