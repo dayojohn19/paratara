@@ -1,11 +1,11 @@
 from django.urls import reverse
 from django.middleware.csrf import get_token
-from django.utils import timezone
 import os
 from django.utils.text import slugify
 from django.conf import settings
 import json
 import logging
+import time
 from garden.models import Collection, CollectionGroup
 from openai import OpenAI
 import ast
@@ -13,74 +13,20 @@ from home.models import Places_v2
 from apis.models import Blogs
 from singlepage2.pyhtmlopt import optimize_file
 import re
-from html import escape
-from bs4 import BeautifulSoup
 client = OpenAI(api_key=settings.GROK_API_KEY, base_url='https://api.x.ai/v1')
 logger = logging.getLogger(__name__)
-
-
-def mark_editable_blog_body(body_html):
-    soup = BeautifulSoup(body_html or "", "html.parser")
-    for idx, paragraph in enumerate(soup.find_all("p")):
-        paragraph["data-blog-edit-index"] = str(idx)
-    return str(soup)
-
-
-def format_blog_datetime(value):
-    value = value or timezone.now()
-    if timezone.is_aware(value):
-        value = timezone.localtime(value)
-    display = value.strftime("%B %d, %Y at %I:%M %p").replace(" 0", " ")
-    return value.isoformat(), display
-
-
-def render_faq_section(faq_entries):
-    rows = []
-    for entry in faq_entries or []:
-        if not isinstance(entry, dict):
-            continue
-
-        question = (entry.get("name") or "").strip()
-        accepted_answer = entry.get("acceptedAnswer") or {}
-        if isinstance(accepted_answer, dict):
-            answer = (accepted_answer.get("text") or "").strip()
-        else:
-            answer = str(accepted_answer).strip()
-
-        if not question or not answer:
-            continue
-
-        rows.append(f"""
-        <details class="faq-item">
-            <summary>{escape(question)}</summary>
-            <p>{escape(answer)}</p>
-        </details>
-        """)
-
-    if not rows:
-        return ""
-
-    return f"""
-    <section class="faq-section" aria-labelledby="faq-heading">
-        <h2 id="faq-heading">Frequently Asked Questions</h2>
-        <div class="faq-list">
-            {''.join(rows)}
-        </div>
-    </section>
-    """
 
 # USES call htmlwriter then calls generate_blog_object to save the blog in the database, then generates the html page with SEO optimizations, FAQ schema, and article schema for better search engine visibility. The generated HTML is saved in the appropriate folder structure for serving as a static page on the site.
 def generate_blog_object(request, place_name, title, category='Guide', summary='No Summary Provided', text_content=''):
     place = Places_v2.objects.filter(placename__iexact=place_name).first()    
     title_slug = slugify(title)
-    plain_text_content = re.sub('<[^<]+?>', '', text_content or '')
-    readtime = max(1, len(plain_text_content.split()) // 185) if plain_text_content else 5
-    logger.debug("Blog content word count: %s", len(plain_text_content.split()))
+    print('Word count for blog content:', len(text_content.split()))
+    print('type of text_content:', type(text_content))
 
     place_blog_list = list(place.blog.all())
     for b in place_blog_list:
         if slugify(getattr(b, 'title', '') or '') == title_slug:
-            logger.info("Blog already exists: %s", title)
+            print('place place_')
             return b    
     title = re.sub(r'<a\b[^>]*>(.*?)</a>',r'\1',title,flags=re.IGNORECASE | re.DOTALL)            
     summary = re.sub(r'<a\b[^>]*>(.*?)</a>', r'\1', summary, flags=re.IGNORECASE | re.DOTALL)
@@ -88,9 +34,9 @@ def generate_blog_object(request, place_name, title, category='Guide', summary='
         category=category,
         blogplace=place,
         title=title,
-        textContent="",
+        textContent=text_content,
         summarize=summary,
-        readtime=readtime,
+
     )
     generate_blog_page(request, place_name, title, text_content, category=category)
     place.blog.add(blog_item)
@@ -99,10 +45,10 @@ def generate_blog_object(request, place_name, title, category='Guide', summary='
     place_slug = slugify(getattr(place, 'slug', '') or place.placename)
     title_slug = slugify(title)
     blog_context = f"\n\nAvailable Blogs & Articles:\n📝 {title} - URL: {current_domain}/pages/blog/{place_slug}/{title_slug}/\n"
-    logger.info(blog_context)
+    print(blog_context)
 
 def generate_blog_page(request, place_name, title, body_text, cover_image_url=None, faq_entries=None, blog_searchable_keys_description=None, category=None):
-    logger.info("Generating blog page: %s", title)
+    print('Generating blog page with title:', title)
     def _get_image_cover(place_name, title):
         from imageapp.imageuploader import getTitlePhoto
         togen = f"{title} {place_name} travel guide cover photo, vibrant and eye-catching, showcasing the essence of the destination with iconic landmarks or scenic views, optimized for web display."
@@ -122,13 +68,16 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
                 messages=[{"role": "user", "content": meta_prompt}],
                 max_tokens=200
             )
+            # Print token usage
             if hasattr(meta_res, 'usage'):
-                logger.debug("Meta description token usage: %s", meta_res.usage)
+                print(f"Token usage for meta description: {meta_res.usage}")
+            else:
+                print("No token usage info for meta description")
             _blog_searchable = meta_res.choices[0].message.content.strip().strip('"')
-            logger.info("Generated SEO meta description")
+            print('   ✅ Generated searchable keys description for SEO meta description.')
             return _blog_searchable
         except Exception as e:
-            logger.exception("Meta description generation failed")
+            print("META DESCRIPTION ERROR:", e)
             _blog_searchable = f"Discover {title} in {place_name}: Complete travel guide with directions, top activities, entrance fees, insider tips, and best times to visit for an unforgettable experience."
         
         return _blog_searchable
@@ -145,7 +94,8 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
     # blog_obj = generate_blog_object(request, place_name, title, category=category, summary=blog_searchable_keys_description or "", text_content=body_text)
 
     if blog_searchable_keys_description:
-        logger.debug("Searchable keys description: %s", blog_searchable_keys_description)
+        print(f"Searchable Keys Description: {blog_searchable_keys_description}")
+        time.sleep(0.5)
     logger.info(f"Generating blog page: {title} in {place_name}")
     
     csrf_token = ""
@@ -158,7 +108,6 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
             logger.error(f"Error obtaining CSRF token: {e}")
     upload_url = reverse("imageapp:uploadimage")
     subscribe_url = reverse("apis:subscribe_email")
-    blog_edit_save_url = reverse("singlepage2:save_blog_paragraph_file_edit")
 # def generate_blog_page(place_name, title, body_text, cover_image_url="/static/images/default-cover.jpg", faq_list=None):
 
     place_slug = slugify(place_name)
@@ -183,11 +132,6 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
 
     # The canonical full URL on your live site
     canonical_url = f"https://www.paratara.com/pages/blog/{place_slug}/{title_slug}/"
-    editable_body_text = mark_editable_blog_body(body_text)
-    generated_at = timezone.now()
-    published_iso, published_display = format_blog_datetime(generated_at)
-    modified_iso, modified_display = format_blog_datetime(generated_at)
-    schema_date = timezone.localtime(generated_at).date().isoformat()
 
     collections_html = f'''
                         <h2>📱 Local Collections & QR Experiences</h2>
@@ -207,7 +151,7 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
     "Is it safe to visit and what travel tips should I know?"
 ]
         if category == 'Product':
-            logger.debug("Using product FAQ questions")
+            print('Category is about product\n')
             faq_questions = [
     "What is the best product to buy in 2026?",
     "Where is the best place to buy it?",
@@ -231,8 +175,11 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
             messages=[{"role": "user", "content": faq_prompt}],
             max_tokens=1000
         )
+        # Print token usage
         if hasattr(res, 'usage'):
-            logger.debug("FAQ generation token usage: %s", res.usage)
+            print(f"Token usage for FAQ generation: {res.usage}")
+        else:
+            print("No token usage info for FAQ generation")
         faq_text = res.choices[0].message.content.strip()
     
         # Try to parse as JSON
@@ -242,15 +189,23 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
         for idx, entry in enumerate(faq_entries, start=1):
             if isinstance(entry, dict):
                 entry["@id"] = f"{canonical_url}#{slugify(entry['name'])}"
-                logger.debug("Processed FAQ entry %s: %s", idx, entry['name'])
+                print(f"Processed FAQ entry {idx}: {entry['name']}")
         
-        logger.info("Generated %s FAQ entries", len(faq_entries))
+        print(f"Generated {len(faq_entries)} FAQ entries")
     except Exception as e:
-        logger.exception("FAQ generation failed")
+        print("FAQ GENERATION ERROR:", e)
         faq_entries = []
     
+    print(f"   ✅ Generated {len(faq_entries)} FAQ entries")    
     if faq_entries:
-        logger.debug("FAQ entries: %s", faq_entries)
+        print("FAQ Entries:")
+        if isinstance(faq_entries, list):
+            for entry in faq_entries:
+                print(f"  {entry}")
+                time.sleep(0.5)
+        else:
+            print(f"  {faq_entries}")
+            time.sleep(0.5)
         
     faq_schema = ""
     if faq_entries:
@@ -263,7 +218,6 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
                     }, indent=2)}
                     </script>
                 """
-    faq_html = render_faq_section(faq_entries)
     
     # Article schema for SEO
     article_schema_dict = {
@@ -277,8 +231,8 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
                 "name": "Foreign Travel Steps",
                 "url": "https://foreigntravelsteps.com"
             },
-            "datePublished": schema_date,
-            "dateModified": schema_date,
+            "datePublished": "2026-05-11",
+            "dateModified": "2026-05-11",
             "url": f"https://www.paratara.com/pages/blog/{place_slug}/{title_slug}/"
         }
     article_schema = f"""
@@ -547,22 +501,6 @@ img {{
     border-bottom: 0;
 }}
 
-.blog-date-meta {{
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem 1rem;
-    margin: 0 0 1.5rem;
-    padding-bottom: 0.9rem;
-    color: var(--text-muted);
-    font-size: 0.92rem;
-    border-bottom: 1px solid var(--border);
-}}
-
-.blog-date-meta time {{
-    color: var(--text);
-    font-weight: 650;
-}}
-
 .intro-section,
 .cta-section {{
     padding: clamp(1.5rem, 4vw, 2.5rem);
@@ -750,108 +688,6 @@ footer button {{
     cursor: pointer;
 }}
 
-#blog-editable-body [data-blog-edit-index] {{
-    position: relative;
-    padding-right: 2.5rem;
-}}
-
-#blog-editable-body [data-editing="true"] {{
-    padding: 0.75rem 2.5rem 0.75rem 0.85rem;
-    background: #f7fffb;
-    outline: 2px solid rgba(47, 125, 104, 0.28);
-    border-radius: 8px;
-}}
-
-.blog-edit-button {{
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    margin-left: 0.45rem;
-    color: var(--accent-dark);
-    font: inherit;
-    font-size: 0.9rem;
-    font-weight: 700;
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    background: #ffffff;
-    cursor: pointer;
-    vertical-align: middle;
-}}
-
-.blog-edit-button:hover {{
-    color: #ffffff;
-    background: var(--accent);
-    border-color: var(--accent);
-}}
-
-.blog-paragraph-tools {{
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.5rem;
-    margin: -0.55rem 0 1.1rem;
-}}
-
-.blog-paragraph-tools button {{
-    min-height: 36px;
-    padding: 0.45rem 0.85rem;
-    font: inherit;
-    font-weight: 700;
-    border-radius: 8px;
-    cursor: pointer;
-}}
-
-.blog-save-button {{
-    color: #ffffff;
-    border: 0;
-    background: var(--accent);
-}}
-
-.blog-cancel-button {{
-    color: var(--text);
-    border: 1px solid var(--border);
-    background: #ffffff;
-}}
-
-.blog-edit-status {{
-    color: var(--text-muted);
-    font-size: 0.9rem;
-}}
-
-.blog-edit-status.error {{
-    color: #b42318;
-}}
-
-.faq-section {{
-    margin: 2.75rem 0 0;
-}}
-
-.faq-list {{
-    display: grid;
-    gap: 0.75rem;
-}}
-
-.faq-item {{
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: #ffffff;
-}}
-
-.faq-item summary {{
-    padding: 0.95rem 1rem;
-    color: var(--accent-dark);
-    font-weight: 700;
-    cursor: pointer;
-}}
-
-.faq-item p {{
-    margin: 0;
-    padding: 0 1rem 1rem;
-    color: var(--text-muted);
-}}
-
 @media (max-width: 768px) {{
     body {{
         font-size: 15.5px;
@@ -921,14 +757,7 @@ function toggleDropdown(e) {{
 
   <article id="body-contents">
     {collections_html}
-    <p class="blog-date-meta">
-        <span>Published <time id="blog-published-at" datetime="{published_iso}">{published_display}</time></span>
-        <span>Last updated <time id="blog-last-updated" datetime="{modified_iso}">{modified_display}</time></span>
-    </p>
-    <div id="blog-editable-body" data-place-slug="{place_slug}" data-title-slug="{title_slug}">
-    {editable_body_text}
-    </div>
-    {faq_html}
+    {body_text}
   </article>
   
 
@@ -939,9 +768,6 @@ function toggleDropdown(e) {{
 
 var place_name = "{place_name}";
 var placename = "{place_name}";
-var blogPlaceSlug = "{place_slug}";
-var blogTitleSlug = "{title_slug}";
-var blogParagraphSaveUrl = "{blog_edit_save_url}";
 
 // Fisher-Yates shuffle algorithm for proper randomization
 function shuffleArray(array) {{
@@ -1058,7 +884,7 @@ function getBlogLists() {{
             const item = document.createElement('li');
             const link = document.createElement('a');
             link.href = blog.localurlpath;
-            link.textContent = blog.title.replace(/<\\/?a[^>]*>/g, '');
+            link.textContent = blog.title.replace(/<\/?a[^>]*>/g, '');
             item.appendChild(link);
             fragment.appendChild(item);
         }});
@@ -1131,171 +957,6 @@ function fetchCollections() {{
 }}
 
 
-function getParagraphCleanText(paragraph) {{
-    const clone = paragraph.cloneNode(true);
-    clone.querySelectorAll('.blog-edit-button, .blog-paragraph-tools').forEach(el => el.remove());
-    return clone.textContent.trim();
-}}
-
-function getParagraphCleanHTML(paragraph) {{
-    const clone = paragraph.cloneNode(true);
-    clone.querySelectorAll('.blog-edit-button, .blog-paragraph-tools').forEach(el => el.remove());
-    return clone.innerHTML;
-}}
-
-function placeCaretAtEnd(element) {{
-    const range = document.createRange();
-    range.selectNodeContents(element);
-    range.collapse(false);
-    const selection = window.getSelection();
-    selection.removeAllRanges();
-    selection.addRange(range);
-}}
-
-function attachParagraphEditButton(paragraph) {{
-    if (paragraph.querySelector('.blog-edit-button')) return;
-
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'blog-edit-button';
-    button.innerHTML = '&#9998;';
-    button.title = 'Edit paragraph';
-    button.setAttribute('aria-label', 'Edit paragraph');
-    button.addEventListener('click', () => startParagraphEdit(paragraph));
-    paragraph.appendChild(button);
-}}
-
-function setupEditableParagraphs() {{
-    const body = document.getElementById('blog-editable-body');
-    if (!body) return;
-
-    body.querySelectorAll('p[data-blog-edit-index]').forEach(paragraph => {{
-        attachParagraphEditButton(paragraph);
-    }});
-}}
-
-function updateVisibleLastUpdated(data) {{
-    if (!data || !data.updated_at_display) return;
-
-    let lastUpdated = document.getElementById('blog-last-updated');
-    if (!lastUpdated) {{
-        const body = document.getElementById('blog-editable-body');
-        if (!body || !body.parentNode) return;
-
-        const meta = document.createElement('p');
-        meta.className = 'blog-date-meta';
-        const span = document.createElement('span');
-        span.appendChild(document.createTextNode('Last updated '));
-        lastUpdated = document.createElement('time');
-        lastUpdated.id = 'blog-last-updated';
-        span.appendChild(lastUpdated);
-        meta.appendChild(span);
-        body.parentNode.insertBefore(meta, body);
-    }}
-
-    if (data.updated_at) {{
-        lastUpdated.setAttribute('datetime', data.updated_at);
-    }}
-    lastUpdated.textContent = data.updated_at_display;
-}}
-
-function finishParagraphEdit(paragraph, tools, replacementHTML) {{
-    paragraph.contentEditable = 'false';
-    delete paragraph.dataset.editing;
-
-    if (replacementHTML !== null) {{
-        paragraph.innerHTML = replacementHTML;
-    }}
-
-    if (tools) tools.remove();
-    attachParagraphEditButton(paragraph);
-}}
-
-function startParagraphEdit(paragraph) {{
-    if (paragraph.dataset.editing === 'true') return;
-
-    const originalHTML = getParagraphCleanHTML(paragraph);
-    const editButton = paragraph.querySelector('.blog-edit-button');
-    if (editButton) editButton.remove();
-
-    paragraph.dataset.editing = 'true';
-    paragraph.contentEditable = 'true';
-    paragraph.focus();
-    placeCaretAtEnd(paragraph);
-
-    const tools = document.createElement('div');
-    tools.className = 'blog-paragraph-tools';
-
-    const saveButton = document.createElement('button');
-    saveButton.type = 'button';
-    saveButton.className = 'blog-save-button';
-    saveButton.textContent = 'Save';
-
-    const cancelButton = document.createElement('button');
-    cancelButton.type = 'button';
-    cancelButton.className = 'blog-cancel-button';
-    cancelButton.textContent = 'Cancel';
-
-    const status = document.createElement('span');
-    status.className = 'blog-edit-status';
-
-    saveButton.addEventListener('click', () => saveParagraphEdit(paragraph, tools));
-    cancelButton.addEventListener('click', () => finishParagraphEdit(paragraph, tools, originalHTML));
-
-    tools.appendChild(saveButton);
-    tools.appendChild(cancelButton);
-    tools.appendChild(status);
-    paragraph.insertAdjacentElement('afterend', tools);
-}}
-
-async function saveParagraphEdit(paragraph, tools) {{
-    const status = tools.querySelector('.blog-edit-status');
-    const saveButton = tools.querySelector('.blog-save-button');
-    const editedText = getParagraphCleanText(paragraph);
-
-    if (!editedText) {{
-        status.textContent = 'Paragraph cannot be empty.';
-        status.classList.add('error');
-        return;
-    }}
-
-    saveButton.disabled = true;
-    status.textContent = 'Saving...';
-    status.classList.remove('error');
-
-    try {{
-        const response = await fetch(blogParagraphSaveUrl, {{
-            method: 'POST',
-            headers: {{
-                "Content-Type": "application/json",
-                "X-Requested-With": "XMLHttpRequest",
-                "X-CSRFToken": getCookie('csrftoken'),
-            }},
-            body: JSON.stringify({{
-                place_slug: blogPlaceSlug,
-                title_slug: blogTitleSlug,
-                page_url: window.location.pathname,
-                paragraph_index: Number(paragraph.dataset.blogEditIndex),
-                edited_text: editedText
-            }})
-        }});
-
-        const data = await response.json();
-        if (!response.ok || !data.ok) {{
-            throw new Error(data.error || `HTTP ${{response.status}}`);
-        }}
-
-        updateVisibleLastUpdated(data);
-        paragraph.textContent = editedText;
-        finishParagraphEdit(paragraph, tools, paragraph.innerHTML);
-    }} catch (err) {{
-        console.error("Error saving paragraph:", err);
-        saveButton.disabled = false;
-        status.textContent = 'Save failed. Please try again.';
-        status.classList.add('error');
-    }}
-}}
-
 
 
 
@@ -1317,25 +978,22 @@ csrftoken = getCookie('csrftoken');
 
 document.addEventListener("DOMContentLoaded", () => {{
     const form = document.querySelector("#imageform");
-    if (form) {{
-        form.addEventListener("submit", function(e) {{
-            e.preventDefault();
-            const formData = new FormData(form);
-            fetch("{upload_url}", {{
-                method: "POST",
-                body: formData,
-                headers: {{
-                    "X-Requested-With": "XMLHttpRequest",
-                    "X-CSRFToken": csrftoken,
-                }}
-            }})
-            .then(response => response.json())
-            .then(data => console.log("Success:"))
-            .catch(err => console.error(err));
-        }});
-    }}
+    form.addEventListener("submit", function(e) {{
+        e.preventDefault();
+        const formData = new FormData(form);
+        fetch("{upload_url}", {{
+            method: "POST",
+            body: formData,
+            headers: {{
+                "X-Requested-With": "XMLHttpRequest",
+                "X-CSRFToken": csrftoken,
+            }}
+        }})
+        .then(response => response.json())
+        .then(data => console.log("Success:"))
+        .catch(err => console.error(err));
+    }});
 
-    setupEditableParagraphs();
     fetchAndInsertImages();
     getBlogLists();
     fetchCollections();
@@ -1426,24 +1084,36 @@ document.addEventListener('click', (ev) => {{
 
 
 
+    print('   ✅ HTML generated: {} characters'.format(len(html_content)))
     folder = os.path.join(
         os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
         "singlepage2", "templates", "blogs", place_slug
     )
+    print(f'   📁 Blog folder: {folder}')
     os.makedirs(folder, exist_ok=True)
 
     blog_slug = slugify(title)
     file_path = os.path.join(folder, f"{blog_slug}.html")
-    logger.info("Saving blog file: %s", file_path)
+    print(f"\n[3.4/5] 💾 Saving blog file...")
 
     with open(file_path, "w", encoding="utf-8") as f:
         f.write(html_content)
+    print(f"   ✅ Saved to: {file_path}")
+# ------------
+    with open(file_path, 'w', encoding='utf-8') as f:
+        f.write(html_content)
+        time.sleep(0.5)
+        f.flush()
+        time.sleep(0.5)
+        f.close()
+
 
     try:
+        print('   ✅ File write complete, starting optimization...')
         optimize_file(file_path)
-        logger.info("Optimized blog file: %s", file_path)
+        print('   ✅ Optimization complete!')
     except Exception as e:
-        logger.exception("Optimization failed for %s", file_path)  
+        print('   ⚠️ Optimization failed:', e)  
 
 
     return html_content

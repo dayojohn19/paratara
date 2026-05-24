@@ -1,12 +1,19 @@
 from django.utils.text import slugify
 from django.shortcuts import render
-from django.http import HttpResponse, HttpRequest
+from django.http import HttpResponse, HttpRequest, JsonResponse
 from .forms import UserImageForm
 from django.conf import settings
 from openai import OpenAI
+from bs4 import BeautifulSoup
+from django.db.models import Q
+from django.utils import timezone
+from django.views.decorators.http import require_POST
 import re
 import os
+import json
+from ipaddress import ip_address
 from typing import Optional
+from urllib.parse import urlparse
 
 # Create your views here.
 from django.views.decorators.csrf import csrf_exempt
@@ -15,6 +22,275 @@ def kefir(request):
     return render(request, 'singlepage2/kefir.html')
 def _strip_html_tags(html: str) -> str:
     return re.sub('<[^<]+?>', '', html or '')
+
+
+def _extract_blog_slugs_from_path(path):
+    parts = [part for part in (path or "").split("/") if part]
+    if len(parts) >= 4 and parts[0] == "pages" and parts[1] == "blog":
+        return parts[2], parts[3]
+    return "", ""
+
+
+def _blog_edit_slugs(place_slug="", title_slug="", page_url=""):
+    page_path = urlparse(page_url).path if page_url and "://" in page_url else page_url
+    parsed_place_slug, parsed_title_slug = _extract_blog_slugs_from_path(page_path)
+    place_slug = place_slug or parsed_place_slug
+    title_slug = title_slug or parsed_title_slug
+
+    place_slug = slugify(place_slug or "")
+    title_slug = slugify(title_slug or "")
+    return place_slug, title_slug
+
+
+def _blog_template_file_path(place_slug="", title_slug="", page_url=""):
+    place_slug, title_slug = _blog_edit_slugs(place_slug, title_slug, page_url)
+    if not place_slug or not title_slug:
+        return None
+
+    blogs_root = os.path.abspath(os.path.join(settings.BASE_DIR, "singlepage2", "templates", "blogs"))
+    file_path = os.path.abspath(os.path.join(blogs_root, place_slug, f"{title_slug}.html"))
+
+    if os.path.commonpath([blogs_root, file_path]) != blogs_root:
+        return None
+
+    return file_path
+
+
+def _candidate_blog_paths(place_slug, title_slug, page_url=""):
+    paths = set()
+    raw_paths = []
+
+    if page_url:
+        raw_paths.append(urlparse(page_url).path if "://" in page_url else page_url)
+
+    if place_slug and title_slug:
+        raw_paths.append(f"/pages/blog/{place_slug}/{title_slug}/")
+
+    for raw_path in raw_paths:
+        if not raw_path:
+            continue
+        path = raw_path if raw_path.startswith("/") else f"/{raw_path}"
+        paths.add(path)
+        paths.add(path.rstrip("/"))
+        paths.add(path if path.endswith("/") else f"{path}/")
+
+    return paths
+
+
+def _find_blog_for_edit(place_slug="", title_slug="", page_url=""):
+    from apis.models import Blogs
+
+    place_slug, title_slug = _blog_edit_slugs(place_slug, title_slug, page_url)
+    paths = _candidate_blog_paths(place_slug, title_slug, page_url)
+    if paths:
+        blog = Blogs.objects.filter(localurlpath__in=paths).first()
+        if blog:
+            return blog
+
+    if not place_slug or not title_slug:
+        return None
+
+    place_name = place_slug.replace("-", " ")
+    candidates = Blogs.objects.select_related("blogplace").filter(
+        Q(blogplace__slug=place_slug) | Q(blogplace__placename__iexact=place_name)
+    )
+    for blog in candidates:
+        if slugify(blog.title or "") == title_slug:
+            return blog
+    return None
+
+
+def _format_blog_datetime(value):
+    value = value or timezone.now()
+    if timezone.is_aware(value):
+        value = timezone.localtime(value)
+    display = value.strftime("%B %d, %Y at %I:%M %p").replace(" 0", " ")
+    return value.isoformat(), display
+
+
+def _get_request_ip(request):
+    raw_ip = (
+        (request.META.get("HTTP_X_FORWARDED_FOR") or "").split(",")[0].strip()
+        or (request.META.get("HTTP_X_REAL_IP") or "").strip()
+        or (request.META.get("REMOTE_ADDR") or "").strip()
+    )
+    if not raw_ip:
+        return None
+
+    try:
+        return str(ip_address(raw_ip))
+    except ValueError:
+        return None
+
+
+def _update_article_schema_modified_date(soup, updated_at):
+    date_modified = timezone.localtime(updated_at).date().isoformat()
+
+    def update_article(data):
+        changed = False
+        if isinstance(data, dict):
+            schema_type = data.get("@type")
+            is_article = schema_type == "Article" or (
+                isinstance(schema_type, list) and "Article" in schema_type
+            )
+            if is_article:
+                data["dateModified"] = date_modified
+                changed = True
+            graph = data.get("@graph")
+            if isinstance(graph, list):
+                changed = update_article(graph) or changed
+        elif isinstance(data, list):
+            for item in data:
+                changed = update_article(item) or changed
+        return changed
+
+    for script in soup.find_all("script", attrs={"type": "application/ld+json"}):
+        try:
+            data = json.loads(script.string or script.get_text() or "{}")
+        except json.JSONDecodeError:
+            continue
+        if update_article(data):
+            script.string = json.dumps(data, indent=2)
+
+
+def _update_last_updated_marker(soup, updated_at):
+    updated_iso, updated_display = _format_blog_datetime(updated_at)
+    meta_style = (
+        "display:flex;flex-wrap:wrap;gap:0.5rem 1rem;margin:0 0 1.5rem;"
+        "padding-bottom:0.9rem;color:#65736d;font-size:0.92rem;"
+        "border-bottom:1px solid #d8ded7;"
+    )
+    time_style = "color:#27332f;font-weight:650;"
+    time_tag = soup.find(id="blog-last-updated")
+
+    if time_tag:
+        meta = time_tag.find_parent(class_="blog-date-meta")
+        if meta and not meta.get("style"):
+            meta["style"] = meta_style
+        if not time_tag.get("style"):
+            time_tag["style"] = time_style
+        time_tag["datetime"] = updated_iso
+        time_tag.clear()
+        time_tag.append(updated_display)
+        return
+
+    meta = soup.new_tag("p", attrs={"class": "blog-date-meta", "style": meta_style})
+    span = soup.new_tag("span")
+    span.append("Last updated ")
+    time_tag = soup.new_tag("time", attrs={
+        "id": "blog-last-updated",
+        "datetime": updated_iso,
+        "style": time_style,
+    })
+    time_tag.append(updated_display)
+    span.append(time_tag)
+    meta.append(span)
+
+    editable_body = soup.find(id="blog-editable-body")
+    body_contents = soup.find(id="body-contents")
+    if editable_body:
+        editable_body.insert_before(meta)
+    elif body_contents:
+        body_contents.insert(0, meta)
+
+
+def _patch_blog_template_file(paragraph_index, edited_text, place_slug="", title_slug="", page_url="", updated_at=None):
+    file_path = _blog_template_file_path(place_slug, title_slug, page_url)
+    if not file_path or not os.path.exists(file_path):
+        return False, file_path, "Template file not found"
+
+    with open(file_path, "r", encoding="utf-8") as template_file:
+        html = template_file.read()
+
+    soup = BeautifulSoup(html, "html.parser")
+    editable_body = soup.find(id="blog-editable-body")
+    if not editable_body:
+        return False, file_path, "Editable blog body not found"
+
+    selector = f'p[data-blog-edit-index="{paragraph_index}"]'
+    target = editable_body.select_one(selector)
+    if not target:
+        paragraphs = editable_body.find_all("p", attrs={"data-blog-edit-index": True})
+        if paragraph_index >= len(paragraphs):
+            return False, file_path, "Paragraph not found"
+        target = paragraphs[paragraph_index]
+
+    target.clear()
+    target.append(edited_text)
+    edited_at = updated_at or timezone.now()
+    _update_last_updated_marker(soup, edited_at)
+    _update_article_schema_modified_date(soup, edited_at)
+
+    with open(file_path, "w", encoding="utf-8") as template_file:
+        template_file.write(str(soup))
+
+    return True, file_path, ""
+
+
+@require_POST
+def save_blog_paragraph_file_edit(request):
+    try:
+        payload = json.loads(request.body.decode("utf-8") or "{}")
+    except json.JSONDecodeError:
+        return JsonResponse({"ok": False, "error": "Invalid JSON"}, status=400)
+
+    place_slug = (payload.get("place_slug") or "").strip()
+    title_slug = (payload.get("title_slug") or "").strip()
+    page_url = (payload.get("page_url") or "").strip()
+    edited_text = (payload.get("edited_text") or "").strip()
+
+    try:
+        paragraph_index = int(payload.get("paragraph_index"))
+    except (TypeError, ValueError):
+        return JsonResponse({"ok": False, "error": "Invalid paragraph index"}, status=400)
+
+    if paragraph_index < 0:
+        return JsonResponse({"ok": False, "error": "Invalid paragraph index"}, status=400)
+    if not edited_text:
+        return JsonResponse({"ok": False, "error": "Paragraph cannot be empty"}, status=400)
+    if len(edited_text) > 8000:
+        return JsonResponse({"ok": False, "error": "Paragraph is too long"}, status=400)
+
+    edited_at = timezone.now()
+    edited_ip = _get_request_ip(request)
+    blog = _find_blog_for_edit(place_slug, title_slug, page_url)
+
+    file_updated, file_path, file_error = _patch_blog_template_file(
+        paragraph_index,
+        edited_text,
+        place_slug=place_slug,
+        title_slug=title_slug,
+        page_url=page_url,
+        updated_at=edited_at,
+    )
+    if not file_updated:
+        return JsonResponse({
+            "ok": False,
+            "error": file_error or "Could not update template file",
+            "file_path": file_path or "",
+        }, status=404)
+
+    blog_updated = False
+    if blog:
+        type(blog).objects.filter(pk=blog.pk).update(
+            updated_at=edited_at,
+            last_updated_ip=edited_ip,
+        )
+        blog_updated = True
+
+    updated_at_iso, updated_at_display = _format_blog_datetime(edited_at)
+    return JsonResponse({
+        "ok": True,
+        "blog_id": blog.id if blog else None,
+        "blog_updated": blog_updated,
+        "paragraph_index": paragraph_index,
+        "edited_text": edited_text,
+        "updated_at": updated_at_iso,
+        "updated_at_display": updated_at_display,
+        "last_updated_ip": edited_ip,
+        "file_updated": file_updated,
+        "file_path": file_path or "",
+    })
 
 
 def ensure_blog_page_and_url(request: HttpRequest,blog_obj = None,*,body_html: str,cover_image_url: Optional[str] = None,):

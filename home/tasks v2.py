@@ -1,3 +1,4 @@
+import base64
 import io
 import os
 import qrcode
@@ -8,7 +9,12 @@ from django.conf import settings
 from django.utils.text import slugify
 
 from .models import TouristSpot, Places_v2
+from apis.models import Blogs
 
+from webSchedule.utils import upload_to_imgbb
+import requests
+from io import BytesIO
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from singlepage2.htmlwriter import generate_blog_object
 
 
@@ -17,79 +23,32 @@ from openai import OpenAI
 client = OpenAI(api_key=settings.GROK_API_KEY, base_url='https://api.x.ai/v1')
 
 
-BLOG_CATEGORIES = {"Guide", "Story", "Tip and Trick", "Explore", "Product"}
-
-
-def _strip_anchor_tags(value):
-    return re.sub(r'<a\b[^>]*>(.*?)</a>', r'\1', str(value or ''), flags=re.IGNORECASE | re.DOTALL).strip()
-
-
-def _get_place_slug(place):
-    value = getattr(place, 'slug', '') or getattr(place, 'placename', '') or str(place or '')
-    return slugify(value) or 'place'
-
-
-def _get_list_value(data, key):
-    if hasattr(data, 'getlist'):
-        return data.getlist(key)
-    if not hasattr(data, 'get'):
-        return []
-    value = data.get(key, [])
-    if value in (None, ''):
-        return []
-    if isinstance(value, (list, tuple)):
-        return list(value)
-    return [value]
-
-
-def _parse_blog_response(full_response, fallback_title, place_name):
-    full_response = (full_response or '').strip()
-    parts = re.split(r'\n\s*\n', full_response, maxsplit=1)
-
-    raw_title = parts[0].strip() if parts else ''
-    blog_title = re.sub(r'^Title:\s*', '', raw_title, flags=re.IGNORECASE).strip().strip('"')
-    if not blog_title or blog_title.lower().startswith('<article'):
-        blog_title = fallback_title
-    blog_title = _strip_anchor_tags(blog_title) or fallback_title
-
-    category_match = re.search(r'^Category:\s*([^\n]+)', full_response, flags=re.IGNORECASE | re.MULTILINE)
-    blog_category = category_match.group(1).strip().strip("'\"") if category_match else "Guide"
-    if blog_category not in BLOG_CATEGORIES:
-        blog_category = "Guide"
-
-    summary_match = re.search(r'^Summary:\s*([^\n]+)', full_response, flags=re.IGNORECASE | re.MULTILINE)
-    blog_summary = summary_match.group(1).strip() if summary_match else f"Discover {fallback_title} in {place_name}"
-    blog_summary = _strip_anchor_tags(blog_summary)
-    if blog_summary.lower().startswith('summary:'):
-        blog_summary = blog_summary[8:].strip()
-
-    blog_content = parts[1] if len(parts) > 1 else full_response
-    blog_content = re.sub(r'^\s*Title:\s*[^\n]+\n+', '', blog_content, flags=re.IGNORECASE).strip()
-    for _ in range(2):
-        blog_content = re.sub(r'\s*(Category|Summary):\s*[^\n]+\s*$', '', blog_content, flags=re.IGNORECASE).strip()
-
-    return blog_title, blog_content, blog_category, blog_summary[:400]
-
-
 def process_creating_blog(request, for_place,blog__title=None,to_title=None,create_tourist_spot=False):
 
 
     try:
         link_promotion_present = None
-        place_name = getattr(for_place, 'placename', str(for_place))
-        place_slug = _get_place_slug(for_place)
+        import re
         if to_title is not None:
-            to_title = str(to_title).strip()
-            url_pattern = r'https?://[^\s]+'
-            match = re.search(url_pattern, to_title)
-            if match:
-                link = match.group(0)
-                to_title = re.sub(url_pattern, '', to_title).strip()
-                if not to_title:
-                    to_title = str(blog__title or link).strip()
+            if ThereisLink := re.search(r'(https?://\S+)', to_title):
+
+                text = """
+                create a blog for https://www.amazon.com/dp/B0CP7SV7XV?pd_rd_w=xjvsm&content-id=abc123
+                """
+                text = to_title
+
+                # Find the URL
+                url_pattern = r'https?://[^\s]+'
+                match = re.search(url_pattern, text)
+
+                link = match.group(0) if match else ""
+
+                # Remove the URL from the string
+                remaining_text = re.sub(url_pattern, '', text).strip()
+                to_title = remaining_text
                 link_promotion_present = f'promoting link include this exactly <a href="{link}" target="_blank" class="promotion-link">Check it out here</a>'
                 print("Link:", link_promotion_present)
-                print("Remaining Text:", to_title)
+                print("Remaining Text:", remaining_text)
 
         # =========================
         # ✅  Generate Blog
@@ -99,7 +58,7 @@ def process_creating_blog(request, for_place,blog__title=None,to_title=None,crea
             extract_prompt = f'''Extract the main topic/subject from this user request: "{to_title}"
             # First, extract the key topic from natural language input
             Return ONLY the extracted topic (2-4 words) 
-            determine if its about promotion of a specific place, activity, or event in {place_name} and if so extract that as the topic.'''
+            determine if its about promotion of a specific place, activity, or event in {for_place.placename} and if so extract that as the topic.'''
             try:
                 extract_res = client.chat.completions.create(
                     model=settings.GROK_MODEL_NAME,
@@ -124,12 +83,9 @@ def process_creating_blog(request, for_place,blog__title=None,to_title=None,crea
                 print(f"   ⚠️ Title generation failed: {e}, using default: {to_title}")
                 blog__title = to_title
         print(f"\n[3/5] 📰 Generating blog content...")
-        blog_title = str(blog__title or '').strip() or f"Blog in {place_name}"
-        blog_category = "Guide"
-        blog_summary = f"Discover {blog_title} in {place_name}"
-        blog_content = ""
+        blog_title = str(blog__title or '').strip() or f"Blog in {for_place.placename}"
         try:
-            print(f"Generating blog for {blog__title} in {place_name}...")
+            print(f"Generating blog for {blog__title} in {for_place.placename}...")
 
             promotion_instruction = (
                 link_promotion_present
@@ -140,15 +96,15 @@ def process_creating_blog(request, for_place,blog__title=None,to_title=None,crea
             blog_prompt = f'''Create a polished, engaging blog post from this user topic/request:
 "{blog__title}"
 
-Local context/place: "{place_name}"
+Local context/place: "{for_place.placename}"
 Promotion/link instruction: {promotion_instruction}
 
 IMPORTANT INTENT RULES:
 - First understand the real intent of the topic/request. It may be travel, a product promotion, a general lifestyle topic, a local guide, an event, a story, a tip article, or something else.
 - Do NOT force every article to be a tourist travel guide.
-- If the topic is travel, attractions, restaurants, resorts, activities, events, or visiting "{place_name}", write a useful travel/local guide.
-- If the topic promotes a product or includes a promotional URL, write an editorial blog that connects "{place_name}" to the product naturally. For example, show how the product helps with a local activity, trip, lifestyle, climate, family outing, commute, resort stay, beach day, pool day, or everyday need. Mention the product with helpful context, not as spam.
-- If the topic is not travel-related, write about the requested subject directly and use "{place_name}" only as a relevant local angle, example, audience context, or setting.
+- If the topic is travel, attractions, restaurants, resorts, activities, events, or visiting "{for_place.placename}", write a useful travel/local guide.
+- If the topic promotes a product or includes a promotional URL, write an editorial blog that connects "{for_place.placename}" to the product naturally. For example, show how the product helps with a local activity, trip, lifestyle, climate, family outing, commute, resort stay, beach day, pool day, or everyday need. Mention the product with helpful context, not as spam.
+- If the topic is not travel-related, write about the requested subject directly and use "{for_place.placename}" only as a relevant local angle, example, audience context, or setting.
 - If the request text includes words like "create a blog about", "write about", or similar instructions, ignore those command words and focus on the actual subject.
 - Never invent specific breaking news, official rules, festival dates, prices, or safety alerts. If exact current details are uncertain, say readers should verify official/local sources before going or buying.
 
@@ -170,7 +126,7 @@ REQUIREMENTS:
 CONTENT STRUCTURE (must include ALL sections, but adapt headings/content to the intent):
 1. Intro Section (150 words max) - Hook the reader with a relevant story or situation
 2. What Makes It Worth Reading - Explain the subject, product, place, or idea and why it matters
-3. Local Connection - Connect the topic to "{place_name}" in a useful, believable way
+3. Local Connection - Connect the topic to "{for_place.placename}" in a useful, believable way
 4. Best Uses / Things To Do / Key Benefits - Choose the label that fits the topic
 5. Practical Breakdown - Costs, budget, time, features, comparisons, or planning details when relevant
 6. How To Experience / Use / Choose It - Practical next steps, directions, usage tips, or buying advice
@@ -218,23 +174,54 @@ HTML TEMPLATE EXAMPLE:
             )
 
             full_response = res.choices[0].message.content.strip()
-            usage = getattr(res, "usage", None)
-            if usage:
-                print("Prompt tokens:", getattr(usage, "prompt_tokens", "n/a"))
-                print("Completion tokens:", getattr(usage, "completion_tokens", "n/a"))
-                print("Total tokens:", getattr(usage, "total_tokens", "n/a"))
-                print('-----------------')
+            usage = res.usage
+
+            print("Prompt tokens:", usage.prompt_tokens)
+            print("Completion tokens:", usage.completion_tokens)
+            print("Total tokens:", usage.total_tokens)  
+            print('-----------------')                              
   
-            blog_title, blog_content, blog_category, blog_summary = _parse_blog_response(
-                full_response,
-                fallback_title=blog_title,
-                place_name=place_name,
-            )
+            # Parse title and HTML
+            parts = full_response.split('\n\n', 1)
+            
+            # Extract Title (first line)
+            import re
+
+            raw_title = parts[0].strip()
+            blog_title = re.sub(r'^Title:\s*', '', raw_title, flags=re.IGNORECASE).strip().strip('"')
+            blog_title = blog_title or str(blog__title or '').strip() or f"Blog in {for_place.placename}"
+            # Extract Category and Summary from the full response
+            category_match = re.search(r'Category:\s*([^\n]+)', full_response)
+            blog_category = category_match.group(1).strip() if category_match else "Guide"
+            
+            summary_match = re.search(r'Summary:\s*([^\n]+)', full_response)
+            blog_summary = summary_match.group(1).strip() if summary_match else f"Discover {blog__title} in {for_place.placename}"
+            # Remove "Summary:" prefix if it accidentally got included
+            if blog_summary.startswith('Summary:'):
+                blog_summary = blog_summary[8:].strip()
+            
+            # Extract HTML content (everything after the first double newline)
+            blog_content = parts[1] if len(parts) > 1 else full_response
+            blog_content = re.sub(
+                r'\s*Category:\s*[^\n]+\s*Summary:\s*[^\n]+\s*$',
+                '',
+                blog_content,
+                flags=re.IGNORECASE | re.DOTALL
+            ).strip()
+            import re
+
+            # blog_summary = re.sub(r'<a[^>]*>(.*?)</a>', r'\1', blog_summary, flags=re.IGNORECASE)
+            # blog_title = re.sub(r'<a[^>]*>(.*?)</a>', r'\1', blog_title, flags=re.IGNORECASE)
+            blog_title = re.sub(r'<a\b[^>]*>(.*?)</a>',r'\1',blog_title,flags=re.IGNORECASE | re.DOTALL)            
+            blog_summary = re.sub(r'<a\b[^>]*>(.*?)</a>', r'\1', blog_summary, flags=re.IGNORECASE | re.DOTALL)
+            if '<a' in blog_title:
+                blog_title += '</a>'
             print('Blog Category:', blog_category) 
             print('Blog Summary:', blog_summary[:50])
 
             print('Blog Content:', blog_content[:50])
             print('Blog Title:', blog_title[:50])
+            place_slug = slugify(for_place.placename)
             
             print(f"   ✅ Blog title: {blog_title}")
             print(f"   ✅ Content generated: {len(blog_content)} characters")
@@ -270,7 +257,7 @@ HTML TEMPLATE EXAMPLE:
             print(f"\n[3.3/5] 🎨 Generating HTML page...")
             html = generate_blog_object(
                 request,
-                place_name=place_name,
+                place_name=for_place.placename,
                 title=blog_title,
                 text_content=blog_content,
                 summary=blog_summary, 
@@ -290,6 +277,10 @@ HTML TEMPLATE EXAMPLE:
             #     textContent=blog_content
             # )
             # for_place.blog.add(blog)
+            #TODO this can go to singlepage2.views import ensure_blog_in_db() and be called on demand when user clicks blog link, instead of pre-creating all blogs for all places and spots
+            from singlepage2.views import ensure_blog_page_and_url
+            # ensure_blog_page_and_url(None, blog, for_place, blog_title, blog_content, meta_description, faq_entries)
+
             print(f"   ✅ Blog entry created in database")
             # ---------==== endtodo
 
@@ -304,17 +295,17 @@ HTML TEMPLATE EXAMPLE:
             print(f"   ⏳ Creating QR code URL...")
             
             
-            blog_slug = slugify(blog_title) or 'blog'
-            url = f"https://www.paratara.com/{place_slug}/visit/{blog_slug}/"
-            created_spot = None
+            url = f"https://www.paratara.com/{slugify(for_place)}/visit/{slugify(blog_title)}/"
             if create_tourist_spot == True:
-                tourist_spot_blog_url = url = f"https://www.paratara.com/pages/blog/{place_slug}/{blog_slug}/"
-                created_spot = process_create_tourist_spot(request, tourist_spot_blog_url, blog_summary)
+                tourist_spot_blog_url = url = f"https://www.paratara.com/pages/blog/{slugify(for_place)}/{slugify(blog_title)}/"
+                process_create_tourist_spot(request, tourist_spot_blog_url, blog_summary)
             qr = qrcode.make(url)
             buffer = io.BytesIO()
             qr.save(buffer, format="PNG")
 
-            filename = f"{place_slug}-{blog_slug}-qr.png"
+            from django.core.files.base import ContentFile
+
+            filename = f"{slugify(for_place)}-qr.png"
             qr_path = os.path.join(settings.MEDIA_ROOT, 'qr_codes', filename)
             os.makedirs(os.path.dirname(qr_path), exist_ok=True)
             
@@ -324,9 +315,6 @@ HTML TEMPLATE EXAMPLE:
             
             qr_url = f"{settings.MEDIA_URL}qr_codes/{filename}"
 
-            if created_spot is not None:
-                created_spot.qr_code_url = qr_url
-                created_spot.save(update_fields=["qr_code_url"])
 
             print(f"   ✅ QR code saved: {qr_url}")
 
@@ -352,23 +340,10 @@ Creating Tourist Spots
 
 
 """)
-    from django.shortcuts import render
+    from django.shortcuts import render, get_object_or_404
     from resorts.models import resortItem as ResortItem
     from imageapp.imageuploader import getPlacePhoto
-
-    def render_error(message):
-        print(message)
-        if hasattr(request, "META"):
-            return render(request, "home/tourist_spot_create.html", {
-                "places": Places_v2.objects.all(),
-                "resorts": ResortItem.objects.all(),
-                "error": message
-            })
-        return None
-
     def get_clean_value(data, key, default=""):
-        if not hasattr(data, "get"):
-            return default
         val = data.get(key, default)
 
         # If it's a list → take first item
@@ -382,8 +357,8 @@ Creating Tourist Spots
         # Convert EVERYTHING to string safely
         return str(val).strip()
 
-    data = getattr(request, "POST", request) or {}
-    if getattr(request, "method", "POST") == "POST":
+    data = getattr(request, "POST", request)  # ✅ ALWAYS defined    
+    if request.method == "POST":
         name = get_clean_value(data, "name")
         place_id = get_clean_value(data, "place")
         slug = get_clean_value(data, "slug")
@@ -391,15 +366,16 @@ Creating Tourist Spots
         latitude = get_clean_value(data, "latitude")
         longitude = get_clean_value(data, "longitude")
         picture = get_clean_value(data, "picture")
+        place = get_object_or_404(Places_v2, id=place_id)
 
-        resort_ids = _get_list_value(data, "resortItem")
+        resort_ids = data.getlist("resortItem")
 
         if not name or not place_id:
-            return render_error("Place and Name are required")
-
-        place = Places_v2.objects.filter(id=place_id).first()
-        if not place:
-            return render_error("Place was not found")
+            return render(request, "home/tourist_spot_create.html", {
+                "places": Places_v2.objects.all(),
+                "resorts": ResortItem.objects.all(),
+                "error": "Place and Name are required"
+            })
 
         coords = None
         if latitude and longitude:
@@ -408,7 +384,7 @@ Creating Tourist Spots
                     "latitude": float(latitude),
                     "longitude": float(longitude)
                 }
-            except (TypeError, ValueError):
+            except:
                 pass
 # ----------- Processing Spot
         if not desc:
@@ -421,7 +397,7 @@ Creating Tourist Spots
             #         max_tokens=100
             #     )
                 # desc = res.choices[0].message.content.strip()
-                desc = blog_summary
+                desc =blog_summary
                 # spot.save()
                 print(f"   ✅ Description saved")
             except Exception as e:
@@ -455,7 +431,7 @@ Creating Tourist Spots
         # ✅ Create immediately (FAST)
 
         print('\n\n')
-        print('Creating TOURIST SPOT URL', url)
+        print('Creating TOURIST SPORT URL',url)
         print('\n\n')
         spot = TouristSpot.objects.create(
             place=place,
@@ -474,7 +450,3 @@ Creating Tourist Spots
         if resort_ids:
             resorts = ResortItem.objects.filter(id__in=resort_ids)
             spot.resortItem.set(resorts)
-
-        return spot
-
-    return None

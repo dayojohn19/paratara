@@ -85,18 +85,21 @@ def get_map(request, placeName):
              lats = []
              lngs = []
              for spot in tourist_spots:
-                 if spot.coords:
-                     if isinstance(spot.coords, list):
-                         if spot.coords[0] is not None and spot.coords[1] is not None:
-                             lats.append(spot.coords[0])
-                             lngs.append(spot.coords[1])
-                     elif isinstance(spot.coords, dict):
-                         # Accept multiple key variants: 'lat'/'lng' or 'latitude'/'longitude'
-                         lat = spot.coords.get('lat') if spot.coords.get('lat') is not None else spot.coords.get('latitude')
-                         lng = spot.coords.get('lng') if spot.coords.get('lng') is not None else spot.coords.get('longitude')
-                         if lat is not None and lng is not None:
-                             lats.append(lat)
-                             lngs.append(lng)
+                for key, value in spot.__dict__.items():
+                    print(f"{key}: {value}")
+                print("-----")                
+                if spot.coords:
+                    if isinstance(spot.coords, list):
+                        if spot.coords[0] is not None and spot.coords[1] is not None:
+                            lats.append(spot.coords[0])
+                            lngs.append(spot.coords[1])
+                    elif isinstance(spot.coords, dict):
+                        # Accept multiple key variants: 'lat'/'lng' or 'latitude'/'longitude'
+                        lat = spot.coords.get('lat') if spot.coords.get('lat') is not None else spot.coords.get('latitude')
+                        lng = spot.coords.get('lng') if spot.coords.get('lng') is not None else spot.coords.get('longitude')
+                        if lat is not None and lng is not None:
+                            lats.append(lat)
+                            lngs.append(lng)
              if lats:
                 center = [sum(lats)/len(lats), sum(lngs)/len(lngs)]
              else:

@@ -110,6 +110,7 @@ urlpatterns = [
     path('api/spot/<slug:place_slug>/<slug:spot_slug>/', views.get_spot_details, name='get_spot_details'),
     path('visitor_stats/<int:spot_id>/', views.get_visitor_stats, name='visitor_stats'),
     path('place/<slug:place_slug>/tourist-spots/', views.tourist_spots, name='tourist_spots'),
+    path('place/checkout/<slug:place_slug>/', views.search_tourist_spots_by_placename, name='tourist_spots'),
     path('all-tourist-spots/', views.all_tourist_spots, name='all_tourist_spots'),
     path('add_tour_guide/', views.add_tour_guide, name='add_tour_guide'),
     path('api/tour_guide/<str:username>/', views.get_tour_guide_info, name='get_tour_guide_info'),

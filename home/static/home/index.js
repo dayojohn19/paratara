@@ -1,17 +1,37 @@
-/* =========================
-   Utils
-========================= */
-
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
 const slugify = (text) =>
-  text.toLowerCase().trim().replace(/\s+/g, "-");
+  String(text || "")
+    .toLowerCase()
+    .trim()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 
-const confirmOpen = (label, url) => {
-  const input = prompt("", `Check ${label}`);
-  if (input === `Check ${label}`) {
-    window.open(url, "_blank");
-  }
+const getCurrentMonthYear = () => {
+  const now = new Date();
+  return {
+    month: now.getMonth() + 1,
+    year: now.getFullYear()
+  };
+};
+
+const state = {
+  allPlaces: [],
+  currentPage: 0,
+  itemsPerPage: 8,
+  isLoadingPage: false,
+  activeSearchIndex: -1,
+  searchItems: []
+};
+
+const elements = {
+  list: null,
+  sentinel: null,
+  landing: null,
+  input: null,
+  dropdown: null,
+  backdrop: null,
+  searchContainer: null
 };
 
 const backgroundObserver = window.IntersectionObserver
@@ -21,24 +41,193 @@ const backgroundObserver = window.IntersectionObserver
         loadPlaceBackground(entry.target);
         backgroundObserver.unobserve(entry.target);
       });
-    }, { rootMargin: "220px 0px", threshold: 0.1 })
+    }, { rootMargin: "240px 0px", threshold: 0.01 })
   : null;
+
+let sentinelObserver = null;
+
+function cacheElements() {
+  elements.list = document.getElementById("placesList");
+  elements.sentinel = document.getElementById("placesSentinel");
+  elements.landing = document.getElementById("landing-message");
+  elements.input = document.getElementById("place_input_id_for_filter");
+  elements.dropdown = document.getElementById("place_id_for_drop_down_filter");
+  elements.backdrop = document.getElementById("dropdown-backdrop");
+  elements.searchContainer = document.getElementById("placeSearchContainer");
+}
+
+function openInNewTab(place, placeID) {
+  const { month, year } = getCurrentMonthYear();
+  const placeSlug = slugify(place);
+  window.open(`/${placeSlug}/place/${placeID}/${month}/${year}/`, "_blank");
+}
+
+function newTabPlaceSearch(placeName) {
+  window.open(`/placeslug/${slugify(placeName)}/`, "_blank");
+}
+
+function changeSearchInputValue(value) {
+  if (elements.input) elements.input.value = value;
+}
+
+function getReviewCount(place) {
+  const value = Number(place && place.reviewCount);
+  return Number.isFinite(value) ? value : 0;
+}
+
+function sortedPlaces() {
+  return [...state.allPlaces].sort((a, b) => {
+    const reviews = getReviewCount(b) - getReviewCount(a);
+    if (reviews !== 0) return reviews;
+    return String(a.placename || "").localeCompare(String(b.placename || ""));
+  });
+}
+
+function getPlaceUrl(place) {
+  return `/placeslug/${slugify(place.placename)}/`;
+}
+
+async function getCarpoolJSON() {
+  showSkeletons();
+
+  try {
+    const response = await fetch(`${window.location.origin}/home/getcarpooljson/`, {
+      headers: { Accept: "application/json" }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const { PlacesList = [] } = await response.json();
+    state.allPlaces = Array.isArray(PlacesList) ? PlacesList : [];
+
+    clearSkeletons();
+    if (!state.allPlaces.length) {
+      showStateMessage("empty", "No destinations are available yet.", "New places will appear here when they are published.");
+      return;
+    }
+
+    renderSearchDropdown();
+    renderPage();
+    attachInfiniteScroll();
+  } catch (error) {
+    clearSkeletons();
+    showStateMessage("error", "Destinations could not load.", "Please refresh the page in a moment.");
+    console.error("Carpool fetch failed:", error);
+  }
+}
+
+function renderPage() {
+  if (!elements.list || state.isLoadingPage) return;
+
+  const totalPages = Math.ceil(state.allPlaces.length / state.itemsPerPage);
+  if (state.currentPage >= totalPages) return;
+
+  state.isLoadingPage = true;
+  const start = state.currentPage * state.itemsPerPage;
+  const pagePlaces = state.allPlaces.slice(start, start + state.itemsPerPage);
+  const fragment = document.createDocumentFragment();
+
+  pagePlaces.forEach((place) => {
+    const card = createPlaceCard(place);
+    fragment.appendChild(card);
+  });
+
+  elements.list.insertBefore(fragment, elements.sentinel);
+  elements.list.querySelectorAll(".container-item:not([data-observed])").forEach((card) => {
+    card.dataset.observed = "true";
+    observeCardBackground(card);
+  });
+
+  state.currentPage += 1;
+  state.isLoadingPage = false;
+  toggleLandingMessage();
+}
+
+function attachInfiniteScroll() {
+  if (!elements.sentinel) return;
+
+  if (sentinelObserver) {
+    sentinelObserver.disconnect();
+  }
+
+  if (window.IntersectionObserver) {
+    sentinelObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) renderPage();
+      });
+    }, { rootMargin: "420px 0px", threshold: 0 });
+    sentinelObserver.observe(elements.sentinel);
+    return;
+  }
+
+  window.addEventListener("scroll", () => {
+    const nearBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 360;
+    if (nearBottom) renderPage();
+  }, { passive: true });
+}
+
+function createPlaceCard(place) {
+  const card = document.createElement("article");
+  card.className = "container-item placeholder";
+  card.tabIndex = 0;
+  card.role = "button";
+  card.dataset.place = place.placename || "";
+  card.dataset.bg = place.placePhoto || "";
+  card.setAttribute("aria-label", `Open ${place.placename || "place"}`);
+
+  const open = () => openInNewTab(place.placename, place.placeID);
+  card.addEventListener("click", open);
+  card.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    open();
+  });
+
+  const content = document.createElement("div");
+  content.className = "container-title";
+
+  const title = document.createElement("h2");
+  title.className = "placenametitle";
+  title.textContent = place.placename || "Destination";
+
+  const footer = document.createElement("div");
+  footer.className = "place-card-footer";
+
+  const reviews = document.createElement("span");
+  reviews.className = "place-review-count";
+  reviews.textContent = `${getReviewCount(place)} reviews`;
+
+  const action = document.createElement("span");
+  action.className = "place-card-action";
+  action.textContent = "Open";
+
+  footer.appendChild(reviews);
+  footer.appendChild(action);
+  content.appendChild(title);
+  content.appendChild(footer);
+  card.appendChild(content);
+
+  return card;
+}
 
 function loadPlaceBackground(card) {
   const imageUrl = card.dataset.bg;
-  if (!imageUrl || card.classList.contains("loaded-bg")) return;
+  if (!imageUrl || card.classList.contains("loaded-bg")) {
+    card.classList.remove("placeholder");
+    return;
+  }
 
   const img = new Image();
   img.src = imageUrl;
   img.onload = () => {
-    card.style.backgroundImage = `url(${imageUrl})`;
+    card.style.backgroundImage = `url("${imageUrl}")`;
     card.classList.remove("placeholder");
     card.classList.add("loaded-bg");
   };
   img.onerror = () => {
-    card.style.backgroundImage = "linear-gradient(135deg, rgba(148, 163, 184, 0.16), rgba(148, 163, 184, 0.08))";
     card.classList.remove("placeholder");
-    card.classList.add("loaded-bg");
   };
 }
 
@@ -50,248 +239,237 @@ function observeCardBackground(card) {
   }
 }
 
-const getCurrentMonthYear = () => {
-  const now = new Date();
-  return {
-    day: now.getDate(),
-    month: now.getMonth() + 1,
-    year: now.getFullYear()
-  };
-};
+function renderSearchDropdown(options = {}) {
+  if (!elements.input || !elements.dropdown) return;
 
-/* =========================
-   Navigation
-========================= */
+  const shouldOpen = Boolean(options.open);
+  const filter = elements.input.value.trim();
+  const filterLower = filter.toLowerCase();
+  const matches = filter
+    ? state.allPlaces.filter((place) =>
+        String(place.placename || "").toLowerCase().includes(filterLower)
+      )
+    : sortedPlaces();
 
-function openInNewTab(place, placeID) {
-  let { day, month, year } = getCurrentMonthYear();
-  const placeSlug = slugify(place);
-  const url = `/${placeSlug}/place/${placeID}/${month}/${year}/`;
-  window.open(url, "_blank");
-  // confirmOpen(place, url);
-}
+  const visibleMatches = matches.slice(0, filter ? 50 : 8);
+  state.searchItems = visibleMatches;
+  state.activeSearchIndex = visibleMatches.length ? 0 : -1;
+  elements.dropdown.innerHTML = "";
 
-function newTabPlaceSearch(placeName) {
-  console.log('aa')
-  let { day, month, year } = getCurrentMonthYear();
-  const placeSlug = slugify(placeName);
-  // const url = `/${placeSlug}/place/${month}/${year}/`;  
-  const url = `/placeslug/${placeSlug}/`;  
-  window.open(url, "_blank");
-  // confirmOpen(placeName, `/placeslug/${slugify(placeName)}/`);
-}
-
-function changeSearchInputValue(value) {
-  const input = document.querySelector(".where-to-go");
-  if (input) input.value = value;
-}
-
-/* =========================
-   Fetch & Render
-========================= */
-
-let allPlaces = [];
-let currentPage = 1;
-const itemsPerPage = 5;
-let isLoadingPage = false;
-
-async function getCarpoolJSON() {
-  try {
-    const response = await fetch(
-      `${window.location.origin}/home/getcarpooljson/`,
-      { headers: { Accept: "application/json" } }
-    );
-
-    const { PlacesList = [] } = await response.json();
-
-    allPlaces = PlacesList;
-    FilterPlacesEachType(); // Populate dropdown initially
-    await renderPage(1);
-    attachInfiniteScroll();
-
-  } catch (error) {
-    console.error("Carpool fetch failed:", error);
-  }
-}
-
-async function renderPage(page = 1) {
-  const container = document.querySelector(".container-list");
-  if (!container) return;
-
-  const totalPages = Math.max(1, Math.ceil(allPlaces.length / itemsPerPage));
-  const nextPage = Math.min(Math.max(page, 1), totalPages);
-  if (nextPage <= currentPage && nextPage !== 1) return;
-
-  currentPage = nextPage;
-  const pagePlaces = allPlaces.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  if (pagePlaces.length === 0) {
-    toggleLandingMessage();
+  if (!visibleMatches.length) {
+    const empty = document.createElement("div");
+    empty.className = "dropdown-empty";
+    empty.textContent = "No destinations found.";
+    elements.dropdown.appendChild(empty);
+    if (shouldOpen) showDropdown();
     return;
   }
 
-  isLoadingPage = true;
-  await renderPlacesSlowly(pagePlaces);
-  isLoadingPage = false;
-}
-
-function getTotalPages() {
-  return Math.max(1, Math.ceil(allPlaces.length / itemsPerPage));
-}
-
-function attachInfiniteScroll() {
-  const onScroll = async () => {
-    if (isLoadingPage) return;
-
-    const scrollPosition = window.innerHeight + window.pageYOffset;
-    const threshold = document.body.offsetHeight - 300;
-
-    if (scrollPosition >= threshold && currentPage < getTotalPages()) {
-      await renderPage(currentPage + 1);
-    }
-  };
-
-  window.addEventListener("scroll", onScroll, { passive: true });
-}
-
-/* =========================
-   Search Dropdown
-========================= */
-
-function renderSearchDropdown(places) {
-  // Initial render is empty, will be populated on filter
-}
-
-/* =========================
-   Main Place Cards
-========================= */
-
-async function renderPlacesSlowly(places) {
-  const container = document.querySelector(".container-list");
-  if (!container) return;
-
-  for (const place of places) {
-    const card = createPlaceCard(place);
-    container.appendChild(card);
-    observeCardBackground(card);
-    toggleLandingMessage();
-    await delay(10);
-  }
-}
-
-function createPlaceCard(place) {
-  const card = document.createElement("div");
-  card.className = "container-item placeholder";
-  card.dataset.episode = `${place.reviewCount} reviews`;
-  card.dataset.place = place.placename;
-  card.dataset.bg = place.placePhoto;
-  card.style.backgroundImage = "linear-gradient(135deg, rgba(255, 255, 255, 0.72), rgba(241, 245, 249, 0.82))";
-
-  card.addEventListener("click", () =>
-    openInNewTab(place.placename, place.placeID)
-  );
-
-  const title = document.createElement("div");
-  title.className = `container-title translateCenter item-${place.placeID}`;
-  title.innerHTML = `<p class="placenametitle">${place.placename}</p>`;
-
-  card.appendChild(title);
-  return card;
-}
-
-/* =========================
-   Filter
-========================= */
-
-function FilterPlacesEachType() {
-  const input = document.getElementById("place_input_id_for_filter");
-  const dropdown = document.getElementById("place_id_for_drop_down_filter");
-
-  if (!input || !dropdown) return;
-
-  const filter = input.value.toUpperCase().trim();
   if (!filter) {
-    dropdown.innerHTML = "";
-    hideDropdown();
-    return;
+    const label = document.createElement("div");
+    label.className = "dropdown-section-label";
+    label.textContent = "Popular destinations";
+    elements.dropdown.appendChild(label);
   }
 
-  const filteredPlaces = allPlaces.filter(place =>
-    place.placename.toUpperCase().includes(filter)
-  ).slice(0, 50); // Limit to 50 for performance
-
-  dropdown.innerHTML = "";
-
-  filteredPlaces.forEach(place => {
+  visibleMatches.forEach((place, index) => {
     const link = document.createElement("a");
     link.className = "dropdown-item search-drop-down";
-    link.textContent = place.placename;
+    link.href = getPlaceUrl(place);
+    link.id = `place-option-${index}`;
+    link.role = "option";
+    link.setAttribute("aria-selected", index === state.activeSearchIndex ? "true" : "false");
 
-    link.addEventListener("click", () => {
-      newTabPlaceSearch(place.placename);
-      changeSearchInputValue(place.placename);
-      hideDropdown();
+    if (index === state.activeSearchIndex) {
+      link.classList.add("active");
+    }
+
+    const name = document.createElement("span");
+    appendHighlightedText(name, place.placename || "Destination", filter);
+
+    const meta = document.createElement("span");
+    meta.className = "dropdown-meta";
+    meta.textContent = `${getReviewCount(place)} reviews`;
+
+    link.appendChild(name);
+    link.appendChild(meta);
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      chooseSearchPlace(index);
     });
 
-    dropdown.appendChild(link);
+    elements.dropdown.appendChild(link);
   });
 
-  if (filteredPlaces.length > 0) {
-    showDropdown();
-  } else {
-    hideDropdown();
-  }
+  syncActiveSearchItem();
+  if (shouldOpen) showDropdown();
 }
 
-/* =========================
-   Dropdown
-========================= */
+function appendHighlightedText(parent, text, filter) {
+  if (!filter) {
+    parent.textContent = text;
+    return;
+  }
+
+  const lowerText = text.toLowerCase();
+  const lowerFilter = filter.toLowerCase();
+  const start = lowerText.indexOf(lowerFilter);
+
+  if (start === -1) {
+    parent.textContent = text;
+    return;
+  }
+
+  parent.appendChild(document.createTextNode(text.slice(0, start)));
+  const mark = document.createElement("mark");
+  mark.textContent = text.slice(start, start + filter.length);
+  parent.appendChild(mark);
+  parent.appendChild(document.createTextNode(text.slice(start + filter.length)));
+}
+
+function chooseSearchPlace(index) {
+  const place = state.searchItems[index];
+  if (!place) return;
+  changeSearchInputValue(place.placename || "");
+  hideDropdown();
+  newTabPlaceSearch(place.placename);
+}
+
+function moveActiveSearchItem(direction) {
+  if (!state.searchItems.length) return;
+  state.activeSearchIndex =
+    (state.activeSearchIndex + direction + state.searchItems.length) % state.searchItems.length;
+  syncActiveSearchItem();
+}
+
+function syncActiveSearchItem() {
+  if (!elements.dropdown || !elements.input) return;
+
+  elements.dropdown.querySelectorAll(".dropdown-item").forEach((item, index) => {
+    const isActive = index === state.activeSearchIndex;
+    item.classList.toggle("active", isActive);
+    item.setAttribute("aria-selected", isActive ? "true" : "false");
+    if (isActive) {
+      elements.input.setAttribute("aria-activedescendant", item.id);
+      item.scrollIntoView({ block: "nearest" });
+    }
+  });
+}
+
+function FilterPlacesEachType() {
+  renderSearchDropdown({ open: true });
+}
 
 function showDropdown() {
-  const dropdown = document.getElementById("place_id_for_drop_down_filter");
-  const backdrop = document.getElementById("dropdown-backdrop");
-  if (dropdown) dropdown.classList.add("show");
-  if (backdrop) backdrop.classList.add("show");
+  if (elements.dropdown) elements.dropdown.classList.add("show");
+  if (elements.backdrop) elements.backdrop.classList.add("show");
+  if (elements.searchContainer) elements.searchContainer.setAttribute("aria-expanded", "true");
 }
 
 function hideDropdown() {
-  const dropdown = document.getElementById("place_id_for_drop_down_filter");
-  const backdrop = document.getElementById("dropdown-backdrop");
-  if (dropdown) dropdown.classList.remove("show");
-  if (backdrop) backdrop.classList.remove("show");
+  if (elements.dropdown) elements.dropdown.classList.remove("show");
+  if (elements.backdrop) elements.backdrop.classList.remove("show");
+  if (elements.searchContainer) elements.searchContainer.setAttribute("aria-expanded", "false");
+  if (elements.input) elements.input.removeAttribute("aria-activedescendant");
 }
 
-/* =========================
-   Init
-========================= */
+function showSkeletons(count = 8) {
+  if (!elements.list || !elements.sentinel) return;
+  clearSkeletons();
+
+  const fragment = document.createDocumentFragment();
+  for (let i = 0; i < count; i += 1) {
+    const skeleton = document.createElement("div");
+    skeleton.className = "place-card-skeleton";
+    skeleton.setAttribute("aria-hidden", "true");
+    fragment.appendChild(skeleton);
+  }
+
+  elements.list.insertBefore(fragment, elements.sentinel);
+  toggleLandingMessage();
+}
+
+function clearSkeletons() {
+  if (!elements.list) return;
+  elements.list.querySelectorAll(".place-card-skeleton").forEach((item) => item.remove());
+}
+
+function showStateMessage(type, title, message) {
+  if (!elements.list || !elements.sentinel) return;
+  elements.list.querySelectorAll(".home-state").forEach((item) => item.remove());
+
+  const stateNode = document.createElement("div");
+  stateNode.className = `home-state ${type || ""}`.trim();
+
+  const heading = document.createElement("h2");
+  heading.textContent = title;
+
+  const copy = document.createElement("p");
+  copy.textContent = message;
+
+  stateNode.appendChild(heading);
+  stateNode.appendChild(copy);
+  elements.list.insertBefore(stateNode, elements.sentinel);
+  toggleLandingMessage();
+}
 
 function toggleLandingMessage() {
-  const list = document.querySelector(".container-list");
-  const landing = document.getElementById("landing-message");
+  if (!elements.landing || !elements.list) return;
+  const hasCards = elements.list.querySelector(".container-item");
+  const hasState = elements.list.querySelector(".home-state");
+  elements.landing.hidden = Boolean(hasCards || hasState);
+}
 
-  if (!landing || !list) return;
+function bindSearchEvents() {
+  if (!elements.input || !elements.dropdown) return;
 
-  // If list has items (excluding progress bar)
-  const hasItems = [...list.children].some(
-    el => !el.classList.contains("progress-fill")
-  );
+  elements.input.addEventListener("input", () => renderSearchDropdown({ open: true }));
+  elements.input.addEventListener("focus", () => renderSearchDropdown({ open: true }));
+  elements.input.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      moveActiveSearchItem(1);
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      moveActiveSearchItem(-1);
+    } else if (event.key === "Enter") {
+      event.preventDefault();
+      chooseSearchPlace(Math.max(state.activeSearchIndex, 0));
+    } else if (event.key === "Escape") {
+      hideDropdown();
+      elements.input.blur();
+    }
+  });
 
-  landing.style.display = hasItems ? "none" : "block";
+  if (elements.backdrop) {
+    elements.backdrop.addEventListener("click", hideDropdown);
+  }
+
+  document.addEventListener("click", (event) => {
+    if (elements.searchContainer && elements.searchContainer.contains(event.target)) return;
+    hideDropdown();
+  });
+}
+
+function bindScheduleButtons() {
+  document.querySelectorAll("[data-create-schedule]").forEach((button) => {
+    button.addEventListener("click", () => {
+      if (typeof window.createViaje === "function") {
+        window.createViaje();
+      }
+    });
+  });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  cacheElements();
+  bindSearchEvents();
+  bindScheduleButtons();
   getCarpoolJSON();
   toggleLandingMessage();
-
-  // Hide dropdown on outside click
-  document.addEventListener("click", (e) => {
-    const input = document.getElementById("place_input_id_for_filter");
-    const dropdown = document.getElementById("place_id_for_drop_down_filter");
-    if (!input.contains(e.target) && !dropdown.contains(e.target)) {
-      hideDropdown();
-    }
-  });
 });
+
+window.FilterPlacesEachType = FilterPlacesEachType;
+window.hideDropdown = hideDropdown;
+window.openInNewTab = openInNewTab;
+window.newTabPlaceSearch = newTabPlaceSearch;

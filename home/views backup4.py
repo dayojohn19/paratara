@@ -7,7 +7,7 @@ from resorts.models import resortPackages, Packages
 import re
 import os
 import re
-
+from django.shortcuts import get_object_or_404
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.http import HttpResponse
 from django.http import FileResponse, Http404
@@ -1019,17 +1019,17 @@ def placeCalendarJSON_v2(request, id, month=None, year=None):
 @require_POST
 def create_schedule_for_place(request, place_id):
     trace_id = uuid.uuid4().hex[:8]
-    print(f"Creating schedule for place {place_id} ({trace_id})")
+    print(f"[create_schedule_for_place:{trace_id}] start place_id={place_id} method={request.method} content_type={request.content_type}")
     try:
         place = Places_v2.objects.get(pk=place_id)
     except Places_v2.DoesNotExist:
-        print(f"Place {place_id} not found ({trace_id})")
+        print(f"[create_schedule_for_place:{trace_id}] place not found")
         return JsonResponse({'error': 'Place not found'}, status=404)
 
     try:
         payload = json.loads(request.body or '{}') if request.body else {}
     except json.JSONDecodeError:
-        print(f"Invalid JSON, using POST data ({trace_id})")
+        print(f"[create_schedule_for_place:{trace_id}] JSON decode failed; falling back to POST")
         payload = {}
 
     def _get(key, default=None):
@@ -1038,7 +1038,7 @@ def create_schedule_for_place(request, place_id):
     valid_types = {choice[0] for choice in allSchedules.SCHEDULE_TYPE_CHOICES}
     schedule_type = (_get('scheduleTypeAndMode') or '').strip()
     if schedule_type and schedule_type not in valid_types:
-        print(f"Invalid schedule type: {schedule_type} ({trace_id})")
+        print(f"[create_schedule_for_place:{trace_id}] invalid scheduleTypeAndMode={schedule_type}")
         return JsonResponse({'error': 'Invalid scheduleTypeAndMode'}, status=400)
 
     def _to_int(val, default):
@@ -1056,20 +1056,22 @@ def create_schedule_for_place(request, place_id):
     meetTime = (_get('meetTime') or '').strip()
     details_contact = (_get('detailsContact') or '').strip()
     maker_or_looker = (_get('MakerOrLooker') or 'Make').strip()
-    print(f"Schedule date: {monthN}/{dateN}/{yearN} ({trace_id})")
+    print(f"[create_schedule_for_place:{trace_id}] parsed inputs: schedule_type={schedule_type} dateN={dateN} monthN={monthN} yearN={yearN} meetPlace={meetPlace} endPlace={endPlace} meetTime={meetTime or 'n/a'}")
 
     if not meetPlace:
-        print(f"Missing meet place ({trace_id})")
+        print(f"[create_schedule_for_place:{trace_id}] missing meetPlace")
         return JsonResponse({'error': 'meetPlace is required'}, status=400)
     if not endPlace:
-        print(f"Missing end place ({trace_id})")
+        print(f"[create_schedule_for_place:{trace_id}] missing endPlace")
         return JsonResponse({'error': 'endPlace is required'}, status=400)
 
     poster = request.user if request.user.is_authenticated else None
     poster_name = poster.username if poster else 'Anonymous'
     poster_id = poster.id if poster else 0
 
-    print(f"Saving schedule for {place.placename} ({trace_id})")
+    print(
+        f"[create_schedule_for_place:{trace_id}] creating schedule type={schedule_type} date={dateN}/{monthN}/{yearN} meet={meetPlace} end={endPlace} meetTime={meetTime or 'n/a'} poster={getattr(poster,'id',None)} place={place.placename}"
+    )
     new_schedule = allSchedules.objects.create(
         scheduleTypeAndMode=schedule_type or None,
         dateN=dateN,
@@ -1089,17 +1091,20 @@ def create_schedule_for_place(request, place_id):
     new_schedule.scheduleID = new_schedule.id
     new_schedule.save(update_fields=['scheduleID'])
     
+    print(f"[create_schedule_for_place:{trace_id}] before add: schedule.id={new_schedule.id} schedule.schedulePlace={new_schedule.schedulePlace} schedule.schedulePlace.id={new_schedule.schedulePlace.id if new_schedule.schedulePlace else 'None'}")
     place.placesSchedules.add(new_schedule)
     place.save()
 
     place_schedule_count = place.placesSchedules.count()
-    print(f"Created schedule {new_schedule.id} ({trace_id})")
+    print(
+        f"[create_schedule_for_place:{trace_id}] created schedule_id={new_schedule.id} scheduleID={new_schedule.scheduleID} count_for_place={place_schedule_count} place_name={place.placename}"
+    )
     
     # Verify the schedule was actually saved with proper relationships
     # verify_schedule = allSchedules.objects.filter(id=new_schedule.id).select_related('schedulePlace').first()
     # if verify_schedule:
     #     print(f"[create_schedule_for_place:{trace_id}] verified: schedule exists, place={verify_schedule.schedulePlace.placename if verify_schedule.schedulePlace else 'None'}")
-    print(f"Meet time: {new_schedule.meetTime or 'N/A'} ({trace_id})")
+    print('Just meet time: ',new_schedule.meetTime)
     return JsonResponse(
         {
             'id': new_schedule.id,
@@ -3282,27 +3287,26 @@ def place_current_visitors(request, place_slug):
     
     return render(request, 'home/place_current_visitors.html', context)
 @csrf_exempt
-def search_tourist_spots_by_placename(request, place_slug):
+def search_tourist_spots_by_placename(request):
     """Accepts a placename, finds the place, and lists all tourist spots for that place."""
     from django.shortcuts import render, get_object_or_404
     from .models import Places_v2, TouristSpot
 
     context = {}
-    # if request.method == 'POST':
-    placename = request.POST.get('placename', '').strip()
-    if not placename:
-        context['error'] = 'Please enter a placename.'
-    else:
-        place = Places_v2.objects.filter(placename__iexact=placename).first()
-        if not place:
-            context['error'] = f'No place found with name "{placename}".'
+    if request.method == 'POST':
+        placename = request.POST.get('placename', '').strip()
+        if not placename:
+            context['error'] = 'Please enter a placename.'
         else:
-            spots = TouristSpot.objects.filter(place=place)
-            spots = place.tourist_spots.all()
-            context['place'] = place
-            context['spots'] = spots
-            context['placename'] = placename
-    return render(request, 'home/tourist_spots.html', context)
+            place = Places_v2.objects.filter(placename__iexact=placename).first()
+            if not place:
+                context['error'] = f'No place found with name "{placename}".'
+            else:
+                spots = TouristSpot.objects.filter(place=place)
+                context['place'] = place
+                context['spots'] = spots
+                context['placename'] = placename
+    return render(request, 'home/search_tourist_spots.html', context)
      
 
 
@@ -3337,92 +3341,93 @@ def create_tourist_spot(request):
 
         resort_ids = data.getlist("resortItem")
 
-#         if not name or not place_id:
-#             return render(request, "home/tourist_spot_create.html", {
-#                 "places": Places_v2.objects.all(),
-#                 "resorts": ResortItem.objects.all(),
-#                 "error": "Place and Name are required"
-#             })
+        if not name or not place_id:
+            return render(request, "home/tourist_spot_create.html", {
+                "places": Places_v2.objects.all(),
+                "resorts": ResortItem.objects.all(),
+                "error": "Place and Name are required"
+            })
 
-#         coords = None
-#         if latitude and longitude:
-#             try:
-#                 coords = {
-#                     "latitude": float(latitude),
-#                     "longitude": float(longitude)
-#                 }
-#             except:
-#                 pass
-# # ----------- Processing Spot
-#         if not desc:
-#             try:
-#                 print(f"   ⏳ Generating description...")
-#                 prompt = f"Write a short 1-2 sentence tourist description of {name} in {place.placename}"
-#                 res = client.chat.completions.create(
-#                     model=settings.GROK_MODEL_NAME,
-#                     messages=[{"role": "user", "content": prompt}],
-#                     max_tokens=100
-#                 )
-#                 desc = res.choices[0].message.content.strip()
-#                 # spot.save()
-#                 print(f"   ✅ Description saved")
-#             except Exception as e:
-#                 print("DESC ERROR:", e)
-#         else:
-#             print(f"   ✅ Description already exists")
-#         if not picture:
-#             try:
-#                 print(f"   ⏳ Fetching image...")
+        
 
-#                 from webSchedule.utils import upload_to_imgbb
+        coords = None
+        if latitude and longitude:
+            try:
+                coords = {
+                    "latitude": float(latitude),
+                    "longitude": float(longitude)
+                }
+            except:
+                pass
+# ----------- Processing Spot
+        if not desc:
+            try:
+                print(f"   ⏳ Generating description...")
+                prompt = f"Write a short 1-2 sentence tourist description of {name} in {place.placename}"
+                res = client.chat.completions.create(
+                    model=settings.GROK_MODEL_NAME,
+                    messages=[{"role": "user", "content": prompt}],
+                    max_tokens=100
+                )
+                desc = res.choices[0].message.content.strip()
+                # spot.save()
+                print(f"   ✅ Description saved")
+            except Exception as e:
+                print("DESC ERROR:", e)
+        else:
+            print(f"   ✅ Description already exists")
+        if not picture:
+            try:
+                print(f"   ⏳ Fetching image...")
+
+                from webSchedule.utils import upload_to_imgbb
                 
-#                 image = getPlacePhoto(None, name)
-#                 if picture:
-#                     try:
-#                         print(f"   ⏳ Uploading image to imgbb...")
-#                         picture = upload_to_imgbb(image)
-#                     except:
-#                         print("     Failed to upload in IMBB saving as url instead")
-#                         picture = image
+                image = getPlacePhoto(None, name)
+                if picture:
+                    try:
+                        print(f"   ⏳ Uploading image to imgbb...")
+                        picture = upload_to_imgbb(image)
+                    except:
+                        print("     Failed to upload in IMBB saving as url instead")
+                        picture = image
 
-#                     print("   ✅ Image saved")
-#                 else:
-#                     print(f"   ⚠️  No image found for {name}")
-#             except Exception as e:
-#                 print("IMG ERROR:", e)
-#         else:
-#             print(f"   ✅ Image already exists")
+                    print("   ✅ Image saved")
+                else:
+                    print(f"   ⚠️  No image found for {name}")
+            except Exception as e:
+                print("IMG ERROR:", e)
+        else:
+            print(f"   ✅ Image already exists")
 
-#         # ✅ Create immediately (FAST)
-#         spot = TouristSpot.objects.create(
-#             place=place,
-#             name=name,
-#             slug=slug,
-#             desc=desc or "",
-#             coords=coords,
-#             img=picture
-#         )
+        # ✅ Create immediately (FAST)
+        spot = TouristSpot.objects.create(
+            place=place,
+            name=name,
+            slug=slug,
+            desc=desc or "",
+            coords=coords,
+            img=picture
+        )
  
-#         if not spot.spot_id:
-#             spot.spot_id = f"SPOT-{spot.id}"
-#             spot.save()
+        if not spot.spot_id:
+            spot.spot_id = f"SPOT-{spot.id}"
+            spot.save()
 
-#         if resort_ids:
-#             resorts = ResortItem.objects.filter(id__in=resort_ids)
-#             spot.resortItem.set(resorts)
+        if resort_ids:
+            resorts = ResortItem.objects.filter(id__in=resort_ids)
+            spot.resortItem.set(resorts)
 
         # ✅ Run heavy tasks in background
         threading.Thread(
             target=process_creating_blog,
-            args=(request,place,name,None,True,),
+            args=(request,place,name,),
             daemon=True
         ).start()
 
         return render(request, "home/tourist_spot_create.html", {
             "places": Places_v2.objects.all(),
             "resorts": ResortItem.objects.all(),
-            # "success_message": f'{spot.name} created successfully (processing in background)'
-            "success_message": f'created successfully (processing in background)'
+            "success_message": f'{spot.name} created successfully (processing in background)'
         })
 
     return render(request, "home/tourist_spot_create.html", {
@@ -3643,3 +3648,4 @@ def privacy_policy(request):
     Render privacy policy page.
     """
     return render(request, 'privacy_policy.html')
+

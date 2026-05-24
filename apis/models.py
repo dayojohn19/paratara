@@ -152,6 +152,9 @@ class Blogs(models.Model):
     latitude = models.CharField(blank=True, max_length=64)
 
     timestamp = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True, blank=True)
+    last_updated_ip = models.GenericIPAddressField(null=True, blank=True)
 
 
     localurlpath = models.CharField(max_length=2555, blank=True)

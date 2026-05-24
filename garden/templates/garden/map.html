@@ -779,6 +779,10 @@ visit_count: {{ spot.visit_count }}
     const scaleFactor = maxVisitCount > 0 ? (maxSize - baseSize) / maxVisitCount : 0;
     
     places.forEach(p => {
+      for (const [key, value] of Object.entries(p)) {
+    console.log(`${key}: ${value}`);
+  }
+  console.log("---"); // Separator between objects
       let lat = p.coords.lat !== undefined ? p.coords.lat : (p.coords.latitude !== undefined ? p.coords.latitude : p.coords[0]);
       let lng = p.coords.lng !== undefined ? p.coords.lng : (p.coords.longitude !== undefined ? p.coords.longitude : p.coords[1]);
       const size = baseSize + (p.visit_count || 0) * scaleFactor;

@@ -2,12 +2,14 @@ from django.urls import path
 from . import views
 from django.views.generic import TemplateView
 
- 
+  
 app_name = "singlepage2" 
 urlpatterns = [
     path("blog/", views.blogFunc, name="blogFunc"),
     path("kefir/", views.kefir, name="kefir"),
-#   Then register here /apis/blog/
+    path("blog-edits/save-file/", views.save_blog_paragraph_file_edit, name="save_blog_paragraph_file_edit"),
+    path("blog-edits/save/", views.save_blog_paragraph_file_edit, name="save_blog_paragraph_edit"),
+    #   Then register here /apis/blog/
     path('blog/<slug:slug>/<slug:slugSec>/', views.blog_html, name='bloghtmlpost'),
     path('blog/<slug:slug>/<slug:slugSec>//', views.blog_html, name='bloghtmlpost'),
     path('blog/<slug:slug>/<slug:slugSec>', views.blog_html, name='bloghtmlpost'),

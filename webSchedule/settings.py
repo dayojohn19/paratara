@@ -67,37 +67,50 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'filters': {
-        # use Django's built in CallbackFilter to point to your filter 
         'skip_static_requests': {
             '()': 'django.utils.log.CallbackFilter',
             'callback': skip_static_requests
         }
     },
     'formatters': {
-        # django's default formatter — use SafeServerFormatter to ensure server_time exists
         'django.server': {
             '()': 'webSchedule.logging_utils.SafeServerFormatter',
             'format': '[%(server_time)s] %(message)s',
-        }
+        },
+        # 1. ADD A BASIC FORMATTER FOR YOUR APP LOGS
+        'standard': {
+            'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+        },
     },
     'handlers': {
-        # django's default handler...
         'django.server': {
             'level': 'INFO',
-            'filters': ['skip_static_requests'],  # <- ...with one change
+            'filters': ['skip_static_requests'],
             'class': 'logging.StreamHandler',
             'formatter': 'django.server',
         },
+        # 2. ADD A STREAM HANDLER FOR YOUR APP LOGS
+        'console': {
+            'level': 'DEBUG',  # Allows DEBUG and above to pass through the handler
+            'class': 'logging.StreamHandler',
+            'formatter': 'standard',
+        },
     },
     'loggers': {
-        # django's default logger
         'django.server': {
             'handlers': ['django.server'],
             'level': 'INFO',
             'propagate': False,
         },
+        # 3. ADD A CATCH-ALL ROOT LOGGER FOR YOUR OWN CODE
+        '': {  # An empty string acts as the root logger for your whole project
+            'handlers': ['console'],
+            'level': 'DEBUG',  # Set to DEBUG so logger.debug() actually prints
+            'propagate': True,
+        },
     }
 }
+
 # ---------------------------------------------
 # Cache settings
 # In dev (DEBUG=True), default is NO caching so pages/data stay fresh.
