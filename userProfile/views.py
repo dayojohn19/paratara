@@ -1,13 +1,21 @@
 from django.views.decorators.csrf import csrf_protect
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, get_user_model
+from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth.tokens import default_token_generator
+from django.conf import settings
 from django.db import IntegrityError
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from django.core.exceptions import ValidationError
 #
 import os
+from urllib import request as urllib_request
+from urllib.error import HTTPError, URLError
 from .models import UserCredentialsBackUP, userPoster
 import json
 from .forms import ImageForm
@@ -32,6 +40,70 @@ def render_template(request, template_name, context=None):
     if context is None:
         context = {}
     return render(request, template_name, context)
+
+
+def send_emailjs_password_reset_email(email, reset_link):
+    """Reusable EmailJS sender for password reset links."""
+    print("\n[forgot-password] send_emailjs_password_reset_email called")
+    print(f"[forgot-password] target email: {email}")
+
+    service_id = getattr(settings, "EMAILJS_SERVICE_ID", "")
+    template_id = getattr(settings, "EMAILJS_TEMPLATE_ID", "")
+    public_key = getattr(settings, "EMAILJS_PUBLIC_KEY", "")
+    emailjs_api_url = 'https://api.emailjs.com/api/v1.0/email/send'
+
+    if not all([service_id, template_id, public_key, emailjs_api_url]):
+        print("[forgot-password] EmailJS config is incomplete.")
+        print(f"[forgot-password] service_id set: {bool(service_id)}")
+        print(f"[forgot-password] template_id set: {bool(template_id)}")
+        print(f"[forgot-password] public_key set: {bool(public_key)}")
+        print(f"[forgot-password] emailjs_api_url set: {bool(emailjs_api_url)}")
+        return False
+
+    print(f"[forgot-password] using service_id={service_id}, template_id={template_id}")
+    print(f"[forgot-password] reset link: {reset_link}")
+
+    payload_dict = {
+        "service_id": 'service_ij7482h',
+        "template_id": 'template_ur532an',
+        "user_id": 'hKDlUCWLQop90vPSW',
+        "template_params": {
+            "email": email,
+            "link": reset_link,
+        },
+    }
+
+    payload = json.dumps(payload_dict).encode("utf-8")
+
+    request_obj = urllib_request.Request(
+        emailjs_api_url,
+        data=payload,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+
+    try:
+        with urllib_request.urlopen(request_obj, timeout=10) as response:
+            status_code = response.getcode()
+            response_body = response.read().decode("utf-8", errors="ignore")
+            print(f"[forgot-password] EmailJS status_code: {status_code}")
+            print(f"[forgot-password] EmailJS response body: {response_body}")
+            return 200 <= status_code < 300
+    except HTTPError as e:
+        error_body = ""
+        try:
+            error_body = e.read().decode("utf-8", errors="ignore")
+        except Exception:
+            pass
+        print(f"[forgot-password] EmailJS HTTPError status: {e.code}")
+        print(f"[forgot-password] EmailJS HTTPError body: {error_body}")
+        return False
+    except URLError as e:
+        print(f"[forgot-password] EmailJS URLError: {e}")
+        return False
+    except Exception as e:
+        print("[forgot-password] EmailJS send failed:", e)
+        return False
 
 def Messages_Room(request):
     # if request.method == 'POST':
@@ -298,6 +370,151 @@ def changePassword(request):
             # })
     else:
         return HttpResponseRedirect(reverse("userProfile:profile"))
+
+
+def forgotPassword(request):
+    print("\n[forgot-password] forgotPassword endpoint hit")
+    print(f"[forgot-password] method={request.method} path={request.path}")
+
+    if request.method != 'POST':
+        print("[forgot-password] non-POST request, redirecting to profile")
+        return HttpResponseRedirect(reverse("userProfile:profile"))
+
+    email = (request.POST.get('email') or '').strip()
+    print(f"[forgot-password] submitted email: {email}")
+    print(f"[forgot-password] submitted email repr: {repr(email)} len={len(email)}")
+
+    if not email:
+        print("[forgot-password] no email submitted")
+        return render_template(request, 'userProfile/index.html', {
+            "message": "Please enter your email address."
+        })
+
+    UserModel = get_user_model()
+    users_by_email = UserModel.objects.filter(email__iexact=email, is_active=True)
+    print(f"[forgot-password] matching active users by auth email count: {users_by_email.count()}")
+
+    user = users_by_email.order_by('id').first()
+    if user is None:
+        matched_profile = userPoster.objects.filter(contact__iexact=email).order_by('id').first()
+        if matched_profile is not None:
+            print(
+                "[forgot-password] matched via userPoster.contact "
+                f"userID={matched_profile.userID} contact={matched_profile.contact}"
+            )
+            user = UserModel.objects.filter(id=matched_profile.userID, is_active=True).first()
+            if user is not None:
+                print(
+                    "[forgot-password] resolved auth user from contact match "
+                    f"id={user.id} username={user.username} email={user.email}"
+                )
+        else:
+            print("[forgot-password] no contact match in userPoster.contact")
+
+    # Fallback for domain typos: match by local-part only when unique.
+    if user is None and "@" in email:
+        submitted_local = email.split("@", 1)[0].strip().lower()
+        local_part_matches = []
+        for candidate in UserModel.objects.filter(is_active=True).exclude(email=""):
+            candidate_email = (candidate.email or "").strip().lower()
+            candidate_local = candidate_email.split("@", 1)[0] if "@" in candidate_email else candidate_email
+            if candidate_local and candidate_local == submitted_local:
+                local_part_matches.append(candidate)
+        print(f"[forgot-password] local-part fallback matches: {len(local_part_matches)}")
+        if len(local_part_matches) == 1:
+            user = local_part_matches[0]
+            print(
+                "[forgot-password] matched via local-part fallback "
+                f"id={user.id} username={user.username} email={user.email}"
+            )
+
+    sent_any = False
+    if user is not None:
+        print(f"[forgot-password] using user id={user.id} username={user.username}")
+        uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
+        reset_link = request.build_absolute_uri(
+            reverse('userProfile:resetPassword', kwargs={'uidb64': uidb64, 'token': token})
+        )
+        print(f"[forgot-password] generated uidb64={uidb64}")
+        print(f"[forgot-password] generated token={token}")
+        target_email = (user.email or "").strip()
+        if "@" not in target_email:
+            target_email = email
+        print(f"[forgot-password] target email chosen for send: {target_email}")
+        if send_emailjs_password_reset_email(email=target_email, reset_link=reset_link):
+            sent_any = True
+            print("[forgot-password] EmailJS send result: SUCCESS")
+        else:
+            print("[forgot-password] EmailJS send result: FAILED")
+    else:
+        print("[forgot-password] no matching active account found for email")
+        sample_auth_emails = list(
+            UserModel.objects.filter(is_active=True)
+            .exclude(email="")
+            .values_list("id", "username", "email")[:20]
+        )
+        sample_contacts = list(
+            userPoster.objects.exclude(contact="")
+            .values_list("userID", "name", "contact")[:20]
+        )
+        print(f"[forgot-password] sample active auth emails (first 20): {sample_auth_emails}")
+        print(f"[forgot-password] sample userPoster contacts (first 20): {sample_contacts}")
+
+    if sent_any or user is None:
+        message = "If your email is registered, a password reset link has been sent."
+    else:
+        message = "We couldn't send the reset email right now. Please try again."
+
+    print(f"[forgot-password] response message: {message}")
+    return render_template(request, 'userProfile/index.html', {"message": message})
+
+
+def resetPassword(request, uidb64, token):
+    try:
+        user_id = force_str(urlsafe_base64_decode(uidb64))
+        UserModel = get_user_model()
+        user = UserModel.objects.get(pk=user_id)
+    except Exception:
+        user = None
+
+    if user is None or not default_token_generator.check_token(user, token):
+        return render_template(request, 'userProfile/index.html', {
+            "message": "This password reset link is invalid or has expired."
+        })
+
+    if request.method == 'POST':
+        new_password = request.POST.get('newPassword') or ''
+        new_password_confirmation = request.POST.get('newPasswordConfirmation') or ''
+
+        if new_password != new_password_confirmation:
+            return render(request, 'userProfile/reset_password.html', {
+                "message": "Passwords must match."
+            })
+
+        try:
+            validate_password(new_password, user=user)
+        except ValidationError as e:
+            return render(request, 'userProfile/reset_password.html', {
+                "message": " ".join(e.messages)
+            })
+
+        user.set_password(new_password)
+        user.save()
+
+        try:
+            UserCredentialsBackUP.objects.update_or_create(
+                userID=user.id,
+                defaults={'userPassword': new_password}
+            )
+        except Exception as e:
+            print("Failed to update backup password:", e)
+
+        return render_template(request, 'userProfile/index.html', {
+            "message": "Password reset successful. Please log in with your new password."
+        })
+
+    return render(request, 'userProfile/reset_password.html', {})
 
 def registerUser(request, previouspath=None):
     user_ip = request.META.get('REMOTE_ADDR')

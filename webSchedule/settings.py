@@ -27,6 +27,10 @@ XAI_IMAGE_MODEL = 'grok-imagine-image-quality'
 IMGBB_API_KEY = os.getenv("IMGBB_API_KEY", "65ed182b008522d2c762031a3ff4953b")
 PAYPAL_CLIENT_ID = os.getenv("PAYPAL_CLIENT_ID", "")
 PAYPAL_CLIENT_SECRET = os.getenv("PAYPAL_CLIENT_SECRET", "")
+EMAILJS_SERVICE_ID = config("EMAILJS_SERVICE_ID", default="service_ij7482h")
+EMAILJS_TEMPLATE_ID = config("EMAILJS_TEMPLATE_ID", default="template_ur532an")
+EMAILJS_PUBLIC_KEY = config("EMAILJS_PUBLIC_KEY", default="hKDlUCWLQop90vPSW")
+EMAILJS_API_URL = config("EMAILJS_API_URL", default="https://api.emailjs.com/api/v1.0/email/send")
 SEMAPHORE_API_KEY = "d143175c87ef8d34892002f91838e75e"
 TWILIO_ACCOUNT_SID = "AC399079d8a6451adf9101db54846fa291"
 TWILIO_AUTH_TOKEN = "be7efdf77d17897a382fba5c3a78ea65"

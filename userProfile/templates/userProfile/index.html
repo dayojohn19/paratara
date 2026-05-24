@@ -545,6 +545,14 @@
               <button style="width: 100%; margin-top: 1em;" type="button" class="btn btn-warning" onclick="document.querySelector('#signUpForm').style.display = 'block';document.querySelector('#signIpForm').style.display = 'none';">Sign-up</button>
             </div>
           </form>
+          <form method="post" action="{% url 'userProfile:forgotPassword' %}" style="margin-top: 1rem;">
+            {% csrf_token %}
+            <div class="form-floating mb-3">
+              <input id="forgotPasswordEmailInput" required class="form-control" type="email" name="email" placeholder="Email Address" />
+              <label for="forgotPasswordEmailInput">Forgot password? Enter email</label>
+            </div>
+            <button style="margin: 0 auto; width: 100%;" class="btn btn-outline-secondary" type="submit">Send Reset Link</button>
+          </form>
           <!-- <small>put a button loging with facebook</small> -->
             {% csrf_token %}
 
