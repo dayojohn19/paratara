@@ -37,65 +37,262 @@
 </div> -->
 
   <style>
-    .list-group {
-      overflow: scroll;
-      max-height: 50vh;
+    :root {
+      --surface: #ffffff;
+      --surface-muted: #f8fafc;
+      --line: #dbe2ea;
+      --text: #1f2937;
+      --subtle: #5b6b7b;
+      --accent: #0d6efd;
+      --danger: #e74c3c;
     }
+
+    body.profile-page {
+      margin: 0;
+      padding: 0;
+      background: #f3f5f8;
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    }
+
+    .profile-shell {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 1.25rem 1rem 2rem;
+    }
+
+    .profile-layout {
+      display: grid;
+      grid-template-columns: minmax(280px, 360px) minmax(260px, 1fr);
+      gap: 1rem;
+      align-items: start;
+    }
+
+    .profile-main,
+    .profile-posts-column {
+      width: 100%;
+      margin: 0;
+    }
+
+    .profile-posts-column {
+      background: var(--surface-muted);
+      border: 1px solid var(--line);
+      border-radius: 0.75rem;
+      padding: 0.6rem;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 0.75rem;
+      box-shadow: 0 8px 24px rgba(16, 24, 40, 0.06);
+      background-color: var(--surface);
+    }
+
+    .card-body {
+      padding: 1rem;
+    }
+
+    .list-group {
+      overflow: auto;
+      max-height: 56vh;
+      background: transparent;
+      border: 0;
+    }
+
+    .list-group-item {
+      border: 1px solid var(--line);
+      border-radius: 0.6rem;
+      margin-bottom: 0.5rem;
+      background: var(--surface);
+    }
+
     .t-svg svg {
       height: 16px;
     }
+
     .user-svg-top {
-      fill: #38a2ff;
+      fill: var(--accent);
       max-height: 16px;
       min-height: 15px;
-      /* padding-right: 10px;
-  padding-left: 10px; */
     }
-    svg:hover {
-      fill: #0061b6;
-    }
+
     .custom-file-input {
       display: none;
     }
+
     .user-svg {
-      padding-right: 4px;
       height: 16px;
-      padding-left: 4px;
-      padding-right: 4px;
-      fill: #428bca;
+      padding: 0 4px;
+      fill: var(--accent);
     }
+
+    .user-svg-top:hover,
+    .user-svg:hover {
+      fill: #0a58ca;
+    }
+
     .svg-container {
-      color: #428bca;
+      color: var(--subtle);
       width: fit-content;
-      font-size: 10px !important;
-      padding: 4px;
+      font-size: 0.72rem !important;
+      padding: 0.3rem 0.45rem;
       display: flex;
       align-items: center;
       position: relative;
-      margin: 5px;
+      margin: 0.25rem 0;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface-muted);
     }
 
-      .comment-sender {
-        font-size: x-small;
-        text-align: right;
-      }
-      .comment-subContainer {
-        list-style: none;
-        display: grid;
-        margin-bottom: 2px;
-        border-bottom: 0.5px solid rgb(151, 151, 151);
-      }
-      .comment-message {
-        font-size: small;
-      }
+    .comment-sender {
+      font-size: x-small;
+      text-align: right;
+    }
 
+    .comment-subContainer {
+      list-style: none;
+      display: grid;
+      margin-bottom: 2px;
+      border-bottom: 0.5px solid rgb(151, 151, 151);
+    }
+
+    .comment-message {
+      font-size: small;
+    }
+
+    .container-table {
+      text-align: left;
+      margin: 1rem auto 0;
+      width: min(100%, 1120px);
+      overflow-x: auto;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 0.75rem;
+      padding: 0.25rem;
+    }
+
+    .table {
+      border-spacing: 0 10px;
+      border-collapse: separate;
+      margin-bottom: 0;
+    }
+
+    .table thead tr th,
+    .table thead tr td,
+    .table tbody tr th,
+    .table tbody tr td {
+      vertical-align: middle;
+      border: none;
+    }
+
+    .table tbody tr {
+      box-shadow: 0 1px 6px rgba(17, 24, 39, 0.06);
+      border-radius: 0.45rem;
+    }
+
+    .table tbody tr:hover {
+      background: #eef3f8;
+    }
+
+    .table tbody tr td:nth-child(1) {
+      border-radius: 0.45rem 0 0 0.45rem;
+    }
+
+    .table tbody tr td:nth-last-child(1) {
+      border-radius: 0 0.45rem 0.45rem 0;
+    }
+
+    .tg {
+      border-collapse: collapse;
+      border-spacing: 0;
+      font-family: inherit;
+      width: 100%;
+    }
+
+    .tg caption {
+      border-bottom: 1px solid var(--line);
+      padding: 10px 5px;
+      color: var(--subtle);
+      font-weight: 600;
+    }
+
+    .tg td,
+    .tg th {
+      font-family: inherit;
+      font-size: 14px;
+      overflow: hidden;
+      padding: 10px 8px;
+      word-break: normal;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+    }
+
+    .user-info__img img {
+      margin-right: 12px;
+      height: 50px;
+      width: 50px;
+      border-radius: 999px;
+      border: 2px solid #fff;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    }
+
+    .time-stamp {
+      color: var(--danger);
+    }
+
+    .receipt-no {
+      color: #6b7280;
+      margin: 0;
+    }
+
+    .view-button,
+    .cancel-button {
+      border: none;
+      border-radius: 0.35rem;
+      color: #fff;
+      padding: 0.3rem 0.55rem;
+      font-size: 0.82rem;
+    }
+
+    .view-button {
+      background-color: #0ea5e9;
+    }
+
+    .cancel-button {
+      background-color: #ef4444;
+      margin-top: 0.4rem;
+    }
+
+    .auth-shell {
+      margin: 0 auto;
+      text-align: center;
+      margin-top: 2.5rem;
+      max-width: 420px;
+      padding: 0 0.75rem 1rem;
+    }
+
+    .auth-card {
+      border: 1px solid var(--line);
+      box-shadow: 0 8px 24px rgba(16, 24, 40, 0.08) !important;
+      background: var(--surface);
+    }
+
+    @media (max-width: 900px) {
+      .profile-layout {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 
-  <body style="padding: 0; margin: 0">
+  <body class="profile-page">
     {% include "userProfile/header.html" %} {% if user.is_authenticated %}
-    <div>
-      <div style="display: flex; flex-wrap: wrap; margin-top: 2rem">
-        <div class="col-md-4 mb-3" style="margin: auto auto;">
+    <div class="profile-shell">
+      <div class="profile-layout">
+        <div class="profile-main col-md-4 mb-3">
           <div class="card">
             <div class="card-body">
               <div class="d-flex flex-column align-items-center text-center">
@@ -287,11 +484,11 @@
             </div>
           </div>
         </div>
-        <div style="max-width: 300px; background-color: rgb(255, 250, 242); margin: auto auto; min-width: 200px">
+        <div class="profile-posts-column">
           <!--  -->
-          <div class="list-group w-auto">
+          <div class="list-group posts-list w-auto">
             {% for post in pageUser.allPosts %}
-            <span  class="list-group-item list-group-item-action d-flex gap-3 py-3" aria-current="true">
+            <span class="post-item list-group-item list-group-item-action d-flex gap-3 py-3" aria-current="true">
               <div class="t-svg">
                 {% if post.scheduleTravelType == 'RIDE' %}
                 <svg viewBox="0 0 20 20" class="user-svg-top"><path clip-rule="evenodd" d="M18.478 8.182a.21.21 0 00.057.174 3.71 3.71 0 011.048 2.581v1.667a2.078 2.078 0 01-1.326 1.93.21.21 0 00-.132.194v1.623a1.875 1.875 0 11-3.75 0v-1.459a.208.208 0 00-.208-.208H5.833a.208.208 0 00-.208.208v1.459a1.875 1.875 0 11-3.75 0v-1.626a.21.21 0 00-.133-.194A2.077 2.077 0 01.417 12.6v-1.667a3.71 3.71 0 011.045-2.577.207.207 0 00-.046-.325L.75 7.647A1.25 1.25 0 112 5.48l.886.512a.21.21 0 00.31-.146l.333-1.986a2.493 2.493 0 012.466-2.091h8.007a2.492 2.492 0 012.465 2.09l.334 1.985a.208.208 0 00.309.147l.887-.513a1.25 1.25 0 011.25 2.167l-.666.386a.207.207 0 00-.103.15zm-4.473-4.745h-8.01a.833.833 0 00-.822.695l-.399 2.394a.208.208 0 00.206.242h10.04a.208.208 0 00.206-.24l-.4-2.394a.833.833 0 00-.821-.697zm2.245 6.667a1.25 1.25 0 110 2.5 1.25 1.25 0 010-2.5zm-12.5 0a1.25 1.25 0 100 2.5 1.25 1.25 0 000-2.5z" fill-rule="evenodd"></path></svg>
@@ -344,7 +541,7 @@
           <!--  -->
         </div>
       </div>
-      <div style="text-align: center">
+      <div class="transactions-wrap">
 
 <!-- Transaction HTML -->
 
@@ -451,9 +648,9 @@
 
     {% else %}
 
-    <div style=" margin: 0 auto; text-align: center; margin-top: 3rem; max-width: 400px;">
+    <div class="auth-shell">
       <div >
-        <div class="modal-content rounded-4 shadow">
+        <div class="modal-content rounded-4 shadow auth-card">
           <div id="signUpForm" class="modal-body p-5 pt-0" style="display: none">
             <div class="modal-header p-5 pb-4 border-bottom-0">
               <!-- <h1 class="modal-title fs-5">Modal title</h1> -->
@@ -545,14 +742,24 @@
               <button style="width: 100%; margin-top: 1em;" type="button" class="btn btn-warning" onclick="document.querySelector('#signUpForm').style.display = 'block';document.querySelector('#signIpForm').style.display = 'none';">Sign-up</button>
             </div>
           </form>
-          <form method="post" action="{% url 'userProfile:forgotPassword' %}" style="margin-top: 1rem;">
-            {% csrf_token %}
-            <div class="form-floating mb-3">
-              <input id="forgotPasswordEmailInput" required class="form-control" type="email" name="email" placeholder="Email Address" />
-              <label for="forgotPasswordEmailInput">Forgot password? Enter email</label>
-            </div>
-            <button style="margin: 0 auto; width: 100%;" class="btn btn-outline-secondary" type="submit">Send Reset Link</button>
-          </form>
+          <button
+            type="button"
+            class="btn btn-outline-secondary"
+            style="margin: 0.5rem auto 0; width: 100%;"
+            onclick="document.querySelector('#forgotPasswordFormWrap').style.display='block'; this.style.display='none';"
+          >
+            Forgot Password
+          </button>
+          <div id="forgotPasswordFormWrap" style="display: none; margin-top: 1rem;">
+            <form method="post" action="{% url 'userProfile:forgotPassword' %}">
+              {% csrf_token %}
+              <div class="form-floating mb-3">
+                <input id="forgotPasswordEmailInput" required class="form-control" type="email" name="email" placeholder="Email Address" />
+                <label for="forgotPasswordEmailInput">Enter your email address</label>
+              </div>
+              <button style="margin: 0 auto; width: 100%;" class="btn btn-outline-secondary" type="submit">Send Reset Link</button>
+            </form>
+          </div>
           <!-- <small>put a button loging with facebook</small> -->
             {% csrf_token %}
 
@@ -569,188 +776,6 @@
 
 
     <!-- END LOGIN FORM MODAL -->
-
-<!--  -->
-<!--  -->
-<!--  -->
-<!--  -->
-<!--  -->
-<!--  -->
-<!--  -->
-<style>
-  .card {
-    box-shadow: 0 1px 3px 0 rgba(0,0,0,.1), 0 1px 2px 0 rgba(0,0,0,.06);
-}
-
-.card {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    word-wrap: break-word;
-    background-color: #fff;
-    background-clip: border-box;
-    border: 0 solid rgba(0,0,0,.125);
-    border-radius: .25rem;
-}
-
-.card-body {
-    flex: 1 1 auto;
-    min-height: 1px;
-    padding: 1rem;
-}
-
-.gutters-sm {
-    margin-right: -8px;
-    margin-left: -8px;
-}
-
-.gutters-sm>.col, .gutters-sm>[class*=col-] {
-    padding-right: 8px;
-    padding-left: 8px;
-}
-.mb-3, .my-3 {
-    margin-bottom: 1rem!important;
-}
-
-.bg-gray-300 {
-    background-color: #e2e8f0;
-}
-.h-100 {
-    height: 100%!important;
-}
-.shadow-none {
-    box-shadow: none!important;
-}
-</style>
-<style type="text/css">
-  @import url("https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap");
-  body {
-    background: #f9f9f9;
-    font-family: "Roboto", sans-serif;
-  }
-
-  .main-content {
-    padding-top: 100px;
-    padding-bottom: 100px;
-  }
-
-  .table {
-    border-spacing: 0 15px;
-    border-collapse: separate;
-  }
-  .table thead tr th,
-  .table thead tr td,
-  .table tbody tr th,
-  .table tbody tr td {
-    vertical-align: middle;
-    border: none;
-  }
-  .table thead tr th:nth-last-child(1),
-  .table thead tr td:nth-last-child(1),
-  .table tbody tr th:nth-last-child(1),
-  .table tbody tr td:nth-last-child(1) {
-    text-align: center;
-  }
-  .table tbody tr {
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    border-radius: 5px;
-  }
-  .table tbody tr:hover {
-    background: #d0d0d0;
-  }
-
-  .table tbody tr td:nth-child(1) {
-    border-radius: 5px 0 0 5px;
-  }
-  .table tbody tr td:nth-last-child(1) {
-    border-radius: 0 5px 5px 0;
-  }
-
-  .user-info {
-    display: flex;
-    align-items: center;
-  }
-  .user-info__img img {
-    margin-right: 15px;
-    height: 55px;
-    width: 55px;
-    border-radius: 45px;
-    border: 3px solid #fff;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  }
-  .container-table {
-    /* width: 100%; */
-    text-align: center;
-    margin: 5px;
-  }
-  table {
-    width: inherit;
-    
-  }
-  .tg {
-    border-collapse: collapse;
-    border-spacing: 0;
-    font-family: Georgia, "Times New Roman", Times, serif;
-  }
-  .tg caption {
-    border-bottom: 1px black solid;
-    padding: 10px 5px;
-  }
-  .tg td {
-    /* border-color: black;
-    border-style: solid;
-    border-width: 1px; */
-    font-family: Arial, sans-serif;
-    font-size: 14px;
-    overflow: hidden;
-    padding: 10px 5px;
-    word-break: normal;
-  }
-  .tg th {
-    /* border-color: black;
-    border-style: solid;
-    border-width: 1px; */
-    border-bottom: black solid 1px;
-    font-family: Arial, sans-serif;
-    font-size: 14px;
-    font-weight: normal;
-    overflow: hidden;
-    padding: 10px 5px;
-    word-break: normal;
-  }
-  .tg .tg-0lax {
-    text-align: left;
-    vertical-align: top;
-  }
-
-  .time-stamp {
-    color: red;
-  }
-  .receipt-no {
-    color: grey;
-  }
-  .view-button {
-    background-color: rgb(0, 183, 255);
-    border: none;
-    border-radius: 4px;
-    color: white;
-  }
-  .cancel-button {
-    background-color: rgb(255, 64, 0);
-    border: none;
-    border-radius: 4px;
-    color: white;
-    margin-top: 15px;
-  }
-  .user-svg {
-    padding-right: 4px;
-    height: 16px;
-    padding-left: 4px;
-    padding-right: 4px;
-    fill: #428bca;
-  }
-</style>
 
   </body>
 
@@ -774,17 +799,15 @@
   // });
   
   </script>
-      <script>
+<script>
   const btn = document.getElementById("openModalBtn");
   const modalEl = document.getElementById("changePasswordModal");
 
-  btn.addEventListener("click", () => {
-    btn.style.display = "none"; // hide the button
-    console.log('clicked');
-    // Show the Bootstrap modal programmatically
-    modalEl.style.display = "block"; // Ensure the modal is visible
-    // const modal = new bootstrap.Modal(modalEl);
-    // modal.show();
-  });
+  if (btn && modalEl) {
+    btn.addEventListener("click", () => {
+      btn.style.display = "none";
+      modalEl.style.display = "block";
+    });
+  }
 </script>
 </html>

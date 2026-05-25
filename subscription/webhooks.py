@@ -4,15 +4,20 @@ import time
 from decimal import Decimal, InvalidOperation
 import requests
 from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import default_token_generator
 from django.http import JsonResponse
+from django.urls import reverse
+from django.utils.encoding import force_bytes
 from django.utils.dateparse import parse_datetime
 from django.utils.text import slugify
+from django.utils.http import urlsafe_base64_encode
 from django.views.decorators.csrf import csrf_exempt
 
 from .models import PayPalCustomerSubscription
 from .paypal import get_paypal_access_token
 from userProfile.models import UserCredentialsBackUP
 from userProfile.services import ensure_user_profile
+from userProfile.views import send_password_reset_email
 
 
 PAYPAL_DETAILS_MAX_ATTEMPTS = 4
@@ -65,10 +70,15 @@ def _normalize_username(value):
     return username or "paypal_user"
 
 
-def _unique_username(UserModel, base_username):
+def _unique_username(UserModel, base_username, *, normalize=True):
     username_field = UserModel.USERNAME_FIELD
     max_length = UserModel._meta.get_field(username_field).max_length or 150
-    base_username = _normalize_username(base_username)[:max_length] or "paypal_user"
+    if normalize:
+        base_username = _normalize_username(base_username)
+    else:
+        base_username = (base_username or "").strip()
+
+    base_username = base_username[:max_length] or "paypal_user"
     candidate = base_username
     counter = 1
 
@@ -99,7 +109,61 @@ def _ensure_paypal_user_backup(user, *, payer_id, subscription_id):
     )
 
 
-def _get_or_create_paypal_user(*, email, full_name, subscriber_name, payer_id, subscription_id):
+def _build_password_reset_link(user, *, request=None):
+    uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+    token = default_token_generator.make_token(user)
+    reset_path = reverse("userProfile:resetPassword", kwargs={"uidb64": uidb64, "token": token})
+
+    if request is not None:
+        return request.build_absolute_uri(reset_path)
+
+    from django.conf import settings
+
+    base_url = (getattr(settings, "PASSWORD_RESET_BASE_URL", "") or "").strip()
+    if not base_url:
+        domain = (getattr(settings, "PYTHONANYWHERE_DOMAIN", "") or "").strip()
+        if domain:
+            base_url = f"https://{domain}"
+
+    if not base_url:
+        allowed_hosts = [
+            host.strip()
+            for host in (getattr(settings, "ALLOWED_HOSTS", []) or [])
+            if host and host.strip() and host.strip() not in {"localhost", "127.0.0.1", "[::1]"}
+        ]
+        if allowed_hosts:
+            base_url = f"https://{allowed_hosts[0]}"
+
+    if not base_url:
+        return None
+
+    return f"{base_url.rstrip('/')}{reset_path}"
+
+
+def _send_paypal_password_reset_email(user, *, request=None):
+    target_email = (getattr(user, "email", "") or "").strip()
+    if "@" not in target_email:
+        return False
+
+    reset_link = _build_password_reset_link(user, request=request)
+    if not reset_link:
+        print(
+            f"[subscription.webhooks] skip password reset email, no reset base URL for user={user.pk}",
+            flush=True,
+        )
+        return False
+
+    try:
+        return send_password_reset_email(email=target_email, reset_link=reset_link)
+    except Exception as exc:
+        print(
+            f"[subscription.webhooks] failed to send password reset email user={user.pk}: {exc}",
+            flush=True,
+        )
+        return False
+
+
+def _get_or_create_paypal_user(*, email, full_name, subscriber_name, payer_id, subscription_id, request=None):
     UserModel = get_user_model()
     given_name = (subscriber_name.get("given_name") or "").strip()
     surname = (subscriber_name.get("surname") or "").strip()
@@ -129,7 +193,7 @@ def _get_or_create_paypal_user(*, email, full_name, subscriber_name, payer_id, s
             return existing_user
 
     if email:
-        base_username = email.split("@", 1)[0]
+        base_username = email.lower()
     elif payer_id:
         base_username = f"paypal_{payer_id}"
     else:
@@ -137,8 +201,8 @@ def _get_or_create_paypal_user(*, email, full_name, subscriber_name, payer_id, s
 
     username_field = UserModel.USERNAME_FIELD
     max_length = UserModel._meta.get_field(username_field).max_length or 150
-    normalized_base_username = _normalize_username(base_username)[:max_length] or "paypal_user"
     if not email:
+        normalized_base_username = _normalize_username(base_username)[:max_length] or "paypal_user"
         existing_user = UserModel._default_manager.filter(
             **{username_field: normalized_base_username}
         ).order_by("id").first()
@@ -156,7 +220,7 @@ def _get_or_create_paypal_user(*, email, full_name, subscriber_name, payer_id, s
             return existing_user
 
     user = UserModel._default_manager.create_user(
-        username=_unique_username(UserModel, normalized_base_username),
+        username=_unique_username(UserModel, base_username, normalize=not email),
         email=email or "",
         password=None,
         first_name=given_name,
@@ -172,6 +236,8 @@ def _get_or_create_paypal_user(*, email, full_name, subscriber_name, payer_id, s
         payer_id=payer_id,
         subscription_id=subscription_id,
     )
+    if email:
+        _send_paypal_password_reset_email(user, request=request)
     return user
 
 
@@ -249,6 +315,7 @@ def paypal_onapprove_webhook(request):
         subscriber_name=subscriber_name,
         payer_id=payer_id,
         subscription_id=subscription_id,
+        request=request,
     )
 
     paypal_subscription_id = (details.get("id") or "").strip() or subscription_id

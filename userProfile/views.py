@@ -5,6 +5,7 @@ from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.tokens import default_token_generator
 from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
 from django.db import IntegrityError
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
@@ -12,10 +13,9 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.core.exceptions import ValidationError
+from django.template.loader import render_to_string
 #
 import os
-from urllib import request as urllib_request
-from urllib.error import HTTPError, URLError
 from .models import UserCredentialsBackUP, userPoster
 import json
 from .forms import ImageForm
@@ -42,67 +42,35 @@ def render_template(request, template_name, context=None):
     return render(request, template_name, context)
 
 
-def send_emailjs_password_reset_email(email, reset_link):
-    """Reusable EmailJS sender for password reset links."""
-    print("\n[forgot-password] send_emailjs_password_reset_email called")
+def send_password_reset_email(email, reset_link):
+    """Reusable Django email sender for password reset links."""
+    print("\n[forgot-password] send_password_reset_email called")
     print(f"[forgot-password] target email: {email}")
-
-    service_id = getattr(settings, "EMAILJS_SERVICE_ID", "")
-    template_id = getattr(settings, "EMAILJS_TEMPLATE_ID", "")
-    public_key = getattr(settings, "EMAILJS_PUBLIC_KEY", "")
-    emailjs_api_url = 'https://api.emailjs.com/api/v1.0/email/send'
-
-    if not all([service_id, template_id, public_key, emailjs_api_url]):
-        print("[forgot-password] EmailJS config is incomplete.")
-        print(f"[forgot-password] service_id set: {bool(service_id)}")
-        print(f"[forgot-password] template_id set: {bool(template_id)}")
-        print(f"[forgot-password] public_key set: {bool(public_key)}")
-        print(f"[forgot-password] emailjs_api_url set: {bool(emailjs_api_url)}")
-        return False
-
-    print(f"[forgot-password] using service_id={service_id}, template_id={template_id}")
     print(f"[forgot-password] reset link: {reset_link}")
 
-    payload_dict = {
-        "service_id": 'service_ij7482h',
-        "template_id": 'template_ur532an',
-        "user_id": 'hKDlUCWLQop90vPSW',
-        "template_params": {
-            "email": email,
-            "link": reset_link,
-        },
-    }
+    from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "")
+    if not from_email:
+        print("[forgot-password] DEFAULT_FROM_EMAIL is empty.")
+        return False
 
-    payload = json.dumps(payload_dict).encode("utf-8")
-
-    request_obj = urllib_request.Request(
-        emailjs_api_url,
-        data=payload,
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
+    context = {"email": email, "link": reset_link}
+    subject = "Password Reset Request"
+    text_body = render_to_string("userProfile/password_reset_email.txt", context)
+    html_body = render_to_string("userProfile/password_reset_email.html", context)
 
     try:
-        with urllib_request.urlopen(request_obj, timeout=10) as response:
-            status_code = response.getcode()
-            response_body = response.read().decode("utf-8", errors="ignore")
-            print(f"[forgot-password] EmailJS status_code: {status_code}")
-            print(f"[forgot-password] EmailJS response body: {response_body}")
-            return 200 <= status_code < 300
-    except HTTPError as e:
-        error_body = ""
-        try:
-            error_body = e.read().decode("utf-8", errors="ignore")
-        except Exception:
-            pass
-        print(f"[forgot-password] EmailJS HTTPError status: {e.code}")
-        print(f"[forgot-password] EmailJS HTTPError body: {error_body}")
-        return False
-    except URLError as e:
-        print(f"[forgot-password] EmailJS URLError: {e}")
-        return False
+        email_msg = EmailMultiAlternatives(
+            subject=subject,
+            body=text_body,
+            from_email=from_email,
+            to=[email],
+        )
+        email_msg.attach_alternative(html_body, "text/html")
+        sent_count = email_msg.send(fail_silently=False)
+        print(f"[forgot-password] Django email sent_count: {sent_count}")
+        return sent_count > 0
     except Exception as e:
-        print("[forgot-password] EmailJS send failed:", e)
+        print(f"[forgot-password] Django email send failed: {e}")
         return False
 
 def Messages_Room(request):
@@ -442,11 +410,11 @@ def forgotPassword(request):
         if "@" not in target_email:
             target_email = email
         print(f"[forgot-password] target email chosen for send: {target_email}")
-        if send_emailjs_password_reset_email(email=target_email, reset_link=reset_link):
+        if send_password_reset_email(email=target_email, reset_link=reset_link):
             sent_any = True
-            print("[forgot-password] EmailJS send result: SUCCESS")
+            print("[forgot-password] Email send result: SUCCESS")
         else:
-            print("[forgot-password] EmailJS send result: FAILED")
+            print("[forgot-password] Email send result: FAILED")
     else:
         print("[forgot-password] no matching active account found for email")
         sample_auth_emails = list(
@@ -490,13 +458,6 @@ def resetPassword(request, uidb64, token):
         if new_password != new_password_confirmation:
             return render(request, 'userProfile/reset_password.html', {
                 "message": "Passwords must match."
-            })
-
-        try:
-            validate_password(new_password, user=user)
-        except ValidationError as e:
-            return render(request, 'userProfile/reset_password.html', {
-                "message": " ".join(e.messages)
             })
 
         user.set_password(new_password)

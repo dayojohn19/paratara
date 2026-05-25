@@ -10,7 +10,8 @@ from .webhooks import _fetch_paypal_subscription_details, _get_or_create_paypal_
 
 
 class PayPalWebhookUserTests(TestCase):
-    def test_get_or_create_paypal_user_creates_auth_user_and_profile(self):
+    @patch("subscription.webhooks._send_paypal_password_reset_email", return_value=True)
+    def test_get_or_create_paypal_user_creates_auth_user_and_profile(self, mocked_send_reset):
         user = _get_or_create_paypal_user(
             email="subscriber@example.com",
             full_name="PayPal Subscriber",
@@ -23,6 +24,7 @@ class PayPalWebhookUserTests(TestCase):
         profile = userPoster.objects.get(userID=user.pk)
 
         self.assertEqual(user.email, "subscriber@example.com")
+        self.assertEqual(user.username, "subscriber@example.com")
         self.assertEqual(user.first_name, "PayPal")
         self.assertEqual(user.last_name, "Subscriber")
         self.assertFalse(user.has_usable_password())
@@ -35,6 +37,25 @@ class PayPalWebhookUserTests(TestCase):
                 userPassword="paypal:PAYER123",
             ).exists()
         )
+        mocked_send_reset.assert_called_once_with(user, request=None)
+
+    @patch("subscription.webhooks._send_paypal_password_reset_email", return_value=True)
+    def test_get_or_create_paypal_user_does_not_send_reset_email_for_existing_user(self, mocked_send_reset):
+        User = get_user_model()
+        User.objects.create_user(
+            username="existing",
+            email="subscriber@example.com",
+            password="secret-pass",
+        )
+
+        _get_or_create_paypal_user(
+            email="subscriber@example.com",
+            full_name="Existing Subscriber",
+            subscriber_name={"given_name": "Existing", "surname": "Subscriber"},
+            payer_id="PAYER123",
+            subscription_id="SUB123",
+        )
+        mocked_send_reset.assert_not_called()
 
     def test_get_or_create_paypal_user_reuses_existing_email_user(self):
         User = get_user_model()
