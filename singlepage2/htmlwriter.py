@@ -301,7 +301,7 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
                                             <link rel="dns-prefetch" href="//www.googletagmanager.com">
                                             <link rel="dns-prefetch" href="//pagead2.googlesyndication.com">
                                             <!-- Google tag (gtag.js) -->
-                                            <script> window.dataLayer = window.dataLayer || []; function gtag(){{dataLayer.push(arguments);}} gtag('js', new Date()); gtag('config', 'G-MH2W7TQEH3'); </script>
+                                            <script> window.dataLayer = window.dataLayer || []; function gtag(){{dataLayer.push(arguments);}} gtag('js', new Date()); gtag('config', 'G-BR63L5YLJD'); </script>
                                             <meta name="google-site-verification" content="8jqO-yxHVkp0mIbnh_nvbfA0N21q0QcCR4aDkFbb8rc" />
                                             <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4843007524416588" crossorigin="anonymous"></script>
                                             <meta name="google-adsense-account" content="ca-pub-4843007524416588">

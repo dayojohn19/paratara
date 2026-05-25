@@ -3,8 +3,9 @@ from django.conf import settings
 from django.db import models
 from resorts.models import resortItem
 
-class PayPalCustomerSubscription(models.Model):
+class UserSubscription(models.Model):
     STATUS_CHOICES = [
+        ("pending", "Pending"),
         ("CREATED", "Created"),
         ("ACTIVE", "Active"),
         ("SUSPENDED", "Suspended"),
@@ -22,18 +23,27 @@ class PayPalCustomerSubscription(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
-        related_name="paypal_customer_subscriptions",
+        related_name="user_subscriptions",
+        blank=True,
+        null=True,
+    )
+    plan = models.ForeignKey(
+        "SubscriptionPlan",
+        on_delete=models.PROTECT,
+        related_name="user_subscriptions",
         blank=True,
         null=True,
     )
     name = models.CharField(max_length=150, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
     mobile_number = models.CharField(max_length=30, blank=True, null=True)
-    paypal_subscription_id = models.CharField(max_length=100, unique=True)
+    paypal_subscription_id = models.CharField(max_length=100, blank=True, null=True, unique=True)
     paypal_payer_id = models.CharField(max_length=150, blank=True, null=True)
+    paymongo_customer_id = models.CharField(max_length=100, blank=True, null=True, db_index=True)
+    paymongo_subscription_id = models.CharField(max_length=100, blank=True, null=True, unique=True)
     subscription_status = models.CharField(max_length=50, default="ACTIVE")
-    plan_id = models.CharField(max_length=100)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES)
+    paypal_plan_id = models.CharField(max_length=100, blank=True, null=True)
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="pending")
     started_at = models.DateTimeField(null=True, blank=True)
     paypal_create_time = models.DateTimeField(null=True, blank=True)
     paypal_status_update_time = models.DateTimeField(null=True, blank=True)
@@ -85,14 +95,15 @@ class SubscriptionPlan(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="active")
     features = models.JSONField(default=list, blank=True)
     imageUrl = models.URLField(blank=True, null=True)
-    paypalProduct = models.ForeignKey(
-        "PayPalProduct",
+    subscriptionProduct = models.ForeignKey(
+        "SubscriptionProduct",
         on_delete=models.SET_NULL,
         related_name="plans_fk",
         blank=True,
         null=True,
     )
     paypalPlanId = models.CharField(max_length=100, blank=True, null=True)
+    paymongo_plan_id = models.CharField(max_length=100, blank=True, null=True, db_index=True)
     createdAt = models.DateTimeField(auto_now_add=True)
     updatedAt = models.DateTimeField(auto_now=True)
 
@@ -100,8 +111,9 @@ class SubscriptionPlan(models.Model):
         return self.name
 
 
-class PayPalProduct(models.Model):
-    paypal_product_id = models.CharField(max_length=100, unique=True)
+class SubscriptionProduct(models.Model):
+    paypal_product_id = models.CharField(max_length=100, blank=True, null=True, unique=True)
+    paymongo_product_id = models.CharField(max_length=100, blank=True, null=True, unique=True)
     name = models.CharField(max_length=150)
     description = models.TextField(blank=True, null=True)
     product_type = models.CharField(max_length=50, default="SERVICE")
@@ -110,11 +122,12 @@ class PayPalProduct(models.Model):
     raw_response = models.JSONField(default=dict, blank=True)
     subscription_plans = models.ManyToManyField(
         "SubscriptionPlan",
-        related_name="paypal_products",
+        related_name="subscription_products",
         blank=True,
     )
     createdAt = models.DateTimeField(auto_now_add=True)
     updatedAt = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.name} ({self.paypal_product_id})"
+        provider_id = self.paypal_product_id or self.paymongo_product_id or "local"
+        return f"{self.name} ({provider_id})"

@@ -1,3 +1,4 @@
+
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -953,9 +954,9 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <script>
-    const EMAILJS_SERVICE_ID = 'service_jv335d7';
-    const EMAILJS_TEMPLATE_ID = 'template_hzlk188';
-    const EMAILJS_PUBLIC_KEY = 'kPR5fCmH0j3E0NSyr';
+    const EMAILJS_SERVICE_ID = 'service_8fk2mer';
+    const EMAILJS_TEMPLATE_ID = 'template_0n97cvb';
+    const EMAILJS_PUBLIC_KEY = 'hKDlUCWLQop90vPSW';
 
     function escapeHtml(value) {
         return value.replace(/[&<>"']/g, function(char) {
@@ -1144,14 +1145,18 @@
 
         document.getElementById('orderForm').addEventListener('submit', async function(event) {
             event.preventDefault();
+            console.log('[OrderForm] Submit triggered');
 
             const selectedProducts = getSelectedProducts();
+            console.log('[OrderForm] Selected products:', selectedProducts);
             if (!selectedProducts.length) {
+                console.warn('[OrderForm] Validation failed: no products selected');
                 alert('Please select at least one product.');
                 return;
             }
 
             if (!window.emailjs) {
+                console.error('[OrderForm] EmailJS not available on window');
                 alert('Order could not be sent. Please try again later.');
                 return;
             }
@@ -1176,15 +1181,28 @@
                 'Address: ' + fullAddress,
                 'Notes: ' + notes
             ].join('\n');
+            console.log('[OrderForm] Built order payload:', {
+                business: business,
+                name: name,
+                email: email,
+                contact: contact,
+                fullAddress: fullAddress,
+                notes: notes,
+                orderDetails: orderDetails
+            });
 
             try {
+                console.log('[OrderForm] Sending request to EmailJS', {
+                    serviceId: EMAILJS_SERVICE_ID,
+                    templateId: EMAILJS_TEMPLATE_ID
+                });
                 await window.emailjs.send(
                 EMAILJS_SERVICE_ID,
                 EMAILJS_TEMPLATE_ID,
                 {
-                    to_name: 'john.dayo@paratara.com',
-                    from_name: name,
-                    message: `
+                    user_email: email,
+                    user_name: name,
+                    user_message: `
                 New Smart Postcard Order
 
                 Name: ${name}
@@ -1206,14 +1224,17 @@
                     `
                 }
                 );
+                console.log('[OrderForm] EmailJS send success');
 
                 alert('Stock request submitted. We will contact you soon.');
                 event.target.reset();
                 updateOrderSummary();
                 updateFullAddress();
                 updateProgressiveForm();
+                console.log('[OrderForm] Form reset and UI refreshed');
             } catch (err) {
                 alert('Order could not be sent. Please try again later.');
+                console.error('[OrderForm] EmailJS send failed');
                 console.error('EmailJS error:', err);
             }
         });

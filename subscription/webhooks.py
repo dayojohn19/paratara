@@ -13,7 +13,7 @@ from django.utils.text import slugify
 from django.utils.http import urlsafe_base64_encode
 from django.views.decorators.csrf import csrf_exempt
 
-from .models import PayPalCustomerSubscription
+from .models import UserSubscription
 from .paypal import get_paypal_access_token
 from userProfile.models import UserCredentialsBackUP
 from userProfile.services import ensure_user_profile
@@ -344,14 +344,14 @@ def paypal_onapprove_webhook(request):
     next_billing_time = parse_datetime(billing_info.get("next_billing_time") or "")
     last_payment_date = parse_datetime((last_payment.get("time") or ""))
 
-    obj, _ = PayPalCustomerSubscription.objects.update_or_create(
+    obj, _ = UserSubscription.objects.update_or_create(
         paypal_subscription_id=paypal_subscription_id,
         defaults={
             "name": full_name,
             "user": subscription_user,
             "email": email,
             "paypal_payer_id": payer_id,
-            "plan_id": plan_id,
+            "paypal_plan_id": plan_id,
             "subscription_status": status_value,
             "status": status_value,
             "started_at": start_time,
@@ -376,9 +376,9 @@ def paypal_onapprove_webhook(request):
         name=full_name or getattr(subscription_user, "username", ""),
         contact=email or payer_id or paypal_subscription_id,
     )
-    if profile.paypal_customer_subscription_id != obj.id:
-        profile.paypal_customer_subscription = obj
-        profile.save(update_fields=["paypal_customer_subscription"])
+    if profile.user_subscription_id != obj.id:
+        profile.user_subscription = obj
+        profile.save(update_fields=["user_subscription"])
 
     print(f"[subscription.webhooks] subscription saved: {obj.paypal_subscription_id}", flush=True)
     time.sleep(1)

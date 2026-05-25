@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.db.models import Prefetch
 
 # Create your views here.
@@ -10,9 +10,11 @@ from decimal import Decimal, InvalidOperation
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.urls import reverse
 from django.utils.text import slugify
+from django.views.decorators.csrf import csrf_exempt
 from resorts.models import resortItem
-from .models import SubscriptionPlan, PayPalProduct
+from .models import SubscriptionPlan, SubscriptionProduct
 from .paypal import (
     get_paypal_access_token,
     create_paypal_product,
@@ -31,7 +33,7 @@ def subscription_page(request):
 
 def subscription_plans_list_page(request):
     active_plans = SubscriptionPlan.objects.filter(status="active").order_by("price", "name")
-    products = PayPalProduct.objects.order_by("name").prefetch_related(
+    products = SubscriptionProduct.objects.order_by("name").prefetch_related(
         Prefetch("plans_fk", queryset=active_plans, to_attr="active_fk_plans"),
         Prefetch("subscription_plans", queryset=active_plans, to_attr="active_m2m_plans"),
     )
@@ -133,7 +135,7 @@ def create_paypal_product_view(request):
 
     if product_id:
         _debug_step(f"saving PayPal product locally: {product_id}")
-        PayPalProduct.objects.update_or_create(
+        SubscriptionProduct.objects.update_or_create(
             paypal_product_id=product_id,
             defaults={
                 "name": name,
@@ -144,7 +146,7 @@ def create_paypal_product_view(request):
                 "raw_response": paypal_response,
             },
         )
-        _debug_step("local PayPalProduct save complete")
+        _debug_step("local SubscriptionProduct save complete")
 
     return JsonResponse(
         {
@@ -232,14 +234,14 @@ def create_subscription_plan_view(request):
         unique_slug = f"{base_slug}-{suffix}"
         suffix += 1
 
-    paypal_product_obj = None
+    subscription_product_obj = None
     paypal_product_response = None
     if paypal_product_id:
-        _debug_step(f"looking up PayPalProduct: {paypal_product_id}")
-        paypal_product_obj = PayPalProduct.objects.filter(
+        _debug_step(f"looking up SubscriptionProduct by PayPal product id: {paypal_product_id}")
+        subscription_product_obj = SubscriptionProduct.objects.filter(
             paypal_product_id=paypal_product_id
         ).first()
-        if not paypal_product_obj:
+        if not subscription_product_obj:
             _debug_step("validation failed: PayPal product not found")
             return JsonResponse(
                 {
@@ -255,7 +257,7 @@ def create_subscription_plan_view(request):
             _debug_step("requesting access token for PayPal subscription plan flow")
             access_token = get_paypal_access_token()
 
-            if not paypal_product_obj:
+            if not subscription_product_obj:
                 _debug_step("creating PayPal product for subscription plan")
                 paypal_product_response = create_paypal_product(
                     access_token=access_token,
@@ -273,7 +275,7 @@ def create_subscription_plan_view(request):
                         },
                         status=400,
                     )
-                paypal_product_obj, _ = PayPalProduct.objects.update_or_create(
+                subscription_product_obj, _ = SubscriptionProduct.objects.update_or_create(
                     paypal_product_id=paypal_product_id,
                     defaults={
                         "name": name,
@@ -290,7 +292,7 @@ def create_subscription_plan_view(request):
                 _debug_step("creating billing plan in PayPal")
                 paypal_plan_response = create_paypal_billing_plan(
                     access_token=access_token,
-                    product_id=paypal_product_obj.paypal_product_id,
+                    product_id=subscription_product_obj.paypal_product_id,
                     plan_name=name,
                     plan_description=description or name,
                     price=price,
@@ -321,14 +323,14 @@ def create_subscription_plan_view(request):
         status=status_value,
         features=features,
         imageUrl=image_url,
-        paypalProduct=paypal_product_obj,
+        subscriptionProduct=subscription_product_obj,
         paypalPlanId=paypal_plan_id,
     )
     _debug_step(f"local SubscriptionPlan created: {plan.id}")
 
-    if paypal_product_obj:
-        _debug_step("linking SubscriptionPlan to PayPalProduct via M2M")
-        paypal_product_obj.subscription_plans.add(plan)
+    if subscription_product_obj:
+        _debug_step("linking SubscriptionPlan to SubscriptionProduct via M2M")
+        subscription_product_obj.subscription_plans.add(plan)
         _debug_step("M2M link complete")
 
     return JsonResponse(
@@ -341,7 +343,7 @@ def create_subscription_plan_view(request):
                 "slug": plan.slug,
                 "paypalPlanId": plan.paypalPlanId,
                 "paypalProductId": (
-                    plan.paypalProduct.paypal_product_id if plan.paypalProduct else None
+                    plan.subscriptionProduct.paypal_product_id if plan.subscriptionProduct else None
                 ),
             },
             "paypal": {
@@ -384,3 +386,48 @@ def create_subscription(request):
 
     response.raise_for_status()
     return JsonResponse(response.json())
+
+
+@csrf_exempt
+def paymongo_webhook(request):
+    if request.method != "POST":
+        return JsonResponse(
+            {"ok": False, "error": "Method not allowed. Use POST."},
+            status=405,
+        )
+
+    try:
+        payload = json.loads(request.body or "{}")
+    except json.JSONDecodeError:
+        return JsonResponse({"ok": False, "error": "Invalid JSON payload."}, status=400)
+
+    event_type = (
+        payload.get("data", {}).get("attributes", {}).get("type")
+        or payload.get("type")
+        or ""
+    )
+
+    _debug_step(f"paymongo_webhook received event: {event_type or 'unknown'}")
+    return JsonResponse(
+        {
+            "ok": True,
+            "message": "PayMongo webhook received.",
+            "event_type": event_type,
+        }
+    )
+
+
+def success_redirect(request):
+    target_url = (
+        getattr(settings, "PAYMONGO_SUCCESS_REDIRECT_URL", "").strip()
+        or f"{reverse('subscription:plans_list')}?payment=success"
+    )
+    return redirect(target_url)
+
+
+def failed_redirect(request):
+    target_url = (
+        getattr(settings, "PAYMONGO_FAILED_REDIRECT_URL", "").strip()
+        or f"{reverse('subscription:plans_list')}?payment=failed"
+    )
+    return redirect(target_url)

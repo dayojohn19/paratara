@@ -111,8 +111,8 @@ class userPoster(models.Model):
     myTransactions = models.ManyToManyField(
         'apis.Transaction', blank=True, related_name='User_TransactionList')
     hashes = models.TextField(default='')
-    paypal_customer_subscription = models.ForeignKey(
-        'subscription.PayPalCustomerSubscription',
+    user_subscription = models.ForeignKey(
+        'subscription.UserSubscription',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,

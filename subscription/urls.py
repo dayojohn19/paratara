@@ -3,10 +3,13 @@ from django.urls import path
 from .views import (
     create_subscription,
     create_subscription_plan_view,
+    failed_redirect,
     get_access_token_view,
+    paymongo_webhook,
     create_paypal_product_view,
     paypal_client_config_view,
     setup_page,
+    success_redirect,
     subscription_plans_list_page,
     subscription_page,
 )
@@ -25,4 +28,7 @@ urlpatterns = [
     path("create/", create_subscription, name="create_subscription"),
     path("webhook/paypal/", paypal_webhook, name="paypal_webhook"),
     path("webhook/paypal/on-approve/", paypal_onapprove_webhook, name="paypal_onapprove_webhook"),
+    path("webhook/paymongo/", paymongo_webhook, name="paymongo_webhook"),
+    path("paymongo/success/", success_redirect, name="paymongo_success_redirect"),
+    path("paymongo/failed/", failed_redirect, name="paymongo_failed_redirect"),
 ]
