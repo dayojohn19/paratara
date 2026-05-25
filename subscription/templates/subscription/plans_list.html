@@ -121,6 +121,7 @@
         }
 
         async function loadPayPalSdk(clientId) {
+            // alert(` this is ${clientId}`)
             const sdkUrl = "https://www.paypal.com/sdk/js?client-id=" + encodeURIComponent(clientId) + "&vault=true&intent=subscription";
             return new Promise((resolve, reject) => {
                 const script = document.createElement("script");
