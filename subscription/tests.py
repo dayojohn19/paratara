@@ -204,6 +204,7 @@ class PayMongoModelAndServiceTests(TestCase):
 
 
 @override_settings(
+    SECURE_SSL_REDIRECT=False,
     PAYMONGO_SECRET_KEY="sk_test_x",
     PAYMONGO_WEBHOOK_SECRET="whsec_test",
     PAYMONGO_MODE="test",
