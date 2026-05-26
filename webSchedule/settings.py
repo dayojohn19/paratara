@@ -33,7 +33,7 @@ PAYMONGO_WEBHOOK_SECRET = config("PAYMONGO_WEBHOOK_SECRET", default="")
 PAYMONGO_MODE = config("PAYMONGO_MODE", default="test")
 PAYMONGO_API_BASE = config("PAYMONGO_API_BASE", default="https://api.paymongo.com")
 PAYMONGO_CHECKOUT_API_VERSION = config("PAYMONGO_CHECKOUT_API_VERSION", default="v1")
-PAYMONGO_ENABLE_RECURRING = config("PAYMONGO_ENABLE_RECURRING", default=False, cast=bool)
+PAYMONGO_ENABLE_RECURRING = config("PAYMONGO_ENABLE_RECURRING", default=True, cast=bool)
 PAYMONGO_ALLOWED_PAYMENT_METHODS = _split_csv(
     config("PAYMONGO_ALLOWED_PAYMENT_METHODS", default="card,gcash,paymaya,grab_pay,qrph")
 )

@@ -1,5 +1,7 @@
 # Environments
 .env
+.env.example
+
 cleanenv/
 env/
 env2/
