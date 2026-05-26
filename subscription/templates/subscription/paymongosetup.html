@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PayMongo Subscription Setup</title>
+    <style>
+        :root {
+            --bg: #f6f7f9;
+            --panel: #ffffff;
+            --line: #d9dee7;
+            --text: #172033;
+            --muted: #5c667a;
+            --accent: #0f766e;
+            --accent-dark: #115e59;
+            --danger: #b42318;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        header {
+            padding: 24px clamp(16px, 4vw, 44px);
+            background: #ffffff;
+            border-bottom: 1px solid var(--line);
+        }
+
+        header h1 { margin: 0 0 6px; font-size: clamp(24px, 3vw, 34px); }
+        header p { margin: 0; color: var(--muted); }
+
+        main {
+            padding: 24px clamp(16px, 4vw, 44px) 48px;
+            display: grid;
+            gap: 22px;
+        }
+
+        section {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 18px;
+        }
+
+        h2 { margin: 0 0 14px; font-size: 19px; }
+        h3 { margin: 0 0 10px; font-size: 16px; }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .metric {
+            background: #f9fafb;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 14px;
+        }
+
+        .metric strong { display: block; font-size: 24px; }
+        .metric span { color: var(--muted); font-size: 13px; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 18px;
+        }
+
+        form {
+            display: grid;
+            gap: 11px;
+            align-content: start;
+        }
+
+        label {
+            display: block;
+            font-weight: 700;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            border: 1px solid #cbd3df;
+            border-radius: 6px;
+            padding: 9px 10px;
+            font: inherit;
+            background: #fff;
+            color: var(--text);
+        }
+
+        textarea { resize: vertical; }
+
+        .field-help, .muted { color: var(--muted); font-size: 13px; }
+        .errors { color: var(--danger); font-size: 13px; margin: 4px 0 0; }
+
+        button, .button-link {
+            border: 0;
+            border-radius: 6px;
+            padding: 10px 13px;
+            background: var(--accent);
+            color: #fff;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        button:hover, .button-link:hover { background: var(--accent-dark); }
+        .button-secondary { background: #334155; }
+        .button-secondary:hover { background: #1f2937; }
+
+        .messages {
+            display: grid;
+            gap: 8px;
+        }
+
+        .message {
+            border: 1px solid #bbf7d0;
+            background: #f0fdf4;
+            color: #166534;
+            padding: 10px 12px;
+            border-radius: 6px;
+        }
+
+        .message.error {
+            border-color: #fecaca;
+            background: #fef2f2;
+            color: #991b1b;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th, td {
+            border-bottom: 1px solid var(--line);
+            padding: 10px 8px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+
+        .list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .row-card {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 14px;
+            display: grid;
+            gap: 10px;
+            background: #fff;
+        }
+
+        .row-card-title {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 999px;
+            padding: 3px 8px;
+            background: #eef2f7;
+            color: #344054;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .badge.ok { background: #dcfce7; color: #166534; }
+        .badge.warn { background: #fef3c7; color: #92400e; }
+        .badge.bad { background: #fee2e2; color: #991b1b; }
+
+        .snippet {
+            min-height: 84px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 12px;
+            background: #f8fafc;
+        }
+
+        .snippet-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        @media (max-width: 760px) {
+            table, thead, tbody, th, td, tr { display: block; }
+            thead { display: none; }
+            tr { border: 1px solid var(--line); border-radius: 8px; margin-bottom: 10px; padding: 8px; }
+            td { border: 0; padding: 6px 0; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>PayMongo Subscription Setup</h1>
+        <p>Mode: <strong>{{ paymongo_mode }}</strong> · Base URL: <strong>{{ payment_base_url }}</strong></p>
+    </header>
+
+    <main>
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <section class="summary" aria-label="PayMongo setup summary">
+            <div class="metric"><strong>{{ source_websites|length }}</strong><span>Source websites</span></div>
+            <div class="metric"><strong>{{ products|length }}</strong><span>Products</span></div>
+            <div class="metric"><strong>{{ plans|length }}</strong><span>Plans</span></div>
+            <div class="metric"><strong>{{ button_rows|length }}</strong><span>Payment buttons</span></div>
+        </section>
+
+        <section>
+            <h2>Create Setup Records</h2>
+            <div class="grid">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="create_source">
+                    <h3>Source Website</h3>
+                    {% for field in source_form %}
+                        <div>
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.help_text %}<div class="field-help">{{ field.help_text }}</div>{% endif %}
+                            {% for error in field.errors %}<div class="errors">{{ error }}</div>{% endfor %}
+                        </div>
+                    {% endfor %}
+                    <button type="submit">Save Source Website</button>
+                </form>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="create_product">
+                    <h3>Product</h3>
+                    {% for field in product_form %}
+                        <div>
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% for error in field.errors %}<div class="errors">{{ error }}</div>{% endfor %}
+                        </div>
+                    {% endfor %}
+                    <button type="submit">Save Product</button>
+                </form>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="create_plan">
+                    <h3>Plan</h3>
+                    {% for field in plan_form %}
+                        <div>
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% for error in field.errors %}<div class="errors">{{ error }}</div>{% endfor %}
+                        </div>
+                    {% endfor %}
+                    <button type="submit">Save Plan</button>
+                </form>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="create_button">
+                    <h3>Payment Button</h3>
+                    {% for field in button_form %}
+                        <div>
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% for error in field.errors %}<div class="errors">{{ error }}</div>{% endfor %}
+                        </div>
+                    {% endfor %}
+                    <button type="submit">Generate Button</button>
+                </form>
+            </div>
+        </section>
+
+        <section>
+            <h2>Payment Buttons</h2>
+            {% if button_rows %}
+                <div class="list">
+                    {% for row in button_rows %}
+                        <article class="row-card">
+                            <div class="row-card-title">
+                                <div>
+                                    <h3>{{ row.button.label }}</h3>
+                                    <div class="muted">
+                                        {{ row.button.source_website.name }} · {{ row.button.product.name }} · {{ row.button.plan.name }}
+                                    </div>
+                                </div>
+                                <div>
+                                    <span class="badge {% if row.button.active %}ok{% else %}bad{% endif %}">
+                                        {% if row.button.active %}Active{% else %}Inactive{% endif %}
+                                    </span>
+                                    <span class="badge">{{ row.button.public_id }}</span>
+                                </div>
+                            </div>
+
+                            <label>Script embed</label>
+                            <textarea class="snippet" readonly>{{ row.embed_script }}</textarea>
+                            <label>Fallback form</label>
+                            <textarea class="snippet" readonly>{{ row.fallback_form }}</textarea>
+
+                            <div class="snippet-actions">
+                                <button type="button" class="button-secondary copy-snippet">Copy Script</button>
+                                <a class="button-link button-secondary" href="{{ row.admin_url }}">Edit</a>
+                                {% if row.last_transaction %}
+                                    <span class="badge warn">Last: {{ row.last_transaction.status }} / {{ row.last_transaction.internal_reference_id }}</span>
+                                {% endif %}
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="muted">No payment buttons yet.</p>
+            {% endif %}
+        </section>
+
+        <section>
+            <h2>Recent Transactions</h2>
+            {% if transactions %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Reference</th>
+                            <th>Status</th>
+                            <th>Source</th>
+                            <th>Plan</th>
+                            <th>Amount</th>
+                            <th>Customer</th>
+                            <th>PayMongo IDs</th>
+                            <th>Created</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for txn in transactions %}
+                            <tr>
+                                <td><code>{{ txn.internal_reference_id }}</code></td>
+                                <td>{{ txn.get_status_display }}</td>
+                                <td>{{ txn.source_website.name }}</td>
+                                <td>{{ txn.plan.name }}</td>
+                                <td>{{ txn.currency }} {{ txn.amount }}</td>
+                                <td>{{ txn.customer_email|default:"-" }}</td>
+                                <td>
+                                    Checkout: {{ txn.paymongo_checkout_session_id|default:"-" }}<br>
+                                    Payment: {{ txn.paymongo_payment_id|default:"-" }}
+                                </td>
+                                <td>{{ txn.created_at|date:"M j, Y H:i" }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="muted">No transactions yet.</p>
+            {% endif %}
+        </section>
+
+        <section>
+            <h2>Webhook Logs</h2>
+            {% if webhook_events %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Event</th>
+                            <th>Type</th>
+                            <th>Verified</th>
+                            <th>Status</th>
+                            <th>Transaction</th>
+                            <th>Processed</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for event in webhook_events %}
+                            <tr>
+                                <td><code>{{ event.paymongo_event_id }}</code></td>
+                                <td>{{ event.event_type|default:"-" }}</td>
+                                <td>{{ event.verified|yesno:"Yes,No" }}</td>
+                                <td>{{ event.processing_status }}</td>
+                                <td>
+                                    {% if event.transaction %}
+                                        {{ event.transaction.internal_reference_id }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>{{ event.processed_at|date:"M j, Y H:i"|default:"-" }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="muted">No webhook events yet.</p>
+            {% endif %}
+        </section>
+    </main>
+
+    <script>
+        document.querySelectorAll(".copy-snippet").forEach((button) => {
+            button.addEventListener("click", async () => {
+                const card = button.closest(".row-card");
+                const textarea = card ? card.querySelector("textarea") : null;
+                if (!textarea) return;
+                await navigator.clipboard.writeText(textarea.value);
+                const original = button.textContent;
+                button.textContent = "Copied";
+                window.setTimeout(() => { button.textContent = original; }, 1200);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -27,6 +27,20 @@ XAI_IMAGE_MODEL = 'grok-imagine-image-quality'
 IMGBB_API_KEY = os.getenv("IMGBB_API_KEY", "65ed182b008522d2c762031a3ff4953b")
 PAYPAL_CLIENT_ID = os.getenv("PAYPAL_CLIENT_ID", "")
 PAYPAL_CLIENT_SECRET = os.getenv("PAYPAL_CLIENT_SECRET", "")
+PAYMONGO_SECRET_KEY = config("PAYMONGO_SECRET_KEY", default="")
+PAYMONGO_PUBLIC_KEY = config("PAYMONGO_PUBLIC_KEY", default="")
+PAYMONGO_WEBHOOK_SECRET = config("PAYMONGO_WEBHOOK_SECRET", default="")
+PAYMONGO_MODE = config("PAYMONGO_MODE", default="test")
+PAYMONGO_API_BASE = config("PAYMONGO_API_BASE", default="https://api.paymongo.com")
+PAYMONGO_CHECKOUT_API_VERSION = config("PAYMONGO_CHECKOUT_API_VERSION", default="v1")
+PAYMONGO_ENABLE_RECURRING = config("PAYMONGO_ENABLE_RECURRING", default=False, cast=bool)
+PAYMONGO_ALLOWED_PAYMENT_METHODS = _split_csv(
+    config("PAYMONGO_ALLOWED_PAYMENT_METHODS", default="card,gcash,paymaya,grab_pay,qrph")
+)
+PAYMONGO_TIMEOUT = config("PAYMONGO_TIMEOUT", default=30, cast=int)
+PAYMONGO_WEBHOOK_TOLERANCE_SECONDS = config("PAYMONGO_WEBHOOK_TOLERANCE_SECONDS", default=300, cast=int)
+PAYMONGO_EMBED_TOKEN_MAX_AGE = config("PAYMONGO_EMBED_TOKEN_MAX_AGE", default=31536000, cast=int)
+DJANGO_PAYMENT_BASE_URL = config("DJANGO_PAYMENT_BASE_URL", default="")
 # Django email settings (SMTP)
 EMAIL_BACKEND = config("EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend")
 EMAIL_HOST = config("EMAIL_HOST", default="")
@@ -56,7 +70,8 @@ APPEND_SLASH = True
 # DEBUG = os.getenv('DEBUG', 'False') == 'True'
 # DEBUG = os.getenv('DEBUG', 'False') == 'True'
 # DEBUG = os.getenv('DEBUG', 'False') == 'True'
-DEBUG = config("DEBUG", default=True, cast=bool)
+_debug_raw = str(config("DEBUG", default="True")).strip().lower()
+DEBUG = _debug_raw not in {"0", "false", "no", "off", "release", "production", "prod"}
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
@@ -590,13 +605,13 @@ LOGOUT_REDIRECT_URL = 'userProfile:profile'
 #     ('link', 'profile_url'),
 # ]
 
-CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOWED_ORIGINS = [
-    "https://example.com",
-    "https://sub.example.com",
-    "http://localhost:8080",
-    "http://127.0.0.1:8000",
-]
+CORS_ALLOW_ALL_ORIGINS = config("CORS_ALLOW_ALL_ORIGINS", default=DEBUG, cast=bool)
+CORS_ALLOWED_ORIGINS = list(
+    dict.fromkeys(
+        _split_csv(config("CORS_ALLOWED_ORIGINS", default=""))
+        + _split_csv(config("PAYMONGO_CORS_ALLOWED_ORIGINS", default=""))
+    )
+)
 CLOUDINARY = {
   "cloud_name": "dzsiogux5",
   "api_key": "957222581381515",

@@ -160,6 +160,58 @@ Dry run (no network calls):
   python3 manage.py post_social --message "test" --dry-run
 
 
+# PayMongo Subscription Manager
+
+The `subscription` app can act as the central PayMongo payment server for standalone websites.
+
+## Required Environment Variables
+
+```bash
+PAYMONGO_SECRET_KEY=
+PAYMONGO_PUBLIC_KEY=
+PAYMONGO_WEBHOOK_SECRET=
+PAYMONGO_MODE=test
+PAYMONGO_CHECKOUT_API_VERSION=v1
+PAYMONGO_ENABLE_RECURRING=False
+PAYMONGO_ALLOWED_PAYMENT_METHODS=card,gcash,paymaya,grab_pay,qrph
+DJANGO_PAYMENT_BASE_URL=https://www.paratara.com
+```
+
+Keep PayMongo keys only in environment variables. Do not put keys in templates or standalone websites.
+
+## Setup
+
+```bash
+python manage.py makemigrations subscription
+python manage.py migrate
+python manage.py test subscription
+```
+
+Open the staff dashboard:
+
+```text
+https://www.paratara.com/subscription/paymongo/setup/
+```
+
+Create source websites, products, plans, and payment buttons. Copy the generated embed code into each standalone website.
+
+Webhook URL for PayMongo:
+
+```text
+https://www.paratara.com/subscription/paymongo/webhook/
+```
+
+Recommended webhook events:
+
+- `checkout_session.payment.paid`
+- `payment.paid`
+- `payment.failed`
+- `payment.refunded`
+- `payment.refund.updated`
+
+See [PAYMONGO_SUBSCRIPTION_FLOW.md](PAYMONGO_SUBSCRIPTION_FLOW.md) for the complete step-by-step flow and test checklist.
+
+
 
 
 

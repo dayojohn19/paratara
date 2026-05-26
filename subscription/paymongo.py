@@ -6,7 +6,10 @@ from django.core.exceptions import ImproperlyConfigured
 
 
 def _get_paymongo_api_base():
-    return getattr(settings, "PAYMONGO_API_BASE", "https://api.paymongo.com/v1")
+    api_base = getattr(settings, "PAYMONGO_API_BASE", "https://api.paymongo.com").rstrip("/")
+    if api_base.endswith("/v1") or api_base.endswith("/v2"):
+        return api_base
+    return f"{api_base}/v1"
 
 
 def _get_paymongo_timeout():

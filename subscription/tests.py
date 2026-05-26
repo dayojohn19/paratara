@@ -1,11 +1,27 @@
 import requests
+import hashlib
+import hmac
+import json
+import time
+from decimal import Decimal
 from unittest.mock import Mock, patch
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import Client, TestCase, override_settings
+from django.urls import reverse
 
 from userProfile.models import UserCredentialsBackUP, userPoster
 
+from .models import (
+    PaymentButton,
+    PayMongoWebhookEvent,
+    SourceWebsite,
+    Subscription,
+    SubscriptionPlan,
+    SubscriptionProduct,
+    Transaction,
+)
+from .services.paymongo import amount_to_centavos, make_embed_token, verify_embed_token
 from .webhooks import _fetch_paypal_subscription_details, _get_or_create_paypal_user
 
 
@@ -140,3 +156,204 @@ class PayPalDetailsFetchTests(TestCase):
 
         self.assertEqual(mocked_get.call_count, 1)
         mocked_sleep.assert_not_called()
+
+
+class PayMongoModelAndServiceTests(TestCase):
+    def setUp(self):
+        self.source = SourceWebsite.objects.create(
+            name="Standalone Site",
+            slug="standalone-site",
+            allowed_origins=["https://standalone.example"],
+        )
+        self.product = SubscriptionProduct.objects.create(
+            name="Booking SaaS",
+            description="Subscription manager",
+        )
+        self.plan = SubscriptionPlan.objects.create(
+            name="Monthly Pro",
+            slug="monthly-pro",
+            price=Decimal("499.00"),
+            currency="PHP",
+            billingInterval="monthly",
+            type="subscription",
+            status="active",
+            subscriptionProduct=self.product,
+        )
+        self.button = PaymentButton.objects.create(
+            source_website=self.source,
+            product=self.product,
+            plan=self.plan,
+            label="Subscribe Now",
+        )
+
+    def test_amount_to_centavos(self):
+        self.assertEqual(amount_to_centavos("499.00"), 49900)
+        self.assertEqual(amount_to_centavos(Decimal("10.55")), 1055)
+
+    def test_embed_token_round_trip(self):
+        token = make_embed_token(self.button)
+        payload = verify_embed_token(token, self.button)
+
+        self.assertEqual(payload["button_public_id"], self.button.public_id)
+        self.assertEqual(payload["source_public_id"], self.source.public_id)
+
+    def test_public_ids_are_not_database_ids(self):
+        self.assertTrue(self.source.public_id.startswith("src_"))
+        self.assertTrue(self.button.public_id.startswith("btn_"))
+        self.assertNotEqual(self.button.public_id, str(self.button.pk))
+
+
+@override_settings(
+    PAYMONGO_SECRET_KEY="sk_test_x",
+    PAYMONGO_WEBHOOK_SECRET="whsec_test",
+    PAYMONGO_MODE="test",
+    PAYMONGO_ALLOWED_PAYMENT_METHODS=["card", "gcash"],
+    DJANGO_PAYMENT_BASE_URL="https://www.paratara.com",
+)
+class PayMongoCheckoutAndWebhookTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.source = SourceWebsite.objects.create(
+            name="Standalone Site",
+            slug="standalone-site",
+            allowed_origins=["https://standalone.example"],
+        )
+        self.product = SubscriptionProduct.objects.create(name="Booking SaaS")
+        self.plan = SubscriptionPlan.objects.create(
+            name="Monthly Pro",
+            slug="monthly-pro",
+            price=Decimal("499.00"),
+            currency="PHP",
+            billingInterval="monthly",
+            type="subscription",
+            status="active",
+            subscriptionProduct=self.product,
+        )
+        self.button = PaymentButton.objects.create(
+            source_website=self.source,
+            product=self.product,
+            plan=self.plan,
+            label="Subscribe Now",
+        )
+
+    @patch("subscription.views.PayMongoClient.create_checkout_session")
+    def test_checkout_uses_server_side_amount_and_creates_transaction(self, mocked_checkout):
+        mocked_checkout.return_value = (
+            {"data": {"attributes": {"metadata": {"example": "payload"}}}},
+            {
+                "data": {
+                    "id": "cs_test_123",
+                    "attributes": {"checkout_url": "https://checkout.paymongo.com/test"},
+                }
+            },
+        )
+        token = make_embed_token(self.button)
+
+        response = self.client.post(
+            reverse("subscription:paymongo_start_checkout", args=[self.button.public_id]),
+            data={
+                "embed_token": token,
+                "customer_email": "customer@example.com",
+                "amount": "1.00",
+            },
+            HTTP_ORIGIN="https://standalone.example",
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], "https://checkout.paymongo.com/test")
+
+        transaction = Transaction.objects.get()
+        self.assertEqual(transaction.amount, Decimal("499.00"))
+        self.assertEqual(transaction.amount_centavos, 49900)
+        self.assertEqual(transaction.status, "checkout_created")
+        self.assertEqual(transaction.customer_email, "customer@example.com")
+        self.assertEqual(transaction.paymongo_checkout_session_id, "cs_test_123")
+
+    def _signed_webhook(self, payload):
+        raw_body = json.dumps(payload, separators=(",", ":")).encode("utf-8")
+        timestamp = str(int(time.time()))
+        signature = hmac.new(
+            b"whsec_test",
+            timestamp.encode("utf-8") + b"." + raw_body,
+            hashlib.sha256,
+        ).hexdigest()
+        return raw_body, f"t={timestamp},te={signature}"
+
+    def test_paid_webhook_is_idempotent_and_activates_subscription(self):
+        transaction = Transaction.objects.create(
+            source_website=self.source,
+            product=self.product,
+            plan=self.plan,
+            payment_button=self.button,
+            customer_email="customer@example.com",
+            amount=self.plan.price,
+            amount_centavos=49900,
+            currency="PHP",
+            paymongo_checkout_session_id="cs_test_123",
+        )
+        payload = {
+            "data": {
+                "id": "evt_test_123",
+                "attributes": {
+                    "type": "checkout_session.payment.paid",
+                    "data": {
+                        "id": "cs_test_123",
+                        "type": "checkout_session",
+                        "attributes": {
+                            "status": "paid",
+                            "metadata": {
+                                "internal_reference_id": transaction.internal_reference_id,
+                                "source_website": self.source.slug,
+                                "product_id": str(self.product.pk),
+                                "plan_id": str(self.plan.pk),
+                                "customer_email": "customer@example.com",
+                            },
+                            "payments": [{"id": "pay_test_123"}],
+                        },
+                    },
+                },
+            }
+        }
+        raw_body, signature_header = self._signed_webhook(payload)
+        webhook_url = reverse("subscription:paymongo_webhook")
+
+        response = self.client.post(
+            webhook_url,
+            data=raw_body,
+            content_type="application/json",
+            HTTP_PAYMONGO_SIGNATURE=signature_header,
+        )
+        self.assertEqual(response.status_code, 200)
+
+        transaction.refresh_from_db()
+        self.assertEqual(transaction.status, "paid")
+        self.assertEqual(transaction.paymongo_payment_id, "pay_test_123")
+        self.assertIsNotNone(transaction.paid_at)
+
+        subscription = Subscription.objects.get()
+        self.assertEqual(subscription.status, "active")
+        self.assertEqual(subscription.transaction_id, transaction.id)
+        self.assertIsNotNone(subscription.current_period_end)
+
+        duplicate = self.client.post(
+            webhook_url,
+            data=raw_body,
+            content_type="application/json",
+            HTTP_PAYMONGO_SIGNATURE=signature_header,
+        )
+        self.assertEqual(duplicate.status_code, 200)
+        self.assertTrue(duplicate.json()["duplicate"])
+        self.assertEqual(PayMongoWebhookEvent.objects.filter(paymongo_event_id="evt_test_123").count(), 1)
+
+    def test_webhook_rejects_invalid_signature(self):
+        payload = {"data": {"id": "evt_bad", "attributes": {"type": "payment.paid"}}}
+
+        response = self.client.post(
+            reverse("subscription:paymongo_webhook"),
+            data=json.dumps(payload).encode("utf-8"),
+            content_type="application/json",
+            HTTP_PAYMONGO_SIGNATURE="t=1,te=bad",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(PayMongoWebhookEvent.objects.filter(processing_status="invalid").count(), 1)

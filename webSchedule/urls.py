@@ -72,7 +72,8 @@ urlpatterns = [
     path('pages/', include('singlepage2.urls')),
     path('calculator/', include('calculator.urls')),
     path('garden/', include('garden.urls')),
-    path('subscriptions/', include('subscription.urls')),
+    path('subscription/', include(('subscription.urls', 'subscription'), namespace='subscription')),
+    path('subscriptions/', include(('subscription.urls', 'subscription'), namespace='subscriptions_legacy')),
 
     # Friendly resort URLs without the /resorts/ prefix
     path('<slug:place_slug>/<slug:resort_slug>/', home_views.resort_by_slugs, name='resort_by_slugs_friendly'),

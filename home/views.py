@@ -807,7 +807,10 @@ def googleadsense(request):
     # openit = open("D86D3E0B01797CC0A936E2472CF4FB91.txt", 'r')
     # openit = open("4575618483167828.txt", 'r')
     # return HttpResponse('google.com, pub-4575618483167828, DIRECT, f08c47fec0942fa0')
-    return HttpResponse('google.com, pub-4843007524416588, DIRECT, f08c47fec0942fa0')
+    return HttpResponse(
+    'google.com, pub-4843007524416588, DIRECT, f08c47fec0942fa0\n',
+    content_type='text/plain'
+)
     # hhhhh = openit.read()
     # print('Viewing ads')
     # return HttpResponse(hhhhh)
