@@ -270,6 +270,45 @@ class PayMongoCheckoutAndWebhookTests(TestCase):
         self.assertEqual(transaction.customer_email, "customer@example.com")
         self.assertEqual(transaction.paymongo_checkout_session_id, "cs_test_123")
 
+    @patch("subscription.views.PayMongoClient.create_checkout_session")
+    def test_checkout_posts_to_specific_payment_button_url(self, mocked_checkout):
+        specific_button_id = "btn_c0a3733eb3094a7b966ccd58"
+        self.button.public_id = specific_button_id
+        self.button.checkout_mode = "hosted_checkout"
+        self.button.save(update_fields=["public_id", "checkout_mode"])
+
+        mocked_checkout.return_value = (
+            {"data": {"attributes": {"metadata": {"example": "payload"}}}},
+            {
+                "data": {
+                    "id": "cs_specific_button",
+                    "attributes": {"checkout_url": "https://checkout.paymongo.com/specific-button"},
+                }
+            },
+        )
+        token = make_embed_token(self.button)
+
+        response = self.client.post(
+            f"/subscription/pay/{specific_button_id}/",
+            data={
+                "embed_token": token,
+                "customer_email": "specific@example.com",
+                "customer_name": "Specific Customer",
+                "amount": "1.00",
+            },
+            HTTP_ORIGIN="https://standalone.example",
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], "https://checkout.paymongo.com/specific-button")
+
+        transaction = Transaction.objects.get(paymongo_checkout_session_id="cs_specific_button")
+        self.assertEqual(transaction.payment_button.public_id, specific_button_id)
+        self.assertEqual(transaction.amount, Decimal("499.00"))
+        self.assertEqual(transaction.amount_centavos, 49900)
+        self.assertEqual(transaction.customer_email, "specific@example.com")
+        self.assertEqual(transaction.status, "checkout_created")
+
     def _signed_webhook(self, payload):
         raw_body = json.dumps(payload, separators=(",", ":")).encode("utf-8")
         timestamp = str(int(time.time()))
