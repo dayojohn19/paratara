@@ -661,7 +661,7 @@ def start_paymongo_checkout(request, button_public_id):
     except SuspiciousOperation as exc:
         return _json_or_html_error(request, str(exc), status=403)
 
-    if button.checkout_mode == "paymongo_recurring" and not getattr(settings, "PAYMONGO_ENABLE_RECURRING", False):
+    if button.checkout_mode == "paymongo_recurring" and not getattr(settings, "PAYMONGO_ENABLE_RECURRING", True):
         return _json_or_html_error(request, "PayMongo recurring billing is not enabled.", status=400)
 
     customer = _get_or_create_customer(
