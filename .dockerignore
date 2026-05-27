@@ -29,6 +29,7 @@ __pycache__/
 
 # Media & generated
 staticfiles/
+
 media/generated_title_images/
 media/imageuploaded/
 media/qr_codes/
