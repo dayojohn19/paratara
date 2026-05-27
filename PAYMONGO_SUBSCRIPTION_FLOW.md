@@ -5,7 +5,7 @@
 Set these environment variables on the Django payment server:
 
 ```bash
-PAYMONGO_SECRET_KEY=sk_test_xxx
+PAYMONGO_=sk_test_xxx
 PAYMONGO_PUBLIC_KEY=pk_test_xxx
 PAYMONGO_WEBHOOK_SECRET=whsk_xxx
 PAYMONGO_MODE=test
