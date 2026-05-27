@@ -1,5 +1,8 @@
 
 # https://dayotreep.herokuapp.com/ | https://git.heroku.com/dayotreep.git
+from collections import defaultdict
+from urllib.parse import unquote, urlsplit
+
 from django.db.models import Prefetch, Q, Count, Sum
 from django.db.models.functions import TruncMonth
 from django.utils import timezone
@@ -172,102 +175,493 @@ def presentation(request):
     return render(request, 'home/presentation.html')
 
 
+def _format_dashboard_datetime(dt, include_time=True):
+    if not dt:
+        return 'N/A'
+    if timezone.is_aware(dt):
+        dt = timezone.localtime(dt)
+    fmt = '%b %d, %Y, %I:%M %p' if include_time else '%b %d, %Y'
+    return dt.strftime(fmt).replace(' 0', ' ')
+
+
+def _format_dashboard_number(value):
+    try:
+        return f"{int(value):,}"
+    except Exception:
+        return "0"
+
+
+def _format_dashboard_decimal(value, places=1):
+    try:
+        return f"{float(value):,.{places}f}"
+    except Exception:
+        return f"{0:.{places}f}"
+
+
+def _format_dashboard_percent(part, whole):
+    if not whole:
+        return "0%"
+    value = (float(part) / float(whole)) * 100
+    return f"{value:.0f}%" if value >= 10 else f"{value:.1f}%"
+
+
+def _request_summary_location_dict(location_json, key):
+    if not isinstance(location_json, dict):
+        return {}
+    value = location_json.get(key) or {}
+    return value if isinstance(value, dict) else {}
+
+
+def _request_summary_country(summary):
+    city_info = _request_summary_location_dict(summary.ip_location_json, 'city_info')
+    country_info = _request_summary_location_dict(summary.ip_location_json, 'country_info')
+    return (
+        (summary.country_name or '').strip()
+        or (city_info.get('country_name') or '').strip()
+        or (country_info.get('country_name') or '').strip()
+        or 'Unknown'
+    )
+
+
+def _request_summary_city(summary):
+    city_info = _request_summary_location_dict(summary.ip_location_json, 'city_info')
+    return (summary.city or '').strip() or (city_info.get('city') or '').strip() or 'Unknown'
+
+
+def _request_summary_continent(summary):
+    city_info = _request_summary_location_dict(summary.ip_location_json, 'city_info')
+    country_info = _request_summary_location_dict(summary.ip_location_json, 'country_info')
+    return (
+        (summary.continent_name or '').strip()
+        or (city_info.get('continent_name') or '').strip()
+        or (country_info.get('continent_name') or '').strip()
+        or 'Unknown'
+    )
+
+
+def _request_summary_timezone(summary):
+    city_info = _request_summary_location_dict(summary.ip_location_json, 'city_info')
+    return (city_info.get('time_zone') or '').strip() or 'Unknown'
+
+
+def _request_summary_location_label(summary):
+    city = _request_summary_city(summary)
+    country = _request_summary_country(summary)
+    if city != 'Unknown' and country != 'Unknown':
+        return f"{city}, {country}"
+    if country != 'Unknown':
+        return country
+    continent = _request_summary_continent(summary)
+    return continent if continent != 'Unknown' else 'Unknown'
+
+
+def _iter_request_summary_pages(pages_json):
+    if not pages_json:
+        return
+
+    if isinstance(pages_json, dict):
+        for page, count in pages_json.items():
+            if page is None:
+                continue
+            try:
+                count_int = int(count)
+            except Exception:
+                count_int = 1
+            yield str(page), max(count_int, 0)
+        return
+
+    if isinstance(pages_json, (list, tuple, set)):
+        for page in pages_json:
+            if page is not None:
+                yield str(page), 1
+
+
+def _normalize_request_page(page):
+    page = str(page or '').strip()
+    if not page:
+        return '/'
+    path = urlsplit(page).path or page
+    if not path.startswith('/'):
+        path = f"/{path}"
+    return path
+
+
+def _request_page_display_name(page):
+    path = _normalize_request_page(page)
+    if path == '/':
+        return 'Home'
+    cleaned = unquote(path.strip('/'))
+    cleaned = cleaned.replace('-', ' ').replace('_', ' ')
+    return ' / '.join(part[:1].upper() + part[1:] for part in cleaned.split('/') if part)
+
+
+def _is_public_request_page(page):
+    path = _normalize_request_page(page).lower()
+    internal_prefixes = (
+        '/admin',
+        '/api',
+        '/static',
+        '/media',
+        '/favicon',
+        '/robots.txt',
+        '/sitemap.xml',
+        '/__debug__',
+        '/presentation/request-page-summary',
+    )
+    return not any(path.startswith(prefix) for prefix in internal_prefixes)
+
+
+def _mask_request_ip(ip):
+    ip = str(ip or '').strip()
+    if not ip:
+        return 'Unknown'
+    if ip == '127.0.0.1':
+        return 'Local test'
+    if ':' in ip:
+        parts = ip.split(':')
+        visible = ':'.join(parts[:3])
+        return f"{visible}:..."
+    parts = ip.split('.')
+    if len(parts) == 4:
+        return '.'.join(parts[:3] + ['x'])
+    return ip
+
+
+def _summary_month_start(dt):
+    if not dt:
+        return None
+    if timezone.is_aware(dt):
+        dt = timezone.localtime(dt)
+    return dt.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+
 def request_page_summary_charts(request):
-    summaries = RequestPageSummary.objects.all().order_by('-total_requests', '-latest_timesmtamp')
-    top_n = 10
-    top_summaries = list(summaries[:top_n])
+    top_n = 12
+    summaries = list(
+        RequestPageSummary.objects.all().only(
+            'requesting_ip',
+            'ip_location_json',
+            'city',
+            'country_name',
+            'continent_name',
+            'pages_json',
+            'total_requests',
+            'unique_pages',
+            'earliest_timesmtamp',
+            'latest_timesmtamp',
+        )
+    )
 
-    ip_labels = [s.requesting_ip for s in top_summaries]
-    ip_total_requests = [int(s.total_requests or 0) for s in top_summaries]
-    ip_unique_pages = [int(s.unique_pages or 0) for s in top_summaries]
+    total_visitors = len(summaries)
+    total_requests = sum(int(s.total_requests or 0) for s in summaries)
+    total_page_reach = sum(int(s.unique_pages or 0) for s in summaries)
+    repeat_visitors = sum(1 for s in summaries if int(s.total_requests or 0) > 1)
+    multi_page_visitors = sum(1 for s in summaries if int(s.unique_pages or 0) > 1)
 
-    def _fmt_dt(dt):
-        return dt.strftime('%B %d, %Y, %I:%M %p') if dt else 'N/A'
+    dated_first_seen = [s.earliest_timesmtamp for s in summaries if s.earliest_timesmtamp]
+    dated_latest_seen = [s.latest_timesmtamp for s in summaries if s.latest_timesmtamp]
+    first_seen = min(dated_first_seen) if dated_first_seen else None
+    latest_seen = max(dated_latest_seen) if dated_latest_seen else None
+    data_window_days = 0
+    if first_seen and latest_seen:
+        data_window_days = max((latest_seen - first_seen).days + 1, 1)
 
-    earliest_labels = [_fmt_dt(s.earliest_timesmtamp) for s in top_summaries]
-    latest_labels = [_fmt_dt(s.latest_timesmtamp) for s in top_summaries]
-    active_window_hours = []
-    for s in top_summaries:
-        if s.earliest_timesmtamp and s.latest_timesmtamp:
-            delta = s.latest_timesmtamp - s.earliest_timesmtamp
-            active_window_hours.append(round(delta.total_seconds() / 3600.0, 2))
+    country_totals = defaultdict(int)
+    country_visitors = defaultdict(int)
+    continent_totals = defaultdict(int)
+    city_totals = defaultdict(int)
+    timezone_totals = defaultdict(int)
+    first_month_requests = defaultdict(int)
+    first_month_visitors = defaultdict(int)
+    latest_month_visitors = defaultdict(int)
+    page_request_totals = defaultdict(int)
+    page_visitor_totals = defaultdict(int)
+    public_request_total = 0
+    public_page_names = set()
+    depth_buckets = {
+        '1 page': 0,
+        '2-3 pages': 0,
+        '4-7 pages': 0,
+        '8+ pages': 0,
+    }
+    window_buckets = {
+        '< 1 min': 0,
+        '1-15 min': 0,
+        '15-60 min': 0,
+        '1-24 hrs': 0,
+        '1+ days': 0,
+    }
+
+    for summary in summaries:
+        requests_count = int(summary.total_requests or 0)
+        unique_pages = int(summary.unique_pages or 0)
+
+        country = _request_summary_country(summary)
+        country_totals[country] += requests_count
+        country_visitors[country] += 1
+
+        continent_totals[_request_summary_continent(summary)] += requests_count
+        city = _request_summary_city(summary)
+        country_for_city = country if country != 'Unknown' else ''
+        city_label = f"{city}, {country_for_city}".strip(', ') if city != 'Unknown' else 'Unknown'
+        city_totals[city_label] += requests_count
+        timezone_totals[_request_summary_timezone(summary)] += requests_count
+
+        first_month = _summary_month_start(summary.earliest_timesmtamp)
+        if first_month:
+            first_month_requests[first_month] += requests_count
+            first_month_visitors[first_month] += 1
+        latest_month = _summary_month_start(summary.latest_timesmtamp)
+        if latest_month:
+            latest_month_visitors[latest_month] += 1
+
+        if unique_pages <= 1:
+            depth_buckets['1 page'] += 1
+        elif unique_pages <= 3:
+            depth_buckets['2-3 pages'] += 1
+        elif unique_pages <= 7:
+            depth_buckets['4-7 pages'] += 1
         else:
-            active_window_hours.append(0)
+            depth_buckets['8+ pages'] += 1
 
-    def _country_name_from_location_json(location_json):
-        if not isinstance(location_json, dict):
-            return None
-        city_info = location_json.get('city_info') or {}
-        country_info = location_json.get('country_info') or {}
-        return (
-            (city_info.get('country_name') or '').strip()
-            or (country_info.get('country_name') or '').strip()
-            or None
+        if summary.earliest_timesmtamp and summary.latest_timesmtamp:
+            active_seconds = max((summary.latest_timesmtamp - summary.earliest_timesmtamp).total_seconds(), 0)
+        else:
+            active_seconds = 0
+
+        if active_seconds < 60:
+            window_buckets['< 1 min'] += 1
+        elif active_seconds < 15 * 60:
+            window_buckets['1-15 min'] += 1
+        elif active_seconds < 60 * 60:
+            window_buckets['15-60 min'] += 1
+        elif active_seconds < 24 * 60 * 60:
+            window_buckets['1-24 hrs'] += 1
+        else:
+            window_buckets['1+ days'] += 1
+
+        pages_seen_by_visitor = set()
+        for page, count in _iter_request_summary_pages(summary.pages_json):
+            if count <= 0 or not _is_public_request_page(page):
+                continue
+            normalized_page = _normalize_request_page(page)
+            page_request_totals[normalized_page] += int(count)
+            public_request_total += int(count)
+            public_page_names.add(normalized_page)
+            pages_seen_by_visitor.add(normalized_page)
+
+        for page in pages_seen_by_visitor:
+            page_visitor_totals[page] += 1
+
+    top_pages = sorted(
+        page_request_totals.items(),
+        key=lambda item: (-item[1], -page_visitor_totals.get(item[0], 0), item[0]),
+    )[:10]
+    top_countries = sorted(country_totals.items(), key=lambda item: (-item[1], item[0]))[:8]
+    top_continents = sorted(continent_totals.items(), key=lambda item: (-item[1], item[0]))[:8]
+    top_cities = sorted(city_totals.items(), key=lambda item: (-item[1], item[0]))[:8]
+    top_timezones = sorted(timezone_totals.items(), key=lambda item: (-item[1], item[0]))[:8]
+
+    top_summaries = sorted(
+        summaries,
+        key=lambda s: (
+            int(s.total_requests or 0),
+            s.latest_timesmtamp or datetime.min.replace(tzinfo=timezone.get_current_timezone()),
+        ),
+        reverse=True,
+    )[:top_n]
+
+    top_visitor_rows = []
+    visitor_labels = []
+    visitor_request_counts = []
+    visitor_page_counts = []
+    visitor_window_hours = []
+    visitor_first_seen = []
+    visitor_latest_seen = []
+    for idx, summary in enumerate(top_summaries, start=1):
+        top_page = None
+        top_page_count = 0
+        for page, count in _iter_request_summary_pages(summary.pages_json):
+            if count > top_page_count and _is_public_request_page(page):
+                top_page = page
+                top_page_count = count
+
+        if summary.earliest_timesmtamp and summary.latest_timesmtamp:
+            hours_active = max((summary.latest_timesmtamp - summary.earliest_timesmtamp).total_seconds() / 3600.0, 0)
+        else:
+            hours_active = 0
+
+        label = f"Visitor {idx}"
+        visitor_labels.append(label)
+        visitor_request_counts.append(int(summary.total_requests or 0))
+        visitor_page_counts.append(int(summary.unique_pages or 0))
+        visitor_window_hours.append(round(hours_active, 2))
+        visitor_first_seen.append(_format_dashboard_datetime(summary.earliest_timesmtamp))
+        visitor_latest_seen.append(_format_dashboard_datetime(summary.latest_timesmtamp))
+        top_visitor_rows.append(
+            {
+                'label': label,
+                'masked_ip': _mask_request_ip(summary.requesting_ip),
+                'location': _request_summary_location_label(summary),
+                'requests': _format_dashboard_number(summary.total_requests),
+                'unique_pages': _format_dashboard_number(summary.unique_pages),
+                'top_page': _request_page_display_name(top_page) if top_page else 'No public page',
+                'first_seen': _format_dashboard_datetime(summary.earliest_timesmtamp),
+                'latest_seen': _format_dashboard_datetime(summary.latest_timesmtamp),
+            }
         )
 
-    def _time_zone_from_location_json(location_json):
-        if not isinstance(location_json, dict):
-            return None
-        city_info = location_json.get('city_info') or {}
-        return (city_info.get('time_zone') or '').strip() or None
+    month_keys = sorted(set(first_month_requests.keys()) | set(first_month_visitors.keys()) | set(latest_month_visitors.keys()))
+    month_labels = [month.strftime('%b %Y') for month in month_keys]
 
-    country_totals = {}
-    for s in summaries:
-        country = (s.country_name or '').strip() or _country_name_from_location_json(s.ip_location_json) or 'Unknown'
-        country_totals[country] = country_totals.get(country, 0) + int(s.total_requests or 0)
+    top_page_rows = [
+        {
+            'page': _request_page_display_name(page),
+            'path': page,
+            'requests': _format_dashboard_number(total),
+            'visitors': _format_dashboard_number(page_visitor_totals.get(page, 0)),
+            'share': _format_dashboard_percent(total, public_request_total),
+        }
+        for page, total in top_pages[:6]
+    ]
 
-    country_sorted = sorted(country_totals.items(), key=lambda kv: kv[1], reverse=True)
-    pie_n = 8
-    pie_items = country_sorted[:pie_n]
-    other_total = sum(v for _, v in country_sorted[pie_n:])
-    if other_total:
-        pie_items.append(('Other', other_total))
+    country_rows = [
+        {
+            'country': country,
+            'requests': _format_dashboard_number(total),
+            'visitors': _format_dashboard_number(country_visitors.get(country, 0)),
+            'share': _format_dashboard_percent(total, total_requests),
+        }
+        for country, total in top_countries[:6]
+    ]
 
-    country_labels = [k for k, _ in pie_items]
-    country_requests = [int(v) for _, v in pie_items]
+    top_country_name, top_country_requests = top_countries[0] if top_countries else ('No country data', 0)
+    top_page_name, top_page_requests = top_pages[0] if top_pages else ('No public page data', 0)
+    avg_requests = (total_requests / total_visitors) if total_visitors else 0
+    avg_pages = (total_page_reach / total_visitors) if total_visitors else 0
 
-    tz_totals = {}
-    for s in summaries:
-        tz = _time_zone_from_location_json(s.ip_location_json) or 'Unknown'
-        tz_totals[tz] = tz_totals.get(tz, 0) + int(s.total_requests or 0)
+    insight_cards = []
+    if total_requests:
+        insight_cards.append(
+            f"{_format_dashboard_number(total_requests)} requests from {_format_dashboard_number(total_visitors)} tracked visitors show measurable audience demand."
+        )
+        insight_cards.append(
+            f"{_format_dashboard_percent(repeat_visitors, total_visitors)} of visitors returned or made multiple requests, a useful signal for remarketing and partnerships."
+        )
+        if top_page_requests:
+            insight_cards.append(
+                f"{_request_page_display_name(top_page_name)} leads public page demand with {_format_dashboard_number(top_page_requests)} requests."
+            )
+        if top_country_requests:
+            insight_cards.append(
+                f"{top_country_name} is the strongest geography with {_format_dashboard_number(top_country_requests)} requests."
+            )
+    else:
+        insight_cards.append(
+            "No request summaries are available yet. Run the summarizer after traffic is collected to populate client-facing insights."
+        )
 
-    tz_sorted = sorted(tz_totals.items(), key=lambda kv: kv[1], reverse=True)
-    tz_pie_n = 10
-    tz_items = tz_sorted[:tz_pie_n]
-    tz_other_total = sum(v for _, v in tz_sorted[tz_pie_n:])
-    if tz_other_total:
-        tz_items.append(('Other', tz_other_total))
+    kpi_cards = [
+        {
+            'label': 'Tracked requests',
+            'value': _format_dashboard_number(total_requests),
+            'note': f"{_format_dashboard_decimal(avg_requests)} requests per visitor",
+        },
+        {
+            'label': 'Visitors',
+            'value': _format_dashboard_number(total_visitors),
+            'note': f"{_format_dashboard_percent(repeat_visitors, total_visitors)} repeat signal",
+        },
+        {
+            'label': 'Public page demand',
+            'value': _format_dashboard_number(public_request_total),
+            'note': f"{_format_dashboard_number(len(public_page_names))} public pages reached",
+        },
+        {
+            'label': 'Pages per visitor',
+            'value': _format_dashboard_decimal(avg_pages),
+            'note': f"{_format_dashboard_percent(multi_page_visitors, total_visitors)} viewed multiple pages",
+        },
+        {
+            'label': 'Top geography',
+            'value': top_country_name,
+            'note': f"{_format_dashboard_number(top_country_requests)} requests",
+        },
+        {
+            'label': 'Data window',
+            'value': f"{data_window_days} day" if data_window_days == 1 else f"{data_window_days} days",
+            'note': f"Latest: {_format_dashboard_datetime(latest_seen, include_time=False)}",
+        },
+    ]
 
-    timezone_labels = [k for k, _ in tz_items]
-    timezone_requests = [int(v) for _, v in tz_items]
-
-    monthly_qs = (
-        RequestPageSummary.objects
-        .annotate(month=TruncMonth('earliest_timesmtamp'))
-        .values('month')
-        .annotate(total=Sum('total_requests'))
-        .order_by('month')
-    )
-    month_labels = [(row['month'].strftime('%Y-%m') if row['month'] else 'Unknown') for row in monthly_qs]
-    month_counts = [int(row['total'] or 0) for row in monthly_qs]
+    chart_data = {
+        'traffic': {
+            'labels': month_labels,
+            'requests': [int(first_month_requests.get(month, 0)) for month in month_keys],
+            'newVisitors': [int(first_month_visitors.get(month, 0)) for month in month_keys],
+            'activeVisitors': [int(latest_month_visitors.get(month, 0)) for month in month_keys],
+        },
+        'pages': {
+            'labels': [_request_page_display_name(page) for page, _ in top_pages],
+            'requests': [int(total) for _, total in top_pages],
+            'visitors': [int(page_visitor_totals.get(page, 0)) for page, _ in top_pages],
+        },
+        'countries': {
+            'labels': [country for country, _ in top_countries],
+            'requests': [int(total) for _, total in top_countries],
+            'visitors': [int(country_visitors.get(country, 0)) for country, _ in top_countries],
+        },
+        'continents': {
+            'labels': [continent for continent, _ in top_continents],
+            'requests': [int(total) for _, total in top_continents],
+        },
+        'cities': {
+            'labels': [city for city, _ in top_cities],
+            'requests': [int(total) for _, total in top_cities],
+        },
+        'timezones': {
+            'labels': [tz for tz, _ in top_timezones],
+            'requests': [int(total) for _, total in top_timezones],
+        },
+        'visitors': {
+            'labels': visitor_labels,
+            'requests': visitor_request_counts,
+            'pages': visitor_page_counts,
+            'hours': visitor_window_hours,
+            'firstSeen': visitor_first_seen,
+            'latestSeen': visitor_latest_seen,
+        },
+        'depth': {
+            'labels': list(depth_buckets.keys()),
+            'counts': list(depth_buckets.values()),
+        },
+        'windows': {
+            'labels': list(window_buckets.keys()),
+            'counts': list(window_buckets.values()),
+        },
+        'engagement': {
+            'labels': ['Single request', 'Repeat requests'],
+            'counts': [max(total_visitors - repeat_visitors, 0), repeat_visitors],
+        },
+    }
 
     return render(
         request,
         'home/request_page_summary_charts.html',
         {
             'top_n': top_n,
-            'ip_labels': ip_labels,
-            'ip_total_requests': ip_total_requests,
-            'ip_unique_pages': ip_unique_pages,
-            'earliest_labels': earliest_labels,
-            'latest_labels': latest_labels,
-            'active_window_hours': active_window_hours,
-            'country_labels': country_labels,
-            'country_requests': country_requests,
-            'timezone_labels': timezone_labels,
-            'timezone_requests': timezone_requests,
-            'month_labels': month_labels,
-            'month_counts': month_counts,
+            'kpi_cards': kpi_cards,
+            'insight_cards': insight_cards,
+            'top_page_rows': top_page_rows,
+            'country_rows': country_rows,
+            'top_visitor_rows': top_visitor_rows,
+            'chart_data': chart_data,
+            'data_window_label': (
+                f"{_format_dashboard_datetime(first_seen, include_time=False)} to {_format_dashboard_datetime(latest_seen, include_time=False)}"
+                if first_seen and latest_seen
+                else 'No traffic window yet'
+            ),
+            'latest_activity_label': _format_dashboard_datetime(latest_seen),
             'page_title': 'Request Summary Dashboard | Paratara',
             'meta_description': 'Internal Paratara request analytics dashboard.',
             'robots_meta': 'noindex, nofollow',

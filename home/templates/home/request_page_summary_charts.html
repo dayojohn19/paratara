@@ -1,183 +1,1161 @@
 {% extends "home/layout.html" %}
 
+{% block extra_css %}
+<style>
+  :root {
+    --analytics-bg: #f5f7f2;
+    --analytics-surface: #ffffff;
+    --analytics-ink: #1f2a24;
+    --analytics-muted: #64706a;
+    --analytics-line: #dfe7df;
+    --analytics-green: #296b5f;
+    --analytics-coral: #e76f51;
+    --analytics-blue: #457b9d;
+    --analytics-gold: #d99b2b;
+    --analytics-red: #bf4c3b;
+  }
+
+  body {
+    background: var(--analytics-bg);
+  }
+
+  .analytics-shell {
+    color: var(--analytics-ink);
+    max-width: 1380px;
+    margin: 0 auto;
+    padding: 28px 18px 48px;
+  }
+
+  .analytics-hero {
+    align-items: stretch;
+    background: #163b35;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    color: #fff;
+    display: grid;
+    gap: 24px;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 420px);
+    min-height: 230px;
+    overflow: hidden;
+    padding: 32px;
+  }
+
+  .analytics-eyebrow {
+    color: #e9c46a;
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin: 0 0 12px;
+    text-transform: uppercase;
+  }
+
+  .analytics-hero h1 {
+    font-size: clamp(2.1rem, 4vw, 4.2rem);
+    font-weight: 800;
+    line-height: 1;
+    margin: 0 0 16px;
+  }
+
+  .analytics-hero p {
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 1rem;
+    line-height: 1.65;
+    margin: 0;
+    max-width: 720px;
+  }
+
+  .analytics-window {
+    align-self: end;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 8px;
+    display: grid;
+    gap: 12px;
+    padding: 18px;
+  }
+
+  .analytics-window div {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+    padding-bottom: 12px;
+  }
+
+  .analytics-window div:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .analytics-window span,
+  .metric-card span,
+  .chart-label {
+    color: var(--analytics-muted);
+    display: block;
+    font-size: 0.76rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .analytics-window span {
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .analytics-window strong {
+    display: block;
+    font-size: 1rem;
+    line-height: 1.4;
+    margin-top: 4px;
+  }
+
+  .metric-grid {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    margin-top: 16px;
+  }
+
+  .metric-card,
+  .chart-card,
+  .insight-card,
+  .rank-card,
+  .table-card {
+    background: var(--analytics-surface);
+    border: 1px solid var(--analytics-line);
+    border-radius: 8px;
+    box-shadow: 0 16px 36px rgba(31, 42, 36, 0.06);
+  }
+
+  .metric-card {
+    border-top: 4px solid var(--analytics-green);
+    min-height: 150px;
+    padding: 18px;
+  }
+
+  .metric-card:nth-child(2) {
+    border-top-color: var(--analytics-coral);
+  }
+
+  .metric-card:nth-child(3) {
+    border-top-color: var(--analytics-blue);
+  }
+
+  .metric-card:nth-child(4) {
+    border-top-color: var(--analytics-gold);
+  }
+
+  .metric-card:nth-child(5) {
+    border-top-color: var(--analytics-red);
+  }
+
+  .metric-card strong {
+    display: block;
+    font-size: clamp(1.45rem, 2.3vw, 2rem);
+    line-height: 1.05;
+    margin-top: 16px;
+    overflow-wrap: anywhere;
+  }
+
+  .metric-card p {
+    color: var(--analytics-muted);
+    font-size: 0.92rem;
+    line-height: 1.45;
+    margin: 12px 0 0;
+  }
+
+  .section-header {
+    align-items: end;
+    display: flex;
+    gap: 18px;
+    justify-content: space-between;
+    margin: 28px 0 12px;
+  }
+
+  .section-header h2 {
+    font-size: 1.15rem;
+    margin: 0;
+  }
+
+  .section-header p {
+    color: var(--analytics-muted);
+    line-height: 1.5;
+    margin: 0;
+    max-width: 660px;
+  }
+
+  .insight-grid {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .insight-card {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: 42px minmax(0, 1fr);
+    min-height: 118px;
+    padding: 18px;
+  }
+
+  .insight-card span {
+    align-items: center;
+    background: #e9f2eb;
+    border: 1px solid #cfe0d4;
+    border-radius: 50%;
+    color: var(--analytics-green);
+    display: inline-flex;
+    font-size: 0.8rem;
+    font-weight: 800;
+    height: 42px;
+    justify-content: center;
+    width: 42px;
+  }
+
+  .insight-card p {
+    font-size: 0.98rem;
+    line-height: 1.55;
+    margin: 0;
+  }
+
+  .dashboard-grid {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    margin-top: 16px;
+  }
+
+  .chart-card,
+  .rank-card,
+  .table-card {
+    grid-column: span 6;
+    padding: 18px;
+  }
+
+  .chart-card.wide,
+  .table-card.wide {
+    grid-column: span 12;
+  }
+
+  .chart-card__header {
+    align-items: start;
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .chart-card h3,
+  .rank-card h3,
+  .table-card h3 {
+    font-size: 1.05rem;
+    margin: 4px 0 0;
+  }
+
+  .chart-card__header p {
+    color: var(--analytics-muted);
+    font-size: 0.88rem;
+    line-height: 1.45;
+    margin: 0;
+    max-width: 420px;
+  }
+
+  .chart-frame {
+    height: 318px;
+    position: relative;
+    width: 100%;
+  }
+
+  .chart-frame.large {
+    height: 360px;
+  }
+
+  .chart-frame.tall {
+    height: 400px;
+  }
+
+  .chart-empty {
+    align-items: center;
+    border: 1px dashed var(--analytics-line);
+    border-radius: 8px;
+    color: var(--analytics-muted);
+    display: none;
+    font-size: 0.95rem;
+    inset: 0;
+    justify-content: center;
+    margin: 0;
+    padding: 20px;
+    position: absolute;
+    text-align: center;
+  }
+
+  .chart-frame.is-empty canvas {
+    display: none;
+  }
+
+  .chart-frame.is-empty .chart-empty {
+    display: flex;
+  }
+
+  .rank-grid {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 16px;
+  }
+
+  .rank-card h3 {
+    margin-bottom: 14px;
+  }
+
+  .rank-list {
+    display: grid;
+    gap: 10px;
+  }
+
+  .rank-row {
+    align-items: center;
+    border-bottom: 1px solid var(--analytics-line);
+    display: grid;
+    gap: 12px;
+    grid-template-columns: 32px minmax(0, 1fr) auto;
+    padding: 0 0 10px;
+  }
+
+  .rank-row:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .rank-number {
+    align-items: center;
+    background: #f0f4ef;
+    border-radius: 50%;
+    color: var(--analytics-green);
+    display: inline-flex;
+    font-size: 0.78rem;
+    font-weight: 800;
+    height: 32px;
+    justify-content: center;
+    width: 32px;
+  }
+
+  .rank-title {
+    display: block;
+    font-weight: 800;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+  }
+
+  .rank-subtitle {
+    color: var(--analytics-muted);
+    display: block;
+    font-size: 0.84rem;
+    line-height: 1.35;
+    margin-top: 3px;
+    overflow-wrap: anywhere;
+  }
+
+  .rank-value {
+    font-weight: 800;
+    text-align: right;
+  }
+
+  .rank-value span {
+    color: var(--analytics-muted);
+    display: block;
+    font-size: 0.76rem;
+    font-weight: 700;
+    margin-top: 3px;
+    text-transform: uppercase;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    width: 100%;
+  }
+
+  .visitor-table {
+    border-collapse: collapse;
+    min-width: 920px;
+    width: 100%;
+  }
+
+  .visitor-table th,
+  .visitor-table td {
+    border-bottom: 1px solid var(--analytics-line);
+    padding: 12px 10px;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .visitor-table th {
+    color: var(--analytics-muted);
+    font-size: 0.76rem;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+
+  .visitor-table td {
+    font-size: 0.92rem;
+    line-height: 1.45;
+  }
+
+  .visitor-table td strong {
+    display: block;
+  }
+
+  .visitor-table td span {
+    color: var(--analytics-muted);
+    display: block;
+    font-size: 0.8rem;
+    margin-top: 3px;
+  }
+
+  .empty-copy {
+    color: var(--analytics-muted);
+    margin: 0;
+  }
+
+  @media (max-width: 1180px) {
+    .metric-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .insight-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 900px) {
+    .analytics-hero,
+    .rank-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .dashboard-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .chart-card,
+    .chart-card.wide,
+    .rank-card,
+    .table-card,
+    .table-card.wide {
+      grid-column: span 1;
+    }
+
+    .chart-card__header,
+    .section-header {
+      align-items: start;
+      flex-direction: column;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .analytics-shell {
+      padding: 18px 12px 36px;
+    }
+
+    .analytics-hero {
+      padding: 24px 18px;
+    }
+
+    .metric-grid,
+    .insight-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .chart-frame,
+    .chart-frame.large,
+    .chart-frame.tall {
+      height: 300px;
+    }
+
+    .rank-row {
+      grid-template-columns: 32px minmax(0, 1fr);
+    }
+
+    .rank-value {
+      grid-column: 2;
+      text-align: left;
+    }
+  }
+</style>
+{% endblock %}
+
 {% block body %}
-<div style="max-width: 1100px; margin: 0 auto; padding: 24px 16px;">
-  <h2 style="margin: 0 0 8px 0;">RequestPageSummary Dashboard</h2>
-  <p style="margin: 0 0 20px 0; opacity: 0.8;">Top {{ top_n }} IPs + requests by country</p>
+<main class="analytics-shell">
+  {{ chart_data|json_script:"request-summary-data" }}
 
-  {{ ip_labels|json_script:"ip-labels" }}
-  {{ ip_total_requests|json_script:"ip-total" }}
-  {{ ip_unique_pages|json_script:"ip-unique" }}
-  {{ earliest_labels|json_script:"ip-earliest" }}
-  {{ latest_labels|json_script:"ip-latest" }}
-  {{ active_window_hours|json_script:"ip-window-hours" }}
-  {{ country_labels|json_script:"country-labels" }}
-  {{ country_requests|json_script:"country-requests" }}
-  {{ timezone_labels|json_script:"timezone-labels" }}
-  {{ timezone_requests|json_script:"timezone-requests" }}
-  {{ month_labels|json_script:"month-labels" }}
-  {{ month_counts|json_script:"month-counts" }}
-
-  <div style="display: grid; grid-template-columns: 1fr; gap: 24px;">
+  <section class="analytics-hero">
     <div>
-      <h3 style="margin: 0 0 8px 0;">Top IPs by Total Requests</h3>
-      <canvas id="barTotalRequests" height="120"></canvas>
+      <p class="analytics-eyebrow">Client presentation dashboard</p>
+      <h1>Paratara Demand Signals</h1>
+      <p>Request behavior summarized into audience demand, destination interest, geography, and engagement signals for partner conversations.</p>
     </div>
+    <div class="analytics-window">
+      <div>
+        <span>Data window</span>
+        <strong>{{ data_window_label }}</strong>
+      </div>
+      <div>
+        <span>Latest activity</span>
+        <strong>{{ latest_activity_label }}</strong>
+      </div>
+      <div>
+        <span>Top visitor sample</span>
+        <strong>{{ top_n }} highest-signal visitors</strong>
+      </div>
+    </div>
+  </section>
 
-    <div>
-      <h3 style="margin: 0 0 8px 0;">Top IPs by Unique Pages</h3>
-      <canvas id="barUniquePages" height="120"></canvas>
-    </div>
+  <section class="metric-grid" aria-label="Summary metrics">
+    {% for card in kpi_cards %}
+      <article class="metric-card">
+        <span>{{ card.label }}</span>
+        <strong>{{ card.value }}</strong>
+        <p>{{ card.note }}</p>
+      </article>
+    {% endfor %}
+  </section>
 
-    <div>
-      <h3 style="margin: 0 0 8px 0;">Requests by Country</h3>
-      <canvas id="pieByCountry" height="140"></canvas>
+  <section>
+    <div class="section-header">
+      <div>
+        <span class="chart-label">Narrative</span>
+        <h2>Client Talking Points</h2>
+      </div>
+      <p>Short insights generated from the current request summaries.</p>
     </div>
+    <div class="insight-grid">
+      {% for insight in insight_cards %}
+        <article class="insight-card">
+          <span>{{ forloop.counter|stringformat:"02d" }}</span>
+          <p>{{ insight }}</p>
+        </article>
+      {% endfor %}
+    </div>
+  </section>
 
-    <div>
-      <h3 style="margin: 0 0 8px 0;">Requests by Time Zone</h3>
-      <canvas id="pieByTimeZone" height="140"></canvas>
-    </div>
+  <section class="dashboard-grid" aria-label="Request analytics charts">
+    <article class="chart-card wide">
+      <div class="chart-card__header">
+        <div>
+          <span class="chart-label">Audience pulse</span>
+          <h3>Monthly demand movement</h3>
+        </div>
+        <p>Requests are grouped by each visitor's first tracked month; active visitors are grouped by latest activity month.</p>
+      </div>
+      <div class="chart-frame large">
+        <canvas id="trafficChart"></canvas>
+        <p class="chart-empty">No timeline data yet.</p>
+      </div>
+    </article>
 
-    <div>
-      <h3 style="margin: 0 0 8px 0;">Requests by Month</h3>
-      <canvas id="pieByMonth" height="140"></canvas>
-    </div>
+    <article class="chart-card wide">
+      <div class="chart-card__header">
+        <div>
+          <span class="chart-label">Intent</span>
+          <h3>Top public pages by demand</h3>
+        </div>
+        <p>Public page demand excludes admin, API, static, and internal presentation routes.</p>
+      </div>
+      <div class="chart-frame tall">
+        <canvas id="pagesChart"></canvas>
+        <p class="chart-empty">No public page demand yet.</p>
+      </div>
+    </article>
 
-    <div>
-      <h3 style="margin: 0 0 8px 0;">Earliest → Latest (Hours Active)</h3>
-      <canvas id="barActiveWindow" height="120"></canvas>
-    </div>
-  </div>
-</div>
+    <article class="chart-card">
+      <div class="chart-card__header">
+        <div>
+          <span class="chart-label">Geography</span>
+          <h3>Requests by country</h3>
+        </div>
+      </div>
+      <div class="chart-frame">
+        <canvas id="countryChart"></canvas>
+        <p class="chart-empty">No country data yet.</p>
+      </div>
+    </article>
+
+    <article class="chart-card">
+      <div class="chart-card__header">
+        <div>
+          <span class="chart-label">Reach</span>
+          <h3>Requests by continent</h3>
+        </div>
+      </div>
+      <div class="chart-frame">
+        <canvas id="continentChart"></canvas>
+        <p class="chart-empty">No continent data yet.</p>
+      </div>
+    </article>
+
+    <article class="chart-card">
+      <div class="chart-card__header">
+        <div>
+          <span class="chart-label">Locality</span>
+          <h3>Top cities</h3>
+        </div>
+      </div>
+      <div class="chart-frame">
+        <canvas id="cityChart"></canvas>
+        <p class="chart-empty">No city data yet.</p>
+      </div>
+    </article>
+
+    <article class="chart-card">
+      <div class="chart-card__header">
+        <div>
+          <span class="chart-label">Timing</span>
+          <h3>Requests by time zone</h3>
+        </div>
+      </div>
+      <div class="chart-frame">
+        <canvas id="timezoneChart"></canvas>
+        <p class="chart-empty">No time zone data yet.</p>
+      </div>
+    </article>
+
+    <article class="chart-card">
+      <div class="chart-card__header">
+        <div>
+          <span class="chart-label">Depth</span>
+          <h3>Pages viewed per visitor</h3>
+        </div>
+      </div>
+      <div class="chart-frame">
+        <canvas id="depthChart"></canvas>
+        <p class="chart-empty">No depth data yet.</p>
+      </div>
+    </article>
+
+    <article class="chart-card">
+      <div class="chart-card__header">
+        <div>
+          <span class="chart-label">Engagement</span>
+          <h3>Repeat request signals</h3>
+        </div>
+      </div>
+      <div class="chart-frame">
+        <canvas id="engagementChart"></canvas>
+        <p class="chart-empty">No engagement data yet.</p>
+      </div>
+    </article>
+
+    <article class="chart-card">
+      <div class="chart-card__header">
+        <div>
+          <span class="chart-label">Session span</span>
+          <h3>Active window distribution</h3>
+        </div>
+      </div>
+      <div class="chart-frame">
+        <canvas id="windowChart"></canvas>
+        <p class="chart-empty">No activity window data yet.</p>
+      </div>
+    </article>
+
+    <article class="chart-card">
+      <div class="chart-card__header">
+        <div>
+          <span class="chart-label">High-signal visitors</span>
+          <h3>Requests vs pages</h3>
+        </div>
+      </div>
+      <div class="chart-frame">
+        <canvas id="visitorChart"></canvas>
+        <p class="chart-empty">No visitor ranking data yet.</p>
+      </div>
+    </article>
+  </section>
+
+  <section class="rank-grid" aria-label="Ranked insight tables">
+    <article class="rank-card">
+      <h3>Public pages clients ask about</h3>
+      {% if top_page_rows %}
+        <div class="rank-list">
+          {% for row in top_page_rows %}
+            <div class="rank-row">
+              <span class="rank-number">{{ forloop.counter }}</span>
+              <div>
+                <strong class="rank-title">{{ row.page }}</strong>
+                <span class="rank-subtitle">{{ row.path }} · {{ row.visitors }} visitors</span>
+              </div>
+              <div class="rank-value">
+                {{ row.requests }}
+                <span>{{ row.share }} share</span>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="empty-copy">No public pages have been summarized yet.</p>
+      {% endif %}
+    </article>
+
+    <article class="rank-card">
+      <h3>Geographies worth pitching</h3>
+      {% if country_rows %}
+        <div class="rank-list">
+          {% for row in country_rows %}
+            <div class="rank-row">
+              <span class="rank-number">{{ forloop.counter }}</span>
+              <div>
+                <strong class="rank-title">{{ row.country }}</strong>
+                <span class="rank-subtitle">{{ row.visitors }} tracked visitors</span>
+              </div>
+              <div class="rank-value">
+                {{ row.requests }}
+                <span>{{ row.share }} share</span>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="empty-copy">No geography data has been summarized yet.</p>
+      {% endif %}
+    </article>
+  </section>
+
+  <section class="dashboard-grid">
+    <article class="table-card wide">
+      <div class="chart-card__header">
+        <div>
+          <span class="chart-label">Visitor-level signals</span>
+          <h3>Top {{ top_n }} engaged visitor summaries</h3>
+        </div>
+        <p>Visitor identifiers are masked for a client-safe view.</p>
+      </div>
+      <div class="table-wrap">
+        <table class="visitor-table">
+          <thead>
+            <tr>
+              <th>Visitor</th>
+              <th>Location</th>
+              <th>Requests</th>
+              <th>Unique pages</th>
+              <th>Top interest</th>
+              <th>First seen</th>
+              <th>Latest seen</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in top_visitor_rows %}
+              <tr>
+                <td>
+                  <strong>{{ row.label }}</strong>
+                  <span>{{ row.masked_ip }}</span>
+                </td>
+                <td>{{ row.location }}</td>
+                <td>{{ row.requests }}</td>
+                <td>{{ row.unique_pages }}</td>
+                <td>{{ row.top_page }}</td>
+                <td>{{ row.first_seen }}</td>
+                <td>{{ row.latest_seen }}</td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="7">No visitor summaries available yet.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </article>
+  </section>
+</main>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
-  const ipLabels = JSON.parse(document.getElementById('ip-labels').textContent);
-  const ipTotal = JSON.parse(document.getElementById('ip-total').textContent);
-  const ipUnique = JSON.parse(document.getElementById('ip-unique').textContent);
-  const ipEarliest = JSON.parse(document.getElementById('ip-earliest').textContent);
-  const ipLatest = JSON.parse(document.getElementById('ip-latest').textContent);
-  const ipWindowHours = JSON.parse(document.getElementById('ip-window-hours').textContent);
-  const countryLabels = JSON.parse(document.getElementById('country-labels').textContent);
-  const countryRequests = JSON.parse(document.getElementById('country-requests').textContent);
-  const timeZoneLabels = JSON.parse(document.getElementById('timezone-labels').textContent);
-  const timeZoneRequests = JSON.parse(document.getElementById('timezone-requests').textContent);
-  const monthLabels = JSON.parse(document.getElementById('month-labels').textContent);
-  const monthCounts = JSON.parse(document.getElementById('month-counts').textContent);
+  (function () {
+    const dataElement = document.getElementById('request-summary-data');
+    if (!dataElement) {
+      return;
+    }
 
-  const baseOptions = {
-    responsive: true,
-    plugins: {
-      legend: { display: true },
-      tooltip: { enabled: true },
-    },
-  };
+    const data = JSON.parse(dataElement.textContent);
+    const palette = ['#296b5f', '#e76f51', '#457b9d', '#d99b2b', '#bf4c3b', '#5f7f52', '#8f5b43', '#6b5b95'];
+    const gridColor = '#dfe7df';
+    const textColor = '#1f2a24';
+    const mutedColor = '#64706a';
 
-  new Chart(document.getElementById('barTotalRequests'), {
-    type: 'bar',
-    data: {
-      labels: ipLabels,
-      datasets: [{
-        label: 'Total Requests',
-        data: ipTotal,
-      }],
-    },
-    options: {
-      ...baseOptions,
-      plugins: { ...baseOptions.plugins, legend: { display: false } },
-      scales: {
-        y: { beginAtZero: true, ticks: { precision: 0 } },
+    function hasValues(values) {
+      return Array.isArray(values) && values.some(function (value) {
+        return Number(value) > 0;
+      });
+    }
+
+    function shortLabel(label, maxLength) {
+      label = String(label || '');
+      if (label.length <= maxLength) {
+        return label;
+      }
+      return label.slice(0, maxLength - 1) + '...';
+    }
+
+    function markEmpty(canvasId, message) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) {
+        return;
+      }
+      const frame = canvas.closest('.chart-frame');
+      if (!frame) {
+        return;
+      }
+      const empty = frame.querySelector('.chart-empty');
+      if (empty && message) {
+        empty.textContent = message;
+      }
+      frame.classList.add('is-empty');
+    }
+
+    function renderChart(canvasId, empty, config) {
+      if (!window.Chart) {
+        markEmpty(canvasId, 'Charts unavailable.');
+        return;
+      }
+      if (empty) {
+        markEmpty(canvasId);
+        return;
+      }
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) {
+        return;
+      }
+      new Chart(canvas, config);
+    }
+
+    function baseOptions(extra) {
+      return Object.assign({
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            labels: {
+              boxWidth: 10,
+              color: mutedColor,
+              usePointStyle: true
+            },
+            position: 'bottom'
+          },
+          tooltip: {
+            backgroundColor: 'rgba(31, 42, 36, 0.95)',
+            padding: 12,
+            titleColor: '#ffffff',
+            bodyColor: '#ffffff'
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: gridColor },
+            ticks: { color: mutedColor, precision: 0 }
+          },
+          y: {
+            beginAtZero: true,
+            grid: { color: gridColor },
+            ticks: { color: mutedColor, precision: 0 }
+          }
+        }
+      }, extra || {});
+    }
+
+    if (window.Chart) {
+      Chart.defaults.color = textColor;
+      Chart.defaults.font.family = "'Inter', 'Segoe UI', Arial, sans-serif";
+    }
+
+    renderChart('trafficChart', !data.traffic.labels.length || (!hasValues(data.traffic.requests) && !hasValues(data.traffic.newVisitors) && !hasValues(data.traffic.activeVisitors)), {
+      type: 'bar',
+      data: {
+        labels: data.traffic.labels,
+        datasets: [
+          {
+            type: 'bar',
+            label: 'Requests',
+            data: data.traffic.requests,
+            backgroundColor: 'rgba(41, 107, 95, 0.72)',
+            borderColor: '#296b5f',
+            borderRadius: 4,
+            yAxisID: 'y'
+          },
+          {
+            type: 'line',
+            label: 'New visitors',
+            data: data.traffic.newVisitors,
+            borderColor: '#e76f51',
+            backgroundColor: '#e76f51',
+            pointRadius: 4,
+            tension: 0.3,
+            yAxisID: 'y1'
+          },
+          {
+            type: 'line',
+            label: 'Active visitors',
+            data: data.traffic.activeVisitors,
+            borderColor: '#457b9d',
+            backgroundColor: '#457b9d',
+            pointRadius: 4,
+            tension: 0.3,
+            yAxisID: 'y1'
+          }
+        ]
       },
-    },
-  });
+      options: baseOptions({
+        scales: {
+          x: { grid: { display: false }, ticks: { color: mutedColor } },
+          y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: mutedColor, precision: 0 } },
+          y1: {
+            beginAtZero: true,
+            grid: { drawOnChartArea: false },
+            position: 'right',
+            ticks: { color: mutedColor, precision: 0 }
+          }
+        }
+      })
+    });
 
-  new Chart(document.getElementById('barUniquePages'), {
-    type: 'bar',
-    data: {
-      labels: ipLabels,
-      datasets: [{
-        label: 'Unique Pages',
-        data: ipUnique,
-      }],
-    },
-    options: {
-      ...baseOptions,
-      plugins: { ...baseOptions.plugins, legend: { display: false } },
-      scales: {
-        y: { beginAtZero: true, ticks: { precision: 0 } },
+    renderChart('pagesChart', !hasValues(data.pages.requests), {
+      type: 'bar',
+      data: {
+        labels: data.pages.labels,
+        datasets: [
+          {
+            label: 'Requests',
+            data: data.pages.requests,
+            backgroundColor: 'rgba(41, 107, 95, 0.78)',
+            borderRadius: 4
+          },
+          {
+            label: 'Visitors',
+            data: data.pages.visitors,
+            backgroundColor: 'rgba(231, 111, 81, 0.72)',
+            borderRadius: 4
+          }
+        ]
       },
-    },
-  });
+      options: baseOptions({
+        indexAxis: 'y',
+        scales: {
+          x: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: mutedColor, precision: 0 } },
+          y: {
+            grid: { display: false },
+            ticks: {
+              color: mutedColor,
+              callback: function (value) {
+                return shortLabel(this.getLabelForValue(value), 32);
+              }
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            labels: { boxWidth: 10, color: mutedColor, usePointStyle: true },
+            position: 'bottom'
+          },
+          tooltip: {
+            backgroundColor: 'rgba(31, 42, 36, 0.95)',
+            callbacks: {
+              title: function (items) {
+                return items.length ? data.pages.labels[items[0].dataIndex] : '';
+              }
+            },
+            padding: 12
+          }
+        }
+      })
+    });
 
-  new Chart(document.getElementById('pieByCountry'), {
-    type: 'pie',
-    data: {
-      labels: countryLabels,
-      datasets: [{
-        label: 'Requests',
-        data: countryRequests,
-      }],
-    },
-    options: baseOptions,
-  });
+    renderChart('countryChart', !hasValues(data.countries.requests), {
+      type: 'doughnut',
+      data: {
+        labels: data.countries.labels,
+        datasets: [{
+          label: 'Requests',
+          data: data.countries.requests,
+          backgroundColor: palette,
+          borderColor: '#ffffff',
+          borderWidth: 2
+        }]
+      },
+      options: baseOptions({ cutout: '58%', scales: {} })
+    });
 
-  new Chart(document.getElementById('pieByTimeZone'), {
-    type: 'pie',
-    data: {
-      labels: timeZoneLabels,
-      datasets: [{
-        label: 'Requests',
-        data: timeZoneRequests,
-      }],
-    },
-    options: baseOptions,
-  });
+    renderChart('continentChart', !hasValues(data.continents.requests), {
+      type: 'bar',
+      data: {
+        labels: data.continents.labels,
+        datasets: [{
+          label: 'Requests',
+          data: data.continents.requests,
+          backgroundColor: 'rgba(69, 123, 157, 0.75)',
+          borderRadius: 4
+        }]
+      },
+      options: baseOptions({
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: mutedColor } },
+          y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: mutedColor, precision: 0 } }
+        }
+      })
+    });
 
-  new Chart(document.getElementById('pieByMonth'), {
-    type: 'pie',
-    data: {
-      labels: monthLabels,
-      datasets: [{
-        label: 'Requests',
-        data: monthCounts,
-      }],
-    },
-    options: baseOptions,
-  });
-
-  new Chart(document.getElementById('barActiveWindow'), {
-    type: 'bar',
-    data: {
-      labels: ipLabels,
-      datasets: [{
-        label: 'Hours Active',
-        data: ipWindowHours,
-      }],
-    },
-    options: {
-      ...baseOptions,
-      plugins: {
-        ...baseOptions.plugins,
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: function(context) {
-              const i = context.dataIndex;
-              const hours = context.raw;
-              return [
-                `Hours active: ${hours}`,
-                `Earliest: ${ipEarliest[i]}`,
-                `Latest: ${ipLatest[i]}`,
-              ];
+    renderChart('cityChart', !hasValues(data.cities.requests), {
+      type: 'bar',
+      data: {
+        labels: data.cities.labels,
+        datasets: [{
+          label: 'Requests',
+          data: data.cities.requests,
+          backgroundColor: 'rgba(217, 155, 43, 0.78)',
+          borderRadius: 4
+        }]
+      },
+      options: baseOptions({
+        indexAxis: 'y',
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: mutedColor, precision: 0 } },
+          y: {
+            grid: { display: false },
+            ticks: {
+              color: mutedColor,
+              callback: function (value) {
+                return shortLabel(this.getLabelForValue(value), 26);
+              }
             }
           }
         }
+      })
+    });
+
+    renderChart('timezoneChart', !hasValues(data.timezones.requests), {
+      type: 'bar',
+      data: {
+        labels: data.timezones.labels,
+        datasets: [{
+          label: 'Requests',
+          data: data.timezones.requests,
+          backgroundColor: 'rgba(191, 76, 59, 0.74)',
+          borderRadius: 4
+        }]
       },
-      scales: {
-        y: { beginAtZero: true, ticks: { precision: 0 } },
+      options: baseOptions({
+        indexAxis: 'y',
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: mutedColor, precision: 0 } },
+          y: {
+            grid: { display: false },
+            ticks: {
+              color: mutedColor,
+              callback: function (value) {
+                return shortLabel(this.getLabelForValue(value), 28);
+              }
+            }
+          }
+        }
+      })
+    });
+
+    renderChart('depthChart', !hasValues(data.depth.counts), {
+      type: 'doughnut',
+      data: {
+        labels: data.depth.labels,
+        datasets: [{
+          label: 'Visitors',
+          data: data.depth.counts,
+          backgroundColor: ['#296b5f', '#457b9d', '#d99b2b', '#e76f51'],
+          borderColor: '#ffffff',
+          borderWidth: 2
+        }]
       },
-    },
-  });
+      options: baseOptions({ cutout: '55%', scales: {} })
+    });
+
+    renderChart('engagementChart', !hasValues(data.engagement.counts), {
+      type: 'doughnut',
+      data: {
+        labels: data.engagement.labels,
+        datasets: [{
+          label: 'Visitors',
+          data: data.engagement.counts,
+          backgroundColor: ['#9fb0a9', '#296b5f'],
+          borderColor: '#ffffff',
+          borderWidth: 2
+        }]
+      },
+      options: baseOptions({ cutout: '58%', scales: {} })
+    });
+
+    renderChart('windowChart', !hasValues(data.windows.counts), {
+      type: 'bar',
+      data: {
+        labels: data.windows.labels,
+        datasets: [{
+          label: 'Visitors',
+          data: data.windows.counts,
+          backgroundColor: 'rgba(41, 107, 95, 0.76)',
+          borderRadius: 4
+        }]
+      },
+      options: baseOptions({
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: mutedColor } },
+          y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: mutedColor, precision: 0 } }
+        }
+      })
+    });
+
+    renderChart('visitorChart', !hasValues(data.visitors.requests), {
+      type: 'bar',
+      data: {
+        labels: data.visitors.labels,
+        datasets: [
+          {
+            label: 'Requests',
+            data: data.visitors.requests,
+            backgroundColor: 'rgba(41, 107, 95, 0.78)',
+            borderRadius: 4
+          },
+          {
+            label: 'Unique pages',
+            data: data.visitors.pages,
+            backgroundColor: 'rgba(69, 123, 157, 0.68)',
+            borderRadius: 4
+          }
+        ]
+      },
+      options: baseOptions({
+        indexAxis: 'y',
+        scales: {
+          x: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: mutedColor, precision: 0 } },
+          y: { grid: { display: false }, ticks: { color: mutedColor } }
+        },
+        plugins: {
+          legend: {
+            labels: { boxWidth: 10, color: mutedColor, usePointStyle: true },
+            position: 'bottom'
+          },
+          tooltip: {
+            backgroundColor: 'rgba(31, 42, 36, 0.95)',
+            callbacks: {
+              afterBody: function (items) {
+                if (!items.length) {
+                  return [];
+                }
+                const index = items[0].dataIndex;
+                return [
+                  'First seen: ' + data.visitors.firstSeen[index],
+                  'Latest seen: ' + data.visitors.latestSeen[index],
+                  'Hours active: ' + data.visitors.hours[index]
+                ];
+              }
+            },
+            padding: 12
+          }
+        }
+      })
+    });
+  })();
 </script>
 {% endblock %}
