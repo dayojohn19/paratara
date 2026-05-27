@@ -8,13 +8,13 @@ from django.db.models import Count, Max, Min, Q
 from django.contrib.gis.geoip2 import GeoIP2
 import os
 
-from home.models import RequestLog, RequestPage, RequestPageSummary
+from home.models import RequestPage, RequestPageSummary
 
 
 class Command(BaseCommand):
     help = (
         "Summarize RequestPage rows by requesting_ip into RequestPageSummary, "
-        "then delete the original RequestPage rows."
+        "while preserving the original RequestPage rows."
     )
 
     def add_arguments(self, parser):
@@ -378,8 +378,6 @@ class Command(BaseCommand):
             return
 
         created_or_updated = 0
-        deleted_request_pages = 0
-
         ips = [row["requesting_ip"] for row in ip_aggs]
         existing_summaries = RequestPageSummary.objects.filter(requesting_ip__in=ips)
         existing_by_ip = {s.requesting_ip: s for s in existing_summaries}
@@ -390,7 +388,7 @@ class Command(BaseCommand):
         t3 = time.time()
         with transaction.atomic():
             total_ips = len(ip_aggs)
-            self.stdout.write("Phase 3/3: writing summaries and deleting RequestPage rows...")
+            self.stdout.write("Phase 3/3: writing summaries and preserving RequestPage rows...")
             for idx, row in enumerate(ip_aggs, start=1):
                 ip = row["requesting_ip"]
                 pages = pages_by_ip.get(ip, {})
@@ -540,18 +538,7 @@ class Command(BaseCommand):
                 )
             self.stdout.write(f"Finalizing: summaries written in {time.time() - t_write:.2f}s")
 
-            self.stdout.write("Finalizing: deleting RequestPage rows (bulk)...")
-            t_del = time.time()
-
-            # Deleting RequestPage can be slow if the M2M table (RequestLog.requestPages) is large.
-            # Clearing the through table first is typically much faster.
-            through_model = RequestLog.requestPages.through
-            through_deleted, _ = through_model.objects.all().delete()
-            self.stdout.write(f"Finalizing: cleared M2M rows={through_deleted}")
-
-            deleted_count, _ = RequestPage.objects.all().delete()
-            deleted_request_pages = int(deleted_count)
-            self.stdout.write(f"Finalizing: RequestPage deleted in {time.time() - t_del:.2f}s")
+            self.stdout.write("Finalizing: preserving RequestPage rows for raw visit analytics.")
 
         remaining = RequestPage.objects.count()
 
@@ -562,7 +549,7 @@ class Command(BaseCommand):
         )
         self.stdout.write(
             self.style.SUCCESS(
-                f"✓ Deleted {deleted_request_pages} RequestPage rows"
+                "✓ Deleted 0 RequestPage rows"
             )
         )
         self.stdout.write(

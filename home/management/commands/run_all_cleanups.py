@@ -7,7 +7,6 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         commands = [
             'cleanup_wlwmanifest_requests',
-            'cleanup_request_pages',
             'cleanup_favicon_requests',
             'clear_unknown_requestlogs',
             'clear_favicon_requests',

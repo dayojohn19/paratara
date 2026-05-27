@@ -4,7 +4,7 @@ from home.models import RequestPage
 
 
 class Command(BaseCommand):
-    help = 'Delete RequestPage objects where an IP has more than 30 requests'
+    help = 'Report RequestPage IPs with more than 30 requests without deleting rows'
 
     def handle(self, *args, **options):
         # Group by requesting_ip and count occurrences
@@ -18,23 +18,16 @@ class Command(BaseCommand):
             )
             return
 
-        total_deleted = 0
         for ip_data in ip_counts:
             ip_address = ip_data['requesting_ip']
             count = ip_data['count']
 
-            # Delete all RequestPage objects for this IP
-            deleted_count, _ = RequestPage.objects.filter(
-                requesting_ip=ip_address
-            ).delete()
-
-            total_deleted += deleted_count
             self.stdout.write(
-                self.style.SUCCESS(
-                    f"✓ Deleted {deleted_count} requests from IP: {ip_address} (had {count} requests)"
+                self.style.WARNING(
+                    f"Found IP with {count} requests: {ip_address}. No RequestPage rows deleted."
                 )
             )
 
         self.stdout.write(
-            self.style.SUCCESS(f"\n✓ Total deleted: {total_deleted} RequestPage objects")
+            self.style.SUCCESS("\nRequestPage cleanup is disabled so raw visit history is preserved.")
         )
