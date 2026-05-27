@@ -55,16 +55,23 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
     }
 
+    .profile-page *,
+    .profile-page *::before,
+    .profile-page *::after {
+      box-sizing: border-box;
+    }
+
     .profile-shell {
-      max-width: 1120px;
+      width: 100%;
+      max-width: 1480px;
       margin: 0 auto;
-      padding: 1.25rem 1rem 2rem;
+      padding: clamp(0.75rem, 2vw, 1.5rem);
     }
 
     .profile-layout {
       display: grid;
-      grid-template-columns: minmax(280px, 360px) minmax(260px, 1fr);
-      gap: 1rem;
+      grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
+      gap: clamp(0.85rem, 2vw, 1.5rem);
       align-items: start;
     }
 
@@ -92,9 +99,207 @@
       padding: 1rem;
     }
 
+    .profile-card-shell {
+      overflow: hidden;
+    }
+
+    .profile-card {
+      min-height: calc(100vh - 7rem);
+      padding: clamp(1.25rem, 2.25vw, 2rem);
+    }
+
+    .profile-card-content {
+      gap: 1rem;
+      min-height: 100%;
+    }
+
+    .profile-avatar {
+      width: clamp(132px, 11vw, 172px);
+      height: clamp(132px, 11vw, 172px);
+      object-fit: cover;
+      border: 4px solid #fff;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.16);
+    }
+
+    .profile-summary {
+      width: 100%;
+      margin-top: 0.25rem !important;
+    }
+
+    .profile-name-block {
+      width: 100%;
+      margin: 0 auto;
+      line-height: 1.35;
+    }
+
+    .profile-divider {
+      width: 100%;
+      margin: 0.35rem 0 1rem;
+      border-color: var(--line);
+      opacity: 1;
+    }
+
+    .profile-name {
+      color: var(--text);
+      font-size: clamp(1.3rem, 2.2vw, 1.8rem);
+      font-weight: 700;
+      line-height: 1.2;
+      overflow-wrap: anywhere;
+    }
+
+    .verified-name {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .profile-card .verified-name .user-svg {
+      width: 22px;
+      height: 22px;
+      padding: 0;
+      flex: 0 0 auto;
+    }
+
+    .profile-action-btn {
+      width: min(100%, 260px);
+      margin-top: 1rem;
+      font-weight: 600;
+      border-radius: 0.55rem;
+      padding: 0.65rem 1rem;
+    }
+
+    .profile-meta-grid,
+    .profile-stats,
+    .visitors-panel,
+    .subscription-panel {
+      width: 100%;
+    }
+
+    .profile-meta-grid {
+      display: grid;
+      gap: 0.7rem;
+      margin: 1rem 0;
+    }
+
+    .profile-card .svg-container {
+      width: 100%;
+      min-height: 52px;
+      justify-content: center;
+      gap: 0.45rem;
+      margin: 0;
+      padding: 0.75rem 0.9rem;
+      color: var(--text);
+      font-size: 0.95rem !important;
+      line-height: 1.35;
+      border-radius: 0.7rem;
+      background: #fff;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+    }
+
+    .profile-card .profile-meta {
+      flex-direction: column;
+      align-items: flex-start;
+      text-align: left;
+    }
+
+    .profile-card .profile-meta small {
+      color: var(--subtle);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .profile-card .profile-meta span,
+    .profile-card .profile-meta div {
+      width: 100%;
+      overflow-wrap: anywhere;
+    }
+
+    .profile-stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.75rem;
+      margin: 1rem 0;
+    }
+
+    .profile-card .profile-stat {
+      min-height: 84px;
+      flex-direction: column;
+      font-weight: 700;
+      cursor: pointer;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    .profile-card .profile-stat:hover {
+      border-color: #b7c8dc;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.09);
+      transform: translateY(-1px);
+    }
+
+    .profile-card .profile-stat .user-svg {
+      width: 26px;
+      height: 26px;
+      padding: 0;
+    }
+
+    .subscription-panel {
+      margin-top: 1rem;
+      padding: 1rem;
+      text-align: left;
+      background: var(--surface-muted);
+      border: 1px solid var(--line);
+      border-radius: 0.75rem;
+    }
+
+    .subscription-item {
+      background: #fff;
+    }
+
+    .visitors-panel {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--line);
+      text-align: left;
+    }
+
+    .visitors-panel small {
+      color: var(--subtle);
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .visitor-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.65rem;
+    }
+
+    .visitor-link {
+      display: inline-flex;
+      max-width: 100%;
+      padding: 0.45rem 0.65rem;
+      color: var(--text);
+      text-decoration: none;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      line-height: 1.2;
+      overflow-wrap: anywhere;
+    }
+
+    .visitor-link:hover {
+      color: var(--accent);
+      border-color: #b7c8dc;
+      text-decoration: none;
+    }
+
     .list-group {
       overflow: auto;
-      max-height: 56vh;
+      max-height: calc(100vh - 7rem);
       background: transparent;
       border: 0;
     }
@@ -164,7 +369,7 @@
     .container-table {
       text-align: left;
       margin: 1rem auto 0;
-      width: min(100%, 1120px);
+      width: 100%;
       overflow-x: auto;
       background: var(--surface);
       border: 1px solid var(--line);
@@ -285,6 +490,28 @@
       .profile-layout {
         grid-template-columns: 1fr;
       }
+
+      .profile-card {
+        min-height: auto;
+      }
+
+      .list-group {
+        max-height: none;
+      }
+    }
+
+    @media (max-width: 575px) {
+      .profile-shell {
+        padding: 0.6rem;
+      }
+
+      .profile-card {
+        padding: 1rem;
+      }
+
+      .profile-stats {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 
@@ -293,11 +520,11 @@
     <div class="profile-shell">
       <div class="profile-layout">
         <div class="profile-main col-md-4 mb-3">
-          <div class="card">
-            <div class="card-body">
-              <div class="d-flex flex-column align-items-center text-center">
+          <div class="card profile-card-shell">
+            <div class="card-body profile-card">
+              <div class="d-flex flex-column align-items-center text-center profile-card-content">
                 {% if pageUser.photo %}
-                <img src="{{pageUser.photo}}" alt="user-photo" class="rounded-circle" width="150">
+                <img src="{{pageUser.photo}}" alt="user-photo" class="rounded-circle profile-avatar">
                 <!-- <a style="text-decoration: none;" href="{{pageUser.photo}}" >View Photo </a> -->
                 {% endif %}
                 {% if user.id == pageUser.userID %} 
@@ -310,11 +537,13 @@
                           <!-- Your form here -->
                           <form method="post" action="{% url 'userProfile:changepsw' %}">
                             {% csrf_token %}
+                          {% if not needs_password_creation %}
                           <input style="margin-bottom:0.5em;" name="currentPassword" type="password" placeholder="Old password" class="form-control">
-                          <input style="margin-bottom:0.5em;" name="newPassword" type="password" placeholder="New password" class="form-control">
-                          <input style="margin-bottom:0.5em;" name="newPasswordConfirmation" type="password" placeholder="New password" class="form-control">
+                          {% endif %}
+                          <input style="margin-bottom:0.5em;" name="newPassword" type="password" placeholder="{% if needs_password_creation %}Create password{% else %}New password{% endif %}" class="form-control">
+                          <input style="margin-bottom:0.5em;" name="newPasswordConfirmation" type="password" placeholder="Confirm password" class="form-control">
                           <button id="" type="submit" action="submit" class="btn btn-primary">
-                            Change Password
+                            {% if needs_password_creation %}Create Password{% else %}Change Password{% endif %}
                           </button>
                           <hr>
                           </form>
@@ -342,26 +571,26 @@
                   {% endif %}
 
                 {% endif %}
-                <div class="mt-3">
-                  <div class="" style="line-height: 1%; margin: 0 auto;">
+                <div class="mt-3 profile-summary">
+                  <div class="profile-name-block">
                     
 
 
-                    <hr>
+                    <hr class="profile-divider">
 
 <!--  -->
 
-                    <div>
+                    <div class="profile-name">
                       {% if pageUser.verified %}
                       
-                      <span style=" display: inline-flex; align-items: center; gap: 6px;">
+                      <span class="verified-name">
                           <svg viewBox="0 0 16 16" class="user-svg" onclick="alert('User is Verified')">
                             <path d="M10.067.87a2.89 2.89 0 0 0-4.134 0l-.622.638-.89-.011a2.89 2.89 0 0 0-2.924 2.924l.01.89-.636.622a2.89 2.89 0 0 0 0 4.134l.637.622-.011.89a2.89 2.89 0 0 0 2.924 2.924l.89-.01.622.636a2.89 2.89 0 0 0 4.134 0l.622-.637.89.011a2.89 2.89 0 0 0 2.924-2.924l-.01-.89.636-.622a2.89 2.89 0 0 0 0-4.134l-.637-.622.011-.89a2.89 2.89 0 0 0-2.924-2.924l-.89.01-.622-.636zm.287 5.984-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7 8.793l2.646-2.647a.5.5 0 0 1 .708.708z"></path>
                           </svg>
                         <span>{{pageUser.name}}</span>
                         </span>
                       {% else %}
-                      {{pageUser.name}}
+                      <span>{{pageUser.name}}</span>
                       {% if user.id == pageUser.userID %}
                       
                       {% if pageUser.photo != '' %}
@@ -392,13 +621,60 @@
                       {% else %} {% endif %} {% else %} {% endif %}
                     </div>
                   </div>
-                    <button id="openModalBtn" type="button" class="btn btn-primary" style="margin-top: 1em;">
-                      Change Password
+                    <button id="openModalBtn" type="button" class="btn btn-primary profile-action-btn">
+                      {% if needs_password_creation %}Create Password{% else %}Change Password{% endif %}
                     </button>
-                  <p class="text-secondary mb-1"><div class="svg-container"> <small style="color: rgb(159, 165, 172) ; text-shadow: 0px;">Member since:  </small> <br>{{pageUser.registeredTimeStamp}}</div></p>
-                  <div class="svg-container">
-                    <div>{{pageUser.contact}} </div>
-                  </div>                  
+                  <div class="profile-meta-grid">
+                    <div class="svg-container profile-meta">
+                      <small>Member since</small>
+                      <span>{{pageUser.registeredTimeStamp}}</span>
+                    </div>
+                    <div class="svg-container profile-meta">
+                      <small>Contact</small>
+                      <div>{{pageUser.contact}}</div>
+                    </div>
+                    {% if pageUser.mobile_number %}
+                    <div class="svg-container profile-meta">
+                      <small>Mobile</small>
+                      <div>{{ pageUser.mobile_number }}</div>
+                    </div>
+                    {% endif %}
+                    {% if pageUser.address_line1 or pageUser.address_city or pageUser.address_country %}
+                    <div class="svg-container profile-meta">
+                      <small>Billing address</small>
+                      <div>
+                        {% if pageUser.address_line1 %}{{ pageUser.address_line1 }}{% endif %}
+                        {% if pageUser.address_line2 %}<br>{{ pageUser.address_line2 }}{% endif %}
+                        {% if pageUser.address_city %}<br>{{ pageUser.address_city }}{% endif %}
+                        {% if pageUser.address_state %}, {{ pageUser.address_state }}{% endif %}
+                        {% if pageUser.address_postal_code %} {{ pageUser.address_postal_code }}{% endif %}
+                        {% if pageUser.address_country %}<br>{{ pageUser.address_country }}{% endif %}
+                      </div>
+                    </div>
+                    {% endif %}
+                  </div>
+                  {% if user.id == pageUser.userID and user_subscriptions %}
+                  <div class="subscription-panel">
+                    <h6 class="mb-2">Subscription</h6>
+                    {% if paymongo_last_success %}
+                    <div class="alert alert-success py-2 mb-2" role="alert">
+                      Payment confirmed for {{ paymongo_last_success.plan_name }}.
+                    </div>
+                    {% endif %}
+                    {% for subscription in user_subscriptions %}
+                    <div class="d-flex justify-content-between align-items-start border rounded p-2 mb-2 subscription-item">
+                      <div>
+                        <strong>{% if subscription.plan %}{{ subscription.plan.name }}{% else %}Subscription{% endif %}</strong>
+                        <div class="text-secondary small">{{ subscription.email|default:user.email }}</div>
+                        {% if subscription.next_billing_time %}
+                        <div class="text-secondary small">Valid until {{ subscription.next_billing_time|date:"M j, Y H:i" }}</div>
+                        {% endif %}
+                      </div>
+                      <span class="badge bg-success">{{ subscription.status }}</span>
+                    </div>
+                    {% endfor %}
+                  </div>
+                  {% endif %}
                   {% if not createBalance_FORM %}
 
                   <!-- Advance Payment FORM -->
@@ -428,14 +704,15 @@
                   {% endif %}
                   {% endif %}
                   {% if pageUser %}
-                  <div class="svg-container" onclick="alert('Visitor Count')">
+                  <div class="profile-stats">
+                  <div class="svg-container profile-stat" onclick="alert('Visitor Count')">
                     <svg class="user-svg" viewBox="0 0 16 16">
                       <path d="m8 0 1.669.864 1.858.282.842 1.68 1.337 1.32L13.4 6l.306 1.854-1.337 1.32-.842 1.68-1.858.282L8 12l-1.669-.864-1.858-.282-.842-1.68-1.337-1.32L2.6 6l-.306-1.854 1.337-1.32.842-1.68L6.331.864 8 0z" />
                       <path d="M4 11.794V16l4-1 4 1v-4.206l-2.018.306L8 13.126 6.018 12.1 4 11.794z" />
                     </svg>
                     {{pageUser.reputations | intcomma}}
                   </div>
-                  <div class="svg-container" onclick="alert('Transactions Count')">
+                  <div class="svg-container profile-stat" onclick="alert('Transactions Count')">
                     <svg class="user-svg" viewBox="0 0 256 256" >
                       <defs>
                       </defs>
@@ -446,30 +723,23 @@
                       </svg>
                     {{pageUser.TransactionCount | intcomma}}
                   </div>
-                  <div class="svg-container" onclick="alert('ask Blog register')">
-                  <!-- <span><a href="/apis/blog">My Blog</a></span> -->
- 
                   </div>
-                  <hr>
-                  <div>
+                  <div class="visitors-panel">
                     {% if pageUser.MyVisitors %}
                     <div>
-                      <small style="color: #909090;">Visitors:</small>
-                      {{pageUser.MyVisitors.count}}
+                      <small>Visitors</small>
+                      <span>{{pageUser.MyVisitors.count}}</span>
                     </div>
                     <!--  -->
 
+                    <div class="visitor-list">
                     {% for eachUser in pageUser.MyVisitors|slice:":5" %}
-                    <span>
-                      <a title="View Profile" href="/userProfile/view/{{csrf_token}}/{{eachUser.userID}}" style="text-decoration: none;">
+                      <a class="visitor-link" title="View Profile" href="/userProfile/view/{{csrf_token}}/{{eachUser.userID}}">
                       <!-- <img title="{{eachUser.name}}" src="{{eachUser.photo|default:'https://st3.depositphotos.com/3581215/18899/v/600/depositphotos_188994514-stock-illustration-vector-illustration-male-silhouette-profile.jpg'}}" alt="Admin" style="object-fit: cover;"  class="rounded-circle" width="30px" height="30px" > -->
-                      <div style="display:block;">
-                        {{eachUser.name}}
-                      </div>
-                      
+                      {{eachUser.name}}
                       </a>
-                    </span>
                     {% endfor %}
+                    </div>
                     {% endif %}
                     {% endif %}
                   </div>

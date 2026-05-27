@@ -3,125 +3,74 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="author" content="Paratara">
-    <meta name="application-name" content="Paratara">
-    <meta name="theme-color" content="#556b2f">
-    <meta name="referrer" content="strict-origin-when-cross-origin">
-    <meta name="format-detection" content="telephone=no">
-    <meta name="robots" content="{{ robots_meta|default:'index, follow, max-image-preview:large' }}">
-    <meta name="facebook-domain-verification" content="ipbhywz4h0d53irtzu1edqioym14dj">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>{% block title %}{% if page_title %}{{ page_title }}{% elif place.placename %}{{ place.placename }} Travel Guide, Resorts & Schedules | Paratara{% else %}Paratara | Travel Guides, Carpool Schedules & Resorts{% endif %}{% endblock %}</title>
-    <meta name="description" content="{% if meta_description %}{{ meta_description }}{% elif place.placename %}Discover {{ place.placename }} travel guides, resorts, local events, and shared trip schedules with Paratara.{% else %}Plan trips with Paratara: discover destination guides, resort options, local events, and shared carpool schedules.{% endif %}">
+    <title>Paratara — Life Memories</title>
 
-    {% if canonical_url %}
-        <link rel="canonical" href="{{ canonical_url }}">
-    {% else %}
-        <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
-    {% endif %}
-
-    <meta property="og:type" content="{{ og_type|default:'website' }}">
-    <meta property="og:site_name" content="Paratara">
-    <meta property="og:locale" content="en_US">
-    <meta property="og:title" content="{% if og_title %}{{ og_title }}{% elif page_title %}{{ page_title }}{% elif place.placename %}{{ place.placename }} Travel Guide, Resorts & Schedules | Paratara{% else %}Paratara | Travel Guides, Carpool Schedules & Resorts{% endif %}">
-    <meta property="og:description" content="{% if og_description %}{{ og_description }}{% elif meta_description %}{{ meta_description }}{% elif place.placename %}Discover {{ place.placename }} travel guides, resorts, local events, and shared trip schedules with Paratara.{% else %}Plan trips with Paratara: discover destination guides, resort options, local events, and shared carpool schedules.{% endif %}">
-    {% if canonical_url %}
-        <meta property="og:url" content="{{ canonical_url }}">
-    {% else %}
-        <meta property="og:url" content="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
-    {% endif %}
-    {% if meta_image_url %}
-        <meta property="og:image" content="{{ meta_image_url }}">
-        <meta name="twitter:image" content="{{ meta_image_url }}">
-    {% elif place.placePhoto %}
-        <meta property="og:image" content="{{ place.placePhoto }}">
-        <meta name="twitter:image" content="{{ place.placePhoto }}">
-    {% else %}
-        <meta property="og:image" content="https://511nyrideshare.org/documents/13062580/13063312/5cf107d7-1710-4076-b902-1aa0e6f554ea.jpg/f64aa95e-0a8c-6aca-470d-eef4ca2002ff?t=1562101484722">
-        <meta name="twitter:image" content="https://511nyrideshare.org/documents/13062580/13063312/5cf107d7-1710-4076-b902-1aa0e6f554ea.jpg/f64aa95e-0a8c-6aca-470d-eef4ca2002ff?t=1562101484722">
-    {% endif %}
-    <meta property="og:image:alt" content="{% if image_alt %}{{ image_alt }}{% elif place.placename %}Travel planning for {{ place.placename }} on Paratara{% else %}Paratara travel planning and carpool schedules{% endif %}">
-
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{% if twitter_title %}{{ twitter_title }}{% elif og_title %}{{ og_title }}{% elif page_title %}{{ page_title }}{% elif place.placename %}{{ place.placename }} Travel Guide, Resorts & Schedules | Paratara{% else %}Paratara | Travel Guides, Carpool Schedules & Resorts{% endif %}">
-    <meta name="twitter:description" content="{% if twitter_description %}{{ twitter_description }}{% elif og_description %}{{ og_description }}{% elif meta_description %}{{ meta_description }}{% elif place.placename %}Discover {{ place.placename }} travel guides, resorts, local events, and shared trip schedules with Paratara.{% else %}Plan trips with Paratara: discover destination guides, resort options, local events, and shared carpool schedules.{% endif %}">
-
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="48x48" href="{% static 'home/images/favicon-48x48.png' %}">
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'home/images/favicon-16x16.png' %}">
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'home/images/favicon-32x32.png' %}">
-    <link rel="icon" type="image/png" sizes="48x48" href="{% static 'home/images/favicon-48x48.png' %}">
-    <link rel="apple-touch-icon" href="{% static 'home/images/favicon.png' %}">
 
-    <link rel="preconnect" href="https://www.googletagmanager.com">
-    <link rel="preconnect" href="https://pagead2.googlesyndication.com">
-    <link rel="preconnect" href="https://consent.cookiebot.com">
+    <meta name="description" content="{{ place.placename }}">
+    <meta name="keywords" content="the best and the Great Application Assisting in Carpool transportation travel to go in {{ place.placename }}">
+    <meta name="author" content="info@paratara.com">
 
-    <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
-    <link rel="stylesheet" href="{% static 'home/navbar.css' %}">
+    <link rel="canonical" href="{{ request.build_absolute_uri }}">
+
+    <meta property="og:title" content="Paratara — Carpool and Resorts">
+    <meta property="og:description" content="the best and the Great Application Assisting in Carpool transportation travel to go in {{ place.placename }}">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="facebook-domain-verification" content="ipbhywz4h0d53irtzu1edqioym14dj">
+    
+    <meta property="og:image" content="https://511nyrideshare.org/documents/13062580/13063312/5cf107d7-1710-4076-b902-1aa0e6f554ea.jpg/f64aa95e-0a8c-6aca-470d-eef4ca2002ff?t=1562101484722">
+<!-- Primary Meta Tags -->
+<title>{{ place.placename }} Travel Guide, Resorts, Events & Itinerary | Paratara</title>
+
+<meta name="description" content="Discover travel guides, itineraries, resorts, accommodations, local events, tips, and destination insights in {{ place.placename }} with Paratara.">
+
+<meta name="keywords" content="{{ place.placename }}, travel guide, itinerary, resorts, accommodations, tourist destinations, events, travel tips, carpool travel, vacation ideas, hotels, things to do">
+
+<meta name="author" content="Paratara">
+<meta name="robots" content="index, follow">
+
+<link rel="canonical" href="{{ request.build_absolute_uri }}">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Paratara">
+<meta property="og:title" content="{{ place.placename }} Travel Guide, Resorts & Events | Paratara">
+
+<meta property="og:description" content="Explore resorts, accommodations, travel itineraries, events, and local destination guides in {{ place.placename }}.">
+
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+
+<meta property="og:image" content="{{ place.image.url }}">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+
+<meta name="twitter:title" content="{{ place.placename }} Travel Guide & Resorts | Paratara">
+
+<meta name="twitter:description" content="Find the best travel guides, accommodations, itineraries, and destination tips in {{ place.placename }}.">
+
+<meta name="twitter:image" content="{{ place.image.url }}">
+
+<!-- Facebook Verification -->
+<meta name="facebook-domain-verification" content="ipbhywz4h0d53irtzu1edqioym14dj">    
     <link rel="stylesheet" href="{% static 'home/layout.css' %}">
-    {% block extra_css %}{% endblock %}
-
-    {% block structured_data %}
-        <script type="application/ld+json">
-        {
-          "@context": "https://schema.org",
-          "@graph": [
-            {
-              "@type": "Organization",
-              "@id": "{{ request.scheme }}://{{ request.get_host }}/#organization",
-              "name": "Paratara",
-              "url": "{{ request.scheme }}://{{ request.get_host }}/",
-              "logo": "{{ request.scheme }}://{{ request.get_host }}{% static 'home/images/favicon.png' %}"
-            },
-            {
-              "@type": "WebSite",
-              "@id": "{{ request.scheme }}://{{ request.get_host }}/#website",
-              "name": "Paratara",
-              "url": "{{ request.scheme }}://{{ request.get_host }}/",
-              "publisher": { "@id": "{{ request.scheme }}://{{ request.get_host }}/#organization" }
-            },
-            {
-              "@type": "{% if place.placename %}Guide{% else %}WebPage{% endif %}",
-              "@id": "{% if canonical_url %}{{ canonical_url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{{ request.path }}{% endif %}#webpage",
-              "url": "{% if canonical_url %}{{ canonical_url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{{ request.path }}{% endif %}",
-              "name": "{% if page_title %}{{ page_title|escapejs }}{% elif place.placename %}{{ place.placename|escapejs }} Travel Guide, Resorts & Schedules | Paratara{% else %}Paratara | Travel Guides, Carpool Schedules & Resorts{% endif %}",
-              "description": "{% if meta_description %}{{ meta_description|escapejs }}{% elif place.placename %}Discover {{ place.placename|escapejs }} travel guides, resorts, local events, and shared trip schedules with Paratara.{% else %}Plan trips with Paratara: discover destination guides, resort options, local events, and shared carpool schedules.{% endif %}",
-              "isPartOf": { "@id": "{{ request.scheme }}://{{ request.get_host }}/#website" },
-              "publisher": { "@id": "{{ request.scheme }}://{{ request.get_host }}/#organization" }{% if place.placename %},
-              "about": {
-                "@type": "TouristDestination",
-                "name": "{{ place.placename|escapejs }}",
-                "url": "{% if canonical_url %}{{ canonical_url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{{ request.path }}{% endif %}"
-              }{% endif %}
-            }{% if place.placename %},
-            {
-              "@type": "BreadcrumbList",
-              "@id": "{% if canonical_url %}{{ canonical_url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{{ request.path }}{% endif %}#breadcrumb",
-              "itemListElement": [
-                {
-                  "@type": "ListItem",
-                  "position": 1,
-                  "name": "Home",
-                  "item": "{{ request.scheme }}://{{ request.get_host }}/"
-                },
-                {
-                  "@type": "ListItem",
-                  "position": 2,
-                  "name": "{{ place.placename|escapejs }}",
-                  "item": "{% if canonical_url %}{{ canonical_url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{{ request.path }}{% endif %}"
-                }
-              ]
-            }{% endif %}
-          ]
-        }
-        </script>
-    {% endblock %}
-
-    <script src="{% static 'bootstrap/js/bootstrap.bundle.min.js' %}" defer></script>
-    <script src="{% static 'home/navbar.js' %}" defer></script>
-    <script src="{% static 'home/layout.js' %}" defer></script>
-    <script src="{% static 'home/layoutScheduleModal.js' %}" defer></script>
-    {% block extra_head %}{% endblock %}
+    <script src="{% static 'home/layoutScheduleModal.js' %}"></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TravelGuide",
+  "name": "{{ place.placename }}",
+  "description": "Travel guides, itineraries, resorts, accommodations, and destination tips for {{ place.placename }}.",
+  "url": "{{ request.build_absolute_uri }}"
+}
+</script>
     <!-- Cookies consent: load Cookiebot only on non-localhosts to avoid dev errors -->
     <script>
         (function () {
@@ -173,9 +122,12 @@
 <body>
     <!-- Google Tag Manager (noscript) -->
     <noscript>
-        <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MNDNQVRF" title="Google Tag Manager" height="0" width="0" style="display:none;visibility:hidden"></iframe>
+        <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MNDNQVRF" height="0" width="0" style="display:none;visibility:hidden"></iframe>
     </noscript>
     <!-- End Google Tag Manager (noscript) -->
+
+    <script src="https://smtpjs.com/v3/smtp.js"></script>
+    <script src="{% static 'home/layout.js' %}"></script>
 
     <div class="modal-container-main">
         {% if user.is_authenticated %}
@@ -242,7 +194,7 @@
                                                     <path d="M21.5 3h-2.75a.25.25 0 01-.25-.25V1a1 1 0 00-2 0v4.75a.75.75 0 01-.75.75.75.75 0 01-.75-.75V3.5a.5.5 0 00-.5-.5H8.25A.25.25 0 018 2.751V1a1 1 0 10-2 0v4.75a.75.75 0 01-.75.75.75.75 0 01-.75-.75V3.5A.5.5 0 004 3H2.5a2 2 0 00-2 2v17a2 2 0 002 2h19a2 2 0 002-2V5a2 2 0 00-2-2zM21 22H3a.5.5 0 01-.5-.5v-12A.5.5 0 013 9h18a.5.5 0 01.5.5v12a.5.5 0 01-.5.5z"></path>
                                                 </svg>
                                             </span>
-                                            <input type="datetime-local" name="meetDate" required class="date-input">
+                                            <input type="datetime-local" name="meetDate" required class="date-input" value="2025-10-07T14:00">
                                             <span onclick="addMoreDates()" class="add-date-btn">+</span>
                                         </div>
                                     </div>
@@ -337,9 +289,9 @@
         <div>{% include "home/navBar.html" %}</div>
     </div>
 
-    <main class="center-body" id="main-content">
+    <div class="center-body">
         {% block body %}{% endblock %}
-    </main>
+    </div>
 
     <footer class="bg-light py-5 mt-5">
         <div class="container">
@@ -374,7 +326,7 @@
 
             <div class="row">
                 <div class="col-12 text-center">
-                    <p class="mb-0">&copy; {% now 'Y' %} Paratara. All rights reserved.</p>
+                    <p class="mb-0">&copy; 2025 Paratara. All rights reserved.</p>
                 </div>
             </div>
         </div>
@@ -384,25 +336,24 @@
         const statusEl = document.getElementById("status");
         const btn = document.getElementById("get-loc");
 
-        if (btn && statusEl) {
-            btn.addEventListener("click", function () {
-                if ("geolocation" in navigator) {
-                    navigator.geolocation.getCurrentPosition(
-                        function (position) {
-                            const latitude = position.coords.latitude;
-                            const longitude = position.coords.longitude;
-                            statusEl.textContent = "Latitude: " + latitude + ", Longitude: " + longitude;
-                        },
-                        function (error) {
-                            statusEl.textContent = "Error: " + error.message;
-                        },
-                        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-                    );
-                } else {
-                    statusEl.textContent = "Geolocation is not supported by your browser.";
-                }
-            });
-        }
+        btn.addEventListener("click", function () {
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    function (position) {
+                        const latitude = position.coords.latitude;
+                        const longitude = position.coords.longitude;
+                        statusEl.textContent = "Latitude: " + latitude + ", Longitude: " + longitude;
+                    },
+                    function (error) {
+                        statusEl.textContent = "Error: " + error.message;
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
+            } else {
+                statusEl.textContent = "Geolocation is not supported by your browser.";
+            }
+        });
     </script>
 </body>
 </html>
+

@@ -4,7 +4,7 @@ import time
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Count, Max, Min
+from django.db.models import Count, Max, Min, Q
 from django.contrib.gis.geoip2 import GeoIP2
 import os
 
@@ -39,26 +39,303 @@ class Command(BaseCommand):
             action="store_true",
             help="Skip GeoIP2 lookups (much faster).",
         )
+        parser.add_argument(
+            "--backfill-locations",
+            action="store_true",
+            help=(
+                "Populate missing GeoIP data on existing RequestPageSummary rows. "
+                "Useful after RequestPage rows have already been summarized/deleted."
+            ),
+        )
+        parser.add_argument(
+            "--force-location-refresh",
+            action="store_true",
+            help="Refresh GeoIP data even when RequestPageSummary already has location JSON.",
+        )
+
+    @staticmethod
+    def _clean(value):
+        if isinstance(value, str):
+            value = value.strip()
+        return value or None
+
+    @classmethod
+    def _extract_location_names(cls, ip_location_json):
+        if not isinstance(ip_location_json, dict):
+            return None, None, None
+
+        city_info = ip_location_json.get("city_info") or {}
+        country_info = ip_location_json.get("country_info") or {}
+        if not isinstance(city_info, dict):
+            city_info = {}
+        if not isinstance(country_info, dict):
+            country_info = {}
+
+        city = cls._clean(city_info.get("city"))
+        country_name = cls._clean(
+            city_info.get("country_name") or country_info.get("country_name")
+        )
+        continent_name = cls._clean(
+            city_info.get("continent_name") or country_info.get("continent_name")
+        )
+        return city, country_name, continent_name
+
+    @classmethod
+    def _has_usable_location(cls, ip_location_json, city, country_name, continent_name):
+        city = cls._clean(city)
+        country_name = cls._clean(country_name)
+        continent_name = cls._clean(continent_name)
+        json_city, json_country_name, json_continent_name = cls._extract_location_names(
+            ip_location_json
+        )
+        return any(
+            [
+                city,
+                country_name,
+                continent_name,
+                json_city,
+                json_country_name,
+                json_continent_name,
+            ]
+        )
+
+    @staticmethod
+    def _get_geoip(skip_geoip):
+        if skip_geoip:
+            return None, "GeoIP2 lookup skipped (--skip-geoip)."
+
+        geoip_path = getattr(settings, "GEOIP_PATH", None)
+        if not geoip_path or not os.path.exists(geoip_path):
+            return None, "GeoIP2 lookup disabled (GEOIP_PATH missing/invalid)."
+
+        try:
+            return GeoIP2(path=geoip_path), None
+        except Exception as e:
+            return None, f"GeoIP2 lookup disabled ({e})."
+
+    @staticmethod
+    def _unavailable_location_json(geo_disabled_reason, skip_geoip):
+        return {
+            "lookup_status": "skipped" if skip_geoip else "unavailable",
+            "error": geo_disabled_reason or "GeoIP2 lookup unavailable.",
+        }
+
+    def _lookup_ip_location(self, geo, ip):
+        try:
+            try:
+                city_data = geo.city(ip)
+            except Exception as e:
+                city_data = {"error": str(e)}
+
+            try:
+                country_data = geo.country(ip)
+            except Exception as e:
+                country_data = {"error": str(e)}
+
+            ip_location_json = {
+                "city_info": city_data,
+                "country_info": country_data,
+            }
+            city, country_name, continent_name = self._extract_location_names(
+                ip_location_json
+            )
+            return ip_location_json, city, country_name, continent_name
+        except Exception as e:
+            return {"error": str(e)}, None, None, None
+
+    def _print_geoip_status(self, geo, geo_disabled_reason, skip_geoip):
+        if skip_geoip:
+            self.stdout.write(self.style.WARNING(geo_disabled_reason))
+        elif geo is None:
+            self.stdout.write(self.style.WARNING(geo_disabled_reason))
+        else:
+            self.stdout.write(self.style.SUCCESS("GeoIP2 lookup enabled."))
+
+    def _backfill_summary_locations(
+        self,
+        *,
+        geo,
+        geo_disabled_reason,
+        dry_run,
+        print_each,
+        progress_every,
+        force_location_refresh,
+    ):
+        if geo is None:
+            self.stdout.write(
+                self.style.WARNING(
+                    f"Location backfill skipped: {geo_disabled_reason}"
+                )
+            )
+            return 0
+
+        qs = RequestPageSummary.objects.all().only(
+            "id",
+            "requesting_ip",
+            "ip_location_json",
+            "city",
+            "country_name",
+            "continent_name",
+        )
+        if not force_location_refresh:
+            qs = qs.filter(
+                Q(ip_location_json__isnull=True)
+                | Q(city__isnull=True)
+                | Q(city="")
+                | Q(country_name__isnull=True)
+                | Q(country_name="")
+                | Q(continent_name__isnull=True)
+                | Q(continent_name="")
+            )
+
+        total = qs.count()
+        if total == 0:
+            self.stdout.write("Location backfill: no candidate summaries found.")
+            return 0
+
+        self.stdout.write(
+            f"Location backfill: checking {total} RequestPageSummary rows..."
+        )
+
+        to_update = []
+        changed = 0
+        checked = 0
+
+        for summary in qs.iterator(chunk_size=500):
+            checked += 1
+            original = (
+                summary.ip_location_json,
+                summary.city,
+                summary.country_name,
+                summary.continent_name,
+            )
+
+            ip_location_json = summary.ip_location_json
+            city = self._clean(summary.city)
+            country_name = self._clean(summary.country_name)
+            continent_name = self._clean(summary.continent_name)
+
+            json_city, json_country_name, json_continent_name = (
+                self._extract_location_names(ip_location_json)
+            )
+            city = city or json_city
+            country_name = country_name or json_country_name
+            continent_name = continent_name or json_continent_name
+
+            should_lookup = force_location_refresh or not self._has_usable_location(
+                ip_location_json,
+                city,
+                country_name,
+                continent_name,
+            )
+            if should_lookup:
+                ip_location_json, city, country_name, continent_name = (
+                    self._lookup_ip_location(geo, summary.requesting_ip)
+                )
+
+            updated = (
+                ip_location_json,
+                city,
+                country_name,
+                continent_name,
+            )
+            if updated != original:
+                summary.ip_location_json = ip_location_json
+                summary.city = city
+                summary.country_name = country_name
+                summary.continent_name = continent_name
+                to_update.append(summary)
+                changed += 1
+
+                if print_each:
+                    self.stdout.write(
+                        f"  - {summary.requesting_ip}: "
+                        f"continent={continent_name or 'N/A'} "
+                        f"country={country_name or 'N/A'} "
+                        f"city={city or 'N/A'}"
+                    )
+
+            if len(to_update) >= 500:
+                if not dry_run:
+                    RequestPageSummary.objects.bulk_update(
+                        to_update,
+                        fields=[
+                            "ip_location_json",
+                            "city",
+                            "country_name",
+                            "continent_name",
+                            "updated_at",
+                        ],
+                        batch_size=500,
+                    )
+                to_update.clear()
+
+            if not print_each and (
+                checked % progress_every == 0 or checked == total
+            ):
+                self.stdout.write(
+                    f"Location backfill progress: {checked}/{total} checked..."
+                )
+
+        if to_update and not dry_run:
+            RequestPageSummary.objects.bulk_update(
+                to_update,
+                fields=[
+                    "ip_location_json",
+                    "city",
+                    "country_name",
+                    "continent_name",
+                    "updated_at",
+                ],
+                batch_size=500,
+            )
+
+        if dry_run:
+            self.stdout.write(
+                self.style.WARNING(
+                    f"DRY RUN: {changed} RequestPageSummary rows would be updated."
+                )
+            )
+        else:
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"Location backfill complete: updated {changed} RequestPageSummary rows."
+                )
+            )
+        return changed
 
     def handle(self, *args, **options):
         dry_run = options.get("dry_run", False)
         print_each = options.get("print_each", False)
         progress_every = int(options.get("progress_every") or 100)
         skip_geoip = options.get("skip_geoip", False)
+        backfill_locations = options.get("backfill_locations", False)
+        force_location_refresh = options.get("force_location_refresh", False)
         if progress_every < 1:
             progress_every = 1
 
-        geoip_path = getattr(settings, "GEOIP_PATH", None)
-        geo_enabled = bool(geoip_path and os.path.exists(geoip_path))
-        geo = GeoIP2(path=geoip_path) if (geo_enabled and not skip_geoip) else None
+        geo, geo_disabled_reason = self._get_geoip(skip_geoip)
 
         total_request_pages = RequestPage.objects.count()
+        t0 = time.time()
+
+        self.stdout.write("\n=== RequestPage Summarizer ===")
+        self._print_geoip_status(geo, geo_disabled_reason, skip_geoip)
+
+        if backfill_locations:
+            self._backfill_summary_locations(
+                geo=geo,
+                geo_disabled_reason=geo_disabled_reason,
+                dry_run=dry_run,
+                print_each=print_each,
+                progress_every=progress_every,
+                force_location_refresh=force_location_refresh,
+            )
+
         if total_request_pages == 0:
             self.stdout.write(self.style.WARNING("No RequestPage rows found."))
             return
 
-        t0 = time.time()
-        self.stdout.write("\n=== RequestPage Summarizer ===")
         self.stdout.write("Phase 1/3: aggregating per-IP min/max/count...")
         ip_aggs = list(
             RequestPage.objects.values("requesting_ip")
@@ -84,17 +361,6 @@ class Command(BaseCommand):
         self.stdout.write(
             f"Found {len(ip_aggs)} IPs across {total_request_pages} RequestPage rows."
         )
-        if skip_geoip:
-            self.stdout.write(self.style.WARNING("GeoIP2 lookup skipped (--skip-geoip)."))
-        elif geo is None:
-            self.stdout.write(
-                self.style.WARNING(
-                    "GeoIP2 lookup disabled (GEOIP_PATH missing/invalid). Location fields will be empty."
-                )
-            )
-        else:
-            self.stdout.write(self.style.SUCCESS("GeoIP2 lookup enabled."))
-
         self.stdout.write(f"Prep finished in {time.time() - t0:.2f}s")
 
         if dry_run:
@@ -147,46 +413,55 @@ class Command(BaseCommand):
                     country_name = getattr(existing, "country_name", None)
                     continent_name = getattr(existing, "continent_name", None)
 
+                    json_city, json_country_name, json_continent_name = (
+                        self._extract_location_names(ip_location_json)
+                    )
+                    city = city or json_city
+                    country_name = country_name or json_country_name
+                    continent_name = continent_name or json_continent_name
+
                 need_geo = (
                     geo is not None
-                    and (existing is None or (not city and not country_name and not continent_name and not ip_location_json))
+                    and (
+                        force_location_refresh
+                        or existing is None
+                        or not self._has_usable_location(
+                            ip_location_json,
+                            city,
+                            country_name,
+                            continent_name,
+                        )
+                    )
                 )
 
                 if need_geo:
                     if print_each:
                         self.stdout.write(f"  - GeoIP: looking up city/country...")
-                    try:
-                        try:
-                            city_data = geo.city(ip)
-                        except Exception as e:
-                            city_data = {"error": str(e)}
-
-                        try:
-                            country_data = geo.country(ip)
-                        except Exception as e:
-                            country_data = {"error": str(e)}
-
-                        ip_location_json = {
-                            "city_info": city_data,
-                            "country_info": country_data,
-                        }
-
-                        if isinstance(city_data, dict) and "error" not in city_data:
-                            city = city_data.get("city")
-                            country_name = city_data.get("country_name") or country_data.get("country_name")
-                            continent_name = city_data.get("continent_name")
-                            if print_each:
-                                self.stdout.write(
-                                    f"  - GeoIP: continent={continent_name or 'N/A'} country={country_name or 'N/A'} city={city or 'N/A'}"
-                                )
-                        elif print_each and isinstance(city_data, dict) and "error" in city_data:
-                            self.stdout.write(f"  - GeoIP(city) error: {city_data.get('error')}")
-                        if print_each and isinstance(country_data, dict) and "error" in country_data:
-                            self.stdout.write(f"  - GeoIP(country) error: {country_data.get('error')}")
-                    except Exception as e:
-                        ip_location_json = {"error": str(e)}
-                        if print_each:
-                            self.stdout.write(f"  - GeoIP fatal error: {e}")
+                    ip_location_json, city, country_name, continent_name = (
+                        self._lookup_ip_location(geo, ip)
+                    )
+                    if print_each:
+                        city_data = (
+                            ip_location_json.get("city_info")
+                            if isinstance(ip_location_json, dict)
+                            else {}
+                        )
+                        country_data = (
+                            ip_location_json.get("country_info")
+                            if isinstance(ip_location_json, dict)
+                            else {}
+                        )
+                        if isinstance(city_data, dict) and "error" in city_data:
+                            self.stdout.write(
+                                f"  - GeoIP(city) error: {city_data.get('error')}"
+                            )
+                        if isinstance(country_data, dict) and "error" in country_data:
+                            self.stdout.write(
+                                f"  - GeoIP(country) error: {country_data.get('error')}"
+                            )
+                        self.stdout.write(
+                            f"  - GeoIP: continent={continent_name or 'N/A'} country={country_name or 'N/A'} city={city or 'N/A'}"
+                        )
                 elif print_each:
                     if skip_geoip:
                         self.stdout.write("  - GeoIP: skipped (--skip-geoip)")
@@ -194,6 +469,12 @@ class Command(BaseCommand):
                         self.stdout.write("  - GeoIP: skipped (GEOIP_PATH missing/invalid)")
                     else:
                         self.stdout.write("  - GeoIP: skipped (already has location)")
+
+                if ip_location_json is None and geo is None:
+                    ip_location_json = self._unavailable_location_json(
+                        geo_disabled_reason,
+                        skip_geoip,
+                    )
 
                 if print_each:
                     self.stdout.write("  - Summary: queueing save...")

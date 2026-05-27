@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 # Register your models here.
-from .models import Payments,Transaction, Blogger,Blogs, EmailSubscribers
+from .models import Payments, Transaction, Blogger, Blogs, EmailSubscribers, Storeproducts
 
 @admin.register(EmailSubscribers)
 class EmailSubscribersAdmin(admin.ModelAdmin):
@@ -28,6 +28,12 @@ class EmailSubscribersAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
+@admin.register(Storeproducts)
+class StoreproductsAdmin(admin.ModelAdmin):
+    list_display = ['name', 'price', 'image_url', 'affiliate_link']
+    search_fields = ['name', 'description']
+    ordering = ['name']
 
 admin.site.register(Payments)
 admin.site.register(Transaction)

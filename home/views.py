@@ -55,6 +55,24 @@ from resorts.models import resortItem as ResortItem
 from .tasks import process_creating_blog  # 👈 background logic
 from imageapp.imageuploader import getPlacePhoto
 
+DEFAULT_META_IMAGE_URL = (
+    "https://511nyrideshare.org/documents/13062580/13063312/"
+    "5cf107d7-1710-4076-b902-1aa0e6f554ea.jpg/f64aa95e-0a8c-6aca-470d-eef4ca2002ff"
+    "?t=1562101484722"
+)
+
+
+def _absolute_public_url(request, value):
+    value = str(value or "").strip()
+    if not value:
+        return ""
+    if value.startswith(("http://", "https://")):
+        return value
+    if value.startswith("/"):
+        return request.build_absolute_uri(value)
+    return ""
+
+
 class FacebookPageForm(forms.ModelForm):
     place = forms.ModelChoiceField(queryset=Places_v2.objects.all(), empty_label="Select a Place")
 
@@ -250,6 +268,10 @@ def request_page_summary_charts(request):
             'timezone_requests': timezone_requests,
             'month_labels': month_labels,
             'month_counts': month_counts,
+            'page_title': 'Request Summary Dashboard | Paratara',
+            'meta_description': 'Internal Paratara request analytics dashboard.',
+            'robots_meta': 'noindex, nofollow',
+            'canonical_url': request.build_absolute_uri(reverse('home:request-page-summary-charts')),
         },
     )
 
@@ -840,7 +862,10 @@ def home(request, message=False):
     request.session['how_many_visits'] += 1
     buttons = {
         'allDestinations': Places_v2.objects.all(),
-        'message': message
+        'message': message,
+        'page_title': 'Paratara | Travel Guides, Carpool Schedules & Resorts',
+        'meta_description': 'Find destination guides, resort stays, local events, travel notes, and shared carpool schedules with Paratara.',
+        'canonical_url': request.build_absolute_uri(reverse('home:home')),
     }
     return render(request, 'home/index.html', buttons)    
 
@@ -1630,6 +1655,20 @@ def place_v2(request, placenameURL=None ,id=None, currentMonth=1, currentYear=1)
         'placeResorts': ['asd','asds'],
         'place_slug': placenameURL or (place.slug if place else None),
     }
+    if place:
+        place_url_path = reverse('home:place_by_slug', kwargs={'place_slug': place.slug})
+        place_photo_url = _absolute_public_url(request, place.placePhoto)
+        context.update({
+            'place': place,
+            'page_title': f'{place.placename} Travel Guide, Resorts & Schedules | Paratara',
+            'meta_description': (
+                f'Discover {place.placename} travel guides, resort options, local events, '
+                'tourist spots, and shared trip schedules with Paratara.'
+            ),
+            'canonical_url': request.build_absolute_uri(place_url_path),
+            'meta_image_url': place_photo_url or DEFAULT_META_IMAGE_URL,
+            'image_alt': f'Travel planning for {place.placename} on Paratara',
+        })
  
     try:
         from .models import CommunityBulletinPost
@@ -1810,7 +1849,13 @@ def facebook_posts(request):
     from .models import FacebookPagePost
 
     posts = FacebookPagePost.objects.all().order_by('-created_time', '-imported_at')[:50]
-    return render(request, 'home/facebook_posts.html', {'posts': posts})
+    return render(request, 'home/facebook_posts.html', {
+        'posts': posts,
+        'page_title': 'Facebook Posts | Paratara',
+        'meta_description': 'Recent Facebook posts imported into Paratara.',
+        'canonical_url': request.build_absolute_uri(reverse('home:facebook_posts')),
+        'robots_meta': 'noindex, follow',
+    })
 
 
 @csrf_exempt

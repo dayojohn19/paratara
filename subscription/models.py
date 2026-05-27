@@ -28,7 +28,10 @@ class UserSubscription(models.Model):
         ("pending", "Pending"),
         ("CREATED", "Created"),
         ("ACTIVE", "Active"),
+        ("PAST_DUE", "Past Due"),
+        ("UNPAID", "Unpaid"),
         ("SUSPENDED", "Suspended"),
+        ("FAILED", "Failed"),
         ("CANCELLED", "Cancelled"),
         ("EXPIRED", "Expired"),
     ]
@@ -91,6 +94,7 @@ class UserSubscription(models.Model):
 
 class SubscriptionPlan(models.Model):
     BILLING_INTERVAL_CHOICES = [
+        ("weekly", "Weekly"),
         ("monthly", "Monthly"),
         ("yearly", "Yearly"),
     ]
@@ -182,6 +186,7 @@ class PaymentButton(models.Model):
     CHECKOUT_MODE_CHOICES = [
         ("hosted_checkout", "Hosted Checkout"),
         ("paymongo_recurring", "PayMongo Recurring"),
+        ("paymongo_link", "PayMongo Payment Link"),
     ]
 
     public_id = models.CharField(
@@ -216,6 +221,19 @@ class PaymentButton(models.Model):
     success_url = models.URLField(blank=True, null=True)
     cancel_url = models.URLField(blank=True, null=True)
     failed_url = models.URLField(blank=True, null=True)
+    payment_link_url = models.URLField(
+        max_length=1000,
+        blank=True,
+        null=True,
+        help_text="Existing PayMongo payment link URL, for example https://pm.link/org-.../b5vnlvt.",
+    )
+    payment_link_reference = models.CharField(
+        max_length=120,
+        blank=True,
+        null=True,
+        db_index=True,
+        help_text="PayMongo payment link reference number, for example b5vnlvt.",
+    )
     metadata = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -302,11 +320,14 @@ class Transaction(models.Model):
     customer_email = models.EmailField(blank=True, null=True)
     customer_name = models.CharField(max_length=180, blank=True, null=True)
     customer_phone = models.CharField(max_length=40, blank=True, null=True)
+    customer_billing_details = models.JSONField(default=dict, blank=True)
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default="pending", db_index=True)
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     amount_centavos = models.PositiveIntegerField()
     currency = models.CharField(max_length=10, default="PHP")
     paymongo_checkout_session_id = models.CharField(max_length=120, blank=True, null=True, db_index=True)
+    paymongo_link_id = models.CharField(max_length=120, blank=True, null=True, db_index=True)
+    paymongo_reference_number = models.CharField(max_length=120, blank=True, null=True, db_index=True)
     paymongo_payment_id = models.CharField(max_length=120, blank=True, null=True, db_index=True)
     paymongo_payment_intent_id = models.CharField(max_length=120, blank=True, null=True, db_index=True)
     paymongo_subscription_id = models.CharField(max_length=120, blank=True, null=True, db_index=True)
@@ -367,9 +388,12 @@ class PayMongoWebhookEvent(models.Model):
 
 class Subscription(models.Model):
     STATUS_CHOICES = [
+        ("incomplete", "Incomplete"),
+        ("incomplete_cancelled", "Incomplete Cancelled"),
         ("pending", "Pending"),
         ("active", "Active"),
         ("past_due", "Past Due"),
+        ("unpaid", "Unpaid"),
         ("cancelled", "Cancelled"),
         ("expired", "Expired"),
         ("failed", "Failed"),
@@ -421,6 +445,8 @@ class Subscription(models.Model):
     @staticmethod
     def period_end_for_plan(plan, start_at=None):
         start_at = start_at or timezone.now()
+        if getattr(plan, "billingInterval", "") == "weekly":
+            return start_at + timedelta(days=7)
         if getattr(plan, "billingInterval", "") == "yearly":
             return start_at + timedelta(days=365)
         if getattr(plan, "billingInterval", "") == "monthly":

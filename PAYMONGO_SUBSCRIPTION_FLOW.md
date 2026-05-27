@@ -5,13 +5,17 @@
 Set these environment variables on the Django payment server:
 
 ```bash
-PAYMONGO_SECRET_KEY=sk_test_oERKy7jktXCAJVLuuAXo2wwd
-PAYMONGO_PUBLIC_KEY=pk_test_gi19LoEsvAufkCtaHBuZJ5vZ
-PAYMONGO_WEBHOOK_SECRET=whsk_DVj9irZkCLc62Npm88ducyAm
+PAYMONGO_SECRET_KEY=sk_test_xxx
+PAYMONGO_PUBLIC_KEY=pk_test_xxx
+PAYMONGO_WEBHOOK_SECRET=whsk_xxx
 PAYMONGO_MODE=test
 PAYMONGO_API_BASE=https://api.paymongo.com
 PAYMONGO_CHECKOUT_API_VERSION=v1
 PAYMONGO_ENABLE_RECURRING=True
+PAYMONGO_CREATE_CUSTOMER_RESOURCE=True
+PAYMONGO_CUSTOMER_API_VERSION=v2
+PAYMONGO_ATTACH_CUSTOMER_TO_CHECKOUT=True
+PAYMONGO_CHECKOUT_CUSTOMER_ID_FALLBACK=True
 PAYMONGO_ALLOWED_PAYMENT_METHODS=card,gcash,paymaya,grab_pay,qrph
 PAYMONGO_TIMEOUT=30
 PAYMONGO_WEBHOOK_TOLERANCE_SECONDS=300
@@ -43,6 +47,11 @@ Create:
 2. Product.
 3. Subscription Plan with server-side price and currency.
 4. Payment Button linked to the source, product, and plan.
+
+For a PayMongo Dashboard Payment Link, choose `PayMongo Payment Link` as the button checkout mode and enter:
+
+- The PayMongo link URL, for example `https://pm.link/org-.../b5vnlvt`.
+- The PayMongo reference number, for example `b5vnlvt`.
 
 Copy the generated embed snippet.
 
@@ -85,9 +94,11 @@ Django validates:
 
 Django creates a pending `Transaction` with a generated `internal_reference_id`.
 
+For `PayMongo Payment Link` buttons, Django records the link reference number and redirects the customer to the existing PayMongo link instead of creating a new Checkout Session.
+
 ## 5. Django Creates PayMongo Checkout
 
-Django sends a backend-only request to PayMongo Checkout Sessions using the configured secret key.
+For Hosted Checkout buttons, Django sends a backend-only request to PayMongo Checkout Sessions using the configured secret key.
 
 The checkout session includes:
 
@@ -106,6 +117,8 @@ The checkout session includes:
   - `internal_reference_id`
 
 The customer is redirected to PayMongo hosted checkout.
+
+For existing PayMongo Payment Link buttons, the payment link was already created in the PayMongo dashboard. Django does not control that link's amount, so the local `SubscriptionPlan.price` should match the PayMongo link amount.
 
 ## 6. PayMongo Returns The Customer
 
@@ -130,10 +143,19 @@ https://www.paratara.com/subscription/paymongo/webhook/
 Subscribe to:
 
 - `checkout_session.payment.paid`
+- `link.payment.paid`
 - `payment.paid`
 - `payment.failed`
 - `payment.refunded`
 - `payment.refund.updated`
+- `subscription.activated`
+- `subscription.past_due`
+- `subscription.unpaid`
+- `subscription.updated`
+- `subscription.invoice.paid`
+- `subscription.invoice.payment_failed`
+- `subscription.invoice.created`
+- `subscription.invoice.finalized`
 
 Django verifies `Paymongo-Signature` using `PAYMONGO_WEBHOOK_SECRET`.
 
@@ -143,9 +165,15 @@ Django stores each PayMongo event in `PayMongoWebhookEvent`.
 
 Duplicate event ids are ignored and return success without reprocessing.
 
+When an email is available, Django also creates a PayMongo Customer API resource and stores its id on the local `Customer.paymongo_customer_id`. The PayMongo dashboard Customers page is backed by the newer customer resource, so keep `PAYMONGO_CUSTOMER_API_VERSION=v2` and `PAYMONGO_CREATE_CUSTOMER_RESOURCE=True` if you want payers to appear there.
+
+For Hosted Checkout buttons, Django also sends `customer_id` when creating the Checkout Session if `PAYMONGO_ATTACH_CUSTOMER_TO_CHECKOUT=True`. If PayMongo rejects `customer_id` on the Checkout Session endpoint, Django retries once without it when `PAYMONGO_CHECKOUT_CUSTOMER_ID_FALLBACK=True`, so payment checkout is not blocked.
+
+For existing PayMongo Payment Link buttons, Django cannot attach a customer id before payment because the payment is created inside the PayMongo-hosted link. Django can still create/update local customers and subscriptions from the webhook, but PayMongo dashboard order history for that Customer depends on PayMongo's own Payment Link customer behavior.
+
 For successful payment events:
 
-1. Django finds the transaction by `internal_reference_id` metadata or PayMongo ids.
+1. Django finds the transaction by `internal_reference_id` metadata, PayMongo ids, or the stored PayMongo payment link reference number.
 2. Transaction status becomes `paid`.
 3. PayMongo ids and raw payload are stored.
 4. A local `Subscription` is activated or extended.
@@ -155,6 +183,14 @@ For failure/cancel/refund events:
 1. Transaction status is updated.
 2. Raw payload is stored.
 3. Refunded subscriptions linked to the transaction are cancelled.
+
+For PayMongo subscription lifecycle events:
+
+1. Django reads `subscription_id`, invoice id, invoice status, payment intent id, and PayMongo subscription status from the webhook payload.
+2. Django finds the local `Subscription` and `UserSubscription` by `paymongo_subscription_id`, or by the linked transaction when available.
+3. `subscription.updated` with `cancelled` or `incomplete_cancelled` marks local access as cancelled.
+4. `subscription.past_due`, `subscription.unpaid`, and `subscription.invoice.payment_failed` suspend local access and store the last PayMongo invoice/payment-intent ids in `billing_info`.
+5. `subscription.activated` and `subscription.invoice.paid` restore local access to active.
 
 ## 9. Test Mode Checklist
 

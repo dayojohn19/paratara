@@ -77,6 +77,14 @@ class userPoster(models.Model):
     name = models.CharField(max_length=64, blank=True,
                             default='Facebook not Connected')
     contact = models.CharField(max_length=128, blank=True)
+    mobile_number = models.CharField(max_length=40, blank=True)
+    address_line1 = models.CharField(max_length=180, blank=True)
+    address_line2 = models.CharField(max_length=180, blank=True)
+    address_city = models.CharField(max_length=100, blank=True)
+    address_state = models.CharField(max_length=100, blank=True)
+    address_postal_code = models.CharField(max_length=30, blank=True)
+    address_country = models.CharField(max_length=80, blank=True)
+    paymongo_billing_details = models.JSONField(default=dict, blank=True)
     photo = models.URLField(blank=True)
     posts = models.ManyToManyField(
         'home.allSchedules', blank=True, related_name='postLists')

@@ -48,7 +48,12 @@ def create_paypal_billing_plan(
     paypal_api_base = getattr(settings, "PAYPAL_API_BASE", "https://api-m.sandbox.paypal.com")
     url = f"{paypal_api_base}/v1/billing/plans"
 
-    interval_unit = "MONTH" if billing_interval == "monthly" else "YEAR"
+    interval_unit_map = {
+        "weekly": "WEEK",
+        "monthly": "MONTH",
+        "yearly": "YEAR",
+    }
+    interval_unit = interval_unit_map.get(billing_interval, "MONTH")
     payload = {
         "product_id": product_id,
         "name": plan_name,

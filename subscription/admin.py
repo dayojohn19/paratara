@@ -81,10 +81,19 @@ class PaymentButtonAdmin(admin.ModelAdmin):
         "product",
         "plan",
         "checkout_mode",
+        "payment_link_reference",
         "active",
     )
     list_filter = ("active", "checkout_mode", "source_website")
-    search_fields = ("public_id", "label", "source_website__name", "product__name", "plan__name")
+    search_fields = (
+        "public_id",
+        "label",
+        "payment_link_reference",
+        "payment_link_url",
+        "source_website__name",
+        "product__name",
+        "plan__name",
+    )
 
 
 @admin.register(Customer)
@@ -105,6 +114,8 @@ class TransactionAdmin(admin.ModelAdmin):
         "currency",
         "customer_email",
         "paymongo_checkout_session_id",
+        "paymongo_link_id",
+        "paymongo_reference_number",
         "paymongo_payment_id",
         "created_at",
     )
@@ -113,6 +124,8 @@ class TransactionAdmin(admin.ModelAdmin):
         "internal_reference_id",
         "customer_email",
         "paymongo_checkout_session_id",
+        "paymongo_link_id",
+        "paymongo_reference_number",
         "paymongo_payment_id",
         "paymongo_payment_intent_id",
     )

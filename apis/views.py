@@ -1,9 +1,10 @@
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 import json
 from django.http import HttpResponse
 # # Create your views here.
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework import status
 from .serializers import PaymentSerializer,ScheduleSerializer,BloggerSerializer,BlogsSerializer,StoreproductsSerializer
 from .models import Payments,Transaction, Blogger, Blogs, EmailSubscribers, Storeproducts
 from home.models import allSchedules
@@ -16,6 +17,7 @@ from django.utils.text import slugify
 from calendar import HTMLCalendar
 from datetime import date
 import secrets
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.conf import settings
 from openai import OpenAI
@@ -1042,47 +1044,42 @@ def getBlogs(request,bloggerID):
 # Storeproducts API views
 @api_view(['GET'])
 def get_storeproducts(request):
-    storeproducts = Storeproducts.objects.all()
+    storeproducts = Storeproducts.objects.all().order_by('name')
     serializer = StoreproductsSerializer(storeproducts, many=True)
     return Response(serializer.data)
 
 @api_view(['GET'])
 def get_storeproduct(request, pk):
-    try:
-        storeproduct = Storeproducts.objects.get(id=pk)
-        serializer = StoreproductsSerializer(storeproduct, many=False)
-        return Response(serializer.data)
-    except Storeproducts.DoesNotExist:
-        return Response({'error': 'Storeproduct not found'}, status=404)
+    storeproduct = get_object_or_404(Storeproducts, pk=pk)
+    serializer = StoreproductsSerializer(storeproduct, many=False)
+    return Response(serializer.data)
 
 @api_view(['POST'])
 def create_storeproduct(request):
     serializer = StoreproductsSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
-        return Response(serializer.data, status=201)
-    return Response(serializer.errors, status=400)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['PUT'])
+@api_view(['PUT', 'PATCH'])
 def update_storeproduct(request, pk):
-    try:
-        storeproduct = Storeproducts.objects.get(id=pk)
-        serializer = StoreproductsSerializer(storeproduct, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=400)
-    except Storeproducts.DoesNotExist:
-        return Response({'error': 'Storeproduct not found'}, status=404)
+    storeproduct = get_object_or_404(Storeproducts, pk=pk)
+    serializer = StoreproductsSerializer(
+        storeproduct,
+        data=request.data,
+        partial=request.method == 'PATCH',
+    )
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['DELETE'])
 def delete_storeproduct(request, pk):
-    try:
-        storeproduct = Storeproducts.objects.get(id=pk)
-        storeproduct.delete()
-        return Response({'message': 'Storeproduct deleted successfully'}, status=204)
-    except Storeproducts.DoesNotExist:
-        return Response({'error': 'Storeproduct not found'}, status=404)
+    storeproduct = get_object_or_404(Storeproducts, pk=pk)
+    storeproduct.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
     
 
 
@@ -1108,6 +1105,7 @@ def getRoutes(request):
 
 
 # Email Subscription Views
+@csrf_exempt
 @require_http_methods(["POST"])
 def subscribe_email(request):
     """Handle email subscription with IP tracking"""

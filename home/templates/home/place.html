@@ -1,4 +1,24 @@
-{% load static %} {% block body %}
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{% if page_title %}{{ page_title }}{% elif place.placename %}{{ place.placename }} Travel Guide | Paratara{% else %}Paratara{% endif %}</title>
+  <meta name="description" content="{% if meta_description %}{{ meta_description }}{% elif place.placename %}Discover {{ place.placename }} travel guides, resort options, local events, tourist spots, and shared trip schedules with Paratara.{% else %}Plan trips with Paratara.{% endif %}">
+  {% if canonical_url %}
+    <link rel="canonical" href="{{ canonical_url }}">
+  {% endif %}
+  {% if meta_image_url %}
+    <meta property="og:image" content="{{ meta_image_url }}">
+    <meta name="twitter:image" content="{{ meta_image_url }}">
+  {% endif %}
+  <meta property="og:title" content="{% if page_title %}{{ page_title }}{% elif place.placename %}{{ place.placename }} Travel Guide | Paratara{% else %}Paratara{% endif %}">
+  <meta property="og:description" content="{% if meta_description %}{{ meta_description }}{% elif place.placename %}Discover {{ place.placename }} travel guides, resort options, local events, tourist spots, and shared trip schedules with Paratara.{% else %}Plan trips with Paratara.{% endif %}">
+  <meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+{% block body %}
 
 {% include "home/placeJS.html" %}
 
@@ -753,7 +773,7 @@
     font-size: 1.25rem;
     color: var(--text);
     margin-bottom: 12px;
-    font-weight: 700;
+    font-weight: 300;
     line-height: 1.4;
   }
 
@@ -969,6 +989,7 @@
     padding: 0;
     color: var(--text);
     line-height: 1.6;
+    background-color: white;
   }
 
   .modal-image img {
@@ -2675,7 +2696,7 @@
           </svg>
         </button>
       </div>
-      <button id="openMapBtn" class="button button--ghost" type="button">
+      <button style="display: none;" id="openMapBtn" class="button button--ghost" type="button">
         <svg viewBox="0 0 16 16">
           <path fill-rule="evenodd" d="M15.817.113A.5.5 0 0 1 16 .5v14a.5.5 0 0 1-.402.49l-5 1a.502.502 0 0 1-.196 0L5.5 15.01l-4.902.98A.5.5 0 0 1 0 15.5v-14a.5.5 0 0 1 .402-.49l5-1a.5.5 0 0 1 .196 0L10.5.99l4.902-.98a.5.5 0 0 1 .415.103zM10 1.91l-4-.8v12.98l4 .8V1.91zm1 12.98 4-.8V1.11l-4 .8v12.98zm-6-.8V1.11l-4 .8v12.98l4-.8z"/>
         </svg>
@@ -3170,11 +3191,11 @@ const cards = blogsToShow
 
     return `
       <div class="blog-post">
-        <h3 class="blog-title">${blog.title}</h3>
+        <h3 class="blog-title">          <span class="blog-category category-${categoryClass}">
+            ${blog.category}
+          </span> ${blog.title} </h3>
 
-        <span class="blog-category category-${categoryClass}">
-          ${blog.category}
-        </span>
+
 
         <p class="blog-excerpt">${blog.summarize}</p>
 
@@ -3274,6 +3295,7 @@ container.innerHTML = cards;
 
 <script>
   function getPlan(whatPlan) {
+
     todaysMonth = parseInt(`{{currentMonth}}`);
     fetch(whatPlan, {
       headers: {
@@ -3293,7 +3315,7 @@ container.innerHTML = cards;
         xx = "/garden/map/"
         y = `${data['placeName'].toLowerCase().replace(/\s+/g, "-")}`
         c = xx + y
-        document.querySelector("#map-modal").src = c;
+        // document.querySelector("#map-modal").src = c;
         loadBlogs(data['placeName'])
         // console.log(data);
         resorts = data['placeResorts']
@@ -3352,6 +3374,7 @@ container.innerHTML = cards;
         // }
 
         placeEventItems = data['placeEvents'];
+        console.log('Data data: ',data)
         ii = 0;
         const today = new Date();
         today.setHours(0, 0, 0, 0); // Reset time to midnight for accurate date comparison
@@ -3361,6 +3384,7 @@ container.innerHTML = cards;
         let scheduleCount = 0;
 
         for (d in placeEventItems) {
+          console.log('Eevent',d)
           if (placeEventItems[d].fields.monthN == todaysMonth) {
             const eventDate = new Date(placeEventItems[d].fields.exactDate);
             if (eventDate >= today) {
@@ -3990,3 +4014,5 @@ container.innerHTML = cards;
 </script>
 
 {% endblock %}
+</body>
+</html>

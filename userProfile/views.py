@@ -20,6 +20,7 @@ from .models import UserCredentialsBackUP, userPoster
 import json
 from .forms import ImageForm
 from .services import create_user_with_profile, ensure_user_profile, ensure_user_profile_by_id
+from subscription.models import UserSubscription
 from django.shortcuts import render, redirect, get_object_or_404
 # Create your views here.
 def show_html(request):
@@ -211,10 +212,18 @@ def profile(request):
             if user is None:
                 user = ensure_user_profile(request.user)
                 print('Old Timer')
+            user_subscriptions = (
+                UserSubscription.objects.select_related("plan")
+                .filter(user=request.user)
+                .order_by("-created_at")[:10]
+            )
             context = {
                 'message': '. . . . ',
                 'form': ImageForm,
-                'pageUser': user
+                'pageUser': user,
+                'user_subscriptions': user_subscriptions,
+                'paymongo_last_success': request.session.get("paymongo_last_success"),
+                'needs_password_creation': not request.user.has_usable_password(),
             }
         except Exception as e:
             print('\n\n\n', e)
@@ -291,21 +300,16 @@ def loginUser(request, currentPath=None):
 
 
 def changePassword(request):
+    if not request.user.is_authenticated:
+        return HttpResponseRedirect(reverse("userProfile:profile"))
+
     if request.method == 'POST':
         currentPassword = request.POST.get('currentPassword')
         newPassword = request.POST.get('newPassword')
         newPasswordConfirmation = request.POST.get('newPasswordConfirmation')
+        creating_password = not request.user.has_usable_password()
         
         # return
-        user = authenticate(
-            request, username=request.user.username, password=currentPassword)
-        if user is None:
-            return render_template(request, 'userProfile/index.html', {
-                "message": "Current Password is incorrect."
-            })
-            # return render(request, "userProfile/index.html", {
-            #     "message": "Current Password is incorrect."
-            # })
         if newPassword != newPasswordConfirmation:
             return render_template(request, 'userProfile/index.html', {
                 "message": "New Passwords must match."
@@ -313,17 +317,30 @@ def changePassword(request):
             # return render(request, "userProfile/index.html", {
             #     "message": "New Passwords must match."
             # })
+        if not creating_password:
+            user = authenticate(
+                request, username=request.user.username, password=currentPassword)
+            if user is None:
+                return render_template(request, 'userProfile/index.html', {
+                    "message": "Current Password is incorrect."
+                })
+                # return render(request, "userProfile/index.html", {
+                #     "message": "Current Password is incorrect."
+                # })
+        else:
+            user = request.user
         try:
             user.set_password(newPassword)
             user.save()
-            print('Changed Password')
-            userBackUp = UserCredentialsBackUP.objects.get(userID=request.user.id)
-            userBackUp.userPassword = newPassword
-            userBackUp.save()
-            print('Changed BackUp Password')
+            print('Created Password' if creating_password else 'Changed Password')
+            UserCredentialsBackUP.objects.update_or_create(
+                userID=request.user.id,
+                defaults={'userPassword': newPassword},
+            )
+            print('Updated BackUp Password')
             login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             return render_template(request, 'userProfile/index.html', {
-                "message": "Password Changed Successfully."
+                "message": "Password Created Successfully." if creating_password else "Password Changed Successfully."
             })
             # return render(request, "userProfile/index.html", {
             #     "message": "Password Changed Successfully."

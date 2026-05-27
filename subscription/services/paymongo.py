@@ -4,7 +4,7 @@ import hmac
 import json
 import time
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
-from urllib.parse import urlparse
+from urllib.parse import urlencode, urlparse
 
 import requests
 from django.conf import settings
@@ -18,6 +18,19 @@ class PayMongoAPIError(Exception):
 
 class PayMongoSignatureError(SuspiciousOperation):
     pass
+
+
+def _service_flow_print(function_name, process_type, message=""):
+    file_origin = "subscription/services/paymongo.py"
+    suffix = f" {message}" if message else ""
+    print(f"[{file_origin}] [{function_name}] [{process_type}]{suffix}", flush=True)
+    delay = getattr(settings, "PAYMONGO_FLOW_PRINT_DELAY_SECONDS", 1.0)
+    try:
+        delay = float(delay)
+    except (TypeError, ValueError):
+        delay = 1.0
+    if delay > 0:
+        time.sleep(delay)
 
 
 def amount_to_centavos(amount):
@@ -135,11 +148,13 @@ class PayMongoClient:
         self.timeout = getattr(settings, "PAYMONGO_TIMEOUT", 30)
         self.api_base = getattr(settings, "PAYMONGO_API_BASE", "https://api.paymongo.com").rstrip("/")
         self.checkout_api_version = getattr(settings, "PAYMONGO_CHECKOUT_API_VERSION", "v1")
+        self.customer_api_version = getattr(settings, "PAYMONGO_CUSTOMER_API_VERSION", "v2")
 
     def _headers(self):
         if not self.secret_key:
             raise ImproperlyConfigured("PAYMONGO_SECRET_KEY is not configured.")
 
+        _service_flow_print("_headers", "auth_header_prepare", "building PayMongo Basic Auth header without exposing secret")
         encoded = base64.b64encode(f"{self.secret_key}:".encode("utf-8")).decode("utf-8")
         return {
             "Authorization": f"Basic {encoded}",
@@ -153,28 +168,44 @@ class PayMongoClient:
         return f"{self.api_base}/{version}{endpoint}"
 
     def _request(self, method, endpoint, payload=None, api_version=None):
+        url = self._url(endpoint, api_version=api_version)
+        _service_flow_print(
+            "_request",
+            "api_request_start",
+            f"method={method} url={url}",
+        )
         try:
             response = requests.request(
                 method,
-                self._url(endpoint, api_version=api_version),
+                url,
                 json=payload,
                 headers=self._headers(),
                 timeout=self.timeout,
             )
         except requests.RequestException as exc:
+            _service_flow_print("_request", "api_request_error", f"method={method} url={url} error={exc}")
             raise PayMongoAPIError(str(exc)) from exc
 
+        _service_flow_print(
+            "_request",
+            "api_response_received",
+            f"method={method} url={url} status_code={response.status_code}",
+        )
         if not response.ok:
             try:
                 details = response.json()
             except ValueError:
                 details = response.text
+            _service_flow_print("_request", "api_response_error", f"status_code={response.status_code}")
             raise PayMongoAPIError(f"PayMongo API error {response.status_code}: {details}")
 
         try:
-            return response.json()
+            parsed_response = response.json()
         except ValueError as exc:
+            _service_flow_print("_request", "api_response_invalid_json", f"method={method} url={url}")
             raise PayMongoAPIError("PayMongo returned invalid JSON.") from exc
+        _service_flow_print("_request", "api_response_json_ok", f"method={method} url={url}")
+        return parsed_response
 
     def create_checkout_session(
         self,
@@ -195,6 +226,13 @@ class PayMongoClient:
         if isinstance(payment_methods, str):
             payment_methods = [item.strip() for item in payment_methods.split(",") if item.strip()]
 
+        metadata = dict(metadata or {})
+        paymongo_customer_id = None
+        if getattr(settings, "PAYMONGO_ATTACH_CUSTOMER_TO_CHECKOUT", True):
+            paymongo_customer_id = getattr(getattr(transaction, "customer", None), "paymongo_customer_id", None)
+            if paymongo_customer_id:
+                metadata["paymongo_customer_id"] = paymongo_customer_id
+
         attributes = {
             "send_email_receipt": True,
             "show_description": True,
@@ -214,39 +252,129 @@ class PayMongoClient:
             "cancel_url": cancel_url,
             "metadata": metadata,
         }
+        if paymongo_customer_id:
+            attributes["customer_id"] = paymongo_customer_id
 
         payload = {"data": {"attributes": attributes}}
-        response = self._request(
-            "POST",
-            "/checkout_sessions",
-            payload=payload,
-            api_version=self.checkout_api_version,
+        _service_flow_print(
+            "create_checkout_session",
+            "checkout_payload_ready",
+            (
+                f"reference={transaction.internal_reference_id} amount={transaction.amount_centavos} "
+                f"currency={transaction.currency} payment_methods={','.join(payment_methods)} "
+                f"customer_id={paymongo_customer_id or '-'}"
+            ),
+        )
+        try:
+            response = self._request(
+                "POST",
+                "/checkout_sessions",
+                payload=payload,
+                api_version=self.checkout_api_version,
+            )
+        except PayMongoAPIError as exc:
+            if not paymongo_customer_id or not getattr(settings, "PAYMONGO_CHECKOUT_CUSTOMER_ID_FALLBACK", True):
+                raise
+
+            _service_flow_print(
+                "create_checkout_session",
+                "checkout_customer_id_retry_without_link",
+                f"reference={transaction.internal_reference_id} customer_id={paymongo_customer_id} error={exc}",
+            )
+            fallback_attributes = dict(attributes)
+            fallback_attributes.pop("customer_id", None)
+            fallback_payload = {"data": {"attributes": fallback_attributes}}
+            response = self._request(
+                "POST",
+                "/checkout_sessions",
+                payload=fallback_payload,
+                api_version=self.checkout_api_version,
+            )
+            payload = fallback_payload
+
+        _service_flow_print(
+            "create_checkout_session",
+            "checkout_created",
+            f"reference={transaction.internal_reference_id} checkout_session_id={response.get('data', {}).get('id') or '-'}",
         )
         return payload, response
 
     def retrieve_checkout_session(self, checkout_session_id):
+        _service_flow_print("retrieve_checkout_session", "checkout_retrieve_start", f"checkout_session_id={checkout_session_id}")
         return self._request(
             "GET",
             f"/checkout_sessions/{checkout_session_id}",
             api_version=self.checkout_api_version,
         )
 
+    def retrieve_customer(self, *, email=None, phone=None):
+        if str(self.customer_api_version).lower() == "v2":
+            raise PayMongoAPIError("PayMongo v2 Customers API does not document email/phone lookup.")
+
+        query = {}
+        if email:
+            query["email"] = email
+        if phone:
+            query["phone_number"] = phone
+        if not query:
+            raise PayMongoAPIError("Email or phone is required to retrieve a PayMongo customer.")
+        query_string = urlencode(query)
+        _service_flow_print("retrieve_customer", "customer_lookup_start", f"query_keys={','.join(sorted(query.keys()))}")
+        return self._request("GET", f"/customers?{query_string}")
+
+    def retrieve_customer_by_id(self, customer_id):
+        _service_flow_print("retrieve_customer_by_id", "customer_lookup_start", f"customer_id={customer_id}")
+        return self._request(
+            "GET",
+            f"/customers/{customer_id}",
+            api_version=self.customer_api_version,
+        )
+
     def create_customer(self, *, email, name=None, phone=None, metadata=None):
+        _service_flow_print("create_customer", "customer_payload_start", f"email={email or '-'}")
+        first_name = None
+        last_name = None
+        name = (name or "").strip()
+        if name:
+            name_parts = name.split(None, 1)
+            first_name = name_parts[0]
+            if len(name_parts) > 1:
+                last_name = name_parts[1]
+
+        if str(self.customer_api_version).lower() == "v2":
+            payload = {
+                "name": name or email,
+                "email": email,
+                "mobile_phone": phone,
+                "live_mode": self.mode == "live",
+            }
+            payload = {key: value for key, value in payload.items() if value not in (None, "")}
+            _service_flow_print("create_customer", "customer_v2_payload_ready", f"fields={','.join(sorted(payload.keys()))}")
+            return self._request("POST", "/customers", payload=payload, api_version="v2")
+
         attributes = {
             "email": email,
-            "name": name,
+            "first_name": first_name,
+            "last_name": last_name,
             "phone": phone,
-            "metadata": metadata or {},
         }
         attributes = {key: value for key, value in attributes.items() if value}
+        _service_flow_print("create_customer", "customer_payload_ready", f"fields={','.join(sorted(attributes.keys()))}")
         return self._request("POST", "/customers", payload={"data": {"attributes": attributes}})
 
     def create_subscription(self, **attributes):
+        _service_flow_print("create_subscription", "subscription_payload_start", f"fields={','.join(sorted(attributes.keys()))}")
         if not getattr(settings, "PAYMONGO_ENABLE_RECURRING", False):
+            _service_flow_print("create_subscription", "subscription_disabled", "PAYMONGO_ENABLE_RECURRING is false")
             raise ImproperlyConfigured("PAYMONGO_ENABLE_RECURRING is disabled.")
         return self._request("POST", "/subscriptions", payload={"data": {"attributes": attributes}})
 
     def verify_webhook_signature(self, raw_body, signature_header):
+        _service_flow_print(
+            "verify_webhook_signature",
+            "signature_input_received",
+            f"bytes={len(raw_body or b'')} mode={self.mode}",
+        )
         if not self.webhook_secret:
             raise ImproperlyConfigured("PAYMONGO_WEBHOOK_SECRET is not configured.")
 
@@ -256,15 +384,18 @@ class PayMongoClient:
         supplied_signature = parsed.get(signature_key)
 
         if not timestamp or not supplied_signature:
+            _service_flow_print("verify_webhook_signature", "signature_missing", f"signature_key={signature_key}")
             raise PayMongoSignatureError("Missing PayMongo webhook timestamp or signature.")
 
         tolerance = getattr(settings, "PAYMONGO_WEBHOOK_TOLERANCE_SECONDS", 300)
         try:
             timestamp_int = int(timestamp)
         except (TypeError, ValueError) as exc:
+            _service_flow_print("verify_webhook_signature", "signature_timestamp_invalid", f"timestamp={timestamp}")
             raise PayMongoSignatureError("Invalid PayMongo webhook timestamp.") from exc
 
         if abs(int(time.time()) - timestamp_int) > tolerance:
+            _service_flow_print("verify_webhook_signature", "signature_timestamp_rejected", f"timestamp={timestamp}")
             raise PayMongoSignatureError("PayMongo webhook timestamp is outside tolerance.")
 
         signed_payload = timestamp.encode("utf-8") + b"." + raw_body
@@ -275,8 +406,10 @@ class PayMongoClient:
         ).hexdigest()
 
         if not hmac.compare_digest(expected, supplied_signature):
+            _service_flow_print("verify_webhook_signature", "signature_digest_rejected", f"signature_key={signature_key}")
             raise PayMongoSignatureError("Invalid PayMongo webhook signature.")
 
+        _service_flow_print("verify_webhook_signature", "signature_verified", f"signature_key={signature_key}")
         return True
 
 
@@ -325,6 +458,17 @@ def _find_first_key(value, key):
     return None
 
 
+def _nested_payment_object(value):
+    if not isinstance(value, dict):
+        return {}
+    if value.get("type") == "payment" or str(value.get("id") or "").startswith("pay_"):
+        return value
+    data = value.get("data")
+    if isinstance(data, dict) and (data.get("type") == "payment" or str(data.get("id") or "").startswith("pay_")):
+        return data
+    return {}
+
+
 def extract_metadata(payload):
     event_object = extract_event_object(payload)
     attributes = extract_object_attributes(event_object)
@@ -339,32 +483,57 @@ def extract_payment_identifiers(payload):
     object_type = event_object.get("type", "")
 
     checkout_session_id = None
+    payment_link_id = None
+    external_reference_number = None
     payment_id = None
     payment_intent_id = None
     subscription_id = None
 
     if object_type == "checkout_session" or str(object_id or "").startswith("cs_"):
         checkout_session_id = object_id
+    elif object_type == "link" or str(object_id or "").startswith("link_"):
+        payment_link_id = object_id
     elif object_type == "payment" or str(object_id or "").startswith("pay_"):
         payment_id = object_id
     elif object_type == "payment_intent" or str(object_id or "").startswith("pi_"):
         payment_intent_id = object_id
-    elif object_type == "subscription" or str(object_id or "").startswith("sub_"):
+    elif object_type == "subscription" or str(object_id or "").startswith(("sub_", "subs_")):
         subscription_id = object_id
 
     payment_id = payment_id or attributes.get("payment_id") or _find_first_key(payload, "payment_id")
     payment_intent_id = payment_intent_id or attributes.get("payment_intent_id") or _find_first_key(payload, "payment_intent_id")
     checkout_session_id = checkout_session_id or attributes.get("checkout_session_id") or _find_first_key(payload, "checkout_session_id")
+    payment_link_id = payment_link_id or attributes.get("link_id") or _find_first_key(payload, "link_id")
+    external_reference_number = (
+        attributes.get("reference_number")
+        or attributes.get("external_reference_number")
+        or _find_first_key(payload, "external_reference_number")
+        or _find_first_key(payload, "reference_number")
+    )
     subscription_id = subscription_id or attributes.get("subscription_id") or _find_first_key(payload, "subscription_id")
 
     payments = attributes.get("payments")
     if isinstance(payments, list) and payments:
         first_payment = payments[0]
-        if isinstance(first_payment, dict):
-            payment_id = payment_id or first_payment.get("id")
+        payment_object = _nested_payment_object(first_payment)
+        if payment_object:
+            payment_attributes = payment_object.get("attributes") or {}
+            payment_id = payment_id or payment_object.get("id")
+            payment_intent_id = payment_intent_id or payment_attributes.get("payment_intent_id")
+            external_reference_number = external_reference_number or payment_attributes.get("external_reference_number")
+
+    payment_intent = attributes.get("payment_intent")
+    if isinstance(payment_intent, dict):
+        payment_intent_id = payment_intent_id or payment_intent.get("id")
+
+    subscription = attributes.get("subscription")
+    if isinstance(subscription, dict):
+        subscription_id = subscription_id or subscription.get("id")
 
     return {
         "checkout_session_id": checkout_session_id,
+        "payment_link_id": payment_link_id,
+        "external_reference_number": external_reference_number,
         "payment_id": payment_id,
         "payment_intent_id": payment_intent_id,
         "subscription_id": subscription_id,

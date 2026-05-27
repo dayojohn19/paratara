@@ -1,9 +1,9 @@
-
 let currentStep = 1;
 const totalSteps = 4;
 
 function updateProgressBar() {
   let progressicon = document.getElementById("progressFill");
+  if (!progressicon) return;
   const steps = document.querySelectorAll(".progress-step");
   const percent = ((currentStep - 1) / (totalSteps - 1)) * 100;
   progressicon.style.width = percent + "%";
@@ -13,7 +13,7 @@ function updateProgressBar() {
   });
 }
 
-// ✅ Disable validation on hidden steps
+// Disable validation on hidden steps.
 function setStepRequirements() {
   document.querySelectorAll(".step").forEach((step, index) => {
     const inputs = step.querySelectorAll("[required]");
@@ -29,18 +29,15 @@ function setStepRequirements() {
 
 function nextStep() {
   const current = document.querySelector(`.step[data-step="${currentStep}"]`);
+  if (!current) return;
   const invalidField = current.querySelector(":invalid");
 
   if (invalidField) {
-    // Show browser popup for the invalid field
     invalidField.reportValidity();
-
-    // Optional: scroll into view if it's lower in the form
     invalidField.scrollIntoView({ behavior: "smooth", block: "center" });
-    return; // Stop here — don’t go to next step
+    return;
   }
 
-  // If valid — proceed to next step
   current.classList.remove("active");
   currentStep++;
   const next = document.querySelector(`.step[data-step="${currentStep}"]`);
@@ -52,31 +49,25 @@ function nextStep() {
 
 function prevStep() {
   if (currentStep > 1) {
-    document.querySelector(`.step[data-step="${currentStep}"]`).classList.remove("active");
+    const current = document.querySelector(`.step[data-step="${currentStep}"]`);
+    if (current) current.classList.remove("active");
     currentStep--;
-    document.querySelector(`.step[data-step="${currentStep}"]`).classList.add("active");
+    const previous = document.querySelector(`.step[data-step="${currentStep}"]`);
+    if (previous) previous.classList.add("active");
     setStepRequirements();
     updateProgressBar();
   }
 }
 
-// Initialize
-
-
 document.addEventListener("DOMContentLoaded", () => {
   setStepRequirements();
   updateProgressBar();
   const formschedule = document.querySelector("#schedule_form");
+  if (!formschedule) return;
 
-  formschedule.addEventListener("submit", (event) => {
-    // just to see what happens before submission
-    // enable everything before sending
+  formschedule.addEventListener("submit", () => {
     formschedule.querySelectorAll("[disabled]").forEach(input => {
-
       input.disabled = false;
     });
-
-
   });
 });
-

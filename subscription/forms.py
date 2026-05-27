@@ -1,3 +1,5 @@
+from urllib.parse import urlparse
+
 from django import forms
 from django.utils.text import slugify
 
@@ -127,6 +129,8 @@ class PaymentButtonForm(forms.ModelForm):
             "success_url",
             "cancel_url",
             "failed_url",
+            "payment_link_url",
+            "payment_link_reference",
         ]
 
     def __init__(self, *args, **kwargs):
@@ -134,3 +138,37 @@ class PaymentButtonForm(forms.ModelForm):
         self.fields["source_website"].queryset = SourceWebsite.objects.filter(active=True).order_by("name")
         self.fields["product"].queryset = SubscriptionProduct.objects.order_by("name")
         self.fields["plan"].queryset = SubscriptionPlan.objects.filter(status="active").order_by("price", "name")
+        self.fields["payment_link_url"].required = False
+        self.fields["payment_link_reference"].required = False
+
+    def clean_payment_link_reference(self):
+        reference = (self.cleaned_data.get("payment_link_reference") or "").strip()
+        return reference or None
+
+    def clean(self):
+        cleaned_data = super().clean()
+        checkout_mode = cleaned_data.get("checkout_mode")
+        payment_link_url = (cleaned_data.get("payment_link_url") or "").strip()
+        payment_link_reference = cleaned_data.get("payment_link_reference")
+
+        if checkout_mode == "paymongo_link":
+            if not payment_link_url:
+                self.add_error("payment_link_url", "Payment link URL is required for PayMongo Payment Link buttons.")
+            if not payment_link_reference and payment_link_url:
+                parsed_path = urlparse(payment_link_url).path.rstrip("/")
+                payment_link_reference = parsed_path.rsplit("/", 1)[-1] if parsed_path else ""
+                cleaned_data["payment_link_reference"] = payment_link_reference or None
+            if not payment_link_reference:
+                self.add_error("payment_link_reference", "Reference number is required for PayMongo Payment Link buttons.")
+
+        if payment_link_reference:
+            duplicate_qs = PaymentButton.objects.filter(
+                checkout_mode="paymongo_link",
+                payment_link_reference__iexact=payment_link_reference,
+            )
+            if self.instance and self.instance.pk:
+                duplicate_qs = duplicate_qs.exclude(pk=self.instance.pk)
+            if duplicate_qs.exists():
+                self.add_error("payment_link_reference", "A PayMongo Payment Link button with this reference already exists.")
+
+        return cleaned_data

@@ -1,10 +1,12 @@
 from django.contrib.auth import get_user_model
-from django.test import TestCase
+from django.test import TestCase, override_settings
+from django.urls import reverse
 
 from .models import UserCredentialsBackUP, userPoster
 from .services import create_user_with_profile, ensure_user_profile, get_user_profile_by_id
 
 
+@override_settings(SECURE_SSL_REDIRECT=False)
 class UserProfileServiceTests(TestCase):
     def test_create_user_with_profile_links_user_and_profile(self):
         user, profile = create_user_with_profile(
@@ -50,3 +52,42 @@ class UserProfileServiceTests(TestCase):
         self.assertEqual(profile.userID, user.pk)
         self.assertEqual(user.additionalCreds_id, profile.pk)
         self.assertEqual(userPoster.objects.filter(userID=user.pk).count(), 1)
+
+    def test_paymongo_user_can_create_first_password_without_current_password(self):
+        User = get_user_model()
+        user = User.objects.create_user(username="paid@example.com", email="paid@example.com")
+        user.set_unusable_password()
+        user.save(update_fields=["password"])
+        UserCredentialsBackUP.objects.create(userID=user.pk, userPassword="paymongo:txn")
+        ensure_user_profile(user, contact="paid@example.com")
+        self.client.force_login(user)
+
+        response = self.client.post(
+            reverse("userProfile:changepsw"),
+            {
+                "newPassword": "created-pass-123",
+                "newPasswordConfirmation": "created-pass-123",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        user.refresh_from_db()
+        self.assertTrue(user.check_password("created-pass-123"))
+        self.assertEqual(
+            UserCredentialsBackUP.objects.get(userID=user.pk).userPassword,
+            "created-pass-123",
+        )
+        self.assertEqual(str(self.client.session["_auth_user_id"]), str(user.pk))
+
+    def test_paymongo_user_profile_shows_create_password_label(self):
+        User = get_user_model()
+        user = User.objects.create_user(username="label@example.com", email="label@example.com")
+        user.set_unusable_password()
+        user.save(update_fields=["password"])
+        ensure_user_profile(user, contact="label@example.com")
+        self.client.force_login(user)
+
+        response = self.client.get(reverse("userProfile:profile"))
+
+        self.assertContains(response, "Create Password")
+        self.assertNotContains(response, "Old password")
