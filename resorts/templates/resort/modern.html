@@ -78,11 +78,8 @@ section {
     display: flex;
     align-items: flex-end;
     justify-content: center;
-    border-bottom-left-radius: var(--radius-lg);
-    border-bottom-right-radius: var(--radius-lg);
     overflow: hidden;
     margin: 0 auto;
-    max-width: 1320px;
     box-shadow: var(--shadow);
 }
 
@@ -124,7 +121,7 @@ section {
 }
 
 .qr-badge {
-    display: none;
+    display: inline-flex;
     align-items: center;
     gap: 0.5rem;
     padding: 0.55rem 1.15rem;
@@ -1344,7 +1341,7 @@ section {
                 <span id="resort-email">Use Contact to email us</span>
             </div>
         </div>
-        <small>© 2022 Company, Inc</small>
+        <small>© 2026 Paratara demo listing</small>
     </footer>
 
     <!-- Contact Form Modal -->
@@ -2242,7 +2239,7 @@ section {
                 // Prepare QR viewer content based on website URL
                 const resortSlug = data.resort_name || '';
                 const placeSlug = placeName || '';
-                const websiteURL = `https://paratara.com/${placeSlug}/check/${resortSlug}`;
+                const websiteURL = data.resort_websiteURL || `https://paratara.com/${placeSlug}/check/${resortSlug}`;
                 const qrImgEl = document.getElementById('qr-code-img');
                 const qrTitleEl = document.getElementById('qr-code-title');
                 const qrLinkEl = document.getElementById('qr-code-link');

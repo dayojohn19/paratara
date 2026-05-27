@@ -237,6 +237,7 @@ class resortItem(models.Model):
             "resort_contactEmail": self.contactEmail,
             "resort_whatsappNumber": self.whatsappNumber,
             "resort_open_hours": self.open_hours,
+            "resort_websiteURL": self.websiteURL,
             "resort_promotionalVideo": self.promotionalVideo,
             "resort_headerImage": self.headerImage,
             "resort_latitude": self.latitude,

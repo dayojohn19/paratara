@@ -1,7 +1,6 @@
 .container-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-  gap: 1rem;
   align-items: stretch;
   padding: 0.25rem 0 2rem;
 }
@@ -13,7 +12,7 @@
   aspect-ratio: 4 / 5;
   overflow: hidden;
   color: #ffffff;
-  background-color: #dfe7e2;
+
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
@@ -29,9 +28,7 @@
   position: absolute;
   inset: 0;
   z-index: -1;
-  background:
-    linear-gradient(180deg, rgba(12, 28, 25, 0.08) 0%, rgba(12, 28, 25, 0.7) 76%),
-    linear-gradient(135deg, rgba(36, 119, 98, 0.22), rgba(45, 111, 180, 0.18));
+
 }
 
 .container-item:hover,
@@ -128,7 +125,7 @@
 @media (max-width: 760px) {
   .container-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.7rem;
+
   }
 
   .container-item,
