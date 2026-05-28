@@ -41,12 +41,12 @@ PAYPAL_SUBSCRIPTION_PLAN_ID = os.getenv(
 PAYPAL_SUBSCRIPTION_RETURN_URL = getattr(
     settings,
     'PAYPAL_SUBSCRIPTION_RETURN_URL',
-    os.getenv('PAYPAL_SUBSCRIPTION_RETURN_URL', 'https://paratara.com/resortManagement/subscription/'),
+    os.getenv('PAYPAL_SUBSCRIPTION_RETURN_URL', 'https://www.paratara.com/resortManagement/subscription/'),
 )
 PAYPAL_SUBSCRIPTION_CANCEL_URL = getattr(
     settings,
     'PAYPAL_SUBSCRIPTION_CANCEL_URL',
-    os.getenv('PAYPAL_SUBSCRIPTION_CANCEL_URL', 'https://paratara.com/resortManagement/subscription/?cancel=1'),
+    os.getenv('PAYPAL_SUBSCRIPTION_CANCEL_URL', 'https://www.paratara.com/resortManagement/subscription/?cancel=1'),
 )
 PAYPAL_SUBSCRIPTION_BRAND = getattr(
     settings,

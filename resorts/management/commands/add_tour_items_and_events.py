@@ -140,7 +140,7 @@ class Command(BaseCommand):
                             description=f"{pkg.PackageTitle} hosted by {resort_label}.",
                             information="Includes local guidance and standard inclusions. See manager notes for details.",
                             price=1200 + (pkg_index * 300) + (item_index * 200),
-                            website=f"https://paratara.com/resorts/{resort_slug}/tour/{pkg.id}/{item_index}",
+                            website=f"https://www.paratara.com/resorts/{resort_slug}/tour/{pkg.id}/{item_index}",
                         )
 
                         # Avoid triggering OpenAI-based auto-event creation in resorts/signals.py
@@ -228,7 +228,7 @@ class Command(BaseCommand):
                                 host_name=resort.RealName or resort.name or "",
                                 host_link=f"/resorts/{resort.slug or resort.name}/",
                                 scheduleTypeAndMode="Resort Tour Package",
-                                scheduleWebsite=f"https://paratara.com/resorts/{resort.slug or resort.name}/",
+                                scheduleWebsite=f"https://www.paratara.com/resorts/{resort.slug or resort.name}/",
                                 dateN=day,
                                 monthN=month,
                                 yearN=year,

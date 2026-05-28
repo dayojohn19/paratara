@@ -37,7 +37,7 @@ class Command(BaseCommand):
                         description=f"Chef-picked specialty dish #{idx} at {base_name}.",
                         information="Includes seasonal ingredients and island spices.",
                         price=1200 + idx * 150,
-                        website=f"https://paratara.com/{place_slug}/food/{idx}",
+                        website=f"https://www.paratara.com/{place_slug}/food/{idx}",
                     )
 
                     for image_index in range(1, 3):

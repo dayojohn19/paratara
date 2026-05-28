@@ -86,7 +86,7 @@ class Command(BaseCommand):
                             description=f"Room option {item_index} for {resort_label}.",
                             information="Includes breakfast and Wi‑Fi.",
                             price=2500 + (acc_index * 400) + (item_index * 250),
-                            website=f"https://paratara.com/{resort_slug}/stay/{acc_index}/{item_index}",
+                            website=f"https://www.paratara.com/{resort_slug}/stay/{acc_index}/{item_index}",
                         )
                         acc.subPackages.add(item)
                         existing_items.append(item)

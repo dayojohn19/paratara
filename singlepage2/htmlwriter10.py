@@ -21,9 +21,8 @@ logger = logging.getLogger(__name__)
 
 def mark_editable_blog_body(body_html):
     soup = BeautifulSoup(body_html or "", "html.parser")
-    for idx, editable_block in enumerate(soup.find_all(["h2", "p"])):
-        editable_block["data-blog-edit-index"] = str(idx)
-        editable_block["data-blog-edit-tag"] = editable_block.name
+    for idx, paragraph in enumerate(soup.find_all("p")):
+        paragraph["data-blog-edit-index"] = str(idx)
     return str(soup)
 
 
@@ -426,23 +425,6 @@ img {{
     height: auto;
     margin: 1.4rem 0;
     border-radius: 10px;
-}}
-
-#blog-editable-body img,
-#blog-editable-body .editable-blog-image {{
-    display: block;
-    width: min(100%, 860px);
-    max-width: 100%;
-    height: auto;
-    margin: 1.35rem auto;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    background: #ffffff;
-    box-shadow: 0 10px 28px rgba(39, 51, 47, 0.12);
-}}
-
-#blog-editable-body [data-editing="true"] img {{
-    cursor: default;
 }}
 
 .navbar {{
@@ -1161,12 +1143,6 @@ function getParagraphCleanHTML(paragraph) {{
     return clone.innerHTML;
 }}
 
-function paragraphHasVisibleContent(paragraph) {{
-    const clone = paragraph.cloneNode(true);
-    clone.querySelectorAll('.blog-edit-button, .blog-paragraph-tools').forEach(el => el.remove());
-    return Boolean(clone.textContent.trim() || clone.querySelector('img[src]'));
-}}
-
 function placeCaretAtEnd(element) {{
     const range = document.createRange();
     range.selectNodeContents(element);
@@ -1183,8 +1159,8 @@ function attachParagraphEditButton(paragraph) {{
     button.type = 'button';
     button.className = 'blog-edit-button';
     button.innerHTML = '&#9998;';
-    button.title = 'Edit section';
-    button.setAttribute('aria-label', 'Edit section');
+    button.title = 'Edit paragraph';
+    button.setAttribute('aria-label', 'Edit paragraph');
     button.addEventListener('click', () => startParagraphEdit(paragraph));
     paragraph.appendChild(button);
 }}
@@ -1193,7 +1169,7 @@ function setupEditableParagraphs() {{
     const body = document.getElementById('blog-editable-body');
     if (!body) return;
 
-    body.querySelectorAll('h2[data-blog-edit-index], p[data-blog-edit-index]').forEach(paragraph => {{
+    body.querySelectorAll('p[data-blog-edit-index]').forEach(paragraph => {{
         attachParagraphEditButton(paragraph);
     }});
 }}
@@ -1275,10 +1251,10 @@ function startParagraphEdit(paragraph) {{
 async function saveParagraphEdit(paragraph, tools) {{
     const status = tools.querySelector('.blog-edit-status');
     const saveButton = tools.querySelector('.blog-save-button');
-    const editedHTML = getParagraphCleanHTML(paragraph).trim();
+    const editedText = getParagraphCleanText(paragraph);
 
-    if (!paragraphHasVisibleContent(paragraph)) {{
-        status.textContent = 'Section cannot be empty.';
+    if (!editedText) {{
+        status.textContent = 'Paragraph cannot be empty.';
         status.classList.add('error');
         return;
     }}
@@ -1300,8 +1276,7 @@ async function saveParagraphEdit(paragraph, tools) {{
                 title_slug: blogTitleSlug,
                 page_url: window.location.pathname,
                 paragraph_index: Number(paragraph.dataset.blogEditIndex),
-                editable_tag: paragraph.dataset.blogEditTag || paragraph.tagName.toLowerCase(),
-                edited_html: editedHTML
+                edited_text: editedText
             }})
         }});
 
@@ -1311,7 +1286,8 @@ async function saveParagraphEdit(paragraph, tools) {{
         }}
 
         updateVisibleLastUpdated(data);
-        finishParagraphEdit(paragraph, tools, data.edited_html || editedHTML);
+        paragraph.textContent = editedText;
+        finishParagraphEdit(paragraph, tools, paragraph.innerHTML);
     }} catch (err) {{
         console.error("Error saving paragraph:", err);
         saveButton.disabled = false;

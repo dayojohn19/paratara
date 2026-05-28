@@ -100,7 +100,7 @@ class Command(BaseCommand):
                             description=f"{pkg.PackageTitle} experience at {resort_label}.",
                             information="Includes basic inclusions and local guidance.",
                             price=500 + (pkg_index * 200) + (item_index * 150),
-                            website=f"https://paratara.com/{resort_slug}/activity/{pkg_index}/{item_index}",
+                            website=f"https://www.paratara.com/{resort_slug}/activity/{pkg_index}/{item_index}",
                         )
                         pkg.subPackages.add(item)
                         existing_items.append(item)

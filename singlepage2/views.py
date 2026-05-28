@@ -14,6 +14,7 @@ import json
 from ipaddress import ip_address
 from typing import Optional
 from urllib.parse import urlparse
+from html import unescape
 
 # Create your views here.
 from django.views.decorators.csrf import csrf_exempt
@@ -22,6 +23,123 @@ def kefir(request):
     return render(request, 'singlepage2/kefir.html')
 def _strip_html_tags(html: str) -> str:
     return re.sub('<[^<]+?>', '', html or '')
+
+
+BLOG_EDIT_ALLOWED_TAGS = {
+    "a",
+    "b",
+    "br",
+    "code",
+    "em",
+    "i",
+    "img",
+    "mark",
+    "small",
+    "span",
+    "strong",
+    "sub",
+    "sup",
+    "u",
+}
+BLOG_EDIT_DROP_TAGS = {
+    "button",
+    "embed",
+    "form",
+    "iframe",
+    "input",
+    "link",
+    "meta",
+    "object",
+    "option",
+    "script",
+    "select",
+    "style",
+    "svg",
+    "textarea",
+}
+BLOG_EDIT_ALLOWED_ATTRS = {
+    "a": {"href", "title", "target", "rel"},
+    "img": {"src", "alt", "title", "width", "height", "loading", "decoding", "class"},
+    "span": {"class"},
+}
+
+
+def _is_allowed_blog_edit_url(value, *, image=False):
+    value = (value or "").strip()
+    if not value:
+        return False
+
+    if value.startswith(("/", "./", "../", "#")):
+        return not image or not value.startswith("#")
+
+    parsed = urlparse(value)
+    if image:
+        return parsed.scheme in {"http", "https"}
+
+    return parsed.scheme in {"http", "https", "mailto", "tel"}
+
+
+def _sanitize_blog_edit_html(html):
+    fragment = BeautifulSoup(unescape(html or ""), "html.parser")
+
+    for tag in list(fragment.find_all(True)):
+        tag.name = tag.name.lower()
+
+        if tag.name in BLOG_EDIT_DROP_TAGS:
+            tag.decompose()
+            continue
+
+        if tag.name not in BLOG_EDIT_ALLOWED_TAGS:
+            tag.unwrap()
+            continue
+
+        allowed_attrs = BLOG_EDIT_ALLOWED_ATTRS.get(tag.name, set())
+        for attr_name in list(tag.attrs):
+            attr_key = attr_name.lower()
+            attr_value = tag.attrs.get(attr_name)
+
+            if attr_key.startswith("on") or attr_key not in allowed_attrs:
+                del tag.attrs[attr_name]
+                continue
+
+            if attr_key in {"href", "src"}:
+                is_image = tag.name == "img" and attr_key == "src"
+                if not _is_allowed_blog_edit_url(str(attr_value), image=is_image):
+                    del tag.attrs[attr_name]
+                    continue
+                tag.attrs[attr_name] = str(attr_value).strip()
+
+            if attr_key in {"width", "height"} and not str(attr_value).strip().isdigit():
+                del tag.attrs[attr_name]
+
+        if tag.name == "img":
+            if not tag.get("src"):
+                tag.decompose()
+                continue
+
+            tag["loading"] = tag.get("loading") or "lazy"
+            tag["decoding"] = tag.get("decoding") or "async"
+            tag["alt"] = tag.get("alt") or "Blog content image"
+            classes = tag.get("class") or []
+            if isinstance(classes, str):
+                classes = classes.split()
+            if "editable-blog-image" not in classes:
+                classes.append("editable-blog-image")
+            tag["class"] = classes
+
+        if tag.name == "a":
+            if not tag.get("href"):
+                tag.unwrap()
+                continue
+            if tag.get("target") == "_blank":
+                tag["rel"] = "noopener noreferrer"
+
+    return str(fragment).strip()
+
+
+def _blog_edit_html_has_visible_content(html):
+    fragment = BeautifulSoup(html or "", "html.parser")
+    return bool(fragment.get_text(strip=True) or fragment.find("img", src=True))
 
 
 def _extract_blog_slugs_from_path(path):
@@ -194,7 +312,7 @@ def _update_last_updated_marker(soup, updated_at):
         body_contents.insert(0, meta)
 
 
-def _patch_blog_template_file(paragraph_index, edited_text, place_slug="", title_slug="", page_url="", updated_at=None):
+def _patch_blog_template_file(paragraph_index, edited_html, editable_tag="", place_slug="", title_slug="", page_url="", updated_at=None):
     file_path = _blog_template_file_path(place_slug, title_slug, page_url)
     if not file_path or not os.path.exists(file_path):
         return False, file_path, "Template file not found"
@@ -207,16 +325,26 @@ def _patch_blog_template_file(paragraph_index, edited_text, place_slug="", title
     if not editable_body:
         return False, file_path, "Editable blog body not found"
 
-    selector = f'p[data-blog-edit-index="{paragraph_index}"]'
+    editable_tag = (editable_tag or "").lower()
+    allowed_editable_tags = {"h2", "p"}
+    if editable_tag and editable_tag not in allowed_editable_tags:
+        return False, file_path, "Unsupported editable section"
+
+    selector = f'{editable_tag}[data-blog-edit-index="{paragraph_index}"]' if editable_tag else f'[data-blog-edit-index="{paragraph_index}"]'
     target = editable_body.select_one(selector)
     if not target:
         paragraphs = editable_body.find_all("p", attrs={"data-blog-edit-index": True})
         if paragraph_index >= len(paragraphs):
-            return False, file_path, "Paragraph not found"
+            return False, file_path, "Editable section not found"
         target = paragraphs[paragraph_index]
 
+    if target.name not in allowed_editable_tags:
+        return False, file_path, "Unsupported editable section"
+
     target.clear()
-    target.append(edited_text)
+    fragment = BeautifulSoup(edited_html, "html.parser")
+    for child in list(fragment.contents):
+        target.append(child)
     edited_at = updated_at or timezone.now()
     _update_last_updated_marker(soup, edited_at)
     _update_article_schema_modified_date(soup, edited_at)
@@ -237,19 +365,24 @@ def save_blog_paragraph_file_edit(request):
     place_slug = (payload.get("place_slug") or "").strip()
     title_slug = (payload.get("title_slug") or "").strip()
     page_url = (payload.get("page_url") or "").strip()
-    edited_text = (payload.get("edited_text") or "").strip()
+    editable_tag = (payload.get("editable_tag") or "").strip().lower()
+    raw_edited_html = payload.get("edited_html")
+    if raw_edited_html is None:
+        raw_edited_html = payload.get("edited_text") or ""
+    edited_html = _sanitize_blog_edit_html(raw_edited_html).strip()
+    edited_text = _strip_html_tags(edited_html).strip()
 
     try:
         paragraph_index = int(payload.get("paragraph_index"))
     except (TypeError, ValueError):
-        return JsonResponse({"ok": False, "error": "Invalid paragraph index"}, status=400)
+        return JsonResponse({"ok": False, "error": "Invalid editable section index"}, status=400)
 
     if paragraph_index < 0:
-        return JsonResponse({"ok": False, "error": "Invalid paragraph index"}, status=400)
-    if not edited_text:
-        return JsonResponse({"ok": False, "error": "Paragraph cannot be empty"}, status=400)
-    if len(edited_text) > 8000:
-        return JsonResponse({"ok": False, "error": "Paragraph is too long"}, status=400)
+        return JsonResponse({"ok": False, "error": "Invalid editable section index"}, status=400)
+    if not _blog_edit_html_has_visible_content(edited_html):
+        return JsonResponse({"ok": False, "error": "Section cannot be empty"}, status=400)
+    if len(edited_html) > 12000:
+        return JsonResponse({"ok": False, "error": "Section is too long"}, status=400)
 
     edited_at = timezone.now()
     edited_ip = _get_request_ip(request)
@@ -257,7 +390,8 @@ def save_blog_paragraph_file_edit(request):
 
     file_updated, file_path, file_error = _patch_blog_template_file(
         paragraph_index,
-        edited_text,
+        edited_html,
+        editable_tag=editable_tag,
         place_slug=place_slug,
         title_slug=title_slug,
         page_url=page_url,
@@ -284,7 +418,9 @@ def save_blog_paragraph_file_edit(request):
         "blog_id": blog.id if blog else None,
         "blog_updated": blog_updated,
         "paragraph_index": paragraph_index,
+        "editable_tag": editable_tag,
         "edited_text": edited_text,
+        "edited_html": edited_html,
         "updated_at": updated_at_iso,
         "updated_at_display": updated_at_display,
         "last_updated_ip": edited_ip,

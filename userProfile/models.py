@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django_resized import ResizedImageField
+from .instapay import INSTAPAY_BANK_CHOICES
 
 # Create your models here.
 
@@ -85,6 +86,10 @@ class userPoster(models.Model):
     address_postal_code = models.CharField(max_length=30, blank=True)
     address_country = models.CharField(max_length=80, blank=True)
     paymongo_billing_details = models.JSONField(default=dict, blank=True)
+    bank_name = models.CharField(max_length=160, blank=True, choices=INSTAPAY_BANK_CHOICES)
+    bank_account_name = models.CharField(max_length=150, blank=True)
+    bank_account_number = models.CharField(max_length=80, blank=True)
+    bank_contact = models.CharField(max_length=128, blank=True)
     photo = models.URLField(blank=True)
     posts = models.ManyToManyField(
         'home.allSchedules', blank=True, related_name='postLists')
@@ -140,6 +145,10 @@ class userPoster(models.Model):
         if self.name is None:
             self.name = 'Facebook not Connected'
         super(userPoster, self).save(*args, **kwargs)
+
+    @property
+    def has_instapay_bank_information(self):
+        return bool(self.bank_name and self.bank_account_name and self.bank_account_number)
 
     @property
     def user_chatroom_list(self):

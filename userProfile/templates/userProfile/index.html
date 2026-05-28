@@ -257,6 +257,77 @@
       background: #fff;
     }
 
+    .bank-info-panel {
+      width: 100%;
+      margin-top: 1rem;
+      padding: 1rem;
+      text-align: left;
+      background: var(--surface-muted);
+      border: 1px solid var(--line);
+      border-radius: 0.75rem;
+    }
+
+    .bank-info-panel h6 {
+      margin: 0 0 0.75rem;
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .bank-info-grid {
+      display: grid;
+      gap: 0.7rem;
+    }
+
+    .bank-info-panel label {
+      display: block;
+      margin-bottom: 0.25rem;
+      color: var(--subtle);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .bank-info-summary {
+      display: grid;
+      gap: 0.55rem;
+    }
+
+    .bank-info-summary-row {
+      display: grid;
+      gap: 0.2rem;
+      padding: 0.65rem 0.75rem;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 0.55rem;
+    }
+
+    .bank-info-summary-row small {
+      color: var(--subtle);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .bank-info-summary-row span {
+      color: var(--text);
+      font-weight: 600;
+      overflow-wrap: anywhere;
+    }
+
+    .bank-info-actions {
+      display: grid;
+      gap: 0.5rem;
+      margin-top: 0.85rem;
+    }
+
+    .bank-info-actions .btn {
+      width: 100%;
+      font-weight: 600;
+      border-radius: 0.55rem;
+    }
+
     .visitors-panel {
       margin-top: 1rem;
       padding-top: 1rem;
@@ -651,8 +722,65 @@
                         {% if pageUser.address_country %}<br>{{ pageUser.address_country }}{% endif %}
                       </div>
                     </div>
+	                    {% endif %}
+	                  </div>
+	                    {% if user.id == pageUser.userID %}
+	                    <div class="bank-info-panel">
+	                      <h6>Bank Information</h6>
+                        {% if pageUser.has_instapay_bank_information %}
+                        <div class="bank-info-summary">
+                          <div class="bank-info-summary-row">
+                            <small>Bank Name</small>
+                            <span>****{{ pageUser.bank_name|slice:"-6:" }}</span>
+                          </div>
+                          <div class="bank-info-summary-row">
+                            <small>Bank Account Name</small>
+                            <span>****{{ pageUser.bank_account_name|slice:"-4:" }}</span>
+                          </div>
+                          <div class="bank-info-summary-row">
+                            <small>Bank Account Number</small>
+                            <span>****{{ pageUser.bank_account_number|slice:"-4:" }}</span>
+                          </div>
+                          <div class="bank-info-summary-row">
+                            <small>Contact</small>
+                            <span>****{{ pageUser.bank_contact|slice:"-4:" }}</span>
+                          </div>
+	                        </div>
+	                        <div class="bank-info-actions">
+	                          <button id="showBankInformationFormBtn" type="button" class="btn btn-primary">Update Bank Information</button>
+	                        </div>
+                        {% endif %}
+	                      <form id="bankInformationForm" method="post" action="{% url 'userProfile:updateBankInformation' %}" {% if pageUser.has_instapay_bank_information %}style="display: none;"{% endif %}>
+	                        {% csrf_token %}
+	                        <div class="bank-info-grid">
+	                          <div>
+	                            <label for="bankNameInput">Bank Name</label>
+	                            <select required id="bankNameInput" name="bank_name" class="form-control">
+	                              <option value="">Select Bank...</option>
+	                              {% for bank_value, bank_label in bank_choices %}
+	                              <option value="{{ bank_value }}" {% if not pageUser.has_instapay_bank_information and pageUser.bank_name == bank_value %}selected{% endif %}>{{ bank_label }}</option>
+	                              {% endfor %}
+	                            </select>
+	                          </div>
+	                          <div>
+	                            <label for="bankAccountNameInput">Bank Account Name</label>
+	                            <input required id="bankAccountNameInput" name="bank_account_name" type="text" maxlength="150" class="form-control" value="{% if not pageUser.has_instapay_bank_information %}{{ pageUser.bank_account_name }}{% endif %}">
+	                          </div>
+	                          <div>
+	                            <label for="bankAccountNumberInput">Bank Account Number</label>
+	                            <input required id="bankAccountNumberInput" name="bank_account_number" type="text" maxlength="80" inputmode="numeric" autocomplete="off" class="form-control" value="{% if not pageUser.has_instapay_bank_information %}{{ pageUser.bank_account_number }}{% endif %}">
+	                          </div>
+	                          <div>
+	                            <label for="bankContactInput">Contact</label>
+	                            <input required id="bankContactInput" name="bank_contact" type="text" maxlength="128" class="form-control" value="{% if not pageUser.has_instapay_bank_information %}{{ pageUser.bank_contact|default:pageUser.contact }}{% endif %}">
+	                          </div>
+	                        </div>
+	                        <div class="bank-info-actions">
+	                          <button type="submit" class="btn btn-primary">{% if pageUser.has_instapay_bank_information %}Replace Bank Information{% else %}Save Bank Information{% endif %}</button>
+	                        </div>
+	                      </form>
+	                    </div>
                     {% endif %}
-                  </div>
                   {% if user.id == pageUser.userID and user_subscriptions %}
                   <div class="subscription-panel">
                     <h6 class="mb-2">Subscription</h6>
@@ -1077,6 +1205,16 @@
     btn.addEventListener("click", () => {
       btn.style.display = "none";
       modalEl.style.display = "block";
+    });
+  }
+
+  const bankFormBtn = document.getElementById("showBankInformationFormBtn");
+  const bankForm = document.getElementById("bankInformationForm");
+
+  if (bankFormBtn && bankForm) {
+    bankFormBtn.addEventListener("click", () => {
+      bankFormBtn.style.display = "none";
+      bankForm.style.display = "block";
     });
   }
 </script>

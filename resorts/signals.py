@@ -388,7 +388,7 @@ def _create_events_for_subpackage(sub: Packages):
                 host_name=resort.RealName or resort.name,
                 host_link=f"/resorts/{resort.slug or resort.name}/",
                 scheduleTypeAndMode="Resort Promotion",
-                scheduleWebsite=f"https://paratara.com/resorts/{resort.slug or resort.name}/",
+                scheduleWebsite=f"https://www.paratara.com/resorts/{resort.slug or resort.name}/",
                 dateN=dn,
                 monthN=mn,
                 yearN=yn,

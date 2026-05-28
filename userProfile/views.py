@@ -19,6 +19,7 @@ import os
 from .models import UserCredentialsBackUP, userPoster
 import json
 from .forms import ImageForm
+from .instapay import get_instapay_bank_choices, get_instapay_bank_names, save_instapay_template
 from .services import create_user_with_profile, ensure_user_profile, ensure_user_profile_by_id
 from subscription.models import UserSubscription
 from django.shortcuts import render, redirect, get_object_or_404
@@ -41,6 +42,42 @@ def render_template(request, template_name, context=None):
     if context is None:
         context = {}
     return render(request, template_name, context)
+
+
+PROFILE_MESSAGE_SESSION_KEY = "user_profile_message"
+
+
+def _set_profile_message(request, message):
+    request.session[PROFILE_MESSAGE_SESSION_KEY] = message
+
+
+def _pop_profile_message(request, default=""):
+    return request.session.pop(PROFILE_MESSAGE_SESSION_KEY, default)
+
+
+def _clean_bank_information(post_data):
+    field_limits = {
+        "bank_name": 160,
+        "bank_account_name": 150,
+        "bank_account_number": 80,
+        "bank_contact": 128,
+    }
+    cleaned = {}
+    for field_name, max_length in field_limits.items():
+        value = (post_data.get(field_name) or "").strip()
+        if len(value) > max_length:
+            raise ValidationError(f"{field_name.replace('_', ' ').title()} is too long.")
+        cleaned[field_name] = value
+
+    required_fields = ("bank_name", "bank_account_name", "bank_account_number", "bank_contact")
+    if any(not cleaned[field_name] for field_name in required_fields):
+        raise ValidationError("Please complete the bank name, account name, account number, and contact.")
+
+    valid_bank_names = set(get_instapay_bank_names())
+    if valid_bank_names and cleaned["bank_name"] not in valid_bank_names:
+        raise ValidationError("Please choose a valid bank name from the InstaPay list.")
+
+    return cleaned
 
 
 def send_password_reset_email(email, reset_link):
@@ -151,13 +188,14 @@ def gettingUserPoster(request, csrf_token=None, userID=None):
             pageviewer = None
     else:
         pageviewer = None
-    message = ''
+    message = _pop_profile_message(request, '')
     pageUser = user
     context = {
         'message': message,
         'form': ImageForm,
         'pageUser': pageUser,
-        'pageViewer':pageviewer
+        'pageViewer':pageviewer,
+        'bank_choices': get_instapay_bank_choices(),
     }
     return render_template(request, 'userProfile/index.html', context)
     # return render(request, 'userProfile/index.html', context)
@@ -218,9 +256,10 @@ def profile(request):
                 .order_by("-created_at")[:10]
             )
             context = {
-                'message': '. . . . ',
+                'message': _pop_profile_message(request, '. . . . '),
                 'form': ImageForm,
                 'pageUser': user,
+                'bank_choices': get_instapay_bank_choices(),
                 'user_subscriptions': user_subscriptions,
                 'paymongo_last_success': request.session.get("paymongo_last_success"),
                 'needs_password_creation': not request.user.has_usable_password(),
@@ -236,6 +275,40 @@ def profile(request):
         }
     return render_template(request, 'userProfile/index.html', context)    
     # return render(request, 'userProfile/index.html', context)
+
+
+@login_required
+def updateBankInformation(request):
+    if request.method != 'POST':
+        return HttpResponseRedirect(reverse("userProfile:profile"))
+
+    profile_user = ensure_user_profile(request.user)
+    try:
+        bank_information = _clean_bank_information(request.POST)
+    except ValidationError as error:
+        _set_profile_message(request, " ".join(error.messages))
+        return HttpResponseRedirect(reverse("userProfile:profile"))
+
+    try:
+        instapay_row = save_instapay_template(
+            bank_name=bank_information["bank_name"],
+            bank_account_name=bank_information["bank_account_name"],
+            bank_account_number=bank_information["bank_account_number"],
+            remarks=f"{request.user.id}+{request.user.username}",
+        )
+    except FileNotFoundError:
+        _set_profile_message(request, "InstaPay template not found.")
+        return HttpResponseRedirect(reverse("userProfile:profile"))
+    except ValueError as error:
+        _set_profile_message(request, str(error))
+        return HttpResponseRedirect(reverse("userProfile:profile"))
+
+    for field_name, value in bank_information.items():
+        setattr(profile_user, field_name, value)
+    profile_user.save(update_fields=list(bank_information.keys()))
+
+    _set_profile_message(request, f"Bank information added to the InstaPay template on row {instapay_row}.")
+    return HttpResponseRedirect(reverse("userProfile:profile"))
 
 
 def logoutUser(request):

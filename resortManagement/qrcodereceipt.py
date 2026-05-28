@@ -79,7 +79,7 @@ def create_qr(qr_strings):
     data = qs.dict()
     data_dict = {}
     print('QR VIEWing')
-    data = f'https://paratara.com/resortManagement/qr/{qr_strings}'
+    data = f'https://www.paratara.com/resortManagement/qr/{qr_strings}'
     qr = qrcode.QRCode(version=1, box_size=10,border=5)
     qr.add_data(data)
     qr.make(fit=True)

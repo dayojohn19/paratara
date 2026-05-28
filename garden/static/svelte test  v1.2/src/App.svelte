@@ -1347,10 +1347,12 @@ async function fetchLookPlaceData() {
       <img style="width:inherit; " src="{GardenHeadLogo}" alt="Memory Garden Home Logo" class="logo" />
       <div class="sub-brand">Memory Garden Home Smart Postcard</div>
     </div>
-    <div class="postcard-frame">
-      <img style="width:inherit;" src="{GardenBodyLogo}" alt="Memory Garden Home Logo" class="logo" />
-    </div>
-    <div class="postcard-frame">
+    {#if $session.isGuest}
+      <div class="postcard-frame logo-frame">
+        <img style="width:inherit;" src="{GardenBodyLogo}" alt="Memory Garden Home Logo" class="logo" />
+      </div>
+    {/if}
+    <div class="postcard-frame logo-frame">
       <img style="width:inherit;" src="{GardenBorderLogo}" alt="Memory Garden Home Logo" class="logo" />
     </div>
   </div>
@@ -1376,7 +1378,7 @@ async function fetchLookPlaceData() {
         </form>
       </div>
     {:else}
-      <div class="postcard-frame" aria-live="polite">
+      <div class="postcard-frame hero-card" aria-live="polite">
         {#if isLoadingPostcard}
           <div class="loading-state">
             <span class="spinner" aria-hidden="true"></span>
@@ -1509,7 +1511,12 @@ async function fetchLookPlaceData() {
 
 
   <div class="memory-card">
-    <button class="image-trigger" type="button" on:click={() => openImagePreview(postcard.src, postcard.title, `/garden/look/${postcard.id}/`)}>
+    <button
+      class="image-trigger"
+      type="button"
+      on:click={() => openImagePreview(postcard.src, postcard.title, `/garden/look/${postcard.id}/`)}
+      aria-label={`View ${postcard.title}`}
+    >
       <div class="memory-image-collection" style="background-image: url({postcard.src}) "></div>
     </button>    
   </div>
@@ -1589,7 +1596,8 @@ async function fetchLookPlaceData() {
     max-width: 1080px;
     margin: 0 auto;
     background-color: #fcfcfe;
-
+    min-height: 100vh;
+    box-shadow: 0 0 0 1px rgba(31, 41, 55, 0.06);
   }
 
   .topbar {
@@ -1597,8 +1605,9 @@ async function fetchLookPlaceData() {
     align-items: center;
     gap: 1rem;
     justify-content: space-between;
-
-    background-color: rgb(252	252	254	);
+    background-color: rgba(252, 252, 254, 0.96);
+    border-bottom: 1px solid #e4e9f0;
+    padding: 0.65rem 1rem;
   }
 
   .brand {
@@ -1608,7 +1617,7 @@ async function fetchLookPlaceData() {
     font-size: 1.75rem !important;
     font-weight: 800;
     color: rgb(18,	29,	3	);
-    letter-spacing: -0.5px;
+    letter-spacing: 0;
     display: inline-block;
     text-align:center;
     padding-bottom: 0;
@@ -1618,15 +1627,13 @@ async function fetchLookPlaceData() {
     font-family: 'Roboto', sans-serif;
     padding:0;
 
-    font-size: 1.05rem !important;
-    font-weight: 400;
+    font-size: 0.98rem !important;
+    font-weight: 600;
 
     color: #A3502A;
     margin: 0 auto;
-    letter-spacing: -0.5px;
+    letter-spacing: 0;
     display: inline-block;
-    transform-origin: left top;
-    transform: perspective(700px) rotateX(8deg);
     text-align:center;
 
   }
@@ -1667,14 +1674,17 @@ async function fetchLookPlaceData() {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    font-size: 0.62rem;
-    background-color: rgb(252	252	254	);
-    padding: 0 0.7rem;
+    font-size: 0.82rem;
+    background-color: #f5f7fb;
+    border: 1px solid #e0e7f0;
+    border-radius: 999px;
+    padding: 0.35rem 0.45rem 0.35rem 0.75rem;
     white-space: nowrap;
   }
 
   .account-chip span {
-    color: #dbe5f7;
+    color: #1f2f46;
+    font-weight: 700;
   }
 
   .theme-toggle {
@@ -1705,8 +1715,8 @@ async function fetchLookPlaceData() {
   .lang-btn {
     font: inherit;
     border-radius: 999px;
-    background: #0b1222;
-    color: #dbe5f7;
+    background: #ffffff;
+    color: #334155;
     min-height: 2rem;
     padding: 0.2rem 0.5rem;
     cursor: pointer;
@@ -1721,17 +1731,16 @@ async function fetchLookPlaceData() {
 
 
 
-  border: 0 !important;
+  border: 1px solid #d5deeb;
 
   
-  /* Essential for usability once reset */
-  cursor: pointer !important;
+  cursor: pointer;
   }
 
   .lang-btn.is-active {
-    background: #00a8ff;
-    border-color: #00a8ff;
-    color: #00121d;
+    background: #3f5b2c;
+    border-color: #3f5b2c;
+    color: #ffffff;
   }
 
   :global(body[data-theme='light']) {
@@ -1741,16 +1750,15 @@ async function fetchLookPlaceData() {
 
   :global(body[data-theme='light'] .brand) {
     color: #3B4A2F;
-    body[data-theme='light'] .brand
   }
   :global(body[data-theme='dark'] .brand) {
-    color: #ffffff;
+    color: #3B4A2F;
   }
 
   :global(body[data-theme='light'] .account-chip) {
     color: #465a7b;
-     background-color: rgb(252	252	254	);
-    border-color: #c8d5eb;
+    background-color: #f5f7fb;
+    border-color: #e0e7f0;
   }
 
   :global(body[data-theme='light'] .account-chip span) {
@@ -1899,7 +1907,7 @@ async function fetchLookPlaceData() {
 
   .eyebrow {
     margin: 0;
-    color: #8ea0bf;
+    color: #5b6f93;
     letter-spacing: 0.08em;
     font-size: 0.75rem;
     font-weight: 700;
@@ -1909,7 +1917,7 @@ async function fetchLookPlaceData() {
   .subtext {
     margin: 0;
     max-width: 60ch;
-    color: #dbe5f7;
+    color: #334155;
     font-size: 1.05rem;
     line-height: 1.55;
     font-weight: 500;
@@ -2161,8 +2169,19 @@ async function fetchLookPlaceData() {
     flex-wrap: wrap;
   }
   .postcard-head-title {
-    width: min(100%,640px); margin: 0 auto;
+    width: min(100%, 640px);
+    margin: 0 auto;
+    display: grid;
+    justify-items: center;
+    gap: 0.35rem;
   }
+
+  .postcard-head-title .logo {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+
   .postcard-frame {
 
     width: min(100%, 840px);
@@ -2172,6 +2191,30 @@ async function fetchLookPlaceData() {
     display: flex;
 flex-direction: row;
 justify-content: flex-end;
+  }
+
+  .postcard-frame.logo-frame {
+    min-height: 0;
+    justify-content: center;
+    align-items: center;
+    padding: 0.15rem 1rem;
+    box-sizing: border-box;
+  }
+
+  .logo-frame .logo {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+
+  .hero-card {
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    border: 1px solid #e0e7f0;
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
   }
 
   .loading-state {
@@ -2201,12 +2244,16 @@ justify-content: flex-end;
   }
 
   .postcard-meta {
-    padding: 0.85rem 0.9rem 1rem;
+    padding: 1rem;
+    border-top: 1px solid #e5eaf2;
+    background: #ffffff;
   }
 
   .postcard-meta h3 {
     margin: 0;
-    font-size: 1.05rem;
+    color: #1f2937;
+    font-size: 1.15rem;
+    line-height: 1.25;
   }
 
   .subtitle {
@@ -2218,13 +2265,28 @@ justify-content: flex-end;
   .meta-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 0.55rem;
+    gap: 0.65rem;
+    margin-top: 0.75rem;
   }
 
   .meta-grid p {
     margin: 0;
-    font-size: 0.88rem;
-    color: #dbe5f7;
+    color: #334155;
+    background: #f8fafc;
+    border: 1px solid #e6ecf3;
+    border-radius: 8px;
+    padding: 0.65rem;
+    font-size: 0.9rem;
+    line-height: 1.35;
+  }
+
+  .meta-grid a {
+    text-decoration: none;
+  }
+
+  .meta-grid a p {
+    color: #2563eb;
+    font-weight: 700;
   }
 
   .meta-grid span {
@@ -2313,7 +2375,7 @@ justify-content: flex-end;
 
   .memory-empty {
     margin: 0;
-    color: #b3c1d8;
+    color: #5b6b88;
     font-size: 0.92rem;
   }
 
@@ -2652,19 +2714,21 @@ justify-content: flex-end;
     font-size: 72px;
     color: #3f5b2c;
     font-weight: 400;
-    letter-spacing: -1px;
+    letter-spacing: 0;
 }
 .gardenhead{
-
-text-align: center;
+  text-align: center;
+  padding: 1.2rem 1rem 0.9rem;
+  border-bottom: 1px solid #edf1f5;
+  background: #ffffff;
 }
 
 .memory-container {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
 
-  gap: 6px;
-  padding: 20px;
+  gap: 8px;
+  padding: 1rem;
 }
 
 .memory-card {
@@ -2683,6 +2747,7 @@ text-align: center;
 
   background-size: cover;
   background-position: center;
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08);
 }
 
 .memory-card h3 {

@@ -17,6 +17,7 @@ urlpatterns = [
     path("logout", views.logoutUser, name="logoutUser"),
     path("registerjson", views.registerUserJSON, name="registerUserJSON"),
     path("logoutjson", views.logoutUserJSON, name="logoutUserJSON"),
+    path("bank-information", views.updateBankInformation, name="updateBankInformation"),
     path("uploadPhoto", views.uploadPhoto, name="uploadPhoto"),
     path("privacypolicy", views.privacypolicy, name="privacypolicy"),
     path("termsandconditions", views.termsandconditions, name="termsandconditions"),

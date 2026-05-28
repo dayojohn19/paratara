@@ -58,6 +58,36 @@ def sveltepageforgarden(request, path):
         return serve(request, 'index.html', document_root=dist_dir, show_indexes=False)
 
 
+def inject_garden_auth_session(content, request):
+    user = getattr(request, "user", None)
+
+    if not getattr(user, "is_authenticated", False):
+        return content
+
+    payload_json = json.dumps({
+        "user": user.get_username(),
+        "userID": str(user.id),
+        "isGuest": False,
+    }).replace("</", "<\\/")
+    script = f"""
+    <script>
+      (function () {{
+        var session = {payload_json};
+        window.__GARDEN_AUTH_SESSION = session;
+        try {{
+          localStorage.setItem('user', session.user);
+          localStorage.setItem('userID', session.userID);
+          localStorage.setItem('postcard_username', session.user);
+          localStorage.setItem('postcard_user_id', session.userID);
+          localStorage.removeItem('token');
+        }} catch (error) {{}}
+      }})();
+    </script>
+    """
+
+    return content.replace("</head>", f"{script}</head>", 1)
+
+
 @csrf_exempt
 def list_a4_collages(request):
     """Return a JSON list of all A4 collage image URLs in image_cards/a4_collages."""
@@ -213,12 +243,16 @@ def look(request, collectionStr):
             asset_path = os.path.join(dist_dir, 'index.html')
         
         if os.path.exists(asset_path) and os.path.isfile(asset_path):
-            with open(asset_path, 'rb') as f:
-                content = f.read()
             # Set MIME type based on extension
             if asset_path.endswith('.html'):
-                mime_type = 'text/html'
-            elif asset_path.endswith('.css'):
+                with open(asset_path, 'r', encoding='utf-8') as f:
+                    content = inject_garden_auth_session(f.read(), request)
+                return HttpResponse(content, content_type='text/html')
+
+            with open(asset_path, 'rb') as f:
+                content = f.read()
+
+            if asset_path.endswith('.css'):
                 mime_type = 'text/css'
             elif asset_path.endswith('.js'):
                 mime_type = 'application/javascript'
@@ -234,7 +268,7 @@ def look(request, collectionStr):
             index_path = os.path.join(dist_dir, 'index.html')
             if os.path.exists(index_path):
                 with open(index_path, 'r', encoding='utf-8') as f:
-                    content = f.read()
+                    content = inject_garden_auth_session(f.read(), request)
                 return HttpResponse(content, content_type='text/html')
             return HttpResponse('SPA not found', status=404)
 

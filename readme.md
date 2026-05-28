@@ -127,7 +127,7 @@ Post to BOTH Facebook + Instagram:
 
 Facebook only (text post):
 
-  python3 manage.py post_social --facebook-only --message "New update" --link "https://paratara.com"
+  python3 manage.py post_social --facebook-only --message "New update" --link "https://www.paratara.com"
 
 Instagram only:
 

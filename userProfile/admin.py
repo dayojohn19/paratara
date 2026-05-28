@@ -12,6 +12,9 @@ class UserPosterAdmin(admin.ModelAdmin):
         "name",
         "contact",
         "mobile_number",
+        "bank_name",
+        "bank_account_name",
+        "bank_contact",
         "address_city",
         "address_country",
         "signedFrom",
@@ -20,10 +23,14 @@ class UserPosterAdmin(admin.ModelAdmin):
         "name",
         "contact",
         "mobile_number",
+        "bank_name",
+        "bank_account_name",
+        "bank_account_number",
+        "bank_contact",
         "address_city",
         "address_country",
     )
-    list_filter = ("signedFrom", "address_country", "address_city")
+    list_filter = ("signedFrom", "bank_name", "address_country", "address_city")
 
 
 admin.site.register(UserCredentials)
