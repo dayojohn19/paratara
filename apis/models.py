@@ -128,6 +128,7 @@ class Blogger(models.Model):
 
  
 class Blogs(models.Model):
+
     # blogUser = models.ForeignKey('userProfile.UserCredentials',on_delete=models.CASCADE, null=True, related_name='UserOfBlog')
     category_choices = (
         ('Guide', 'Guide'),
@@ -158,7 +159,8 @@ class Blogs(models.Model):
 
 
     localurlpath = models.CharField(max_length=2555, blank=True)
-
+    class Meta:
+        ordering = ['-updated_at', '-created_at']
     def __str__(self):
         return f"{self.blogplace} {self.title} long: {self.latitude} lat: {self.longitude} "
     

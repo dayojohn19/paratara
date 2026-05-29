@@ -144,7 +144,8 @@ def apiEvents(request, placename):
 def getPlaceBlogs(request, placename):
     from home.models import Places_v2
     pi = Places_v2.objects.get(slug=slugify(placename))
-    serializer = BlogsSerializer(pi.blogs, many=True)
+    blogs_qs = pi.blogs.order_by('-updated_at', '-created_at')
+    serializer = BlogsSerializer(blogs_qs, many=True)
     return Response(serializer.data)
 
 @api_view(['GET'])

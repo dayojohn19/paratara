@@ -833,6 +833,21 @@ footer button {{
     background: #ffffff;
 }}
 
+.blog-image-upload-button {{
+    color: var(--accent-dark);
+    border: 1px solid rgba(47, 125, 104, 0.35);
+    background: #edf7f2;
+}}
+
+.blog-image-upload-button:disabled {{
+    cursor: wait;
+    opacity: 0.7;
+}}
+
+.blog-image-upload-input {{
+    display: none;
+}}
+
 .blog-edit-status {{
     color: var(--text-muted);
     font-size: 0.9rem;
@@ -960,6 +975,7 @@ var placename = "{place_name}";
 var blogPlaceSlug = "{place_slug}";
 var blogTitleSlug = "{title_slug}";
 var blogParagraphSaveUrl = "{blog_edit_save_url}";
+var blogImageUploadUrl = "{upload_url}";
 
 // Fisher-Yates shuffle algorithm for proper randomization
 function shuffleArray(array) {{
@@ -1167,6 +1183,76 @@ function paragraphHasVisibleContent(paragraph) {{
     return Boolean(clone.textContent.trim() || clone.querySelector('img[src]'));
 }}
 
+function insertUploadedImageIntoSection(paragraph, imageUrl) {{
+    if (!imageUrl) return;
+
+    const img = document.createElement('img');
+    img.src = imageUrl;
+    img.alt = 'Blog content image';
+    img.loading = 'lazy';
+    img.decoding = 'async';
+    img.className = 'editable-blog-image';
+
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount) {{
+        const range = selection.getRangeAt(0);
+        if (paragraph.contains(range.commonAncestorContainer)) {{
+            range.deleteContents();
+            range.insertNode(img);
+            range.setStartAfter(img);
+            range.collapse(true);
+            selection.removeAllRanges();
+            selection.addRange(range);
+            return;
+        }}
+    }}
+
+    paragraph.appendChild(img);
+    placeCaretAtEnd(paragraph);
+}}
+
+async function uploadImageIntoSection(paragraph, imageInput, uploadButton, status) {{
+    const file = imageInput.files && imageInput.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('imageclassID', place_name);
+    formData.append('blog_place_slug', blogPlaceSlug);
+    formData.append('blog_title_slug', blogTitleSlug);
+    formData.append('source', 'blog_inline_editor');
+
+    uploadButton.disabled = true;
+    status.textContent = 'Uploading image...';
+    status.classList.remove('error');
+
+    try {{
+        const response = await fetch(blogImageUploadUrl, {{
+            method: 'POST',
+            body: formData,
+            headers: {{
+                "X-Requested-With": "XMLHttpRequest",
+                "X-CSRFToken": getCookie('csrftoken'),
+            }}
+        }});
+
+        const data = await response.json();
+        if (!response.ok || data.status !== 'success' || !data.image_url) {{
+            throw new Error(data.error || `HTTP ${{response.status}}`);
+        }}
+
+        insertUploadedImageIntoSection(paragraph, data.image_url);
+        status.textContent = 'Image inserted. Click Save to keep it.';
+    }} catch (err) {{
+        console.error("Error uploading image:", err);
+        status.textContent = 'Image upload failed. Please try again.';
+        status.classList.add('error');
+    }} finally {{
+        uploadButton.disabled = false;
+        imageInput.value = '';
+    }}
+}}
+
 function placeCaretAtEnd(element) {{
     const range = document.createRange();
     range.selectNodeContents(element);
@@ -1260,14 +1346,28 @@ function startParagraphEdit(paragraph) {{
     cancelButton.className = 'blog-cancel-button';
     cancelButton.textContent = 'Cancel';
 
+    const imageUploadButton = document.createElement('button');
+    imageUploadButton.type = 'button';
+    imageUploadButton.className = 'blog-image-upload-button';
+    imageUploadButton.textContent = 'Upload image';
+
+    const imageUploadInput = document.createElement('input');
+    imageUploadInput.type = 'file';
+    imageUploadInput.accept = 'image/*';
+    imageUploadInput.className = 'blog-image-upload-input';
+
     const status = document.createElement('span');
     status.className = 'blog-edit-status';
 
     saveButton.addEventListener('click', () => saveParagraphEdit(paragraph, tools));
     cancelButton.addEventListener('click', () => finishParagraphEdit(paragraph, tools, originalHTML));
+    imageUploadButton.addEventListener('click', () => imageUploadInput.click());
+    imageUploadInput.addEventListener('change', () => uploadImageIntoSection(paragraph, imageUploadInput, imageUploadButton, status));
 
     tools.appendChild(saveButton);
     tools.appendChild(cancelButton);
+    tools.appendChild(imageUploadButton);
+    tools.appendChild(imageUploadInput);
     tools.appendChild(status);
     paragraph.insertAdjacentElement('afterend', tools);
 }}

@@ -15,6 +15,7 @@ from ipaddress import ip_address
 from typing import Optional
 from urllib.parse import urlparse
 from html import unescape
+from mimetypes import guess_type
 
 # Create your views here.
 from django.views.decorators.csrf import csrf_exempt
@@ -643,6 +644,23 @@ def blog_html(request, slug,slugSec, slugName=None):
     # path('bucasgrande/',TemplateView.as_view(template_name='blogs/siargao/bucasgrande.html',extra_context=siargao_links), name='bucasgrande'),
 
     return render(request, f'blogs/{slug}/{slugSec}.html')
+
+
+def blog_asset(request, slug, asset_name):
+    place_slug = slugify(slug or "")
+    safe_asset_name = os.path.basename(asset_name or "")
+    if not place_slug or not safe_asset_name:
+        return HttpResponse("Not found", status=404)
+
+    blogs_root = os.path.abspath(os.path.join(settings.BASE_DIR, "singlepage2", "templates", "blogs"))
+    asset_path = os.path.abspath(os.path.join(blogs_root, place_slug, "assets", safe_asset_name))
+
+    if os.path.commonpath([blogs_root, asset_path]) != blogs_root or not os.path.isfile(asset_path):
+        return HttpResponse("Not found", status=404)
+
+    content_type = guess_type(asset_path)[0] or "application/octet-stream"
+    with open(asset_path, "rb") as asset_file:
+        return HttpResponse(asset_file.read(), content_type=content_type)
 
 
 

@@ -1,8 +1,6 @@
 
 # https://dayotreep.herokuapp.com/ | https://git.heroku.com/dayotreep.git
 from collections import defaultdict
-import html
-import time
 from urllib.parse import unquote, urlsplit
 
 from django.db.models import Prefetch, Q, Count, Sum
@@ -76,710 +74,6 @@ def _absolute_public_url(request, value):
     if value.startswith("/"):
         return request.build_absolute_uri(value)
     return ""
-
-
-_DISCUSSION_RAG_INDEX_CACHE = {}
-_DISCUSSION_RAG_EMBED_MODEL = None
-_DISCUSSION_RAG_EMBED_UNAVAILABLE = False
-_DISCUSSION_RAG_CACHE_SECONDS = 600
-
-
-def _discussion_clean_text(value, limit=None):
-    text = re.sub(r"\s+", " ", str(value or "")).strip()
-    if limit and len(text) > limit:
-        text = text[:limit].rsplit(" ", 1)[0].strip() + "..."
-    return text
-
-
-def _discussion_safe_url(value):
-    url = str(value or "").strip()
-    if url.startswith(("http://", "https://")):
-        return url
-    return ""
-
-
-def _discussion_setting_float(name, default):
-    try:
-        return float(getattr(settings, name, default))
-    except (TypeError, ValueError):
-        return default
-
-
-def _discussion_blog_url(request, blog_obj):
-    current_domain = request.build_absolute_uri('/').rstrip('/')
-    local_path = str(getattr(blog_obj, 'localurlpath', '') or '').strip()
-    if local_path:
-        if local_path.startswith(("http://", "https://")):
-            return local_path
-        if not local_path.startswith('/'):
-            local_path = f"/{local_path}"
-        return f"{current_domain}{local_path}"
-
-    external_url = str(getattr(blog_obj, 'url', '') or '').strip()
-    if external_url:
-        if 'http://127.0.0.1:8000' in external_url:
-            external_url = external_url.replace('http://127.0.0.1:8000', current_domain)
-        elif 'http://localhost:8000' in external_url:
-            external_url = external_url.replace('http://localhost:8000', current_domain)
-        return external_url
-
-    blog_place = getattr(blog_obj, 'blogplace', None)
-    if blog_place:
-        place_slug = slugify(getattr(blog_place, 'slug', '') or getattr(blog_place, 'placename', ''))
-        title_slug = slugify(getattr(blog_obj, 'title', ''))
-        if place_slug and title_slug:
-            return f"{current_domain}/pages/blog/{place_slug}/{title_slug}/"
-    return ""
-
-
-def _discussion_add_doc(docs, kind, title, text_parts, metadata=None):
-    text = "\n".join(_discussion_clean_text(part) for part in text_parts if _discussion_clean_text(part))
-    title = _discussion_clean_text(title, 180)
-    if not title and not text:
-        return
-
-    meta = dict(metadata or {})
-    meta["kind"] = kind
-    meta["title"] = title or _discussion_clean_text(text, 80)
-    docs.append({
-        "text": text[:2200],
-        "metadata": meta,
-    })
-
-
-def _discussion_resort_amenities(resort):
-    amenity_fields = {
-        'has_wifi': 'WiFi',
-        'has_pool': 'Pool',
-        'has_bidet': 'Bidet',
-        'has_parking': 'Parking',
-        'has_restaurant': 'Restaurant',
-        'has_bar': 'Bar',
-        'has_spa': 'Spa',
-        'has_gym': 'Gym',
-        'has_beach_access': 'Beach access',
-        'has_air_conditioning': 'Air conditioning',
-        'has_hot_water': 'Hot water',
-        'has_breakfast': 'Breakfast',
-        'has_laundry': 'Laundry',
-        'pet_friendly': 'Pet friendly',
-        'family_friendly': 'Family friendly',
-        'has_generator': 'Generator',
-        'accepts_gcash': 'GCash',
-        'accepts_cash': 'Cash',
-        'accepts_debit_card': 'Debit card',
-        'accepts_credit_card': 'Credit card',
-    }
-    return [label for field, label in amenity_fields.items() if getattr(resort, field, False)]
-
-
-def _discussion_package_docs(docs, resort, relation_name, kind, label, now):
-    resort_name = _discussion_clean_text(getattr(resort, 'RealName', '') or getattr(resort, 'name', ''))
-    phone = _discussion_clean_text(getattr(resort, 'contactNumber', ''))
-    email = _discussion_clean_text(getattr(resort, 'contactEmail', ''))
-    resort_website = _discussion_safe_url(getattr(resort, 'websiteURL', ''))
-    kind_keywords = {
-        'accommodation': 'hotel stay room accommodation booking cheap luxury fan aircon private bathroom',
-        'food': 'food restaurant eat dining menu breakfast lunch dinner coffee drink seafood cafe meal',
-        'activity': 'activity things to do adventure surf snorkel rental rent sports play',
-        'tour': 'tour island hopping guided tour package activity adventure',
-    }
-    kind_text = f"{label} {kind_keywords.get(kind, '')}".strip()
-    shown = 0
-
-    for package in list(getattr(resort, relation_name).all())[:12]:
-        package_title = _discussion_clean_text(getattr(package, 'PackageTitle', ''))
-        subpackages = list(package.subPackages.all())[:12]
-        if not subpackages and package_title:
-            _discussion_add_doc(
-                docs,
-                kind,
-                package_title,
-                [
-                    f"Kind: {kind_text}",
-                    f"Place: {getattr(getattr(resort, 'place', None), 'placename', '')}",
-                    f"Resort: {resort_name}",
-                    f"Package: {package_title}",
-                    f"Contact phone: {phone}",
-                    f"Contact email: {email}",
-                    f"Website: {resort_website}",
-                ],
-                {
-                    "kind_label": label,
-                    "resort": resort_name,
-                    "phone": phone,
-                    "email": email,
-                    "website": resort_website,
-                    "summary": package_title,
-                },
-            )
-            continue
-
-        for sub in subpackages:
-            if shown >= 20:
-                return
-            if hasattr(sub, 'is_available') and not sub.is_available:
-                continue
-            expires_at = getattr(sub, 'expires_at', None)
-            if expires_at and expires_at <= now:
-                continue
-
-            sub_title = _discussion_clean_text(getattr(sub, 'title', ''))
-            description = _discussion_clean_text(getattr(sub, 'description', ''), 260)
-            information = _discussion_clean_text(getattr(sub, 'information', ''), 260)
-            price = getattr(sub, 'price', 0) or 0
-            item_website = _discussion_safe_url(getattr(sub, 'website', ''))
-
-            _discussion_add_doc(
-                docs,
-                kind,
-                sub_title or package_title,
-                [
-                    f"Kind: {kind_text}",
-                    f"Resort: {resort_name}",
-                    f"Package: {package_title}",
-                    f"Title: {sub_title}",
-                    f"Description: {description}",
-                    f"Information: {information}",
-                    f"Price: PHP {price}" if price else "",
-                    f"Item website: {item_website}",
-                    f"Resort website: {resort_website}",
-                    f"Contact phone: {phone}",
-                    f"Contact email: {email}",
-                ],
-                {
-                    "kind_label": label,
-                    "resort": resort_name,
-                    "package_title": package_title,
-                    "phone": phone,
-                    "email": email,
-                    "website": resort_website,
-                    "item_website": item_website,
-                    "price": str(price) if price else "",
-                    "summary": description or information or package_title,
-                },
-            )
-            shown += 1
-
-
-def _discussion_collect_place_documents(place, request):
-    docs = []
-    place_name = _discussion_clean_text(getattr(place, 'placename', '') or getattr(place, 'name', ''))
-    now = timezone.now()
-
-    for blog in list(place.blogs.all()[:40]):
-        title = _discussion_clean_text(getattr(blog, 'title', ''))
-        summary = _discussion_clean_text(getattr(blog, 'summarize', ''), 260)
-        body = _discussion_clean_text(getattr(blog, 'textContent', ''), 900)
-        url = _discussion_blog_url(request, blog)
-        _discussion_add_doc(
-            docs,
-            "blog",
-            title,
-            [
-                "Kind: Blog article travel guide",
-                f"Place: {place_name}",
-                f"Title: {title}",
-                f"Summary: {summary}",
-                f"Content: {body}",
-                f"URL: {url}",
-            ],
-            {
-                "kind_label": "Blog",
-                "url": _discussion_safe_url(url),
-                "summary": summary or body,
-            },
-        )
-
-    resorts = (
-        place.resortList
-        .prefetch_related(
-            'resortAccomodations__subPackages',
-            'resortActivities__subPackages',
-            'resortTour__subPackages',
-            'resortFood__subPackages',
-        )
-    )
-    for resort in list(resorts[:40]):
-        resort_name = _discussion_clean_text(getattr(resort, 'RealName', '') or getattr(resort, 'name', ''))
-        description = _discussion_clean_text(getattr(resort, 'description', ''), 400)
-        address = _discussion_clean_text(getattr(resort, 'address', ''))
-        phone = _discussion_clean_text(getattr(resort, 'contactNumber', ''))
-        email = _discussion_clean_text(getattr(resort, 'contactEmail', ''))
-        website = _discussion_safe_url(getattr(resort, 'websiteURL', ''))
-        amenities = _discussion_resort_amenities(resort)
-        amenities_text = ", ".join(amenities)
-
-        _discussion_add_doc(
-            docs,
-            "resort",
-            resort_name,
-            [
-                "Kind: Resort hotel accommodation stay room booking",
-                f"Place: {place_name}",
-                f"Name: {resort_name}",
-                f"Address: {address}",
-                f"Description: {description}",
-                f"Amenities: {amenities_text}",
-                f"Contact phone: {phone}",
-                f"Contact email: {email}",
-                f"Website: {website}",
-            ],
-            {
-                "kind_label": "Resort",
-                "phone": phone,
-                "email": email,
-                "website": website,
-                "summary": description or (f"Amenities: {amenities_text}" if amenities_text else address),
-            },
-        )
-
-        _discussion_package_docs(docs, resort, 'resortAccomodations', 'accommodation', 'Room', now)
-        _discussion_package_docs(docs, resort, 'resortFood', 'food', 'Food', now)
-        _discussion_package_docs(docs, resort, 'resortActivities', 'activity', 'Activity', now)
-        _discussion_package_docs(docs, resort, 'resortTour', 'tour', 'Tour', now)
-
-    current_date = timezone.now().date()
-    event_filter = (
-        Q(yearN__gt=current_date.year)
-        | Q(yearN=current_date.year, monthN__gt=current_date.month)
-        | Q(yearN=current_date.year, monthN=current_date.month, dateN__gte=current_date.day)
-    )
-    for event in list(place.eventList.filter(event_filter).order_by('yearN', 'monthN', 'dateN')[:40]):
-        title = _discussion_clean_text(getattr(event, 'scheduleTitle', ''))
-        exact_date = _discussion_clean_text(getattr(event, 'exactDate', ''))
-        event_place = _discussion_clean_text(getattr(event, 'schedulePlace', ''))
-        details = _discussion_clean_text(getattr(event, 'additionalDetails', '') or getattr(event, 'otherDetails', ''), 320)
-        website = _discussion_safe_url(getattr(event, 'scheduleWebsite', ''))
-        cost = _discussion_clean_text(getattr(event, 'scheduleCost', ''))
-        _discussion_add_doc(
-            docs,
-            "event",
-            title,
-            [
-                "Kind: Event schedule festival happening activity",
-                f"Place: {place_name}",
-                f"Title: {title}",
-                f"Date: {exact_date}",
-                f"Location: {event_place}",
-                f"Cost: {cost}",
-                f"Details: {details}",
-                f"Website: {website}",
-            ],
-            {
-                "kind_label": "Event",
-                "url": website,
-                "summary": f"{exact_date} at {event_place}".strip(),
-                "price": cost,
-            },
-        )
-
-    guides_qs = TourGuide.objects.filter(is_active=True).select_related('user', 'primary_place')
-    guides = list(guides_qs.filter(primary_place=place)[:12])
-    if len(guides) < 12:
-        existing_ids = {guide.id for guide in guides}
-        for guide in guides_qs.filter(primary_place__isnull=True)[:12 - len(guides)]:
-            if guide.id not in existing_ids:
-                guides.append(guide)
-
-    for guide in guides:
-        user = getattr(guide, 'user', None)
-        username = _discussion_clean_text(getattr(user, 'username', '') or 'Tour Guide')
-        email = _discussion_clean_text(getattr(user, 'email', ''))
-        phone = _discussion_clean_text(getattr(guide, 'mobile_number', ''))
-        bio = _discussion_clean_text(getattr(guide, 'bio', ''), 360)
-        certifications = _discussion_clean_text(getattr(guide, 'certifications', ''), 240)
-        experience = getattr(guide, 'experience_years', 0) or 0
-        _discussion_add_doc(
-            docs,
-            "tour_guide",
-            username,
-            [
-                "Kind: Tour guide local guide private guide tourist guide guided tour",
-                f"Place: {place_name}",
-                f"Name: {username}",
-                f"Experience years: {experience}",
-                f"Bio: {bio}",
-                f"Certifications: {certifications}",
-                f"Contact phone: {phone}",
-                f"Contact email: {email}",
-            ],
-            {
-                "kind_label": "Tour Guide",
-                "phone": phone,
-                "email": email,
-                "summary": bio or (f"{experience} year(s) experience" if experience else certifications),
-            },
-        )
-
-    for spot in list(place.tourist_spots.all()[:40]):
-        name = _discussion_clean_text(getattr(spot, 'name', ''))
-        desc = _discussion_clean_text(getattr(spot, 'desc', ''), 420)
-        url = _discussion_safe_url(getattr(spot, 'url', ''))
-        _discussion_add_doc(
-            docs,
-            "tourist_spot",
-            name,
-            [
-                "Kind: Tourist spot attraction destination place to visit",
-                f"Place: {place_name}",
-                f"Name: {name}",
-                f"Description: {desc}",
-                f"URL: {url}",
-            ],
-            {
-                "kind_label": "Tourist Spot",
-                "url": url,
-                "summary": desc,
-            },
-        )
-
-    return docs
-
-
-def _discussion_get_embed_model(_step=None):
-    global _DISCUSSION_RAG_EMBED_MODEL, _DISCUSSION_RAG_EMBED_UNAVAILABLE
-    if _DISCUSSION_RAG_EMBED_MODEL is not None:
-        return _DISCUSSION_RAG_EMBED_MODEL
-    if _DISCUSSION_RAG_EMBED_UNAVAILABLE:
-        return None
-
-    try:
-        from llama_index.core import Settings
-        from llama_index.embeddings.huggingface import HuggingFaceEmbedding
-
-        model_name = getattr(settings, 'DISCUSSION_RAG_EMBED_MODEL_NAME', 'BAAI/bge-small-en-v1.5')
-        _DISCUSSION_RAG_EMBED_MODEL = HuggingFaceEmbedding(model_name=model_name)
-        Settings.embed_model = _DISCUSSION_RAG_EMBED_MODEL
-        try:
-            Settings.llm = None
-        except Exception:
-            pass
-        if _step:
-            _step(f"RAG: HuggingFace embedding ready model={model_name}")
-        return _DISCUSSION_RAG_EMBED_MODEL
-    except Exception as exc:
-        _DISCUSSION_RAG_EMBED_UNAVAILABLE = True
-        if _step:
-            _step(f"RAG: embedding unavailable, using lexical fallback ({type(exc).__name__})")
-        return None
-
-
-def _discussion_build_llama_index(docs, _step=None):
-    embed_model = _discussion_get_embed_model(_step)
-    if not embed_model:
-        return None
-
-    try:
-        from llama_index.core import Document, Settings, VectorStoreIndex
-
-        Settings.embed_model = embed_model
-        try:
-            Settings.llm = None
-        except Exception:
-            pass
-        llama_docs = [
-            Document(text=doc["text"], metadata=doc["metadata"])
-            for doc in docs
-            if doc.get("text")
-        ]
-        if not llama_docs:
-            return None
-        return VectorStoreIndex.from_documents(llama_docs)
-    except Exception as exc:
-        if _step:
-            _step(f"RAG: index build failed, using lexical fallback ({type(exc).__name__})")
-        return None
-
-
-def _discussion_rag_cache_entry(place, request, _step=None):
-    domain = request.build_absolute_uri('/').rstrip('/')
-    cache_key = (getattr(place, 'pk', None), domain)
-    cached = _DISCUSSION_RAG_INDEX_CACHE.get(cache_key)
-    now_ts = time.time()
-    if cached and cached.get("expires_at", 0) > now_ts:
-        return cached
-
-    docs = _discussion_collect_place_documents(place, request)
-    index = _discussion_build_llama_index(docs, _step) if docs else None
-    entry = {
-        "docs": docs,
-        "index": index,
-        "expires_at": now_ts + _discussion_setting_float('DISCUSSION_RAG_CACHE_SECONDS', _DISCUSSION_RAG_CACHE_SECONDS),
-    }
-    _DISCUSSION_RAG_INDEX_CACHE[cache_key] = entry
-    if _step:
-        _step(f"RAG: cached docs={len(docs)} index={'yes' if index else 'no'}")
-    return entry
-
-
-_DISCUSSION_STOP_TOKENS = {
-    'what', 'where', 'when', 'which', 'who', 'how', 'can', 'you', 'please', 'the', 'and',
-    'for', 'with', 'near', 'around', 'from', 'into', 'about', 'that', 'this', 'there',
-    'have', 'has', 'any', 'are', 'available', 'looking', 'need', 'want', 'find', 'give',
-    'show', 'tell', 'list', 'best', 'good', 'your', 'here',
-}
-
-
-def _discussion_query_tokens(message):
-    tokens = re.findall(r"[a-z0-9]{3,}", (message or "").lower())
-    seen = set()
-    return [
-        token for token in tokens
-        if token not in _DISCUSSION_STOP_TOKENS and not (token in seen or seen.add(token))
-    ]
-
-
-def _discussion_intent_kinds(message):
-    lower = (message or "").lower()
-    if any(term in lower for term in ['tour guide', 'tourguide', 'local guide', 'private guide', 'hire a guide']):
-        return ['tour_guide']
-    if any(term in lower for term in ['food', 'restaurant', 'eat', 'dining', 'menu', 'breakfast', 'lunch', 'dinner', 'coffee', 'drink']):
-        return ['food', 'resort']
-    if any(term in lower for term in ['room', 'stay', 'hotel', 'resort', 'accommodation', 'booking']):
-        return ['accommodation', 'resort']
-    if any(term in lower for term in ['event', 'events', 'festival', 'schedule', 'happening']):
-        return ['event']
-    if any(term in lower for term in ['activity', 'activities', 'things to do', 'what to do', 'tour', 'surf', 'snorkel', 'rent']):
-        return ['activity', 'tour', 'tourist_spot']
-    if any(term in lower for term in ['blog', 'article', 'guide']):
-        return ['blog', 'tourist_spot']
-    return []
-
-
-def _discussion_lexical_matches(message, docs, top_k=6):
-    tokens = _discussion_query_tokens(message)
-    if not tokens:
-        preferred_kinds = _discussion_intent_kinds(message)
-        if preferred_kinds:
-            return [
-                {
-                    "text": doc.get("text", ""),
-                    "metadata": doc.get("metadata", {}),
-                    "score": 0.1,
-                }
-                for doc in docs
-                if doc.get("metadata", {}).get("kind") in preferred_kinds
-            ][:top_k]
-        return []
-
-    scored = []
-    phrase = _discussion_clean_text(message).lower()
-    for doc in docs:
-        metadata = doc.get("metadata", {})
-        title = str(metadata.get("title", "")).lower()
-        kind = str(metadata.get("kind", "")).lower()
-        text = str(doc.get("text", "")).lower()
-        haystack = f"{kind} {title} {text}"
-        score = 0
-        for token in tokens:
-            if token in title:
-                score += 4
-            if token in kind:
-                score += 3
-            if token in haystack:
-                score += 1
-        if phrase and len(phrase) > 6 and phrase in haystack:
-            score += 5
-        if score:
-            scored.append({
-                "text": doc.get("text", ""),
-                "metadata": metadata,
-                "score": float(score),
-            })
-    scored.sort(key=lambda item: item["score"], reverse=True)
-    return scored[:top_k]
-
-
-def _discussion_node_text(node_obj):
-    if hasattr(node_obj, "get_content"):
-        try:
-            return node_obj.get_content(metadata_mode="none")
-        except TypeError:
-            return node_obj.get_content()
-    return str(getattr(node_obj, "text", "") or "")
-
-
-def _discussion_retrieve_matches(message, place, request, _step=None, top_k=6):
-    entry = _discussion_rag_cache_entry(place, request, _step)
-    docs = entry.get("docs", [])
-    matches = []
-    index = entry.get("index")
-
-    if index:
-        try:
-            retriever = index.as_retriever(similarity_top_k=top_k)
-            min_score = _discussion_setting_float('DISCUSSION_RAG_MIN_SCORE', 0.30)
-            for result in retriever.retrieve(message):
-                score = getattr(result, "score", None)
-                if score is not None and score < min_score:
-                    continue
-                node_obj = getattr(result, "node", result)
-                matches.append({
-                    "text": _discussion_node_text(node_obj),
-                    "metadata": dict(getattr(node_obj, "metadata", {}) or {}),
-                    "score": float(score or 0),
-                })
-            if _step:
-                _step(f"RAG: vector matches={len(matches)}")
-        except Exception as exc:
-            if _step:
-                _step(f"RAG: vector retrieval failed, using lexical fallback ({type(exc).__name__})")
-
-    if not matches:
-        matches = _discussion_lexical_matches(message, docs, top_k=top_k)
-        if _step:
-            _step(f"RAG: lexical matches={len(matches)}")
-    return _discussion_dedupe_matches(matches)
-
-
-def _discussion_dedupe_matches(matches):
-    deduped = []
-    seen = set()
-    for match in matches:
-        metadata = match.get("metadata", {})
-        key = (
-            metadata.get("kind", ""),
-            metadata.get("title", ""),
-            metadata.get("resort", ""),
-            metadata.get("package_title", ""),
-        )
-        if key in seen:
-            continue
-        seen.add(key)
-        deduped.append(match)
-    return deduped
-
-
-def _discussion_preferred_matches(message, matches):
-    preferred_kinds = _discussion_intent_kinds(message)
-    if not preferred_kinds:
-        return matches
-
-    preferred = [match for match in matches if match.get("metadata", {}).get("kind") in preferred_kinds]
-    return preferred or matches
-
-
-def _discussion_has_model_intent(message):
-    lower = (message or "").lower()
-    intent_terms = [
-        'resort', 'hotel', 'stay', 'room', 'accommodation', 'booking', 'food', 'restaurant',
-        'eat', 'dining', 'menu', 'activity', 'activities', 'things to do', 'tour', 'event',
-        'schedule', 'festival', 'tour guide', 'local guide', 'guide', 'blog', 'article',
-        'spot', 'visit', 'where to', 'what to do',
-    ]
-    return any(term in lower for term in intent_terms)
-
-
-def _discussion_input_html(value):
-    value = _discussion_clean_text(value)
-    if not value:
-        return ""
-    escaped = html.escape(value, quote=True)
-    return f'<input type="text" value="{escaped}" readonly onclick="this.select()">'
-
-
-def _discussion_link_html(url, title):
-    url = _discussion_safe_url(url)
-    if not url:
-        return ""
-    return (
-        f'<a href="{html.escape(url, quote=True)}" target="_blank" rel="noopener">'
-        f'{html.escape(title, quote=True)}</a>'
-    )
-
-
-def _discussion_match_html(match):
-    metadata = match.get("metadata", {})
-    kind = metadata.get("kind", "")
-    kind_label = metadata.get("kind_label", kind.replace("_", " ").title() if kind else "Result")
-    title = _discussion_clean_text(metadata.get("title", ""))
-    resort = _discussion_clean_text(metadata.get("resort", ""))
-    summary = _discussion_clean_text(metadata.get("summary", ""), 150)
-    price = _discussion_clean_text(metadata.get("price", ""))
-
-    label = html.escape(kind_label, quote=True)
-    display_title = html.escape(title, quote=True)
-    if resort and kind not in {"resort", "tour_guide"}:
-        display_title = f'{display_title} at <strong>{html.escape(resort, quote=True)}</strong>'
-
-    parts = [f'<strong>{label}: {display_title}</strong>']
-    if summary:
-        parts.append(html.escape(summary, quote=True))
-    if price:
-        price_label = price if not price.isdigit() else f"PHP {price}"
-        parts.append(f'Price: {html.escape(price_label, quote=True)}')
-
-    contact_parts = []
-    for label_text, key in [('Phone', 'phone'), ('Email', 'email'), ('Website', 'website')]:
-        contact_input = _discussion_input_html(metadata.get(key, ""))
-        if contact_input:
-            contact_parts.append(f'{label_text}: {contact_input}')
-    if contact_parts and kind in {'resort', 'accommodation', 'food', 'activity', 'tour', 'tour_guide'}:
-        parts.append('Contact: ' + " ".join(contact_parts))
-
-    link_url = metadata.get("url") or metadata.get("item_website") or metadata.get("website")
-    link_title = "Read article" if kind == "blog" else "Open link"
-    link = _discussion_link_html(link_url, link_title)
-    if link:
-        parts.append(link)
-
-    return ". ".join(part for part in parts if part)
-
-
-def _discussion_response_from_matches(message, place, matches):
-    matches = _discussion_preferred_matches(message, matches)
-    if not matches:
-        if _discussion_has_model_intent(message):
-            place_name = html.escape(_discussion_clean_text(getattr(place, 'placename', 'this place')), quote=True)
-            return (
-                f'I could not find matching listed information for <strong>{place_name}</strong> yet. '
-                'Try a specific resort, room, food, activity, event, blog, or tour guide keyword.'
-            )
-        return ""
-
-    place_name = html.escape(_discussion_clean_text(getattr(place, 'placename', 'this place')), quote=True)
-    rendered = [_discussion_match_html(match) for match in matches[:2]]
-    rendered = [item for item in rendered if item]
-    if not rendered:
-        return ""
-    return f'I found this in <strong>{place_name}</strong>: ' + " ".join(rendered)
-
-
-def _discussion_model_backed_response(message, place, request, _step=None):
-    matches = _discussion_retrieve_matches(message, place, request, _step)
-    return _discussion_response_from_matches(message, place, matches)
-
-
-def _classify_discussion_message(message):
-    lower = (message or "").strip().lower()
-    if not lower:
-        return "NOT_QUESTION"
-
-    create_verbs = ['make', 'create', 'write', 'generate']
-    if (
-        any(phrase in lower for phrase in ['make a blog', 'create a blog', 'write a blog', 'generate a blog'])
-        or ('blog' in lower and any(verb in lower for verb in create_verbs))
-        or ('article' in lower and any(verb in lower for verb in create_verbs))
-    ):
-        return "BLOG"
-
-    greeting_only = {
-        'hi', 'hello', 'hey', 'thanks', 'thank you', 'salamat', 'ok', 'okay', 'nice',
-        'good morning', 'good afternoon', 'good evening',
-    }
-    if lower in greeting_only:
-        return "NOT_QUESTION"
-
-    question_terms = [
-        '?', 'what', 'where', 'when', 'which', 'who', 'how', 'can i', 'can you',
-        'do you', 'is there', 'are there', 'looking for', 'need', 'want', 'find',
-        'recommend', 'suggest', 'available', 'price', 'cost', 'book', 'contact',
-    ]
-    if any(term in lower for term in question_terms) or _discussion_has_model_intent(lower):
-        return "QUESTION"
-
-    return "NOT_QUESTION"
 
 
 class FacebookPageForm(forms.ModelForm):
@@ -3127,21 +2421,20 @@ def discussion(request, placeID):
             
 
 
-            # Early local check: Is user asking something or just chatting?
-            _step("Early local check: determining message type")
+            # Early AI check: Is user asking something or just chatting?
+            _step("Early AI check: determining message type")
             print(f'Received message: "{message_content}"')
             print('---')
             
             # Initialize variables to avoid UnboundLocalError if early check fails
             is_about_blogs = False
             blog_context = ""
-            message_lower = message_content.lower()
             
             try:
 
 
                 # Check response type
-                message_lower = message_content.lower()
+                message_lower = data.get('message', '').lower()
             
                 def Checkblog(human_message_prompt,place):
                     # Combined AI processing with one call
@@ -3366,16 +2659,35 @@ def discussion(request, placeID):
                     return JsonResponse("Blog Created or Matched", safe=False)
                     # return HttpResponse("Blog Created or Matched")
                     # return JsonResponse({"response": 'Blog Created  or Matched'})
-                _step("Early check: running local message classifier")
-                # Save user message when it is a real question or a non-question statement.
+                _step("Early check: BLOG - saving message and returning")
+                # Save user message as a discussion with a special flag (could be used for later blog generation)
 
                 
-                early_result = _classify_discussion_message(message_content)
+                early_check_prompt = f"""
+                        Analyze this message: "{message_content}"
+                        SAFETY CHECK:
+                        If offensive → respond ONLY with: OFFENSIVE
+                        Is the user asking ,a question, looking for information, or requesting to create a blog?
+
+                        
+                        Respond with ONLY one word:
+                        - QUESTION (if asking, looking for info, requesting recommendations, or seeking help)
+                        - BLOG (if explicitly requesting to create a blog)
+                        - NOT_QUESTION (if just greeting, thanking, or making a statement with no question)
+
+                """
+                print('Early check prompt:', early_check_prompt )
+                early_check = client.chat.completions.create(
+                    model=settings.GROK_MODEL_NAME,
+                    messages=[{"role": "user", "content": early_check_prompt}],
+                )
+                print('Early check raw response:', early_check)
+                early_result = early_check.choices[0].message.content.strip()
                 
-                _step(f"Early local check result: {early_result}")
+                _step(f"Early AI check result: {early_result}")
                 
                 if early_result == "OFFENSIVE":
-                    _step("Local classifier marked message as OFFENSIVE")
+                    _step("AI classified message as OFFENSIVE")
                     return JsonResponse({"response": " "})
 
                 elif early_result == "QUESTION":
@@ -3398,7 +2710,7 @@ def discussion(request, placeID):
                     place.discussion.add(discuss)
                     # Return latest discussions
                     objectRecords = place.discussions.order_by('-id').values()[:5]
-                    _step("Local classifier marked message as NOT_QUESTION; returning latest discussions")
+                    _step("AI classified message as NOT_QUESTION; returning latest discussions")
                     
                     return JsonResponse({"response": list(objectRecords)})
                 
@@ -3420,27 +2732,9 @@ def discussion(request, placeID):
                 place.discussion.add(discuss)
                 _step("Attached discussion to place.discussion")
 
-                try:
-                    _step("RAG: attempting model-backed answer")
-                    rag_message = _discussion_model_backed_response(message_content, place, request, _step)
-                except Exception as rag_error:
-                    rag_message = ""
-                    _step(f"RAG: failed with {type(rag_error).__name__}; falling back to legacy flow")
-
-                if rag_message:
-                    ai_discuss = PlaceDiscussion.objects.create(
-                        discuss=rag_message,
-                        discusserName="Assistant",
-                        place=place
-                    )
-                    place.discussion.add(ai_discuss)
-                    _step("RAG: saved assistant response and returning")
-                    objectRecords = place.discussions.order_by('-id').values()[:2]
-                    return JsonResponse({"response": list(objectRecords)})
-
 
             except Exception as e:
-                _step(f"Early local check failed: {type(e).__name__} - proceeding with full flow")
+                _step(f"Early AI check failed: {type(e).__name__} - proceeding with full flow")
                 # If early check fails, continue with full processing
             
 

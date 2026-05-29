@@ -10,6 +10,7 @@ urlpatterns = [
     path("blog-edits/save-file/", views.save_blog_paragraph_file_edit, name="save_blog_paragraph_file_edit"),
     path("blog-edits/save/", views.save_blog_paragraph_file_edit, name="save_blog_paragraph_edit"),
     #   Then register here /apis/blog/
+    path('blog/<slug:slug>/assets/<path:asset_name>', views.blog_asset, name='blog_asset'),
     path('blog/<slug:slug>/<slug:slugSec>/', views.blog_html, name='bloghtmlpost'),
     path('blog/<slug:slug>/<slug:slugSec>//', views.blog_html, name='bloghtmlpost'),
     path('blog/<slug:slug>/<slug:slugSec>', views.blog_html, name='bloghtmlpost'),
