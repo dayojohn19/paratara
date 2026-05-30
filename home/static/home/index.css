@@ -2,11 +2,11 @@
   --home-bg: #f6f7f4;
   --home-surface: #ffffff;
   --home-surface-soft: #f1f6f3;
-  --home-text: #1f2d2b;
-  --home-muted: #64716d;
-  --home-border: #dbe2dd;
-  --home-teal: #247762;
-  --home-blue: #2d6fb4;
+  --home-text: #000000;
+  --home-muted: #a0a0a0;
+  --home-border: #252726;
+  --home-teal: #ffffff;
+  --home-blue: #b1cfef;
   --home-amber: #d9823b;
   --home-shadow: 0 12px 32px rgba(29, 42, 39, 0.1);
 }
@@ -29,6 +29,7 @@
   min-width: 0;
   max-width: none !important;
   margin: 0;
+  color:white;
 }
 
 .home-page svg {
@@ -37,22 +38,32 @@
 }
 
 .home-search-panel {
-  margin: 0 auto 1.25rem;
+  height: 80vh;
   padding: 1em;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(300px, 480px);
   gap: 1.25rem;
   align-items: end;
-  background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.748), rgba(255, 255, 255, 0.49)),
-    url("images/header-search-background.webp") center / cover no-repeat;
-  border: 1px solid var(--home-border);
+/* border-radius: 50%; */
+background-image: url("images/wholeearth2.webp");
+background-size: 1400px;
+background-repeat: repeat-x;
+animation: earthSpin 60s linear infinite;
+/* box-shadow: 27px -21px 120px rgba(255, 255, 255, 1) inset,
+0 0 80px rgba(54, 50, 50, 0.26); */
 
-  box-shadow: var(--home-shadow);
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
+
 
 .home-search-copy {
   min-width: 0;
+  z-index: 1;
+  color: white !important;
+text-shadow: black 1px 1px 1px;
 }
 
 .home-eyebrow {
@@ -64,7 +75,7 @@
 
 .home-search-copy h1 {
   margin: 0.25rem 0 0.35rem;
-  color: var(--home-text);
+  color: rgb(237, 237, 237);
   font-size: 2rem;
   line-height: 1.12;
 }
@@ -81,12 +92,14 @@
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  width: 100%;
   min-height: 52px;
   padding: 0.35rem 0.35rem 0.35rem 0.9rem;
   background: #ffffff;
   border: 1px solid var(--home-border);
   border-radius: 8px;
+
+    display: grid;
+  align-items: center;
 }
 
 .search-container:focus-within {
@@ -127,7 +140,7 @@
   font-weight: 750;
   border: 0;
   border-radius: 8px;
-  background: var(--home-teal);
+  background: #2c7d68;
   cursor: pointer;
 }
 
@@ -253,6 +266,18 @@
   background: #fff8f6;
 }
 
+
+
+
+@keyframes earthSpin {
+  from {
+    background-position: 0 center;
+  }
+
+  to {
+    background-position: -1400px center;
+  }
+}
 @media (max-width: 760px) {
 
 

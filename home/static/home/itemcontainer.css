@@ -2,7 +2,6 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
   align-items: stretch;
-  padding: 0.25rem 0 2rem;
 }
 
 .container-item {
@@ -73,13 +72,12 @@
 }
 
 .place-card-footer {
-  display: flex;
+
   align-items: center;
   justify-content: space-between;
   gap: 0.6rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--home-muted);
   font-size: 0.82rem;
-  font-weight: 700;
 }
 
 .place-review-count {
@@ -87,6 +85,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+    display: block;         /* Ensures it can be aligned */
+  text-align: right;  
 }
 
 .place-card-action {

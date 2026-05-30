@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Rotating Earth Background</title>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  overflow: hidden;
+  font-family: Arial, sans-serif;
+}
+
+.hero {
+  position: relative;
+  height: 100vh;
+  background: #cfefff;
+  overflow: hidden;
+}
+
+/* Rotating Earth */
+.earth {
+  position: absolute;
+  width: 900px;
+  height: 900px;
+
+  left: -300px;
+  top: -420px;
+
+  border-radius: 50%;
+
+  background-image: url("/singlepage2/static/singlepage2/images/wholeearth.webp");
+
+  
+  background-size: auto 100%;
+  background-repeat: repeat-x;
+
+  animation: earthSpin 60s linear infinite;
+
+  box-shadow:
+    inset -80px -80px 120px rgba(0,0,0,0.35),
+    0 0 80px rgba(0,0,0,0.25);
+}
+
+@keyframes earthSpin {
+  from {
+    background-position: 0 center;
+  }
+
+  to {
+    background-position: -1400px center;
+  }
+}
+
+/* Search area */
+.search-wrapper {
+  position: relative;
+  z-index: 2;
+  height: 100vh;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.search-box {
+  width: 720px;
+  height: 72px;
+  background: #f3f3f3;
+  border-radius: 14px;
+
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+}
+
+.search-icon {
+  font-size: 22px;
+  margin-right: 14px;
+  color: #666;
+}
+
+.search-box input {
+  flex: 1;
+  height: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+
+  font-size: 24px;
+  color: #555;
+}
+
+.search-box button {
+  width: 54px;
+  height: 54px;
+  border: none;
+  border-radius: 10px;
+
+  background: #167c62;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+}
+</style>
+<script>
+    const SpeechRecognition =
+  window.SpeechRecognition || window.webkitSpeechRecognition;
+
+const recognition = new SpeechRecognition();
+
+recognition.lang = "en-US";
+recognition.continuous = true;
+recognition.interimResults = true;
+
+recognition.onresult = (event) => {
+  let transcript = "";
+
+  for (let i = event.resultIndex; i < event.results.length; i++) {
+    transcript += event.results[i][0].transcript;
+  }
+
+  console.log(transcript);
+};
+
+recognition.start();
+</script>
+</head>
+
+<body>
+
+<div class="hero">
+
+  <div class="earth"></div>
+
+  <div class="search-wrapper">
+    <div class="search-box">
+      <div class="search-icon">⌕</div>
+      <input type="text" placeholder="Search destinations">
+      <button>↗</button>
+      <button onclick="recognition.start()">Start</button>
+<button onclick="recognition.stop()">Stop</button>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

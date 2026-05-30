@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Speech To Text + Grammar Fix</title>
+</head>
+<body>
+
+  <h2>Speech To Text Demo</h2>
+
+  <button id="startBtn">Start</button>
+  <button id="stopBtn">Stop</button>
+
+  <h3>Live Transcript</h3>
+  <textarea id="liveText" rows="6" cols="60"></textarea>
+
+  <h3>Grammar Corrected</h3>
+  <textarea id="fixedText" rows="6" cols="60"></textarea>
+
+  <script>
+
+    // =========================
+    // SPEECH RECOGNITION SETUP
+    // =========================
+
+    const SpeechRecognition =
+      window.SpeechRecognition ||
+      window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      alert("Speech Recognition is not supported in this browser.");
+    }
+
+    const recognition = new SpeechRecognition();
+
+    recognition.lang = "en-US";
+    recognition.continuous = true;
+    recognition.interimResults = true;
+
+    let finalTranscript = "";
+
+    // =========================
+    // START BUTTON
+    // =========================
+
+    document.getElementById("startBtn").addEventListener("click", () => {
+
+      finalTranscript = "";
+
+      document.getElementById("liveText").value = "";
+      document.getElementById("fixedText").value = "";
+
+      recognition.start();
+    });
+
+    // =========================
+    // STOP BUTTON
+    // =========================
+
+    document.getElementById("stopBtn").addEventListener("click", async () => {
+
+      recognition.stop();
+
+      // grammar fix after stopping
+      const fixed = await fixGrammar(finalTranscript);
+
+      document.getElementById("fixedText").value = fixed;
+    });
+
+    // =========================
+    // SPEECH RESULTS
+    // =========================
+
+    recognition.onresult = (event) => {
+
+      let interimTranscript = "";
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+
+        const transcript = event.results[i][0].transcript;
+
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript + " ";
+        } else {
+          interimTranscript += transcript;
+        }
+      }
+
+      document.getElementById("liveText").value =
+        finalTranscript + interimTranscript;
+    };
+
+    // =========================
+    // ERROR HANDLING
+    // =========================
+
+    recognition.onerror = (event) => {
+      console.error("Speech recognition error:", event.error);
+    };
+
+    recognition.onend = () => {
+      console.log("Speech recognition stopped");
+    };
+
+    // =========================
+    // GRAMMAR FIX FUNCTION
+    // =========================
+
+
+  </script>
+
+</body>
+</html>

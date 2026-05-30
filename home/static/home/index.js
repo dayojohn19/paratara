@@ -199,12 +199,12 @@ function createPlaceCard(place) {
   reviews.className = "place-review-count";
   reviews.textContent = `${getReviewCount(place)} reviews`;
 
-  const action = document.createElement("span");
-  action.className = "place-card-action";
-  action.textContent = "Open";
+  // const action = document.createElement("span");
+  // action.className = "place-card-action";
+  // action.textContent = "Open";
 
   footer.appendChild(reviews);
-  footer.appendChild(action);
+  // footer.appendChild(action);
   content.appendChild(title);
   content.appendChild(footer);
   card.appendChild(content);

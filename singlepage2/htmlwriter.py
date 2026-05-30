@@ -774,10 +774,21 @@ footer button {{
 }}
 
 #blog-editable-body [data-editing="true"] {{
-    padding: 0.75rem 2.5rem 0.75rem 0.85rem;
-    background: #b1b1b1;
-    outline: 2px solid rgba(47, 125, 104, 0.28);
+    padding: 0.75rem 1rem;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
     border-radius: 8px;
+
+    outline: none;
+
+    transition:
+        background-color 0.15s ease,
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
+
+    box-shadow:
+        0 1px 2px rgba(0,0,0,0.04),
+        0 0 0 3px rgba(37, 99, 235, 0.12);
 }}
 
 .blog-edit-button {{
@@ -1083,245 +1094,313 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg) {{
     }}
 }}
 
-function getBlogLists() {{
-    fetchData('getPlaceBlogs/' + placename, 'blog-list', (data) => {{
-        const blogList = document.getElementById('blog-list');
-        const fragment = document.createDocumentFragment();
-        
-        data.forEach(blog => {{
-            const item = document.createElement('li');
-            const link = document.createElement('a');
-            link.href = blog.localurlpath;
-            link.textContent = blog.title.replace(/<\\/?a[^>]*>/g, '');
-            item.appendChild(link);
-            fragment.appendChild(item);
-        }});
-        
-        blogList.appendChild(fragment);
-    }}, 'No blogs found for this place.');
-}}
-
-function fetchCollections() {{
-    fetchData('getPlaceCollections/' + placename, 'collections-loading', (data) => {{
-        const collectionsDiv = document.querySelector('#dynamic-collections');
-        const fragment = document.createDocumentFragment();
-        
-        data.forEach(col => {{
-            const div = document.createElement('div');
-            div.className = 'collection-item';
+    function getBlogLists() {{
+        fetchData('getPlaceBlogs/' + placename, 'blog-list', (data) => {{
+            const blogList = document.getElementById('blog-list');
+            const fragment = document.createDocumentFragment();
             
-            if (col.collectionPicture) {{
-                const img = document.createElement('img');
-                img.src = col.collectionPicture;
-                img.alt = col.collectionName || 'Collection image';
-                img.loading = 'lazy';
-                div.appendChild(img);
-            }}
+            data.forEach(blog => {{
+                const item = document.createElement('li');
+                const link = document.createElement('a');
+                link.href = blog.localurlpath;
+                link.textContent = blog.title.replace(/<\\/?a[^>]*>/g, '');
+                item.appendChild(link);
+                fragment.appendChild(item);
+            }});
             
-            const h4 = document.createElement('h4');
-            h4.textContent = col.name || '';
-            div.appendChild(h4);
+            blogList.appendChild(fragment);
+        }}, 'No blogs found for this place.');
+    }}
+
+    function fetchCollections() {{
+        fetchData('getPlaceCollections/' + placename, 'collections-loading', (data) => {{
+            const collectionsDiv = document.querySelector('#dynamic-collections');
+            const fragment = document.createDocumentFragment();
             
-            if (col.address || col.collectionDescription) {{
-                const p = document.createElement('p');
-                p.textContent = (col.collectionDescription || '').substring(0, 130) + '...';
-                div.appendChild(p);
+            data.forEach(col => {{
+                const div = document.createElement('div');
+                div.className = 'collection-item';
+                
+                if (col.collectionPicture) {{
+                    const img = document.createElement('img');
+                    img.src = col.collectionPicture;
+                    img.alt = col.collectionName || 'Collection image';
+                    img.loading = 'lazy';
+                    div.appendChild(img);
+                }}
+                
+                const h4 = document.createElement('h4');
+                h4.textContent = col.name || '';
+                div.appendChild(h4);
+                
+                if (col.address || col.collectionDescription) {{
+                    const p = document.createElement('p');
+                    p.textContent = (col.collectionDescription || '').substring(0, 130) + '...';
+                    div.appendChild(p);
+                }}
+
+                // Add Directions link with icon
+                const address = col.address || col.name || '';
+                if (address) {{
+                    const directionsLink = document.createElement('a');
+                    directionsLink.href = `https://www.google.com/maps/search/?api=1&query=${{encodeURIComponent(address)}}`;
+                    directionsLink.target = '_blank';
+                    directionsLink.rel = 'noopener noreferrer';
+                    directionsLink.className = 'directions-link';
+
+                    // SVG icon for directions (Google Maps style)
+                    const svgIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                    svgIcon.setAttribute('width', '20');
+                    svgIcon.setAttribute('height', '20');
+                    svgIcon.setAttribute('viewBox', '0 0 24 24');
+                    svgIcon.setAttribute('fill', 'none');
+                    svgIcon.setAttribute('stroke', '#2563eb');
+                    svgIcon.setAttribute('stroke-width', '2');
+                    svgIcon.setAttribute('stroke-linecap', 'round');
+                    svgIcon.setAttribute('stroke-linejoin', 'round');
+                    svgIcon.innerHTML = `<path d="M21.71 11.29l-9-9a1 1 0 0 0-1.42 0l-9 9a1 1 0 0 0 0 1.42l9 9a1 1 0 0 0 1.42 0l9-9a1 1 0 0 0 0-1.42z"/><circle cx="12" cy="12" r="3"/>`;
+
+                    directionsLink.appendChild(svgIcon);
+                    const span = document.createElement('span');
+                    span.textContent = 'Directions';
+                    directionsLink.appendChild(span);
+                    div.appendChild(directionsLink);
+                }}
+
+                fragment.appendChild(div);
+            }});
+
+            collectionsDiv.appendChild(fragment);
+            document.getElementById('collections-loading').style.display = 'none';
+        }}, 'No local collections found nearby.');
+    }}
+
+
+    function getParagraphCleanText(paragraph) {{
+        const clone = paragraph.cloneNode(true);
+        clone.querySelectorAll('.blog-edit-button, .blog-paragraph-tools').forEach(el => el.remove());
+        return clone.textContent.trim();
+    }}
+
+    function getParagraphCleanHTML(paragraph) {{
+        const clone = paragraph.cloneNode(true);
+        clone.querySelectorAll('.blog-edit-button, .blog-paragraph-tools').forEach(el => el.remove());
+        return clone.innerHTML;
+    }}
+
+    function paragraphHasVisibleContent(paragraph) {{
+        const clone = paragraph.cloneNode(true);
+        clone.querySelectorAll('.blog-edit-button, .blog-paragraph-tools').forEach(el => el.remove());
+        return Boolean(clone.textContent.trim() || clone.querySelector('img[src]'));
+    }}
+
+    function insertUploadedImageIntoSection(paragraph, imageUrl) {{
+        if (!imageUrl) return;
+
+        const isUrlOrFilePath = (() => {{
+            // Check for valid URL
+            try {{
+                new URL(imageUrl);
+                return true;
+            }} catch {{}}
+            // Check for file path patterns: starts with '/', './', '../', or 'file:'
+            if (
+                typeof imageUrl === 'string' && (
+                    imageUrl.startsWith('/') ||
+                    imageUrl.startsWith('./') ||
+                    imageUrl.startsWith('../') ||
+                    imageUrl.startsWith('file:')
+                )
+            ) {{
+                return true;
+            }}
+            return false;
+        }})();
+
+        let toadd = imageUrl;
+        if (isUrlOrFilePath) {{
+            const img = document.createElement('img');
+            img.src = imageUrl;
+            img.alt = 'Blog content image';
+            img.loading = 'lazy';
+            img.decoding = 'async';
+            img.className = 'editable-blog-image';
+            toadd = img;
+        }} else {{
+            console.log("It's plain text");
+        }}
+
+
+
+        const selection = window.getSelection();
+        if (selection && selection.rangeCount) {{
+            const range = selection.getRangeAt(0);
+            if (paragraph.contains(range.commonAncestorContainer)) {{
+                range.deleteContents();
+                let nodeToInsert = toadd;
+                if (typeof toadd === 'string') {{
+                    nodeToInsert = document.createTextNode(toadd);
+                }}
+                range.insertNode(nodeToInsert);
+                range.setStartAfter(nodeToInsert);
+                range.collapse(true);
+                selection.removeAllRanges();
+                selection.addRange(range);
+                return;
+            }}
+        }}
+
+        if (typeof toadd === 'string') {{
+            paragraph.appendChild(document.createTextNode(toadd));
+        }} else {{
+            paragraph.appendChild(toadd);
+        }}
+        placeCaretAtEnd(paragraph);
+    }}
+
+    async function uploadImageIntoSection(paragraph, imageInput, uploadButton, status) {{
+        const file = imageInput.files && imageInput.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('image', file);
+        formData.append('imageclassID', place_name);
+        formData.append('blog_place_slug', blogPlaceSlug);
+        formData.append('blog_title_slug', blogTitleSlug);
+        formData.append('source', 'blog_inline_editor');
+
+        uploadButton.disabled = true;
+        status.textContent = 'Uploading image...';
+        status.classList.remove('error');
+
+        try {{
+            const response = await fetch(blogImageUploadUrl, {{
+                method: 'POST',
+                body: formData,
+                headers: {{
+                    "X-Requested-With": "XMLHttpRequest",
+                    "X-CSRFToken": getCookie('csrftoken'),
+                }}
+            }});
+
+            const data = await response.json();
+            if (!response.ok || data.status !== 'success' || !data.image_url) {{
+                throw new Error(data.error || `HTTP ${{response.status}}`);
             }}
 
-            // Add Directions link with icon
-            const address = col.address || col.name || '';
-            if (address) {{
-                const directionsLink = document.createElement('a');
-                directionsLink.href = `https://www.google.com/maps/search/?api=1&query=${{encodeURIComponent(address)}}`;
-                directionsLink.target = '_blank';
-                directionsLink.rel = 'noopener noreferrer';
-                directionsLink.className = 'directions-link';
-
-                // SVG icon for directions (Google Maps style)
-                const svgIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                svgIcon.setAttribute('width', '20');
-                svgIcon.setAttribute('height', '20');
-                svgIcon.setAttribute('viewBox', '0 0 24 24');
-                svgIcon.setAttribute('fill', 'none');
-                svgIcon.setAttribute('stroke', '#2563eb');
-                svgIcon.setAttribute('stroke-width', '2');
-                svgIcon.setAttribute('stroke-linecap', 'round');
-                svgIcon.setAttribute('stroke-linejoin', 'round');
-                svgIcon.innerHTML = `<path d="M21.71 11.29l-9-9a1 1 0 0 0-1.42 0l-9 9a1 1 0 0 0 0 1.42l9 9a1 1 0 0 0 1.42 0l9-9a1 1 0 0 0 0-1.42z"/><circle cx="12" cy="12" r="3"/>`;
-
-                directionsLink.appendChild(svgIcon);
-                const span = document.createElement('span');
-                span.textContent = 'Directions';
-                directionsLink.appendChild(span);
-                div.appendChild(directionsLink);
-            }}
-
-            fragment.appendChild(div);
-        }});
-
-        collectionsDiv.appendChild(fragment);
-        document.getElementById('collections-loading').style.display = 'none';
-    }}, 'No local collections found nearby.');
-}}
-
-
-function getParagraphCleanText(paragraph) {{
-    const clone = paragraph.cloneNode(true);
-    clone.querySelectorAll('.blog-edit-button, .blog-paragraph-tools').forEach(el => el.remove());
-    return clone.textContent.trim();
-}}
-
-function getParagraphCleanHTML(paragraph) {{
-    const clone = paragraph.cloneNode(true);
-    clone.querySelectorAll('.blog-edit-button, .blog-paragraph-tools').forEach(el => el.remove());
-    return clone.innerHTML;
-}}
-
-function paragraphHasVisibleContent(paragraph) {{
-    const clone = paragraph.cloneNode(true);
-    clone.querySelectorAll('.blog-edit-button, .blog-paragraph-tools').forEach(el => el.remove());
-    return Boolean(clone.textContent.trim() || clone.querySelector('img[src]'));
-}}
-
-function insertUploadedImageIntoSection(paragraph, imageUrl) {{
-    if (!imageUrl) return;
-
-    const img = document.createElement('img');
-    img.src = imageUrl;
-    img.alt = 'Blog content image';
-    img.loading = 'lazy';
-    img.decoding = 'async';
-    img.className = 'editable-blog-image';
-
-    const selection = window.getSelection();
-    if (selection && selection.rangeCount) {{
-        const range = selection.getRangeAt(0);
-        if (paragraph.contains(range.commonAncestorContainer)) {{
-            range.deleteContents();
-            range.insertNode(img);
-            range.setStartAfter(img);
-            range.collapse(true);
-            selection.removeAllRanges();
-            selection.addRange(range);
-            return;
+            insertUploadedImageIntoSection(paragraph, data.image_url);
+            status.textContent = 'Image inserted. Click Save to keep it.';
+        }} catch (err) {{
+            console.error("Error uploading image:", err);
+            status.textContent = 'Image upload failed. Please try again.';
+            status.classList.add('error');
+        }} finally {{
+            uploadButton.disabled = false;
+            imageInput.value = '';
         }}
     }}
 
-    paragraph.appendChild(img);
-    placeCaretAtEnd(paragraph);
-}}
-
-async function uploadImageIntoSection(paragraph, imageInput, uploadButton, status) {{
-    const file = imageInput.files && imageInput.files[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append('image', file);
-    formData.append('imageclassID', place_name);
-    formData.append('blog_place_slug', blogPlaceSlug);
-    formData.append('blog_title_slug', blogTitleSlug);
-    formData.append('source', 'blog_inline_editor');
-
-    uploadButton.disabled = true;
-    status.textContent = 'Uploading image...';
-    status.classList.remove('error');
-
-    try {{
-        const response = await fetch(blogImageUploadUrl, {{
-            method: 'POST',
-            body: formData,
-            headers: {{
-                "X-Requested-With": "XMLHttpRequest",
-                "X-CSRFToken": getCookie('csrftoken'),
-            }}
-        }});
-
-        const data = await response.json();
-        if (!response.ok || data.status !== 'success' || !data.image_url) {{
-            throw new Error(data.error || `HTTP ${{response.status}}`);
-        }}
-
-        insertUploadedImageIntoSection(paragraph, data.image_url);
-        status.textContent = 'Image inserted. Click Save to keep it.';
-    }} catch (err) {{
-        console.error("Error uploading image:", err);
-        status.textContent = 'Image upload failed. Please try again.';
-        status.classList.add('error');
-    }} finally {{
-        uploadButton.disabled = false;
-        imageInput.value = '';
+    function placeCaretAtEnd(element) {{
+        const range = document.createRange();
+        range.selectNodeContents(element);
+        range.collapse(false);
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
     }}
-}}
 
-function placeCaretAtEnd(element) {{
-    const range = document.createRange();
-    range.selectNodeContents(element);
-    range.collapse(false);
-    const selection = window.getSelection();
-    selection.removeAllRanges();
-    selection.addRange(range);
-}}
+    function attachParagraphEditButton(paragraph) {{
+        if (paragraph.querySelector('.blog-edit-button')) return;
 
-function attachParagraphEditButton(paragraph) {{
-    if (paragraph.querySelector('.blog-edit-button')) return;
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'blog-edit-button';
+        button.innerHTML = '&#9998;';
+        button.title = 'Edit section';
+        button.setAttribute('aria-label', 'Edit section');
+        button.addEventListener('click', () => startParagraphEdit(paragraph));
+        paragraph.appendChild(button);
+    }}
 
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'blog-edit-button';
-    button.innerHTML = '&#9998;';
-    button.title = 'Edit section';
-    button.setAttribute('aria-label', 'Edit section');
-    button.addEventListener('click', () => startParagraphEdit(paragraph));
-    paragraph.appendChild(button);
-}}
-
-function setupEditableParagraphs() {{
-    const body = document.getElementById('blog-editable-body');
-    if (!body) return;
-
-    body.querySelectorAll('h2[data-blog-edit-index], p[data-blog-edit-index]').forEach(paragraph => {{
-        attachParagraphEditButton(paragraph);
-    }});
-}}
-
-function updateVisibleLastUpdated(data) {{
-    if (!data || !data.updated_at_display) return;
-
-    let lastUpdated = document.getElementById('blog-last-updated');
-    if (!lastUpdated) {{
+    function setupEditableParagraphs() {{
         const body = document.getElementById('blog-editable-body');
-        if (!body || !body.parentNode) return;
+        if (!body) return;
 
-        const meta = document.createElement('p');
-        meta.className = 'blog-date-meta';
-        const span = document.createElement('span');
-        span.appendChild(document.createTextNode('Last updated '));
-        lastUpdated = document.createElement('time');
-        lastUpdated.id = 'blog-last-updated';
-        span.appendChild(lastUpdated);
-        meta.appendChild(span);
-        body.parentNode.insertBefore(meta, body);
+        body.querySelectorAll('h2[data-blog-edit-index], p[data-blog-edit-index]').forEach(paragraph => {{
+            attachParagraphEditButton(paragraph);
+        }});
     }}
 
-    if (data.updated_at) {{
-        lastUpdated.setAttribute('datetime', data.updated_at);
+    function updateVisibleLastUpdated(data) {{
+        if (!data || !data.updated_at_display) return;
+
+        let lastUpdated = document.getElementById('blog-last-updated');
+        if (!lastUpdated) {{
+            const body = document.getElementById('blog-editable-body');
+            if (!body || !body.parentNode) return;
+
+            const meta = document.createElement('p');
+            meta.className = 'blog-date-meta';
+            const span = document.createElement('span');
+            span.appendChild(document.createTextNode('Last updated '));
+            lastUpdated = document.createElement('time');
+            lastUpdated.id = 'blog-last-updated';
+            span.appendChild(lastUpdated);
+            meta.appendChild(span);
+            body.parentNode.insertBefore(meta, body);
+        }}
+
+        if (data.updated_at) {{
+            lastUpdated.setAttribute('datetime', data.updated_at);
+        }}
+        lastUpdated.textContent = data.updated_at_display;
     }}
-    lastUpdated.textContent = data.updated_at_display;
-}}
 
-function finishParagraphEdit(paragraph, tools, replacementHTML) {{
-    paragraph.contentEditable = 'false';
-    delete paragraph.dataset.editing;
+    function finishParagraphEdit(paragraph, tools, replacementHTML) {{
+        paragraph.contentEditable = 'false';
+        delete paragraph.dataset.editing;
 
-    if (replacementHTML !== null) {{
-        paragraph.innerHTML = replacementHTML;
+        if (replacementHTML !== null) {{
+            paragraph.innerHTML = replacementHTML;
+        }}
+
+        if (tools) tools.remove();
+        attachParagraphEditButton(paragraph);
     }}
 
-    if (tools) tools.remove();
-    attachParagraphEditButton(paragraph);
-}}
+    function startParagraphEdit(paragraph) {{
 
-function startParagraphEdit(paragraph) {{
+        const SpeechRecognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
+
+        if (!SpeechRecognition) {{
+        alert("Speech Recognition is not supported in this browser.");
+        }}
+        const recognition = new SpeechRecognition();
+        recognition.lang = "en-US";
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        let finalTranscript = "";
+
+
+
+
+    recognition.onend = () => {{
+    recognitionActive = false;
+
+    startRecognitionButton.disabled = false;
+    startRecognitionButton.textContent = 'Start Recognition';
+    startRecognitionButton.style.background = '#2563eb';
+    startRecognitionButton.style.cursor = 'pointer';
+    startRecognitionButton.style.opacity = '1';
+    startRecognitionButton.style.boxShadow = '0 2px 6px rgba(37, 99, 235, 0.25)';
+    }};
+
+        
+
+
+
     if (paragraph.dataset.editing === 'true') return;
 
     const originalHTML = getParagraphCleanHTML(paragraph);
@@ -1356,6 +1435,158 @@ function startParagraphEdit(paragraph) {{
     imageUploadInput.accept = 'image/*';
     imageUploadInput.className = 'blog-image-upload-input';
 
+    const startRecognitionButton = document.createElement('button');
+    startRecognitionButton.type = 'button';
+    startRecognitionButton.textContent = 'Voice input';
+    startRecognitionButton.className = 'blog-voice-button';
+    startRecognitionButton.value = '';
+    startRecognitionButton.id = 'start-voice-btn';
+
+    startRecognitionButton.style.background = '#2563eb';
+    startRecognitionButton.style.color = '#ffffff';
+    startRecognitionButton.style.border = 'none';
+    startRecognitionButton.style.borderRadius = '7px';
+    startRecognitionButton.style.padding = '0.6em 1em';
+    startRecognitionButton.style.fontSize = '1rem';
+    startRecognitionButton.style.fontWeight = '600';
+    startRecognitionButton.style.cursor = 'pointer';
+    startRecognitionButton.style.margin = '0.5em 0';
+    startRecognitionButton.style.boxSizing = 'border-box';
+    let recognitionActive = false;
+    startRecognitionButton.addEventListener('click', () => {{
+    if (recognition && !recognitionActive) {{
+        finalTranscript = "";
+
+        const liveTextElem = document.getElementById("liveText");
+        const fixedTextElem = document.getElementById("fixedText");
+
+        if (liveTextElem) liveTextElem.value = "";
+        if (fixedTextElem) fixedTextElem.value = "";
+
+        recognition.start();
+        recognitionActive = true;
+
+        startRecognitionButton.disabled = true;
+        startRecognitionButton.textContent = 'Listening...';
+        startRecognitionButton.style.background = '#94a3b8';
+        startRecognitionButton.style.cursor = 'not-allowed';
+        startRecognitionButton.style.opacity = '0.8';
+        startRecognitionButton.style.boxShadow = 'none';
+
+        if (liveTextElem) liveTextElem.style.display = 'block';
+    }}
+
+    const liveTextElem = document.getElementById("liveText");
+
+    function updateLiveText(text) {{
+        if (!liveTextElem) {{
+            // Try to get the element by id as a fallback
+            fallbackElem = liveTextElem
+            if (fallbackElem) {{
+                fallbackElem.value = text;
+                fallbackElem.style.height = 'auto';
+                fallbackElem.style.height = fallbackElem.scrollHeight + 'px';
+            }} else {{
+                // Optionally, log or handle the error
+                console.error('liveTextElem is null and fallback not found.');
+                var fallbackElem = document.getElementById('liveText');
+            }}
+            return;
+        }}
+        liveTextElem.value = text;
+        // Resize only when needed
+        liveTextElem.style.height = 'auto';
+        liveTextElem.style.height = liveTextElem.scrollHeight + 'px';
+    }}
+
+    recognition.onresult = (event) => {{
+        let interimTranscript = "";
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {{
+            const transcript = event.results[i][0].transcript;
+
+            if (event.results[i].isFinal) {{
+                finalTranscript += transcript + " ";
+            }} else {{
+                interimTranscript += transcript;
+            }}
+        }}
+
+        updateLiveText(finalTranscript + interimTranscript);
+    }};
+
+    }});
+
+    
+
+    const stopRecognitionButton = document.createElement('button');
+    stopRecognitionButton.type = 'button';
+    stopRecognitionButton.className = 'blog-voice-button';
+    stopRecognitionButton.textContent = 'Stop';
+    stopRecognitionButton.style.background = '#b42318';
+    stopRecognitionButton.style.color = '#ffffff';
+    stopRecognitionButton.style.border = 'none';
+    stopRecognitionButton.style.borderRadius = '7px';
+    stopRecognitionButton.style.padding = '0.6em 1em';
+    stopRecognitionButton.style.fontSize = '1rem';
+    stopRecognitionButton.style.fontWeight = '600';
+    stopRecognitionButton.style.cursor = 'pointer';
+    stopRecognitionButton.style.margin = '0.5em 0';
+    stopRecognitionButton.style.boxSizing = 'border-box';
+    stopRecognitionButton.id = 'stop-voice-btn';
+    stopRecognitionButton.addEventListener('click', (event) => {{
+        if (recognition && recognitionActive) {{
+            recognition.stop();
+            recognitionActive = false;
+            startRecognitionButton.disabled = false;
+            startRecognitionButton.textContent = 'Voice input';
+            // const fixed = await fixGrammar(finalTranscript); //TODO
+            // document.getElementById("fixedText").value = finalTranscript;    //TODO    
+            const speechtextcontainer = document.getElementById("liveText");
+            if (speechtextcontainer) {{
+                insertUploadedImageIntoSection(paragraph, speechtextcontainer.value + ' ' ); //TODO
+                speechtextcontainer.value = '';
+                speechtextcontainer.style.display = 'none';
+            }}
+        }}
+    }});
+    
+const liveTextRecognition = document.createElement('textarea');
+
+liveTextRecognition.style.display = 'none';
+liveTextRecognition.id = 'liveText';
+liveTextRecognition.rows = 2;
+
+liveTextRecognition.style.width = '100%';
+liveTextRecognition.style.minWidth = '320px';
+liveTextRecognition.style.maxWidth = '100%';
+liveTextRecognition.style.fontSize = '1.15rem';
+liveTextRecognition.style.padding = '0.5em 0.7em';
+liveTextRecognition.style.margin = '0.5em 0';
+liveTextRecognition.style.boxSizing = 'border-box';
+liveTextRecognition.style.borderRadius = '7px';
+liveTextRecognition.style.border = '1.5px solid #2563eb';
+liveTextRecognition.style.background = '#f7faff';
+liveTextRecognition.style.color = '#27332f';
+
+/* Important for auto-expanding */
+liveTextRecognition.style.resize = 'none';
+liveTextRecognition.style.overflow = 'hidden';
+liveTextRecognition.style.minHeight = '3em';
+
+function autoResizeTextarea(textarea) {{
+
+    textarea.style.height = 'auto';
+    textarea.style.height = textarea.scrollHeight + 'px';
+}}
+
+liveTextRecognition.addEventListener('input', () => {{
+  autoResizeTextarea(liveTextRecognition);
+}});
+    const fixedTextRecognition = document.createElement('input');
+    fixedTextRecognition.type = 'hidden';
+    fixedTextRecognition.id = 'fixedText';
+
     const status = document.createElement('span');
     status.className = 'blog-edit-status';
 
@@ -1368,6 +1599,10 @@ function startParagraphEdit(paragraph) {{
     tools.appendChild(cancelButton);
     tools.appendChild(imageUploadButton);
     tools.appendChild(imageUploadInput);
+    tools.appendChild(startRecognitionButton);
+    tools.appendChild(stopRecognitionButton);
+    tools.appendChild(liveTextRecognition);
+    tools.appendChild(fixedTextRecognition);
     tools.appendChild(status);
     paragraph.insertAdjacentElement('afterend', tools);
 }}
