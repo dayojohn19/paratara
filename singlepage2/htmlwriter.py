@@ -217,7 +217,7 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
     "Is it worth buying in 2026?"
 ]
 
-        faq_prompt = f'''Generate 5 common FAQs about "{title}" in "{place_name}".
+        faq_prompt = f'''Generate 5 most searched words and FAQs about "{title}" in "{place_name}".
         
                         Return ONLY a valid JSON array with no markdown formatting. Format:
                         [
@@ -347,6 +347,8 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
                                                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,700;1,9..144,300;1,9..144,400;1,9..144,500&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
 :root {{
     --surface: #fffaf2;
     --surface-alt: #edf7f2;
@@ -387,6 +389,13 @@ h1 {{
     font-size: clamp(2rem, 4vw, 2.75rem);
     font-weight: 700;
     margin-bottom: 1rem;
+      font-family: "Fraunces",Georgia,serif;
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(36px,5vw,72px);
+  line-height: 1;
+  letter-spacing: -.02em;
+  max-width: 14ch;
 }}
 
 h2 {{
@@ -560,8 +569,8 @@ img {{
     max-width: 920px;
     margin: 1.5rem auto 0;
     padding: clamp(1.25rem, 4vw, 3rem);
-    background: var(--white);
-    border: 1px solid var(--border);
+
+
     border-bottom: 0;
 }}
 
@@ -1781,6 +1790,9 @@ document.addEventListener('click', (ev) => {{
 </body>
 </html>
 """
+    
+
+
     logger.info(f"Blog page generated successfully: {len(html_content)} bytes")
 
 
