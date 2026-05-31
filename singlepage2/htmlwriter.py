@@ -1389,7 +1389,9 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg) {{
         const recognition = new SpeechRecognition();
         recognition.lang = "en-US";
         recognition.continuous = true;
-        recognition.interimResults = true;
+
+        recognition.interimResults = false; 
+        recognition.interimResults = false; 
         let finalTranscript = "";
 
 
