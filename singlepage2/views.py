@@ -11,6 +11,7 @@ from django.views.decorators.http import require_POST
 import re
 import os
 import json
+import stat
 from ipaddress import ip_address
 from typing import Optional
 from urllib.parse import urlparse
@@ -272,6 +273,28 @@ def _update_article_schema_modified_date(soup, updated_at):
             script.string = json.dumps(data, indent=2)
 
 
+def _ensure_blog_template_write_permission(file_path):
+    directory = os.path.dirname(file_path)
+
+    try:
+        directory_mode = os.stat(directory).st_mode
+        if not directory_mode & stat.S_IWUSR:
+            os.chmod(directory, directory_mode | stat.S_IWUSR | stat.S_IXUSR)
+
+        file_mode = os.stat(file_path).st_mode
+        if not file_mode & stat.S_IWUSR:
+            os.chmod(file_path, file_mode | stat.S_IWUSR)
+    except OSError as exc:
+        return False, f"Could not set write permission for template file: {exc}"
+
+    if not os.access(file_path, os.W_OK):
+        return False, "Template file is not writable by the web app user"
+    if not os.access(directory, os.W_OK):
+        return False, "Template directory is not writable by the web app user"
+
+    return True, ""
+
+
 def _update_last_updated_marker(soup, updated_at):
     updated_iso, updated_display = _format_blog_datetime(updated_at)
     meta_style = (
@@ -318,8 +341,15 @@ def _patch_blog_template_file(paragraph_index, edited_html, editable_tag="", pla
     if not file_path or not os.path.exists(file_path):
         return False, file_path, "Template file not found"
 
-    with open(file_path, "r", encoding="utf-8") as template_file:
-        html = template_file.read()
+    can_write, permission_error = _ensure_blog_template_write_permission(file_path)
+    if not can_write:
+        return False, file_path, permission_error
+
+    try:
+        with open(file_path, "r", encoding="utf-8") as template_file:
+            html = template_file.read()
+    except OSError as exc:
+        return False, file_path, f"Could not read template file: {exc}"
 
     soup = BeautifulSoup(html, "html.parser")
     editable_body = soup.find(id="blog-editable-body")
@@ -350,8 +380,11 @@ def _patch_blog_template_file(paragraph_index, edited_html, editable_tag="", pla
     _update_last_updated_marker(soup, edited_at)
     _update_article_schema_modified_date(soup, edited_at)
 
-    with open(file_path, "w", encoding="utf-8") as template_file:
-        template_file.write(str(soup))
+    try:
+        with open(file_path, "w", encoding="utf-8") as template_file:
+            template_file.write(str(soup))
+    except OSError as exc:
+        return False, file_path, f"Could not write template file: {exc}"
 
     return True, file_path, ""
 
@@ -399,11 +432,12 @@ def save_blog_paragraph_file_edit(request):
         updated_at=edited_at,
     )
     if not file_updated:
+        error_status = 500 if "permission" in (file_error or "").lower() or "write" in (file_error or "").lower() else 404
         return JsonResponse({
             "ok": False,
             "error": file_error or "Could not update template file",
             "file_path": file_path or "",
-        }, status=404)
+        }, status=error_status)
 
     blog_updated = False
     if blog:
