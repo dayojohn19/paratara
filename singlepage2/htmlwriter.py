@@ -619,11 +619,11 @@ img {{
 .tip-box,
 .mindset-box {{
     padding: 1.5rem;
-    margin: 1.75rem 0;
-    background: var(--surface-alt);
-    border: 1px solid var(--border);
+
+
+
     border-left: 5px solid var(--accent);
-    border-radius: 10px;
+
 }}
 
 .tip-box {{
@@ -1404,6 +1404,7 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg) {{
     startRecognitionButton.style.cursor = 'pointer';
     startRecognitionButton.style.opacity = '1';
     startRecognitionButton.style.boxShadow = '0 2px 6px rgba(37, 99, 235, 0.25)';
+    stopRecognitionButton.click();
     }};
 
         
