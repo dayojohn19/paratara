@@ -51,8 +51,18 @@ def _save_blog_editor_webp(request):
         raise ValueError("Invalid blog asset path")
 
     os.makedirs(assets_dir, exist_ok=True)
-    filename = f"{title_slug}-{int(time.time())}-{uuid.uuid4().hex[:8]}.webp"
-    file_path = os.path.join(assets_dir, filename)
+    requested_name = slugify(request.POST.get("image_name") or "")
+    if requested_name:
+        filename = f"{requested_name}.webp"
+        file_path = os.path.join(assets_dir, filename)
+        suffix = 2
+        while os.path.exists(file_path):
+            filename = f"{requested_name}-{suffix}.webp"
+            file_path = os.path.join(assets_dir, filename)
+            suffix += 1
+    else:
+        filename = f"{title_slug}-{int(time.time())}-{uuid.uuid4().hex[:8]}.webp"
+        file_path = os.path.join(assets_dir, filename)
 
     with Image.open(uploaded_file) as image:
         image = ImageOps.exif_transpose(image)

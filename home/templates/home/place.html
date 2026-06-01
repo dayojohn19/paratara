@@ -312,7 +312,7 @@
   .section-header h2 {
     font-size: clamp(1.35rem, 3vw, 1.8rem);
     font-weight: 700;
-    color: var(--text);
+    color: rgba(167, 163, 100, 0.84);
   }
 
   .section-header p {
@@ -372,7 +372,8 @@
   .calendar-header h2 {
     font-size: 1.35rem;
     color: var(--text);
-    font-weight: 700;
+    font-weight: 400;
+    letter-spacing: 1.2px;
   }
 
   .nav-buttons {
@@ -750,7 +751,7 @@
 
 /* Category Colors */
 .category-guide {
-  background: #caeb25;
+  background: #bd7b1c;
 }
 
 .category-story {
@@ -777,7 +778,7 @@
   }
 
   .blog-excerpt {
-    color: var(--text-muted);
+    color: #9d978c;
     font-size: 0.95rem;
     line-height: 1.6;
     margin-bottom: 18px;
@@ -813,9 +814,6 @@
     transition: color var(--transition);
   }
 
-  .blog-card:hover {
-    color: var(--accent-dark);
-  }
 
   .empty-state {
     text-align: center;
@@ -3010,7 +3008,7 @@
       <!-- Community Bulletin -->
       <div class="schedules-section" id="community-bulletin" style="margin-bottom: 18px;">
         <div class="section-header">
-          <h3>Community Bulletin
+          <h2>Community Bulletin
                     {% if user.is_authenticated %}
           <button type="button" id="bulletinPostButton" class="button button--primary">Post</button>
           <form id="bulletinPostForm" method="post" action="{% url 'home:community_bulletin_upload' placeid %}" enctype="multipart/form-data" style="display:none; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px;">
@@ -3019,7 +3017,7 @@
             <button type="submit" class="button button--primary">Upload</button>
           </form>
         {% endif %}
-          </h3>
+          </h2>
         </div>
 
 
@@ -3073,7 +3071,7 @@
       <!-- All Schedules Section -->
       <div class="schedules-section" id="schedules">
         <div class="section-header">
-          <h3>Schedules</h3>
+          <h2>Schedules</h2>
         </div>
         <ul id="calendar-allsched-list" class="calendar-list schedules-list">
           <!-- Schedule items will be dynamically inserted here -->
@@ -3140,6 +3138,8 @@ function openModalWithContent(event, url){
 // Close button
 document.getElementById("closemodalpageBtn").addEventListener("click", () => {
   document.getElementById("modal-for-blog-id").classList.remove("show");
+  let modalContentframe = document.getElementById("modalforblogContentframe");
+  modalContentframe.src = '';
 });
 
 

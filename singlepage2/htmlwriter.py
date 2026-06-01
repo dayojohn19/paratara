@@ -348,7 +348,7 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,700;1,9..144,300;1,9..144,400;1,9..144,500&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@272&display=swap')
 :root {{
     --surface: #fffaf2;
     --surface-alt: #edf7f2;
@@ -375,7 +375,7 @@ body {{
     font-size: 16px;
     line-height: 1.68;
     color: var(--text);
-    background: linear-gradient(135deg, #fbf7ec 0%, #edf7f2 52%, #eef3fb 100%);
+    background: linear-gradient(to bottom right, rgb(242, 242, 242), rgb(224, 224, 224) 52%, rgb(216, 216, 216));
 }}
 
 h1,
@@ -405,6 +405,11 @@ h2 {{
     margin: 2.25rem 0 1rem;
     padding-bottom: 0.5rem;
     border-bottom: 1px solid var(--border);
+
+    font-family: "Roboto Mono", monospace;
+  font-optical-sizing: auto;
+  font-weight: 272;
+  font-style: normal;
 }}
 
 h3 {{
@@ -434,7 +439,6 @@ img {{
     width: 100%;
     height: auto;
     margin: 1.4rem 0;
-    border-radius: 10px;
 }}
 
 #blog-editable-body img,
@@ -444,10 +448,6 @@ img {{
     max-width: 100%;
     height: auto;
     margin: 1.35rem auto;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    background: #ffffff;
-    box-shadow: 0 10px 28px rgba(39, 51, 47, 0.12);
 }}
 
 #blog-editable-body [data-editing="true"] img {{
@@ -568,7 +568,7 @@ img {{
 #body-contents {{
     max-width: 920px;
     margin: 1.5rem auto 0;
-    padding: clamp(1.25rem, 4vw, 3rem);
+
 
 
     border-bottom: 0;
@@ -594,7 +594,7 @@ img {{
 .cta-section {{
     padding: clamp(1.5rem, 4vw, 2.5rem);
     margin: 2rem 0;
-    color: var(--white);
+    color: #b8b7b7;
     background: linear-gradient(135deg, var(--accent-dark), var(--accent-blue));
 
 }}
@@ -779,12 +779,12 @@ footer button {{
 
 #blog-editable-body [data-blog-edit-index] {{
     position: relative;
-    padding-right: 2.5rem;
+    padding: 1.5rem;
 }}
 
 #blog-editable-body [data-editing="true"] {{
     padding: 0.75rem 1rem;
-    background: #f8fafc;
+    background: #f7f7f7;
     border: 1px solid #cbd5e1;
     border-radius: 8px;
 
@@ -859,6 +859,48 @@ footer button {{
     background: #edf7f2;
 }}
 
+.blog-url-button {{
+    color: #1d4ed8;
+    border: 1px solid rgba(37, 99, 235, 0.35);
+    background: #eff6ff;
+}}
+
+.blog-url-input {{
+    flex: 1 1 260px;
+    min-height: 36px;
+    min-width: 220px;
+    padding: 0.45rem 0.7rem;
+    color: var(--text);
+    font: inherit;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #ffffff;
+}}
+
+.blog-url-input:focus {{
+    border-color: #2563eb;
+    outline: 2px solid rgba(37, 99, 235, 0.18);
+    outline-offset: 1px;
+}}
+
+.blog-image-name-input {{
+    flex: 1 1 220px;
+    min-height: 36px;
+    min-width: 200px;
+    padding: 0.45rem 0.7rem;
+    color: var(--text);
+    font: inherit;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #ffffff;
+}}
+
+.blog-image-name-input:focus {{
+    border-color: rgba(47, 125, 104, 0.72);
+    outline: 2px solid rgba(47, 125, 104, 0.18);
+    outline-offset: 1px;
+}}
+
 .blog-image-upload-button:disabled {{
     cursor: wait;
     opacity: 0.7;
@@ -912,7 +954,7 @@ footer button {{
 
     #body-contents {{
         margin-top: 0;
-        padding: 1.5rem 1rem;
+
         border-left: 0;
         border-right: 0;
     }}
@@ -1267,12 +1309,86 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg) {{
         placeCaretAtEnd(paragraph);
     }}
 
-    async function uploadImageIntoSection(paragraph, imageInput, uploadButton, status) {{
+    function getParagraphSelection(paragraph) {{
+        const selection = window.getSelection();
+        if (!selection || !selection.rangeCount) return null;
+
+        const range = selection.getRangeAt(0);
+        if (!paragraph.contains(range.commonAncestorContainer)) return null;
+
+        return {{
+            range: range.cloneRange(),
+            text: selection.toString().trim(),
+        }};
+    }}
+
+    function insertLinkIntoSection(paragraph, rawUrl, rawText, savedRange) {{
+        let url = (rawUrl || '').trim();
+        if (!url) return false;
+
+        if (!/^[a-z][a-z0-9+.-]*:/i.test(url)) {{
+            url = 'https://' + url;
+        }}
+
+        let parsedUrl;
+        try {{
+            parsedUrl = new URL(url);
+        }} catch (err) {{
+            return false;
+        }}
+
+        if (!['http:', 'https:', 'mailto:', 'tel:'].includes(parsedUrl.protocol)) {{
+            return false;
+        }}
+
+        const link = document.createElement('a');
+        link.href = parsedUrl.href;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+
+        const linkText = (rawText || '').trim();
+        const paragraphSelection = getParagraphSelection(paragraph);
+        const selectedText = paragraphSelection ? paragraphSelection.text : '';
+        link.textContent = linkText || selectedText || parsedUrl.href;
+
+        if (savedRange && paragraph.contains(savedRange.commonAncestorContainer)) {{
+            savedRange.deleteContents();
+            savedRange.insertNode(link);
+            savedRange.setStartAfter(link);
+            savedRange.collapse(true);
+            const activeSelection = window.getSelection();
+            activeSelection.removeAllRanges();
+            activeSelection.addRange(savedRange);
+            return true;
+        }}
+
+        if (paragraphSelection) {{
+            const range = paragraphSelection.range;
+            if (paragraph.contains(range.commonAncestorContainer)) {{
+                range.deleteContents();
+                range.insertNode(link);
+                range.setStartAfter(link);
+                range.collapse(true);
+                const activeSelection = window.getSelection();
+                activeSelection.removeAllRanges();
+                activeSelection.addRange(range);
+                return true;
+            }}
+        }}
+
+        paragraph.appendChild(document.createTextNode(' '));
+        paragraph.appendChild(link);
+        placeCaretAtEnd(paragraph);
+        return true;
+    }}
+
+    async function uploadImageIntoSection(paragraph, imageInput, imageNameInput, uploadButton, status) {{
         const file = imageInput.files && imageInput.files[0];
         if (!file) return;
 
         const formData = new FormData();
         formData.append('image', file);
+        formData.append('image_name', imageNameInput.value.trim());
         formData.append('imageclassID', place_name);
         formData.append('blog_place_slug', blogPlaceSlug);
         formData.append('blog_title_slug', blogTitleSlug);
@@ -1299,6 +1415,7 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg) {{
 
             insertUploadedImageIntoSection(paragraph, data.image_url);
             status.textContent = 'Image inserted. Click Save to keep it.';
+            imageNameInput.value = '';
         }} catch (err) {{
             console.error("Error uploading image:", err);
             status.textContent = 'Image upload failed. Please try again.';
@@ -1411,10 +1528,33 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg) {{
         imageUploadButton.className = 'blog-image-upload-button';
         imageUploadButton.textContent = 'Upload image';
 
+        let imageNameInput = document.createElement('input');
+        imageNameInput.type = 'text';
+        imageNameInput.className = 'blog-image-name-input';
+        imageNameInput.placeholder = 'Image name';
+
         let imageUploadInput = document.createElement('input');
         imageUploadInput.type = 'file';
         imageUploadInput.accept = 'image/*';
         imageUploadInput.className = 'blog-image-upload-input';
+
+        let addUrlButton = document.createElement('button');
+        addUrlButton.type = 'button';
+        addUrlButton.className = 'blog-url-button';
+        addUrlButton.textContent = 'Add URL';
+
+        let linkTextInput = document.createElement('input');
+        linkTextInput.type = 'text';
+        linkTextInput.className = 'blog-url-input';
+        linkTextInput.placeholder = 'Link text';
+        linkTextInput.style.display = 'none';
+
+        let urlInput = document.createElement('input');
+        urlInput.type = 'url';
+        urlInput.className = 'blog-url-input';
+        urlInput.placeholder = 'https://example.com';
+        urlInput.style.display = 'none';
+        let pendingLinkRange = null;
 
         let startRecognitionButton = document.createElement('button');
         startRecognitionButton.type = 'button';
@@ -1433,7 +1573,11 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg) {{
         startRecognitionButton.style.cursor = 'pointer';
         startRecognitionButton.style.margin = '0.5em 0';
         startRecognitionButton.style.boxSizing = 'border-box';
+        let SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition = null;
         let recognitionActive = false;
+        let manuallyStopped = false;
+        let finalTranscript = "";
         let stopRecognitionButton = document.createElement('button');
 
         stopRecognitionButton.type = 'button';
@@ -1451,141 +1595,210 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg) {{
         stopRecognitionButton.style.boxSizing = 'border-box';
         stopRecognitionButton.id = 'stop-voice-btn';
         stopRecognitionButton.style.display = 'none';
-        tools.appendChild(stopRecognitionButton);
-        stopRecognitionButton.addEventListener('click', (event) => {{
+
+        let copyRecognitionButton = document.createElement('button');
+        copyRecognitionButton.type = 'button';
+        copyRecognitionButton.className = 'blog-voice-button';
+        copyRecognitionButton.textContent = 'Copy';
+        copyRecognitionButton.style.background = '#0f766e';
+        copyRecognitionButton.style.color = '#ffffff';
+        copyRecognitionButton.style.border = 'none';
+        copyRecognitionButton.style.borderRadius = '7px';
+        copyRecognitionButton.style.padding = '0.6em 1em';
+        copyRecognitionButton.style.fontSize = '1rem';
+        copyRecognitionButton.style.fontWeight = '600';
+        copyRecognitionButton.style.cursor = 'pointer';
+        copyRecognitionButton.style.margin = '0.5em 0';
+        copyRecognitionButton.style.boxSizing = 'border-box';
+        copyRecognitionButton.style.display = 'none';
+
+        function updateLiveText(text) {{
+            liveTextRecognition.value = text;
+            liveTextRecognition.style.height = 'auto';
+            liveTextRecognition.style.height = liveTextRecognition.scrollHeight + 'px';
+            copyRecognitionButton.style.display = text.trim() ? 'block' : 'none';
+        }}
+
+        function copyLiveTextValue() {{
+            let text = liveTextRecognition.value;
+            if (!text.trim()) return;
+
+            let markCopied = () => {{
+                copyRecognitionButton.textContent = 'Copied';
+                setTimeout(() => {{
+                    copyRecognitionButton.textContent = 'Copy';
+                }}, 1200);
+            }};
+
+            if (navigator.clipboard && window.isSecureContext) {{
+                navigator.clipboard.writeText(text).then(markCopied).catch((err) => {{
+                    console.error("Could not copy live text:", err);
+                }});
+                return;
+            }}
+
+            liveTextRecognition.focus();
+            liveTextRecognition.select();
+
+            try {{
+                document.execCommand('copy');
+                markCopied();
+            }} catch (err) {{
+                console.error("Could not copy live text:", err);
+            }}
+        }}
+
+        startRecognitionButton.addEventListener('click', () => {{
+            if (!SpeechRecognition) {{
+                alert("Speech Recognition is not supported in this browser.");
+                return;
+            }}
+
+            if (!recognition) {{
+                recognition = new SpeechRecognition();
+
+                recognition.lang = "en-US";
+
+                // Android Chrome does not reliably support continuous recognition.
+                recognition.continuous = false;
+
+                recognition.interimResults = true;
+
+                recognition.onstart = () => {{
+                    recognitionActive = true;
+                    manuallyStopped = false;
+
+                    startRecognitionButton.disabled = true;
+                    startRecognitionButton.textContent = 'Listening...';
+                    startRecognitionButton.style.background = '#94a3b8';
+                    startRecognitionButton.style.cursor = 'not-allowed';
+                    startRecognitionButton.style.opacity = '0.8';
+                    startRecognitionButton.style.boxShadow = 'none';
+
+                    liveTextRecognition.style.display = 'block';
+                    stopRecognitionButton.style.display = 'block';
+                    copyRecognitionButton.style.display = liveTextRecognition.value.trim() ? 'block' : 'none';
+                }};
+
+                recognition.onresult = (event) => {{
+                    let interimTranscript = "";
+
+                    for (let i = event.resultIndex; i < event.results.length; i++) {{
+                        let transcript = event.results[i][0].transcript;
+
+                        if (event.results[i].isFinal) {{
+                            finalTranscript += transcript + " ";
+                        }} else {{
+                            interimTranscript += transcript;
+                        }}
+                    }}
+
+                    updateLiveText(finalTranscript + interimTranscript);
+                }};
+
+                recognition.onerror = (event) => {{
+                    console.error("Speech recognition error:", event.error);
+                    recognitionActive = false;
+
+                    if (['not-allowed', 'service-not-allowed', 'audio-capture'].includes(event.error)) {{
+                        manuallyStopped = true;
+                    }}
+
+                    startRecognitionButton.disabled = false;
+                    startRecognitionButton.textContent = 'Voice input';
+                    startRecognitionButton.style.background = '#2563eb';
+                    startRecognitionButton.style.cursor = 'pointer';
+                    startRecognitionButton.style.opacity = '1';
+
+                    stopRecognitionButton.style.display = 'none';
+                    copyRecognitionButton.style.display = liveTextRecognition.value.trim() ? 'block' : 'none';
+                }};
+
+                recognition.onend = () => {{
+                    recognitionActive = false;
+
+                    if (!manuallyStopped) {{
+                        startRecognitionButton.disabled = true;
+                        startRecognitionButton.textContent = 'Listening...';
+                        startRecognitionButton.style.background = '#94a3b8';
+                        startRecognitionButton.style.cursor = 'not-allowed';
+                        startRecognitionButton.style.opacity = '0.8';
+                        startRecognitionButton.style.boxShadow = 'none';
+
+                        stopRecognitionButton.style.display = 'block';
+                        copyRecognitionButton.style.display = liveTextRecognition.value.trim() ? 'block' : 'none';
+
+                        setTimeout(() => {{
+                            if (manuallyStopped || !recognition) return;
+
+                            try {{
+                                recognition.start();
+                            }} catch (err) {{
+                                console.error("Could not restart recognition:", err);
+                                recognitionActive = false;
+
+                                startRecognitionButton.disabled = false;
+                                startRecognitionButton.textContent = 'Voice input';
+                                startRecognitionButton.style.background = '#2563eb';
+                                startRecognitionButton.style.cursor = 'pointer';
+                                startRecognitionButton.style.opacity = '1';
+                                startRecognitionButton.style.boxShadow = '0 2px 6px rgba(37, 99, 235, 0.25)';
+
+                                stopRecognitionButton.style.display = 'none';
+                            }}
+                        }}, 300);
+
+                        return;
+                    }}
+
+                    startRecognitionButton.disabled = false;
+                    startRecognitionButton.textContent = 'Voice input';
+                    startRecognitionButton.style.background = '#2563eb';
+                    startRecognitionButton.style.cursor = 'pointer';
+                    startRecognitionButton.style.opacity = '1';
+                    startRecognitionButton.style.boxShadow = '0 2px 6px rgba(37, 99, 235, 0.25)';
+
+                    stopRecognitionButton.style.display = 'none';
+                    copyRecognitionButton.style.display = liveTextRecognition.value.trim() ? 'block' : 'none';
+                }};
+            }}
+
+            if (!recognitionActive) {{
+                finalTranscript = "";
+                fixedTextRecognition.value = "";
+                copyRecognitionButton.style.display = 'none';
+
+                try {{
+                    recognition.start();
+                }} catch (err) {{
+                    console.error("Could not start recognition:", err);
+                }}
+            }}
+        }});
+
+        stopRecognitionButton.addEventListener('click', () => {{
+            manuallyStopped = true;
+
             if (recognition && recognitionActive) {{
                 recognition.stop();
-                recognitionActive = false;
-                startRecognitionButton.disabled = false;
-                startRecognitionButton.textContent = 'Voice input';
-                // const fixed = await fixGrammar(finalTranscript); //TODO
-                // document.getElementById("fixedText").value = finalTranscript;    //TODO    
-                let speechtextcontainer = document.getElementById("liveText");
-                if (speechtextcontainer) {{
-                    insertUploadedImageIntoSection(paragraph, speechtextcontainer.value + ' ' ); //TODO
-                    speechtextcontainer.value = '';
-                    speechtextcontainer.style.display = 'none';
-                }}
             }}
+
+            recognitionActive = false;
+
+            if (liveTextRecognition.value.trim()) {{
+                insertUploadedImageIntoSection(paragraph, liveTextRecognition.value.trim() + ' ');
+                liveTextRecognition.value = '';
+                liveTextRecognition.style.display = 'none';
+                copyRecognitionButton.style.display = 'none';
+            }}
+
+            startRecognitionButton.disabled = false;
+            startRecognitionButton.textContent = 'Voice input';
+            stopRecognitionButton.style.display = 'none';
+            
         }});
 
-        let SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        let recognition = new SpeechRecognition();
-        startRecognitionButton.addEventListener('click', () => {{
-            
-            if (!SpeechRecognition) {{
-            alert("Speech Recognition is not supported in this browser.");
-            return
-            }}            
-            let liveTextElem = document.getElementById("liveText");
-            let fixedTextElem = document.getElementById("fixedText");
-            liveTextElem.addEventListener("input", () => {{
-                finalTranscript = liveTextElem.value;
-                finalTranscript += " ";
-            }});
-       
-
-
-            
-            recognition.lang = "en-US";
-            recognition.continuous = true;
-            recognition.interimResults = true; 
-
-
-
-
-            function updateLiveText(text) {{
-                if (!liveTextElem) {{
-                    // Try to get the element by id as a fallback
-                    liveTextElem = document.getElementById('liveText');
-                    if (fallbackElem) {{
-                        fallbackElem = liveTextElem
-                        fallbackElem.value = text;
-                        fallbackElem.style.height = 'auto';
-                        fallbackElem.style.height = fallbackElem.scrollHeight + 'px';
-                    }} else {{
-                        // Optionally, log or handle the error
-                        console.error('liveTextElem is null and fallback not found.');
-                        var fallbackElem = document.getElementById('liveText');
-                    }}
-                    return;
-                }}
-                liveTextElem.value = text;
-                // Resize only when needed
-                liveTextElem.style.height = 'auto';
-                liveTextElem.style.height = liveTextElem.scrollHeight + 'px';
-            }}
-
-
-            let finalTranscript = "";
-            recognition.onstart = () => {{
-                // Ensure element keeps focus/cursor visually active
-                stopRecognitionButton.style.display = 'block';
-            }};
-
-            recognition.onresult = (event) => {{
-                let interimTranscript = "";
-                if (!liveTextElem){{
-
-                }}
-
-                for (let i = event.resultIndex; i < event.results.length; i++) {{
-                    let transcript = event.results[i][0].transcript;
-                    if (event.results[i].isFinal) {{
-                        finalTranscript += transcript + " ";
-                    }} else {{
-                        interimTranscript += transcript;
-                    }}
-                }}
-                updateLiveText( finalTranscript + interimTranscript);
-                
-
-            }};
-
-            recognition.onend = () => {{
-                recognitionActive = false;
-                if (!manuallyStopped) {{
-                    setTimeout(() => {{
-                    recognition.start();
-                    recognitionActive = true;
-                    }}, 300);
-                }}               
-                startRecognitionButton.disabled = false;
-                startRecognitionButton.textContent = 'Start Recognition';
-                startRecognitionButton.style.background = '#2563eb';
-                startRecognitionButton.style.cursor = 'pointer';
-                startRecognitionButton.style.opacity = '1';
-                startRecognitionButton.style.boxShadow = '0 2px 6px rgba(37, 99, 235, 0.25)';
-                stopRecognitionButton.style.display = 'none';
-
-            }};            
-
-            
-            if (recognition && !recognitionActive) {{
-                finalTranscript = "";
-
-                if (liveTextElem) liveTextElem.value = "";
-                if (fixedTextElem) fixedTextElem.value = "";
-
-
-                recognition.start();
-                recognitionActive = true;
-                
-                startRecognitionButton.disabled = true;
-                startRecognitionButton.textContent = 'Listening...';
-                startRecognitionButton.style.background = '#94a3b8';
-                startRecognitionButton.style.cursor = 'not-allowed';
-                startRecognitionButton.style.opacity = '0.8';
-                startRecognitionButton.style.boxShadow = 'none';
-
-                if (liveTextElem) liveTextElem.style.display = 'block';
-                stopRecognitionButton.style.display = 'block';
-            }}
-            
-
-
-
-        }});
+        copyRecognitionButton.addEventListener('click', copyLiveTextValue);
 
 
 
@@ -1622,7 +1835,8 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg) {{
         }}
 
         liveTextRecognition.addEventListener('input', () => {{
-        autoResizeTextarea(liveTextRecognition);
+            autoResizeTextarea(liveTextRecognition);
+            finalTranscript = liveTextRecognition.value;
         }});
 
 
@@ -1636,13 +1850,67 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg) {{
         saveButton.addEventListener('click', () => saveParagraphEdit(paragraph, tools));
         cancelButton.addEventListener('click', () => finishParagraphEdit(paragraph, tools, originalHTML));
         imageUploadButton.addEventListener('click', () => imageUploadInput.click());
-        imageUploadInput.addEventListener('change', () => uploadImageIntoSection(paragraph, imageUploadInput, imageUploadButton, status));
+        imageUploadInput.addEventListener('change', () => uploadImageIntoSection(paragraph, imageUploadInput, imageNameInput, imageUploadButton, status));
+        addUrlButton.addEventListener('click', () => {{
+            if (urlInput.style.display === 'none') {{
+                const selectedLink = getParagraphSelection(paragraph);
+                pendingLinkRange = selectedLink ? selectedLink.range : null;
+                linkTextInput.value = selectedLink ? selectedLink.text : '';
+                linkTextInput.style.display = 'block';
+                urlInput.style.display = 'block';
+                linkTextInput.focus();
+                return;
+            }}
+
+            if (insertLinkIntoSection(paragraph, urlInput.value, linkTextInput.value, pendingLinkRange)) {{
+                status.textContent = 'URL inserted. Click Save to keep it.';
+                status.classList.remove('error');
+                linkTextInput.value = '';
+                urlInput.value = '';
+                linkTextInput.style.display = 'none';
+                urlInput.style.display = 'none';
+                pendingLinkRange = null;
+            }} else {{
+                status.textContent = 'Please enter a valid URL.';
+                status.classList.add('error');
+                urlInput.focus();
+            }}
+        }});
+        const handleUrlInputKeydown = (event) => {{
+            if (event.key === 'Enter') {{
+                event.preventDefault();
+                if (event.target === linkTextInput && !urlInput.value.trim()) {{
+                    urlInput.focus();
+                    return;
+                }}
+                addUrlButton.click();
+            }}
+
+            if (event.key === 'Escape') {{
+                linkTextInput.value = '';
+                urlInput.value = '';
+                linkTextInput.style.display = 'none';
+                urlInput.style.display = 'none';
+                pendingLinkRange = null;
+                status.textContent = '';
+                status.classList.remove('error');
+                paragraph.focus();
+            }}
+        }};
+        linkTextInput.addEventListener('keydown', handleUrlInputKeydown);
+        urlInput.addEventListener('keydown', handleUrlInputKeydown);
 
         tools.appendChild(saveButton);
         tools.appendChild(cancelButton);
+        tools.appendChild(imageNameInput);
         tools.appendChild(imageUploadButton);
         tools.appendChild(imageUploadInput);
+        tools.appendChild(addUrlButton);
+        tools.appendChild(linkTextInput);
+        tools.appendChild(urlInput);
         tools.appendChild(startRecognitionButton);
+        tools.appendChild(stopRecognitionButton);
+        tools.appendChild(copyRecognitionButton);
         
         tools.appendChild(liveTextRecognition);
         tools.appendChild(fixedTextRecognition);
@@ -1853,7 +2121,7 @@ document.addEventListener('click', (ev) => {{
         f.write(html_content)
 
     try:
-        optimize_file(file_path)
+        # optimize_file(file_path)
         logger.info("Optimized blog file: %s", file_path)
     except Exception as e:
         logger.exception("Optimization failed for %s", file_path)  
