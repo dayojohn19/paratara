@@ -201,6 +201,10 @@ HTML TEMPLATE EXAMPLE:
     <p>[Engaging intro paragraph]</p>
   </div>
   <div class="content-section">
+    <h2>🧭 [personal Experience]</h2>
+    <p>[describe experience]</p>
+  </div>  
+  <div class="content-section">
     <h2>✨ [Feature Title]</h2>
     <p>[Details and descriptions]</p>
     <div class="highlight-box">
@@ -219,7 +223,7 @@ HTML TEMPLATE EXAMPLE:
   </div>
   <div class="cta-section">
     <h1>🚀 Ready to Visit?</h1>
-    <p>[Strong call to action]</p>
+    <p>[Strong call to action include festivals and date if applicable ]</p>
   </div>
 </article>
 '''

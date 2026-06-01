@@ -396,7 +396,7 @@ h1 {{
   font-weight: 300;
   font-size: clamp(36px,5vw,72px);
   line-height: 1;
-  letter-spacing: -.02em;
+  letter-spacing: 0.02em;
   max-width: 14ch;
 }}
 
@@ -850,6 +850,7 @@ footer button {{
 .blog-save-button {{
     color: #ffffff;
     border: 0;
+    background: rebeccapurple;
 }}
 
 .blog-cancel-button {{
@@ -950,6 +951,12 @@ footer button {{
 }}
 
 @media (max-width: 768px) {{
+    .blog-save-button {{
+    width: 100%;
+}}
+.blog-paragraph-tools button {{
+border-radius: 0;
+}}
     body {{
         font-size: 15.5px;
     }}
@@ -1169,9 +1176,9 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg) {{
         fetchData('getPlaceCollections/' + placename, 'collections-loading', (data) => {{
             const collectionsDiv = document.querySelector('#dynamic-collections');
             const fragment = document.createDocumentFragment();
-              if (!data || data.length === 0) {{
+              if (!data || data.length == 0) {{
                 collectionsHeader = document.querySelector('#collections-header');
-                collectionsHeader.remove() = 'none';
+                collectionsHeader.style.display = 'none';
               return
               }}
             data.forEach(col => {{
@@ -1352,7 +1359,7 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg) {{
         link.target = '_blank';
         link.rel = 'noopener noreferrer';
 
-        const linkText = (rawText || '').trim();
+        const linkText = ` ${{(rawText || '').trim()}} `;
         const paragraphSelection = getParagraphSelection(paragraph);
         const selectedText = paragraphSelection ? paragraphSelection.text : '';
         link.textContent = linkText || selectedText || parsedUrl.href;
@@ -1907,20 +1914,21 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg) {{
         urlInput.addEventListener('keydown', handleUrlInputKeydown);
 
         tools.appendChild(saveButton);
+        tools.appendChild(status);
         tools.appendChild(cancelButton);
-        tools.appendChild(imageNameInput);
         tools.appendChild(imageUploadButton);
+        tools.appendChild(imageNameInput);
         tools.appendChild(imageUploadInput);
-        tools.appendChild(addUrlButton);
-        tools.appendChild(linkTextInput);
         tools.appendChild(urlInput);
-        tools.appendChild(startRecognitionButton);
-        tools.appendChild(stopRecognitionButton);
-        tools.appendChild(copyRecognitionButton);
-        
+        tools.appendChild(linkTextInput);
+        tools.appendChild(addUrlButton);
         tools.appendChild(liveTextRecognition);
         tools.appendChild(fixedTextRecognition);
-        tools.appendChild(status);
+        tools.appendChild(stopRecognitionButton);
+        tools.appendChild(startRecognitionButton);
+        tools.appendChild(copyRecognitionButton);
+        
+        
         paragraph.insertAdjacentElement('afterend', tools);
 
     }} //startParagraphedit(paragraph)
@@ -1946,6 +1954,8 @@ async function saveParagraphEdit(paragraph, tools) {{
     saveButton.disabled = true;
     status.textContent = 'Saving...';
     status.classList.remove('error');
+    saveButton.textContent = 'Saving...';
+    saveButton.disable = true;
 
     try {{
         let response = await fetch(blogParagraphSaveUrl, {{
@@ -1969,7 +1979,8 @@ async function saveParagraphEdit(paragraph, tools) {{
         if (!response.ok || !data.ok) {{
             throw new Error(data.error || `HTTP ${{response.status}}`);
         }}
-
+        saveButton.textContent = 'Saved';
+        saveButton.disable = false;
         updateVisibleLastUpdated(data);
         finishParagraphEdit(paragraph, tools, data.edited_html || editedHTML);
     }} catch (err) {{
@@ -1977,6 +1988,8 @@ async function saveParagraphEdit(paragraph, tools) {{
         saveButton.disabled = false;
         status.textContent = 'Save failed. Please try again.';
         status.classList.add('error');
+        saveButton.textContent = 'Save Again';
+        saveButton.disable = false;
     }}
 }}
 

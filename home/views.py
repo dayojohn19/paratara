@@ -1945,7 +1945,8 @@ def carpool(request, message=False):
     request.session['how_many_visits'] += 1
     buttons = {
         # 'allDestinations': Places_v2.objects.all(),
-        'message': message
+        'message': message,
+        'include_schedule_modal': True,
     }
     return render(request, 'home/index.html', buttons)
 
@@ -1963,6 +1964,7 @@ def home(request, message=False):
     buttons = {
         'allDestinations': Places_v2.objects.all(),
         'message': message,
+        'include_schedule_modal': True,
         'page_title': 'Paratara | Travel Guides, Carpool Schedules & Resorts',
         'meta_description': 'Find destination guides, resort stays, local events, travel notes, and shared carpool schedules with Paratara.',
         'canonical_url': request.build_absolute_uri(reverse('home:home')),

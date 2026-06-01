@@ -872,6 +872,10 @@ footer button {{
     #imageform button {{
         width: 100%;
     }}
+
+    .blog-save-button {{
+        width: 100%;
+    }}
 }}
 </style>
 

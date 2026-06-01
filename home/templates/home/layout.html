@@ -52,9 +52,9 @@
     <link rel="icon" type="image/png" sizes="48x48" href="{% static 'home/images/favicon-48x48.png' %}">
     <link rel="apple-touch-icon" href="{% static 'home/images/favicon.png' %}">
 
-    <link rel="preconnect" href="https://www.googletagmanager.com">
-    <link rel="preconnect" href="https://pagead2.googlesyndication.com">
-    <link rel="preconnect" href="https://consent.cookiebot.com">
+    <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
+    <link rel="preconnect" href="https://pagead2.googlesyndication.com" crossorigin>
+    <link rel="preconnect" href="https://consent.cookiebot.com" crossorigin>
 
     <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'home/navbar.css' %}">
@@ -117,10 +117,6 @@
         </script>
     {% endblock %}
 
-    <script src="{% static 'bootstrap/js/bootstrap.bundle.min.js' %}" defer></script>
-    <script src="{% static 'home/navbar.js' %}" defer></script>
-    <script src="{% static 'home/layout.js' %}" defer></script>
-    <script src="{% static 'home/layoutScheduleModal.js' %}" defer></script>
     {% block extra_head %}{% endblock %}
     <!-- Cookies consent: load Cookiebot only on non-localhosts to avoid dev errors -->
     <script>
@@ -140,34 +136,82 @@
                 return false;
             }
 
-            if (hostIsAllowed(host)) {
+            function loadScript(src, attrs) {
                 var s = document.createElement('script');
-                s.id = 'Cookiebot';
-                s.src = 'https://consent.cookiebot.com/uc.js';
-                s.setAttribute('data-cbid', 'f333d02c-4b9d-44bf-90a8-648b9ac87ab2');
-                s.setAttribute('data-blockingmode', 'auto');
-                s.type = 'text/javascript';
+                s.src = src;
+                s.async = true;
+                if (attrs) {
+                    for (var key in attrs) {
+                        if (Object.prototype.hasOwnProperty.call(attrs, key)) {
+                            s.setAttribute(key, attrs[key]);
+                        }
+                    }
+                }
                 document.head.appendChild(s);
+                return s;
             }
+
+            function afterInitialLoad(callback) {
+                if ('requestIdleCallback' in window) {
+                    window.requestIdleCallback(callback, { timeout: 2500 });
+                    return;
+                }
+                window.setTimeout(callback, 1);
+            }
+
+            window.loadParataraScript = loadScript;
+            window.addEventListener('load', function () {
+                afterInitialLoad(function () {
+                    if (hostIsAllowed(host)) {
+                        loadScript('https://consent.cookiebot.com/uc.js', {
+                            id: 'Cookiebot',
+                            'data-cbid': 'f333d02c-4b9d-44bf-90a8-648b9ac87ab2',
+                            'data-blockingmode': 'auto'
+                        });
+                    }
+                });
+            }, { once: true });
         })();
     </script>
 
     <!-- Google Tag Manager -->
     <script>
-        (function (w, d, s, l, i) {
-            w[l] = w[l] || [];
-            w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
-            var f = d.getElementsByTagName(s)[0];
-            var j = d.createElement(s);
-            var dl = l != 'dataLayer' ? '&l=' + l : '';
-            j.async = true;
-            j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
-            f.parentNode.insertBefore(j, f);
-        })(window, document, 'script', 'dataLayer', 'GTM-MNDNQVRF');
+        (function (w, d, l, i) {
+            function startGtm() {
+                w[l] = w[l] || [];
+                w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+                if (typeof w.loadParataraScript === 'function') {
+                    var dl = l != 'dataLayer' ? '&l=' + l : '';
+                    w.loadParataraScript('https://www.googletagmanager.com/gtm.js?id=' + i + dl);
+                }
+            }
+            w.addEventListener('load', function () {
+                if ('requestIdleCallback' in w) {
+                    w.requestIdleCallback(startGtm, { timeout: 2500 });
+                    return;
+                }
+                w.setTimeout(startGtm, 1);
+            }, { once: true });
+        })(window, document, 'dataLayer', 'GTM-MNDNQVRF');
     </script>
     <!-- End Google Tag Manager -->
 
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4843007524416588" crossorigin="anonymous"></script>
+    <script>
+        window.addEventListener('load', function () {
+            var loadAds = function () {
+                if (typeof window.loadParataraScript === 'function') {
+                    window.loadParataraScript('https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4843007524416588', {
+                        crossorigin: 'anonymous'
+                    });
+                }
+            };
+            if ('requestIdleCallback' in window) {
+                window.requestIdleCallback(loadAds, { timeout: 3000 });
+                return;
+            }
+            window.setTimeout(loadAds, 1);
+        }, { once: true });
+    </script>
 </head>
 
 <body>
@@ -177,6 +221,7 @@
     </noscript>
     <!-- End Google Tag Manager (noscript) -->
 
+    {% if include_schedule_modal %}
     <div class="modal-container-main">
         {% if user.is_authenticated %}
             <form id="schedule_form" action="{% url 'home:viaje' %}" method="POST">
@@ -332,6 +377,7 @@
             </div>
         {% endif %}
     </div>
+    {% endif %}
 
 
     <main class="center-body" id="main-content">
@@ -401,5 +447,11 @@
             });
         }
     </script>
+    <script src="{% static 'bootstrap/js/bootstrap.bundle.min.js' %}" defer></script>
+    <script src="{% static 'home/navbar.js' %}" defer></script>
+    {% if include_schedule_modal %}
+    <script src="{% static 'home/layout.js' %}" defer></script>
+    <script src="{% static 'home/layoutScheduleModal.js' %}" defer></script>
+    {% endif %}
 </body>
 </html>
