@@ -89,7 +89,7 @@ def generate_blog_object(request, place_name, title, category='Guide', summary='
         category=category,
         blogplace=place,
         title=title,
-        textContent="",
+        textContent=plain_text_content,
         summarize=summary,
         readtime=readtime,
     )
@@ -1176,11 +1176,16 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg) {{
         fetchData('getPlaceCollections/' + placename, 'collections-loading', (data) => {{
             const collectionsDiv = document.querySelector('#dynamic-collections');
             const fragment = document.createDocumentFragment();
-              if (!data || data.length == 0) {{
-                collectionsHeader = document.querySelector('#collections-header');
+            if (!data || data === 0 || data.length === 0) {{
+            const collectionsHeader = document.querySelector('#collections-header');
+
+            if (collectionsHeader) {{
                 collectionsHeader.style.display = 'none';
-              return
-              }}
+            }}
+
+            return;
+            }}
+
             data.forEach(col => {{
                 const div = document.createElement('div');
                 div.className = 'collection-item';

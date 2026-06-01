@@ -24,6 +24,31 @@ GROK_API_KEY = os.getenv('GROK_API_KEY')
 GROK_MODEL_NAME_EXPENSIVE = config("GROK_MODEL_NAME", default="grok-4")
 GROK_MODEL_NAME = config("GROK_MODEL_NAME", default="grok-4.3")
 XAI_IMAGE_MODEL = 'grok-imagine-image-quality'
+
+# Local-first discussion assistant. The default template backend does not call
+# OpenAI, Grok, xAI, or any external paid/cloud LLM.
+AI_DISCUSSION_BACKEND = config("AI_DISCUSSION_BACKEND", default="template")
+AI_DISCUSSION_EMBEDDING_MODEL = config(
+    "AI_DISCUSSION_EMBEDDING_MODEL",
+    default="sentence-transformers/all-MiniLM-L6-v2",
+)
+AI_DISCUSSION_EMBEDDING_LOCAL_FILES_ONLY = config(
+    "AI_DISCUSSION_EMBEDDING_LOCAL_FILES_ONLY",
+    default=False,
+    cast=bool,
+)
+AI_DISCUSSION_EMBEDDING_BATCH_SIZE = config("AI_DISCUSSION_EMBEDDING_BATCH_SIZE", default=16, cast=int)
+AI_DISCUSSION_TOP_K = config("AI_DISCUSSION_TOP_K", default=6, cast=int)
+AI_DISCUSSION_MIN_SCORE = config("AI_DISCUSSION_MIN_SCORE", default=0.25, cast=float)
+AI_DISCUSSION_LOCAL_TIMEOUT = config("AI_DISCUSSION_LOCAL_TIMEOUT", default=20, cast=int)
+AI_DISCUSSION_CSRF_EXEMPT = config("AI_DISCUSSION_CSRF_EXEMPT", default=True, cast=bool)
+AI_DISCUSSION_PUBLIC_BASE_URL = config("AI_DISCUSSION_PUBLIC_BASE_URL", default="")
+AI_OLLAMA_URL = config("AI_OLLAMA_URL", default="http://localhost:11434/api/generate")
+AI_OLLAMA_MODEL = config("AI_OLLAMA_MODEL", default="qwen2.5:0.5b")
+AI_LLAMA_CPP_MODEL_PATH = config("AI_LLAMA_CPP_MODEL_PATH", default="")
+AI_LLAMA_CPP_N_CTX = config("AI_LLAMA_CPP_N_CTX", default=2048, cast=int)
+AI_LLAMA_CPP_N_THREADS = config("AI_LLAMA_CPP_N_THREADS", default=4, cast=int)
+
 IMGBB_API_KEY = os.getenv("IMGBB_API_KEY", "65ed182b008522d2c762031a3ff4953b")
 PAYPAL_CLIENT_ID = os.getenv("PAYPAL_CLIENT_ID", "")
 PAYPAL_CLIENT_SECRET = os.getenv("PAYPAL_CLIENT_SECRET", "")
@@ -284,6 +309,7 @@ INSTALLED_APPS = [
     'calculator',
     'singlepage2',
     'apis.apps.ApisConfig',
+    'ai_chat.apps.AiChatConfig',
     "corsheaders",
     'rest_framework',
     'home.apps.HomeConfig',

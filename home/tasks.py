@@ -309,52 +309,52 @@ HTML TEMPLATE EXAMPLE:
             # for_place.blog.add(blog)
             print(f"   ✅ Blog entry created in database")
             # ---------==== endtodo
+            # =========================
+            # ✅ 4. Generate QR
+            # =========================
+            print(f"\n[4/5] 🔗 Generating QR code...")
+            try:
+                print(f"   ⏳ Creating QR code URL...")
+                
+                
+                blog_slug = slugify(blog_title) or 'blog'
+                url = f"https://www.paratara.com/pages/blog/{place_slug}/{blog_slug}/"
+                created_spot = None
+                if create_tourist_spot == True:
+                    tourist_spot_blog_url = url = f"https://www.paratara.com/pages/blog/{place_slug}/{blog_slug}/"
+                    created_spot = process_create_tourist_spot(request, tourist_spot_blog_url, blog_summary)
+                qr = qrcode.make(url)
+                buffer = io.BytesIO()
+                qr.save(buffer, format="PNG")
+
+                filename = f"{place_slug}-{blog_slug}-qr.png"
+                qr_path = os.path.join(settings.MEDIA_ROOT, 'qr_codes', filename)
+                os.makedirs(os.path.dirname(qr_path), exist_ok=True)
+                
+                print(f"   ⏳ Saving QR code to disk...")
+                with open(qr_path, 'wb') as f:
+                    f.write(buffer.getvalue())
+                
+                qr_url = f"{settings.MEDIA_URL}qr_codes/{filename}"
+
+                if created_spot is not None:
+                    created_spot.qr_code_url = qr_url
+                    created_spot.save(update_fields=["qr_code_url"])
+
+                print(f"   ✅ QR code saved: {qr_url}")
+
+            except Exception as e:
+                print("QR ERROR:", e)
+
+            print(f"\n{'='*60}")
+            print(f"✅ COMPLETED: {blog__title}")
+            print(f"link: {url}")
+            print(f"{'='*60}\n")
+            return url
 
         except Exception as e:
-            print("BLOG ERROR:", e)
+            print("❌ BLOG ERROR:", e)
  
-        # =========================
-        # ✅ 4. Generate QR
-        # =========================
-        print(f"\n[4/5] 🔗 Generating QR code...")
-        try:
-            print(f"   ⏳ Creating QR code URL...")
-            
-            
-            blog_slug = slugify(blog_title) or 'blog'
-            url = f"https://www.paratara.com/{place_slug}/visit/{blog_slug}/"
-            created_spot = None
-            if create_tourist_spot == True:
-                tourist_spot_blog_url = url = f"https://www.paratara.com/pages/blog/{place_slug}/{blog_slug}/"
-                created_spot = process_create_tourist_spot(request, tourist_spot_blog_url, blog_summary)
-            qr = qrcode.make(url)
-            buffer = io.BytesIO()
-            qr.save(buffer, format="PNG")
-
-            filename = f"{place_slug}-{blog_slug}-qr.png"
-            qr_path = os.path.join(settings.MEDIA_ROOT, 'qr_codes', filename)
-            os.makedirs(os.path.dirname(qr_path), exist_ok=True)
-            
-            print(f"   ⏳ Saving QR code to disk...")
-            with open(qr_path, 'wb') as f:
-                f.write(buffer.getvalue())
-            
-            qr_url = f"{settings.MEDIA_URL}qr_codes/{filename}"
-
-            if created_spot is not None:
-                created_spot.qr_code_url = qr_url
-                created_spot.save(update_fields=["qr_code_url"])
-
-            print(f"   ✅ QR code saved: {qr_url}")
-
-        except Exception as e:
-            print("QR ERROR:", e)
-
-        print(f"\n{'='*60}")
-        print(f"✅ COMPLETED: {blog__title}")
-        print(f"link: {url}")
-        print(f"{'='*60}\n")
-        return url
 
     except Exception as e:
         print(f"\n{'='*60}")
