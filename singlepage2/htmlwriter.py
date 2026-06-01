@@ -1377,252 +1377,291 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg) {{
         attachParagraphEditButton(paragraph);
     }}
 
+    
+    
     function startParagraphEdit(paragraph) {{
+        if (paragraph.dataset.editing === 'true') return;
 
-        const SpeechRecognition =
-        window.SpeechRecognition ||
-        window.webkitSpeechRecognition;
-
-        if (!SpeechRecognition) {{
-        alert("Speech Recognition is not supported in this browser.");
-        }}
-        const recognition = new SpeechRecognition();
-        recognition.lang = "en-US";
-        recognition.continuous = true;
-
-        recognition.interimResults = false; 
-        recognition.interimResults = false; 
-        let finalTranscript = "";
-
-
-
-
-    recognition.onend = () => {{
-    recognitionActive = false;
-
-    startRecognitionButton.disabled = false;
-    startRecognitionButton.textContent = 'Start Recognition';
-    startRecognitionButton.style.background = '#2563eb';
-    startRecognitionButton.style.cursor = 'pointer';
-    startRecognitionButton.style.opacity = '1';
-    startRecognitionButton.style.boxShadow = '0 2px 6px rgba(37, 99, 235, 0.25)';
-    stopRecognitionButton.click();
-    }};
 
         
 
+        let originalHTML = getParagraphCleanHTML(paragraph);
+        let editButton = paragraph.querySelector('.blog-edit-button');
+        if (editButton) editButton.remove();
+        paragraph.dataset.editing = 'true';
+        paragraph.contentEditable = 'true';
+        paragraph.focus();
+        placeCaretAtEnd(paragraph);
 
+        let tools = document.createElement('div');
+        tools.className = 'blog-paragraph-tools';
 
-    if (paragraph.dataset.editing === 'true') return;
+        let saveButton = document.createElement('button');
+        saveButton.type = 'button';
+        saveButton.className = 'blog-save-button';
+        saveButton.textContent = 'Save';
 
-    const originalHTML = getParagraphCleanHTML(paragraph);
-    const editButton = paragraph.querySelector('.blog-edit-button');
-    if (editButton) editButton.remove();
+        let cancelButton = document.createElement('button');
+        cancelButton.type = 'button';
+        cancelButton.className = 'blog-cancel-button';
+        cancelButton.textContent = 'Cancel';
 
-    paragraph.dataset.editing = 'true';
-    paragraph.contentEditable = 'true';
-    paragraph.focus();
-    placeCaretAtEnd(paragraph);
+        let imageUploadButton = document.createElement('button');
+        imageUploadButton.type = 'button';
+        imageUploadButton.className = 'blog-image-upload-button';
+        imageUploadButton.textContent = 'Upload image';
 
-    const tools = document.createElement('div');
-    tools.className = 'blog-paragraph-tools';
+        let imageUploadInput = document.createElement('input');
+        imageUploadInput.type = 'file';
+        imageUploadInput.accept = 'image/*';
+        imageUploadInput.className = 'blog-image-upload-input';
 
-    const saveButton = document.createElement('button');
-    saveButton.type = 'button';
-    saveButton.className = 'blog-save-button';
-    saveButton.textContent = 'Save';
+        let startRecognitionButton = document.createElement('button');
+        startRecognitionButton.type = 'button';
+        startRecognitionButton.textContent = 'Voice input';
+        startRecognitionButton.className = 'blog-voice-button';
+        startRecognitionButton.value = '';
+        startRecognitionButton.id = 'start-voice-btn';
 
-    const cancelButton = document.createElement('button');
-    cancelButton.type = 'button';
-    cancelButton.className = 'blog-cancel-button';
-    cancelButton.textContent = 'Cancel';
+        startRecognitionButton.style.background = '#2563eb';
+        startRecognitionButton.style.color = '#ffffff';
+        startRecognitionButton.style.border = 'none';
+        startRecognitionButton.style.borderRadius = '7px';
+        startRecognitionButton.style.padding = '0.6em 1em';
+        startRecognitionButton.style.fontSize = '1rem';
+        startRecognitionButton.style.fontWeight = '600';
+        startRecognitionButton.style.cursor = 'pointer';
+        startRecognitionButton.style.margin = '0.5em 0';
+        startRecognitionButton.style.boxSizing = 'border-box';
+        let recognitionActive = false;
+        let stopRecognitionButton = document.createElement('button');
 
-    const imageUploadButton = document.createElement('button');
-    imageUploadButton.type = 'button';
-    imageUploadButton.className = 'blog-image-upload-button';
-    imageUploadButton.textContent = 'Upload image';
-
-    const imageUploadInput = document.createElement('input');
-    imageUploadInput.type = 'file';
-    imageUploadInput.accept = 'image/*';
-    imageUploadInput.className = 'blog-image-upload-input';
-
-    const startRecognitionButton = document.createElement('button');
-    startRecognitionButton.type = 'button';
-    startRecognitionButton.textContent = 'Voice input';
-    startRecognitionButton.className = 'blog-voice-button';
-    startRecognitionButton.value = '';
-    startRecognitionButton.id = 'start-voice-btn';
-
-    startRecognitionButton.style.background = '#2563eb';
-    startRecognitionButton.style.color = '#ffffff';
-    startRecognitionButton.style.border = 'none';
-    startRecognitionButton.style.borderRadius = '7px';
-    startRecognitionButton.style.padding = '0.6em 1em';
-    startRecognitionButton.style.fontSize = '1rem';
-    startRecognitionButton.style.fontWeight = '600';
-    startRecognitionButton.style.cursor = 'pointer';
-    startRecognitionButton.style.margin = '0.5em 0';
-    startRecognitionButton.style.boxSizing = 'border-box';
-    let recognitionActive = false;
-    startRecognitionButton.addEventListener('click', () => {{
-    if (recognition && !recognitionActive) {{
-        finalTranscript = "";
-
-        const liveTextElem = document.getElementById("liveText");
-        const fixedTextElem = document.getElementById("fixedText");
-
-        if (liveTextElem) liveTextElem.value = "";
-        if (fixedTextElem) fixedTextElem.value = "";
-
-        recognition.start();
-        recognitionActive = true;
-
-        startRecognitionButton.disabled = true;
-        startRecognitionButton.textContent = 'Listening...';
-        startRecognitionButton.style.background = '#94a3b8';
-        startRecognitionButton.style.cursor = 'not-allowed';
-        startRecognitionButton.style.opacity = '0.8';
-        startRecognitionButton.style.boxShadow = 'none';
-
-        if (liveTextElem) liveTextElem.style.display = 'block';
-    }}
-
-    const liveTextElem = document.getElementById("liveText");
-
-    function updateLiveText(text) {{
-        if (!liveTextElem) {{
-            // Try to get the element by id as a fallback
-            fallbackElem = liveTextElem
-            if (fallbackElem) {{
-                fallbackElem.value = text;
-                fallbackElem.style.height = 'auto';
-                fallbackElem.style.height = fallbackElem.scrollHeight + 'px';
-            }} else {{
-                // Optionally, log or handle the error
-                console.error('liveTextElem is null and fallback not found.');
-                var fallbackElem = document.getElementById('liveText');
+        stopRecognitionButton.type = 'button';
+        stopRecognitionButton.className = 'blog-voice-button';
+        stopRecognitionButton.textContent = 'Stop';
+        stopRecognitionButton.style.background = '#b42318';
+        stopRecognitionButton.style.color = '#ffffff';
+        stopRecognitionButton.style.border = 'none';
+        stopRecognitionButton.style.borderRadius = '7px';
+        stopRecognitionButton.style.padding = '0.6em 1em';
+        stopRecognitionButton.style.fontSize = '1rem';
+        stopRecognitionButton.style.fontWeight = '600';
+        stopRecognitionButton.style.cursor = 'pointer';
+        stopRecognitionButton.style.margin = '0.5em 0';
+        stopRecognitionButton.style.boxSizing = 'border-box';
+        stopRecognitionButton.id = 'stop-voice-btn';
+        stopRecognitionButton.style.display = 'none';
+        tools.appendChild(stopRecognitionButton);
+        stopRecognitionButton.addEventListener('click', (event) => {{
+            if (recognition && recognitionActive) {{
+                recognition.stop();
+                recognitionActive = false;
+                startRecognitionButton.disabled = false;
+                startRecognitionButton.textContent = 'Voice input';
+                // const fixed = await fixGrammar(finalTranscript); //TODO
+                // document.getElementById("fixedText").value = finalTranscript;    //TODO    
+                let speechtextcontainer = document.getElementById("liveText");
+                if (speechtextcontainer) {{
+                    insertUploadedImageIntoSection(paragraph, speechtextcontainer.value + ' ' ); //TODO
+                    speechtextcontainer.value = '';
+                    speechtextcontainer.style.display = 'none';
+                }}
             }}
-            return;
-        }}
-        liveTextElem.value = text;
-        // Resize only when needed
-        liveTextElem.style.height = 'auto';
-        liveTextElem.style.height = liveTextElem.scrollHeight + 'px';
-    }}
+        }});
 
-    recognition.onresult = (event) => {{
-        let interimTranscript = "";
+        let SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition = new SpeechRecognition();
+        startRecognitionButton.addEventListener('click', () => {{
+            
+            if (!SpeechRecognition) {{
+            alert("Speech Recognition is not supported in this browser.");
+            return
+            }}            
+            let liveTextElem = document.getElementById("liveText");
+            let fixedTextElem = document.getElementById("fixedText");
+            liveTextElem.addEventListener("input", () => {{
+                finalTranscript = liveTextElem.value;
+                finalTranscript += " ";
+            }});
+       
 
-        for (let i = event.resultIndex; i < event.results.length; i++) {{
-            const transcript = event.results[i][0].transcript;
 
-            if (event.results[i].isFinal) {{
-                finalTranscript += transcript + " ";
-            }} else {{
-                interimTranscript += transcript;
+            
+            recognition.lang = "en-US";
+            recognition.continuous = true;
+            recognition.interimResults = true; 
+
+
+
+
+            function updateLiveText(text) {{
+                if (!liveTextElem) {{
+                    // Try to get the element by id as a fallback
+                    liveTextElem = document.getElementById('liveText');
+                    if (fallbackElem) {{
+                        fallbackElem = liveTextElem
+                        fallbackElem.value = text;
+                        fallbackElem.style.height = 'auto';
+                        fallbackElem.style.height = fallbackElem.scrollHeight + 'px';
+                    }} else {{
+                        // Optionally, log or handle the error
+                        console.error('liveTextElem is null and fallback not found.');
+                        var fallbackElem = document.getElementById('liveText');
+                    }}
+                    return;
+                }}
+                liveTextElem.value = text;
+                // Resize only when needed
+                liveTextElem.style.height = 'auto';
+                liveTextElem.style.height = liveTextElem.scrollHeight + 'px';
             }}
+
+
+            let finalTranscript = "";
+            recognition.onstart = () => {{
+                // Ensure element keeps focus/cursor visually active
+                stopRecognitionButton.style.display = 'block';
+            }};
+
+            recognition.onresult = (event) => {{
+                let interimTranscript = "";
+                if (!liveTextElem){{
+
+                }}
+
+                for (let i = event.resultIndex; i < event.results.length; i++) {{
+                    let transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {{
+                        finalTranscript += transcript + " ";
+                    }} else {{
+                        interimTranscript += transcript;
+                    }}
+                }}
+                updateLiveText( finalTranscript + interimTranscript);
+                
+
+            }};
+
+            recognition.onend = () => {{
+                recognitionActive = false;
+                if (!manuallyStopped) {{
+                    setTimeout(() => {{
+                    recognition.start();
+                    recognitionActive = true;
+                    }}, 300);
+                }}               
+                startRecognitionButton.disabled = false;
+                startRecognitionButton.textContent = 'Start Recognition';
+                startRecognitionButton.style.background = '#2563eb';
+                startRecognitionButton.style.cursor = 'pointer';
+                startRecognitionButton.style.opacity = '1';
+                startRecognitionButton.style.boxShadow = '0 2px 6px rgba(37, 99, 235, 0.25)';
+                stopRecognitionButton.style.display = 'none';
+
+            }};            
+
+            
+            if (recognition && !recognitionActive) {{
+                finalTranscript = "";
+
+                if (liveTextElem) liveTextElem.value = "";
+                if (fixedTextElem) fixedTextElem.value = "";
+
+
+                recognition.start();
+                recognitionActive = true;
+                
+                startRecognitionButton.disabled = true;
+                startRecognitionButton.textContent = 'Listening...';
+                startRecognitionButton.style.background = '#94a3b8';
+                startRecognitionButton.style.cursor = 'not-allowed';
+                startRecognitionButton.style.opacity = '0.8';
+                startRecognitionButton.style.boxShadow = 'none';
+
+                if (liveTextElem) liveTextElem.style.display = 'block';
+                stopRecognitionButton.style.display = 'block';
+            }}
+            
+
+
+
+        }});
+
+
+
+
+
+        let liveTextRecognition = document.createElement('textarea');
+
+        liveTextRecognition.style.display = 'none';
+        liveTextRecognition.id = 'liveText';
+        liveTextRecognition.rows = 2;
+
+        liveTextRecognition.style.width = '100%';
+        liveTextRecognition.style.minWidth = '320px';
+        liveTextRecognition.style.maxWidth = '100%';
+        liveTextRecognition.style.fontSize = '1.15rem';
+        liveTextRecognition.style.padding = '0.5em 0.7em';
+        liveTextRecognition.style.margin = '0.5em 0';
+        liveTextRecognition.style.boxSizing = 'border-box';
+        liveTextRecognition.style.borderRadius = '7px';
+        liveTextRecognition.style.border = '1.5px solid #2563eb';
+        liveTextRecognition.style.background = '#f7faff';
+        liveTextRecognition.style.color = '#27332f';
+
+        /* Important for auto-expanding */
+        liveTextRecognition.style.resize = 'none';
+        liveTextRecognition.style.overflow = 'hidden';
+        liveTextRecognition.style.minHeight = '3em';
+
+
+        function autoResizeTextarea(textarea) {{
+
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + 'px';
         }}
 
-        updateLiveText(finalTranscript + interimTranscript);
-    }};
+        liveTextRecognition.addEventListener('input', () => {{
+        autoResizeTextarea(liveTextRecognition);
+        }});
 
-    }});
+
+        let fixedTextRecognition = document.createElement('input');
+        fixedTextRecognition.type = 'hidden';
+        fixedTextRecognition.id = 'fixedText';
+
+        let status = document.createElement('span');
+        status.className = 'blog-edit-status';
+
+        saveButton.addEventListener('click', () => saveParagraphEdit(paragraph, tools));
+        cancelButton.addEventListener('click', () => finishParagraphEdit(paragraph, tools, originalHTML));
+        imageUploadButton.addEventListener('click', () => imageUploadInput.click());
+        imageUploadInput.addEventListener('change', () => uploadImageIntoSection(paragraph, imageUploadInput, imageUploadButton, status));
+
+        tools.appendChild(saveButton);
+        tools.appendChild(cancelButton);
+        tools.appendChild(imageUploadButton);
+        tools.appendChild(imageUploadInput);
+        tools.appendChild(startRecognitionButton);
+        
+        tools.appendChild(liveTextRecognition);
+        tools.appendChild(fixedTextRecognition);
+        tools.appendChild(status);
+        paragraph.insertAdjacentElement('afterend', tools);
+
+    }} //startParagraphedit(paragraph)
+
+
 
     
 
-    const stopRecognitionButton = document.createElement('button');
-    stopRecognitionButton.type = 'button';
-    stopRecognitionButton.className = 'blog-voice-button';
-    stopRecognitionButton.textContent = 'Stop';
-    stopRecognitionButton.style.background = '#b42318';
-    stopRecognitionButton.style.color = '#ffffff';
-    stopRecognitionButton.style.border = 'none';
-    stopRecognitionButton.style.borderRadius = '7px';
-    stopRecognitionButton.style.padding = '0.6em 1em';
-    stopRecognitionButton.style.fontSize = '1rem';
-    stopRecognitionButton.style.fontWeight = '600';
-    stopRecognitionButton.style.cursor = 'pointer';
-    stopRecognitionButton.style.margin = '0.5em 0';
-    stopRecognitionButton.style.boxSizing = 'border-box';
-    stopRecognitionButton.id = 'stop-voice-btn';
-    stopRecognitionButton.addEventListener('click', (event) => {{
-        if (recognition && recognitionActive) {{
-            recognition.stop();
-            recognitionActive = false;
-            startRecognitionButton.disabled = false;
-            startRecognitionButton.textContent = 'Voice input';
-            // const fixed = await fixGrammar(finalTranscript); //TODO
-            // document.getElementById("fixedText").value = finalTranscript;    //TODO    
-            const speechtextcontainer = document.getElementById("liveText");
-            if (speechtextcontainer) {{
-                insertUploadedImageIntoSection(paragraph, speechtextcontainer.value + ' ' ); //TODO
-                speechtextcontainer.value = '';
-                speechtextcontainer.style.display = 'none';
-            }}
-        }}
-    }});
-    
-const liveTextRecognition = document.createElement('textarea');
 
-liveTextRecognition.style.display = 'none';
-liveTextRecognition.id = 'liveText';
-liveTextRecognition.rows = 2;
 
-liveTextRecognition.style.width = '100%';
-liveTextRecognition.style.minWidth = '320px';
-liveTextRecognition.style.maxWidth = '100%';
-liveTextRecognition.style.fontSize = '1.15rem';
-liveTextRecognition.style.padding = '0.5em 0.7em';
-liveTextRecognition.style.margin = '0.5em 0';
-liveTextRecognition.style.boxSizing = 'border-box';
-liveTextRecognition.style.borderRadius = '7px';
-liveTextRecognition.style.border = '1.5px solid #2563eb';
-liveTextRecognition.style.background = '#f7faff';
-liveTextRecognition.style.color = '#27332f';
-
-/* Important for auto-expanding */
-liveTextRecognition.style.resize = 'none';
-liveTextRecognition.style.overflow = 'hidden';
-liveTextRecognition.style.minHeight = '3em';
-
-function autoResizeTextarea(textarea) {{
-
-    textarea.style.height = 'auto';
-    textarea.style.height = textarea.scrollHeight + 'px';
-}}
-
-liveTextRecognition.addEventListener('input', () => {{
-  autoResizeTextarea(liveTextRecognition);
-}});
-    const fixedTextRecognition = document.createElement('input');
-    fixedTextRecognition.type = 'hidden';
-    fixedTextRecognition.id = 'fixedText';
-
-    const status = document.createElement('span');
-    status.className = 'blog-edit-status';
-
-    saveButton.addEventListener('click', () => saveParagraphEdit(paragraph, tools));
-    cancelButton.addEventListener('click', () => finishParagraphEdit(paragraph, tools, originalHTML));
-    imageUploadButton.addEventListener('click', () => imageUploadInput.click());
-    imageUploadInput.addEventListener('change', () => uploadImageIntoSection(paragraph, imageUploadInput, imageUploadButton, status));
-
-    tools.appendChild(saveButton);
-    tools.appendChild(cancelButton);
-    tools.appendChild(imageUploadButton);
-    tools.appendChild(imageUploadInput);
-    tools.appendChild(startRecognitionButton);
-    tools.appendChild(stopRecognitionButton);
-    tools.appendChild(liveTextRecognition);
-    tools.appendChild(fixedTextRecognition);
-    tools.appendChild(status);
-    paragraph.insertAdjacentElement('afterend', tools);
-}}
 
 async function saveParagraphEdit(paragraph, tools) {{
-    const status = tools.querySelector('.blog-edit-status');
-    const saveButton = tools.querySelector('.blog-save-button');
-    const editedHTML = getParagraphCleanHTML(paragraph).trim();
+    let status = tools.querySelector('.blog-edit-status');
+    let saveButton = tools.querySelector('.blog-save-button');
+    let editedHTML = getParagraphCleanHTML(paragraph).trim();
 
     if (!paragraphHasVisibleContent(paragraph)) {{
         status.textContent = 'Section cannot be empty.';
@@ -1635,7 +1674,7 @@ async function saveParagraphEdit(paragraph, tools) {{
     status.classList.remove('error');
 
     try {{
-        const response = await fetch(blogParagraphSaveUrl, {{
+        let response = await fetch(blogParagraphSaveUrl, {{
             method: 'POST',
             headers: {{
                 "Content-Type": "application/json",
