@@ -8,6 +8,7 @@ from django.utils.text import slugify
 import os
 import time
 import uuid
+import io
 
 # def getimages(request, placename):
 #     allimages = googleimagemodel.objects.filter(imageclassID=placename)
@@ -113,7 +114,46 @@ def _save_blog_editor_webp(request):
             image = image.convert("RGBA" if "A" in image.getbands() else "RGB")
         image.thumbnail((1800, 1800), Image.Resampling.LANCZOS)
         image = _blur_faces(image)
-        image.save(file_path, "WEBP", quality=84, method=6)
+
+        # Iteratively reduce WebP size to fit under 99KB.
+        max_bytes = 99 * 1024
+        quality_start = 84
+        quality_min = 40
+        quality_step = 4
+        scale = 1.0
+        scale_min = 0.50
+        scale_step = 0.90
+
+        base_image = image
+        encoded = None
+
+        while scale >= scale_min and encoded is None:
+            if scale < 1.0:
+                w, h = base_image.size
+                new_w = max(1, int(w * scale))
+                new_h = max(1, int(h * scale))
+                working = base_image.resize((new_w, new_h), Image.Resampling.LANCZOS)
+            else:
+                working = base_image
+
+            quality = quality_start
+            while quality >= quality_min:
+                buf = io.BytesIO()
+                working.save(buf, "WEBP", quality=quality, method=6)
+                data = buf.getvalue()
+                if len(data) <= max_bytes:
+                    encoded = data
+                    break
+                quality -= quality_step
+
+            if encoded is None:
+                scale *= scale_step
+
+        if encoded is None:
+            raise ValueError("Could not compress image under 99KB")
+
+        with open(file_path, "wb") as f:
+            f.write(encoded)
 
     return {
         "file_path": file_path,

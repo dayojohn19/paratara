@@ -2108,7 +2108,39 @@ def placeCalendarJSON_v2(request, id, month=None, year=None):
     data = serializers.serialize('json', scheduleList, indent=2,
                                  use_natural_foreign_keys=False, use_natural_primary_keys=True)
     schedule_list = json.loads(data)
-     
+    
+
+    # Removed Resorts
+    # Optimize: Get only essential resort fields without heavy M2M relationships
+    # Format as Django serializer output to match frontend expectations
+    # resorts_qs = place.resortList.all().values(
+    #     'id', 'name', 'RealName', 'address', 'description', 
+    #     'contactNumber', 'contactEmail', 'headerImage', 
+    #     'latitude', 'longitude', 'reviews', 'slug', 'websiteURL'
+    # )
+    
+    # # Convert to Django serializer format: [{model: ..., pk: ..., fields: {...}}]
+    # resort_list = [
+    #     {
+    #         'model': 'resorts.resortitem',
+    #         'pk': resort['id'],
+    #         'fields': {
+    #             'name': resort['name'],
+    #             'RealName': resort['RealName'],
+    #             'address': resort['address'],
+    #             'description': resort['description'],
+    #             'contactNumber': resort['contactNumber'],
+    #             'contactEmail': resort['contactEmail'],
+    #             'headerImage': resort['headerImage'],
+    #             'latitude': resort['latitude'],
+    #             'longitude': resort['longitude'],
+    #             'reviews': resort['reviews'],
+    #             'slug': resort['slug'],
+    #             'websiteURL': resort['websiteURL']
+    #         }
+    #     }
+    #     for resort in resorts_qs
+    # ]     
     
 
     def _is_http_url(val) -> bool:
@@ -2356,6 +2388,53 @@ def get_image_url_from_search(query):
             return results[0]['image']
     return None
 
+
+    # import requests
+    # from bs4 import BeautifulSoup
+    # from urllib.parse import urljoin, urlparse
+    # # Format the query for a DuckDuckGo image search
+    # search_url = f"https://duckduckgo.com{query}&t=h_&iax=images&ia=images"
+    
+    # # Use a common User-Agent to prevent being immediately blocked
+    # headers = {
+    #     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"
+    # }
+
+    # print(f"Searching DuckDuckGo for: {query}")
+    
+    # try:
+    #     response = requests.get(search_url, headers=headers, timeout=10)
+    #     response.raise_for_status() # Raise an exception for bad status codes
+
+    #     soup = BeautifulSoup(response.content, 'html.parser')
+
+    #     # DuckDuckGo wraps its main images in <img> tags inside <div> with specific classes
+    #     # The specific CSS selectors can change over time, but this is a common pattern:
+    #     # We look for a common HTML pattern where the image source is stored.
+        
+    #     # A specific snippet from search results suggests the image URL is sometimes
+    #     # stored in an attribute like 'data-src' or is a relative URL starting with '//'
+
+    #     # Trying to find the first large image link:
+    #     first_img_tag = soup.find('img', {'class': 'tile--img__img'})
+        
+    #     if first_img_tag and 'src' in first_img_tag.attrs:
+    #         relative_url = first_img_tag['src']
+    #         # Ensure we have an absolute URL
+    #         if relative_url.startswith('//'):
+    #             full_url = f"https:{relative_url}"
+    #             return full_url
+    #         elif relative_url.startswith('http'):
+    #             return relative_url
+
+    # except requests.exceptions.RequestException as e:
+    #     print(f"Error during request: {e}")
+    #     return None
+    # except Exception as e:
+    #     print(f"An error occurred during parsing: {e}")
+    #     return None
+
+    # return "Could not find a suitable image URL. Selectors might be outdated."
 
 
 @csrf_exempt
@@ -2951,6 +3030,1224 @@ def Comment(request, postID):
 
 
 
+@csrf_exempt
+def discussion_new(request, placeID):
+    print('Discussion NEW depreciated')
+    return
+    try:
+        place = Places_v2.objects.get(placeID=placeID)
+    except Places_v2.DoesNotExist:
+        return JsonResponse({"error": "Place not found"}, status=404)
+
+    if request.method == "POST":
+        data = json.loads(request.body)
+        message = data.get("message", "").strip()
+        if not message:
+            return JsonResponse({"error": "Message is empty"}, status=400)
+
+        if request.user.is_authenticated:
+            ensure_user_profile(request.user)
+
+        # Save user discussion
+        discuss = PlaceDiscussion.objects.create(
+            discuss=message,
+            place=place,
+            discusserName=request.user.username if request.user.is_authenticated else "Anonymous"
+        )
+        place.discussion.add(discuss)
+
+        # OpenAI response based on place name
+        prompt = f"""
+You are a travel assistant specialized in the place: {place.name}.
+A user asked: "{message}"
+Respond concisely (max 150 words) and informatively.
+"""
+
+        try:
+            ai_response = client.chat.completions.create(
+                model=settings.GROK_MODEL_NAME,
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=300
+            )
+            ai_message = ai_response.choices[0].message.content.strip()
+
+            # Save AI response as discussion
+            ai_discuss = PlaceDiscussion.objects.create(
+                discuss=ai_message,
+                discusserName="AI Bot",
+                place=place
+            )
+            place.discussion.add(ai_discuss)
+
+        except Exception as e:
+            ai_message = f"Error getting AI response: {str(e)}"
+
+        # Return all discussions (latest first)
+        objectRecords = place.discussions.order_by('-id').values()
+        return JsonResponse({"response": list(objectRecords)})
+
+    elif request.method == "GET":
+        objectRecords = place.discussions.order_by('-id').values()
+        return JsonResponse({"response": list(objectRecords)})
+
+# def _legacy_grok_discussion_unused(request, placeID):
+#     from datetime import timedelta
+#     from django.utils import timezone
+#     import uuid
+#     from openai import OpenAI
+#     def _step(description):
+#         print(f"[Discussion] {description}")
+#     _step(f"START method={request.method}")
+    
+#     client = OpenAI(api_key=settings.GROK_API_KEY, base_url='https://api.x.ai/v1')
+#     _step("OpenAI client initialized")
+
+#     _step("Parsing request body as JSON")
+#     data = json.loads(request.body)
+#     _step(f"Parsed JSON keys={list(data.keys())}")
+
+#     _step("Loading place by placeID")
+#     place = Places_v2.objects.get(placeID=placeID)
+#     _step(f"Loaded place placename={getattr(place, 'placename', None) or getattr(place, 'name', None)}")
+
+#     if data.get('message') != '':
+#         if request.method == 'POST':
+#             message_content = data.get('message', '').strip()
+            
+#             # Basic validation
+#             if len(message_content) < 2:
+#                 return JsonResponse({"error": "Message too short", "response": []}, status=400)
+            
+#             if len(message_content) > 1000:
+#                 return JsonResponse({"error": "Message too long", "response": []}, status=400)
+
+#             # SPAM PROTECTION 1: Rate limiting - max 5 messages per minute
+#             one_minute_ago = timezone.now() - timedelta(minutes=1)
+#             _step("SpamCheck#1: rate limit window=1min")
+#             recent_messages = PlaceDiscussion.objects.filter(
+#                 place=place,
+#                 timestamp__gte=one_minute_ago
+#             )            
+#             # Get user identifier (IP or userID)
+#             user_ip = request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0] or request.META.get('REMOTE_ADDR', '')
+#             user_identifier = data.get('userID') or user_ip
+#             _step(f"User identified via {'userID' if data.get('userID') else 'ip'}")
+            
+
+            
+#             # Count messages from this user/IP
+#             user_recent_count = recent_messages.filter(
+#                 discusserName=data.get('username', 'Anonymous')
+#             ).count()
+#             _step(f"SpamCheck#1: recent_count={user_recent_count}")
+            
+#             if user_recent_count >= 5:
+#                 _step("Rate limited: >=5 messages/min")
+#                 return JsonResponse({"error": "Rate limit exceeded. Please wait before sending more messages.", "response": []}, status=429)
+            
+#             # SPAM PROTECTION 2: Duplicate message detection (within 5 minutes)
+#             five_minutes_ago = timezone.now() - timedelta(minutes=5)
+#             _step("SpamCheck#2: duplicate window=5min")
+#             duplicate_exists = PlaceDiscussion.objects.filter(
+#                 place=place,
+#                 discuss__iexact=message_content,
+#                 timestamp__gte=five_minutes_ago
+#             ).exists()
+#             _step(f"SpamCheck#2: duplicate_exists={duplicate_exists}")
+            
+#             if duplicate_exists:
+#                 _step("Blocked: duplicate message")
+#                 return JsonResponse({"error": "Duplicate message detected. Please wait before sending the same message.", "response": []}, status=400)
+            
+#             # SPAM PROTECTION 3: Minimum time between messages from same user (10 seconds)
+#             ten_seconds_ago = timezone.now() - timedelta(seconds=10)
+#             _step("SpamCheck#3: min interval=10s")
+#             recent_user_message = recent_messages.filter(
+#                 discusserName=data.get('username', 'Anonymous'),
+#                 timestamp__gte=ten_seconds_ago
+#             ).exists()
+#             _step(f"SpamCheck#3: recent_user_message={recent_user_message}")
+            
+#             if recent_user_message:
+#                 _step("Rate limited: sent message <10s ago")
+#                 return JsonResponse({"error": "Please wait 10 seconds between messages.", "response": []}, status=429)
+            
+
+
+#             # Early local check: Is user asking something or just chatting?
+#             _step("Early local check: determining message type")
+#             print(f'Received message: "{message_content}"')
+#             print('---')
+            
+#             # Initialize variables to avoid UnboundLocalError if early check fails
+#             is_about_blogs = False
+#             blog_context = ""
+#             message_lower = message_content.lower()
+            
+#             try:
+
+
+#                 # Check response type
+#                 message_lower = message_content.lower()
+            
+#                 def Checkblog(human_message_prompt,place):
+#                     # Combined AI processing with one call
+#                     blog_keywords = ['create a blog','make a guide', 'make a blog']
+#                     _step('is about blog')
+#                     is_about_blogs = any(keyword in human_message_prompt for keyword in blog_keywords)
+#                     # If user explicitly asks to create a blog/article, we should generate a new one
+#                     # even if generic words match existing blog titles (e.g., "guide").
+#                     create_blog_verbs = ['make', 'create', 'write', 'generate']
+#                     create_blog_phrases = ['make a blog', 'create a blog', 'write a blog', 'generate a blog', 'make blog', 'create blog', 'write blog', 'generate blog']
+#                     wants_new_blog = (
+#                         any(p in human_message_prompt for p in create_blog_phrases)
+#                         or ('blog' in human_message_prompt and any(v in human_message_prompt for v in create_blog_verbs))
+#                         or ('article' in human_message_prompt and any(v in human_message_prompt for v in create_blog_verbs))
+#                     )
+                    
+#                     if is_about_blogs or wants_new_blog:
+#                         _step("Its About Blogs/Articles")
+#                         import re
+#                         from difflib import SequenceMatcher
+#                         blogs = list(place.blogs.all())
+#                         matched_blogs = []
+#                         created_or_matched_blog_url = ""
+#                         # direct token and n-gram matching
+#                         _step(f"Checking blog:   {message_lower}")
+#                         print('---')
+#                         for b in blogs:
+#                             text = f"{getattr(b,'title','')} {getattr(b,'summarize','') or ''}".lower()
+#                             sim = SequenceMatcher(a=message_lower, b=text).ratio()
+#                             _step(f"          Checking blog:   {sim}    {b.title}")
+#                             if sim > 0.7:
+#                                 matched_blogs.append((b, [f'fuzzy:{sim:.2f}']))
+#                                 _step(f"DEBUG: fuzzy matched {b.title} (sim={sim:.2f})")
+#                                 _step('---------Adding to Existing Blog')
+#                         max_match_blog = 1
+#                         _step(f"Checking if blog matched is >= {max_match_blog}")
+#                         if len(matched_blogs) >= max_match_blog:
+#                             print('\n\nMatched Blogs: ',matched_blogs)
+#                             _step(f"Blog flow: matched {len(matched_blogs)} existing blog(s)")
+#                             print(f"Found {len(matched_blogs)} relevant blogs/articles.\n\n")
+#                             blog_context = "\n\nAvailable Blogs & Articles:\n"
+#                             current_domain = request.build_absolute_uri('/').rstrip('/')
+#                             from django.utils.text import slugify
+                            
+#                             for blog_obj, matches in matched_blogs:
+#                                 blog_context += f"📝 {blog_obj.title}"
+                                
+#                                 # Try to construct URL from various sources
+#                                 blog_url = None
+#                                 if hasattr(blog_obj, 'localurlpath') and blog_obj.localurlpath:
+#                                     blog_url = f"{current_domain}{blog_obj.localurlpath}"
+#                                 elif hasattr(blog_obj, 'url') and blog_obj.url:
+#                                     blog_url = blog_obj.url
+#                                     if 'http://127.0.0.1:8000' in blog_url:
+#                                         blog_url = blog_url.replace('http://127.0.0.1:8000', current_domain)
+#                                     elif 'localhost:8000' in blog_url:
+#                                         blog_url = blog_url.replace('http://localhost:8000', current_domain)
+#                                 elif hasattr(blog_obj, 'blogplace') and blog_obj.blogplace:
+#                                     # Construct URL from place and blog title
+#                                     place_slug = slugify(blog_obj.blogplace.slug or blog_obj.blogplace.placename)
+#                                     title_slug = slugify(blog_obj.title)
+#                                     blog_url = f"{current_domain}/pages/blog/{place_slug}/{title_slug}/"
+                                
+#                                 if blog_url:
+#                                     if not created_or_matched_blog_url:
+#                                         created_or_matched_blog_url = blog_url
+#                                     blog_context += f" - URL: {blog_url}\n"
+#                                 else:
+#                                     blog_context += "\n"
+#                         else:
+#                             # No relevant existing blog found — generate a short guide blog and save it
+#                             try:
+#                                 # _step('No relevant blogs found, generating a new blog/article...')
+#                                 # _step('Attempting to ASK AI for BLOG')
+#                                 # _step('from this put it as a thread in task.py process_creating_blog(request,place,title) and make it so that it can be called from here and also from the admin panel when creating a new place')
+#                                 # user_request_text = message_content
+#                                 # prompt_blog = f"""
+#                                 #     User message: "{user_request_text}"
+#                                 #     - Produce a JSON object with keys: title, body_html, summary, category
+#                                 #     (Title): short (<=60 chars). 
+#                                 #     (Summary): one sentence if there is a link provided/included, use highlighted <a href="URL">name of the linked item</a> and do not include the URL in the text.  (<=140 chars) .
+#                                 #     (body_html): valid HTML fragment only (no <html> wrapper). 
+#                                 #     Include content appropriate to the user's request and double check if user is asking for a specific topic/subject and gave a url if so create a simple promotion 
+#                                 #         !important  insert icons, links, and content relevant to the user's request and {place.placename}
+                                    
+#                                 #     Category: based on user message determine its category from the following 'Guide','Story','Tip and Trick','Explore','Product'
+
+#                                 #     HTML content using body_html structure:
+                                    
+#                                 #     - A numbered step-by-step guide tailored to the user's request
+#                                 #         <article class="blog-post">                                        
+#                                 #             <div class="intro-section">
+#                                 #                 <h2>[emoji then (Title) ]</h2>
+#                                 #                 <p>[(Summary)] [image if provided]</p>
+#                                 #             </div>
+#                                 #             <p>[(body_html)]</p> 
+#                                 #             <div class="content-section">
+#                                 #                 <div>
+#                                 #                 - insert a reason for why and what in {place.placename}
+#                                 #                 </div>
+#                                 #             </div>
+#                                 #             <div class="content-section">
+#                                 #                 <h2>💰 Budget Breakdown</h2>
+#                                 #                 - If relevant, a clear cost breakdown list using PHP currency symbol ₱ with approximate costs (transport, fare, food, 1-night budget)
+#                                 #                 <div class="tip-box">
+#                                 #                 <p><strong>💡 [Category]:</strong></p>
+#                                 #                 <ul><li>...</li></ul>
+                                                
+#                                 #                 </div>
+#                                 #             </div>
+#                                 #         </article>                                        
+                                                                                
+#                                 #     Keep the whole body concise . Do not produce extraneous text.
+#                                 #     Place name: {place.placename}
+#                                 #     Return only the JSON object.
+#                                 #     """
+
+#                                 # ai_resp = client.chat.completions.create(
+#                                 #     model=settings.GROK_MODEL_NAME_EXPENSIVE,
+#                                 #     messages=[{"role": "user", "content": prompt_blog}],
+#                                 # )
+#                                 # _step("Blog flow: received OpenAI response for blog")
+#                                 # usage = ai_resp.usage
+
+#                                 # print("Prompt tokens:", usage.prompt_tokens)
+#                                 # print("Completion tokens:", usage.completion_tokens)
+#                                 # print("Total tokens:", usage.total_tokens)  
+#                                 # print('-----------------')                              
+#                                 # print('-----------------')                              
+#                                 # print('-----------------')                              
+
+#                                 # ai_text = ai_resp.choices[0].message.content.strip()
+
+#                                 # # Robust JSON parsing with fallback attempts
+#                                 # blog_json = None
+#                                 # try:
+#                                 #     blog_json = json.loads(ai_text)
+#                                 # except Exception:
+#                                 #     import re
+#                                 #     m = re.search(r"(\{.*\})", ai_text, re.DOTALL)
+#                                 #     if m:
+#                                 #         try:
+#                                 #             blog_json = json.loads(m.group(1))
+#                                 #         except Exception:
+#                                 #             blog_json = None
+
+#                                 # if not blog_json:
+#                                 #     _step("Blog flow: JSON parse failed; retrying with stricter prompt")
+#                                 #     retry_prompt = prompt_blog + "\n\nIMPORTANT: Return ONLY a single JSON object and nothing else. Use the exact keys: title, body_html, summary."
+#                                 #     ai_resp2 = client.chat.completions.create(
+#                                 #         model=settings.GROK_MODEL_NAME,
+#                                 #         messages=[{"role": "user", "content": retry_prompt}],
+#                                 #     )
+#                                 #     ai_text2 = ai_resp2.choices[0].message.content.strip()
+#                                 #     try:
+#                                 #         blog_json = json.loads(ai_text2)
+#                                 #     except Exception:
+#                                 #         import re
+#                                 #         m2 = re.search(r"(\{.*\})", ai_text2, re.DOTALL)
+#                                 #         if m2:
+#                                 #             try:
+#                                 #                 blog_json = json.loads(m2.group(1))
+#                                 #             except Exception:
+#                                 #                 blog_json = None
+
+#                                 # if not blog_json:
+#                                 #     _step("Blog flow: failed to parse blog JSON after retry")
+#                                 #     raise ValueError('Failed to parse blog JSON from AI response')
+
+#                                 # body_html = blog_json.get('body_html', '')
+#                                 # summary = blog_json.get('summary', '')
+#                                 # blogcategory = blog_json.get('category', '')
+#                                 # title = blog_json.get('title', '').strip()
+                                
+#                                 # Ensure title is never None or empty
+#                                 # if not title:
+#                                 #     if blogcategory:
+#                                 #         title = f"{blogcategory} for {place.placename}"
+#                                 #     else:
+#                                 #         title = f"Guide to {place.placename}"
+#                                 #     _step(f"Blog flow: title was empty, using fallback: {title!r}")
+#                                 # else:
+#                                 #     _step(f"Blog flow: title from AI response: {title!r}")
+
+#                                 blog_thread_result = {"url": "", "error": None}
+
+#                                 def run_blog_creation():
+#                                     try:
+#                                         blog_thread_result["url"] = process_creating_blog(
+#                                             request,
+#                                             place,
+#                                             None,
+#                                             message_lower,
+#                                         ) or ""
+#                                     except Exception as exc:
+#                                         blog_thread_result["error"] = exc
+
+#                                 blog_thread = threading.Thread(target=run_blog_creation)
+#                                 blog_thread.start()
+#                                 blog_thread.join()
+
+#                                 if blog_thread_result["error"] is not None:
+#                                     raise blog_thread_result["error"]
+
+#                                 created_or_matched_blog_url = blog_thread_result["url"]
+#                                 # # FROM
+#                                 # blog_obj = generate_blog_object(
+#                                 #     request,
+#                                 #     place_name=place.placename,
+#                                 #     title=title,
+#                                 #     text_content=body_html,
+#                                 #     summary=summary, 
+#                                 #     category=blogcategory,
+#                                 # )
+#                                 # _step(f"Blog flow: saved new blog title={getattr(blog_obj,'title',None)!r}")
+                                
+
+
+#                             except Exception as e:
+#                                 print('Blog generation error:', e)
+#                                 _step(f"Blog flow: error {type(e).__name__}")
+#                         print('Blog URL to be returned:', created_or_matched_blog_url)
+#                         return {
+#                             "is_about_blogs": True,
+#                             "blog_url": created_or_matched_blog_url,
+#                         }
+#                     else:
+#                         _step("Not about blog")
+#                         return {
+#                             "is_about_blogs": False,
+#                             "blog_url": "",
+#                         }
+
+
+#                 blog_check = Checkblog(message_lower, place)
+#                 is_about_blogs = blog_check.get("is_about_blogs", False)
+
+#                 print('\n\n is_about_blogs:', is_about_blogs)
+#                 if is_about_blogs:
+#                     print('Message classified as about blogs/articles; returning blog context')
+#                     return JsonResponse({
+#                         "response": [],
+#                         "blog_url": blog_check.get("blog_url", ""),
+#                         "message": "Blog Created or Matched",
+#                     })
+#                     # return HttpResponse("Blog Created or Matched")
+#                     # return JsonResponse({"response": 'Blog Created  or Matched'})
+#                 _step("Early check: running local message classifier")
+#                 # Save user message when it is a real question or a non-question statement.
+
+                
+#                 early_result = _classify_discussion_message(message_content)
+                
+#                 _step(f"Early local check result: {early_result}")
+                
+#                 if early_result == "OFFENSIVE":
+#                     _step("Local classifier marked message as OFFENSIVE")
+#                     return JsonResponse({"response": " "})
+
+#                 elif early_result == "QUESTION":
+#                     _step("Early check: QUESTION - proceeding with full processing")
+
+#                     # Continue to full processing (no return here)
+
+#                 elif early_result == "NOT_QUESTION":
+#                     _step("Early check: NOT_QUESTION - saving message and returning")
+#                     # Save user message
+#                     username_to_use = data.get('username') or (request.user.username if request.user.is_authenticated else 'Anonymous')
+#                     try:
+#                         if request.user.is_authenticated:
+#                             ensure_user_profile(request.user)
+#                         discuss = PlaceDiscussion.objects.create(discuss=message_content,
+#                             place=place, discusserName=username_to_use)
+#                     except:
+#                         discuss = PlaceDiscussion.objects.create( 
+#                             discuss=message_content, place=place, discusserName=username_to_use)
+#                     place.discussion.add(discuss)
+#                     # Return latest discussions
+#                     objectRecords = place.discussions.order_by('-id').values()[:5]
+#                     _step("Local classifier marked message as NOT_QUESTION; returning latest discussions")
+                    
+#                     return JsonResponse({"response": list(objectRecords)})
+                
+#                 # Saving User Sent Message
+#                 try:
+#                     username_to_use = data.get('username') or (request.user.username if request.user.is_authenticated else 'Anonymous')
+#                     _step(f"Resolved username={username_to_use!r} authenticated={request.user.is_authenticated}")
+#                     if request.user.is_authenticated:
+#                         ensure_user_profile(request.user)
+#                         _step("UserPoster synchronized")
+#                     discuss = PlaceDiscussion.objects.create(discuss=message_content,
+#                         place=place, discusserName=username_to_use)
+#                     _step("Saved user discussion (with userPoster)")
+#                 except:
+#                     discuss = PlaceDiscussion.objects.create( 
+#                         discuss=message_content, place=place, discusserName=username_to_use)
+#                     _step("Saved user discussion (anonymous/fallback)")
+                
+#                 place.discussion.add(discuss)
+#                 _step("Attached discussion to place.discussion")
+
+#                 try:
+#                     _step("RAG: attempting model-backed answer")
+#                     rag_message = _discussion_model_backed_response(message_content, place, request, _step)
+#                 except Exception as rag_error:
+#                     rag_message = ""
+#                     _step(f"RAG: failed with {type(rag_error).__name__}; falling back to legacy flow")
+
+#                 if rag_message:
+#                     ai_discuss = PlaceDiscussion.objects.create(
+#                         discuss=rag_message,
+#                         discusserName="Assistant",
+#                         place=place
+#                     )
+#                     place.discussion.add(ai_discuss)
+#                     _step("RAG: saved assistant response and returning")
+#                     objectRecords = place.discussions.order_by('-id').values()[:2]
+#                     return JsonResponse({"response": list(objectRecords)})
+
+
+#             except Exception as e:
+#                 _step(f"Early local check failed: {type(e).__name__} - proceeding with full flow")
+#                 # If early check fails, continue with full processing
+            
+
+#             # NOW CHECKING THE MESSAGE
+            
+#             event_keywords = ['event', 'events', 'happening', 'schedule', 'festival', 'activity', 'activities', 'what to do', 'whats on']
+#             resort_keywords = ['resort', 'resorts', 'hotel', 'hotels', 'stay', 'accommodation', 'accommodations', 'lodge', 'where to stay', 'promotion', 'promotions', 'deal', 'deals', 'booking', 'room', 'rooms', 'tour', 'tours', 'package', 'packages', 'activity', 'activities']
+#             # Tour guide keywords (kept separate from generic "guide" blog intent)
+#             tour_guide_keywords = [
+#                 'tour guide', 'tourguide', 'tour guide in', 'tour guide for',
+#                 'local guide', 'hire a guide', 'need a guide', 'looking for a guide',
+#                 'guided tour', 'private guide', 'tourist guide'
+#             ]
+#             # Narrow blog keywords to avoid matching on generic question words
+            
+
+#             # Food-specific keywords (checked before generic blog keywords)
+#             food_keywords = ['food', 'restaurant', 'eat', 'dining', 'menu', 'dish', 'meal', 'cuisine', 'seafood', 'where to eat','drink','milk','tea','coffee','breakfast','lunch','dinner','snack','snacks','cafeteria','cafe','bakery','barbecue','bbq','grill']
+
+#             # Activity-specific keywords
+
+#             activity_keywords = [
+#                 'what to do', 'what can i do', 'activities', 'activity', 'things to do',
+#                 'adventure', 'tour', 'tours', 'ride', 'sports', 'surf', 'snorkel',
+#                 'rental', 'rentals', 'rent', 'looking','play'
+#             ] 
+
+#             is_about_events = any(keyword in message_lower for keyword in event_keywords)
+#             is_about_resorts = any(keyword in message_lower for keyword in resort_keywords)
+#             # Require tour-guide intent; avoid triggering on generic "guide" alone
+#             is_about_tour_guides = (
+#                 any(keyword in message_lower for keyword in tour_guide_keywords)
+#                 or (
+#                     'guide' in message_lower
+#                     and any(x in message_lower for x in ['tour', 'tourist', 'island', 'siargao'])
+#                 )
+#             )
+
+
+
+#             _step(
+#                 "Topic flags computed "
+#                 # f"events={is_about_events} resorts={is_about_resorts} blogs={is_about_blogs} "
+#                 # f"food={is_about_food} activities={is_about_activities} tour_guides={is_about_tour_guides} wants_new_blog={wants_new_blog}"
+#             )
+
+#             # Prefer specific topic when specific keywords are present to avoid generic-word misclassification
+#             is_about_food = any(keyword in message_lower for keyword in food_keywords)
+#             is_about_activities = any(keyword in message_lower for keyword in activity_keywords)            
+#             if is_about_food:
+#                 is_about_blogs = False
+#             if is_about_activities:
+#                 is_about_blogs = False
+#             if is_about_resorts:
+#                 is_about_blogs = False
+#             if is_about_tour_guides:
+#                 is_about_blogs = False
+#                 # Avoid pulling resort/package context just because the word "tour" appears.
+#                 if not any(x in message_lower for x in ['resort', 'hotel', 'accommodation', 'room', 'rooms', 'stay']):
+#                     is_about_resorts = False
+
+#             # Debug final topic flags
+#             # print(f"Topic flags -> events:{is_about_events}, resorts:{is_about_resorts}, tour_guides:{is_about_tour_guides}, blogs:{is_about_blogs}, wants_new_blog:{wants_new_blog}, food:{is_about_food}, activities:{is_about_activities}")
+
+#             # Build context efficiently
+#             context_info = ""
+#             MAX_CONTEXT_CHARS = 4800
+            
+#             # Only fetch blogs if the question might be answered by them
+#             blog_context = ""
+
+
+#             if is_about_events:
+#                 _step("Events flow: building upcoming events context")
+#                 from datetime import datetime
+#                 from django.utils import timezone
+#                 from django.db.models import Q
+#                 current_date = timezone.now().date()
+#                 current_month = datetime.now().month
+#                 current_year = datetime.now().year
+#                 current_day = current_date.day
+                
+#                 # Filter events: future years OR (current year AND future months) OR (current year AND current month AND future/today dates)
+#                 events = place.eventList.filter(
+#                     Q(yearN__gt=current_year) |
+#                     Q(yearN=current_year, monthN__gt=current_month) |
+#                     Q(yearN=current_year, monthN=current_month, dateN__gte=current_day)
+#                 ).filter(
+#                     monthN__lte=current_month + 2
+#                 ).only('scheduleTitle', 'exactDate', 'schedulePlace').order_by('yearN', 'monthN', 'dateN')[:10]
+                
+#                 if events:
+#                     context_info += "\n\nUpcoming Events:\n"
+#                     for event in events:
+#                         context_info += f"- {event.scheduleTitle} on {event.exactDate}"
+#                         if event.schedulePlace:
+#                             context_info += f" at {event.schedulePlace}"
+#                         context_info += "\n"
+#                 _step(f"Events flow: events_found={bool(events)}")
+            
+#             elif is_about_resorts:
+#                 _step("Resorts flow: building resort/package context")
+#                 # Check for specific amenity/feature keywords in the user's message
+#                 amenity_keywords = {
+#                     'wifi': ['wifi', 'wi-fi', 'internet', 'wireless'],
+#                     'pool': ['pool', 'swimming', 'swimming pool'],
+#                     'bidet': ['bidet', 'bidet shower'],
+#                     'parking': ['parking', 'parking space', 'car park', 'garage'],
+#                     'restaurant': ['restaurant', 'dining', 'dine-in', 'on-site restaurant'],
+#                     'bar': ['bar', 'lounge', 'bar lounge', 'drinks'],
+#                     'spa': ['spa', 'massage', 'spa services', 'wellness'],
+#                     'gym': ['gym', 'fitness', 'fitness center', 'workout'],
+#                     'beach_access': ['beach', 'beachfront', 'beach access', 'direct beach'],
+#                     'air_conditioning': ['aircon', 'air-con', 'air con', 'airconditioned', 'ac', 'a/c', 'air conditioning'],
+#                     'hot_water': ['hot water', 'hot shower', 'heater'],
+#                     'breakfast': ['breakfast', 'morning meal', 'complimentary breakfast'],
+#                     'laundry': ['laundry', 'laundry service', 'washing'],
+#                     'pet_friendly': ['pet', 'pets', 'pet-friendly', 'pet friendly', 'dog', 'cat', 'animals'],
+#                     'family_friendly': ['family', 'family-friendly', 'family friendly', 'kids', 'children'],
+#                     'generator': ['generator', 'backup power', 'power backup', 'emergency power']
+#                 }
+                
+#                 room_feature_keywords = {
+#                     'fan': ['fan', 'electric fan'],
+#                     'view': ['view', 'ocean view', 'sea view'],
+#                     'private': ['private', 'ensuite', 'en-suite'],
+#                     'bathroom': ['bathroom', 'shower', 'toilet', 'cr'],
+#                     'double': ['double', 'queen', 'king'],
+#                     'single': ['single', 'twin'],
+#                     'cheap': ['cheap', 'affordable', 'budget', 'inexpensive'],
+#                     'expensive': ['luxury', 'premium', 'deluxe']
+#                 }
+                
+#                 # Identify which amenities the user is asking about
+#                 requested_amenities = []
+#                 for amenity, keywords in amenity_keywords.items():
+#                     if any(keyword in message_lower for keyword in keywords):
+#                         requested_amenities.append(amenity)
+                
+#                 # Identify which features the user is asking about
+#                 mentioned_features = []
+#                 for feature, keywords in room_feature_keywords.items():
+#                     if any(keyword in message_lower for keyword in keywords):
+#                         mentioned_features.append(feature)
+#                 _step(f"Resorts flow: requested_amenities={requested_amenities}, mentioned_features={mentioned_features}")
+                
+#                 # Optimized query with prefetch_related and amenity fields
+#                 resorts = place.resortList.prefetch_related(
+#                     'resortAccomodations__subPackages',
+#                     'resortActivities__subPackages',
+#                     'resortTour__subPackages'
+#                 ).only(
+#                     'RealName', 'name', 'contactNumber', 'contactEmail', 'websiteURL',
+#                     'has_wifi', 'has_pool', 'has_bidet', 'has_parking', 'has_restaurant',
+#                     'has_bar', 'has_spa', 'has_gym', 'has_beach_access', 'has_air_conditioning',
+#                     'has_hot_water', 'has_breakfast', 'has_laundry', 'pet_friendly', 
+#                     'family_friendly', 'has_generator'
+#                 )
+                
+#                 # Filter and score resorts based on requested amenities
+#                 resort_matches = []
+#                 for resort in resorts:
+#                     match_score = 0
+#                     matched_amenities = []
+                    
+#                     if requested_amenities:
+#                         # Check which requested amenities this resort has
+#                         for amenity in requested_amenities:
+#                             # Map amenity key to model field
+#                             field_name = f'has_{amenity}' if not amenity.endswith('_friendly') else amenity
+#                             if hasattr(resort, field_name) and getattr(resort, field_name):
+#                                 match_score += 1
+#                                 matched_amenities.append(amenity)
+                        
+#                         # Only include resorts that match at least one requested amenity
+#                         if match_score > 0:
+#                             resort_matches.append((resort, match_score, matched_amenities))
+#                     else:
+#                         # No specific amenities requested, include all resorts
+#                         resort_matches.append((resort, 0, []))
+                
+#                 # Sort by match score (highest first)
+#                 resort_matches.sort(key=lambda x: x[1], reverse=True)
+                
+#                 # Limit to top 8 resorts
+#                 resort_matches = resort_matches[:8]
+                
+#                 if resort_matches:
+#                     context_info += "\n\nAvailable Resorts"
+#                     if requested_amenities:
+#                         amenity_labels = {
+#                             'wifi': 'WiFi', 'pool': 'Pool', 'bidet': 'Bidet', 'parking': 'Parking',
+#                             'restaurant': 'Restaurant', 'bar': 'Bar', 'spa': 'Spa', 'gym': 'Gym',
+#                             'beach_access': 'Beach Access', 'air_conditioning': 'Air Conditioning',
+#                             'hot_water': 'Hot Water', 'breakfast': 'Breakfast', 'laundry': 'Laundry',
+#                             'pet_friendly': 'Pet Friendly', 'family_friendly': 'Family Friendly',
+#                             'generator': 'Generator'
+#                         }
+#                         requested_labels = [amenity_labels.get(a, a.replace('_', ' ').title()) for a in requested_amenities]
+#                         context_info += f" with {', '.join(requested_labels)}:\n"
+#                     else:
+#                         context_info += ":\n"
+                    
+#                     for resort, score, matched_amenities in resort_matches:
+#                         resort_name = resort.RealName if resort.RealName else resort.name
+#                         context_info += f"\n{resort_name}"
+                        
+#                         # Show which requested amenities this resort has
+#                         if matched_amenities:
+#                             amenity_icons = {
+#                                 'wifi': '📶', 'pool': '🏊', 'bidet': '🚿', 'parking': '🅿️',
+#                                 'restaurant': '🍽️', 'bar': '🍹', 'spa': '💆', 'gym': '🏋️',
+#                                 'beach_access': '🏖️', 'air_conditioning': '❄️', 'hot_water': '♨️',
+#                                 'breakfast': '🍳', 'laundry': '🧺', 'pet_friendly': '🐾',
+#                                 'family_friendly': '👨‍👩‍👧‍👦', 'generator': '⚡'
+#                             }
+#                             amenity_list = [f"{amenity_icons.get(a, '✓')} {a.replace('_', ' ').title()}" 
+#                                           for a in matched_amenities]
+#                             context_info += f" (✓ {', '.join(amenity_list)})"
+                        
+#                         context_info += ":\n"
+                        
+#                         # Show all amenities this resort has
+#                         all_amenities = []
+#                         amenity_map = {
+#                             'has_wifi': '📶 WiFi', 'has_pool': '🏊 Pool', 'has_bidet': '🚿 Bidet',
+#                             'has_parking': '🅿️ Parking', 'has_restaurant': '🍽️ Restaurant',
+#                             'has_bar': '🍹 Bar', 'has_spa': '💆 Spa', 'has_gym': '🏋️ Gym',
+#                             'has_beach_access': '🏖️ Beach Access', 'has_air_conditioning': '❄️ AC',
+#                             'has_hot_water': '♨️ Hot Water', 'has_breakfast': '🍳 Breakfast',
+#                             'has_laundry': '🧺 Laundry', 'pet_friendly': '🐾 Pet Friendly',
+#                             'family_friendly': '👨‍👩‍👧‍👦 Family Friendly', 'has_generator': '⚡ Generator'
+#                         }
+                        
+#                         for field, label in amenity_map.items():
+#                             if hasattr(resort, field) and getattr(resort, field):
+#                                 all_amenities.append(label)
+                        
+#                         if all_amenities:
+#                             context_info += f"  Amenities: {', '.join(all_amenities)}\n"
+                        
+#                         if resort.contactNumber or resort.contactEmail:
+#                             context_info += "  Contact: "
+#                             if resort.contactNumber:
+#                                 context_info += f" {resort.contactNumber}"
+#                             if resort.contactEmail:
+#                                 if resort.contactNumber:
+#                                     context_info += " | "
+#                                 context_info += f" {resort.contactEmail}"
+#                             context_info += "\n"
+                        
+#                         if resort.websiteURL:
+#                             context_info += f"   {resort.websiteURL}\n"
+                        
+#                         # Process accommodations with detailed room info
+#                         accommodations = resort.resortAccomodations.all()
+#                         if accommodations:
+#                             context_info += f"  Room Options:\n"
+#                             for accom in accommodations[:3]:  # Show top 3 accommodations
+#                                 for sub in accom.subPackages.all()[:4]:  # Show up to 4 rooms per accommodation
+#                                     # Check if this room matches user's query features
+#                                     room_desc_lower = (sub.description or '').lower()
+#                                     room_title_lower = (sub.title or '').lower()
+#                                     room_text = f"{room_title_lower} {room_desc_lower}"
+                                    
+#                                     # If user asked about specific features, prioritize matching rooms
+#                                     is_relevant = True
+#                                     if mentioned_features:
+#                                         is_relevant = any(
+#                                             any(keyword in room_text for keyword in room_feature_keywords.get(feature, []))
+#                                             for feature in mentioned_features
+#                                         )
+                                    
+#                                     if is_relevant:
+#                                         context_info += f"    • {sub.title}"
+#                                         if sub.price > 0:
+#                                             context_info += f" - ₱{sub.price}"
+#                                         if sub.description:
+#                                             # Extract key amenities from description
+#                                             desc = sub.description[:150]
+#                                             context_info += f"\n      Features: {desc}"
+#                                             if len(sub.description) > 150:
+#                                                 context_info += "..."
+#                                         context_info += "\n"
+#                         # Process activities and tours (less detail if room query)
+#                         if not mentioned_features or 'activity' in message_lower or 'tour' in message_lower:
+#                             for pkg_type, pkg_list, label in [
+#                                 ('resortActivities', resort.resortActivities.all()[:2], 'Activities'),
+#                                 ('resortTour', resort.resortTour.all()[:2], 'Tours')
+#                             ]:
+#                                 if pkg_list:
+#                                     context_info += f"  {label}:\n"
+#                                     for pkg in pkg_list:
+#                                         for sub in pkg.subPackages.all()[:2]:
+#                                             context_info += f"    • {sub.title}"
+#                                             if sub.price > 0:
+#                                                 context_info += f" - ₱{sub.price}"
+#                                             if sub.description:
+#                                                 context_info += f": {sub.description[:60]}..."
+#                                             context_info += "\n"
+
+#                 _step(f"Resorts flow: found {len(resort_matches)} resorts")
+
+#             # If user asked for a tour guide, suggest from TourGuide model (prefer guides for this place)
+#             elif is_about_tour_guides:
+#                 _step("TourGuide flow: building tour guide suggestions")
+#                 try:
+#                     guides_qs = (
+#                         TourGuide.objects.filter(is_active=True)
+#                         .select_related('user', 'primary_place')
+#                     )
+
+#                     # Prefer guides whose primary_place matches the current place.
+#                     place_guides = guides_qs.filter(primary_place=place)
+#                     if place_guides.exists():
+#                         guides_to_show = place_guides[:6]
+#                     else:
+#                         # Fallback: show any active guides (still helpful when primary_place isn't set).
+#                         guides_to_show = guides_qs[:6]
+
+#                     if guides_to_show:
+#                         context_info += "\n\nAvailable Tour Guides:\n"
+#                         for g in guides_to_show:
+#                             username = getattr(getattr(g, 'user', None), 'username', '') or 'Tour Guide'
+#                             email = getattr(getattr(g, 'user', None), 'email', '') or ''
+#                             context_info += f"\n{username}:\n"
+#                             if getattr(g, 'mobile_number', '') or email:
+#                                 context_info += "  Contact: "
+#                                 if getattr(g, 'mobile_number', ''):
+#                                     context_info += f" {g.mobile_number}"
+#                                 if email:
+#                                     if getattr(g, 'mobile_number', ''):
+#                                         context_info += " | "
+#                                     context_info += f" {email}"
+#                                 context_info += "\n"
+#                             if getattr(g, 'experience_years', 0):
+#                                 context_info += f"  Experience: {g.experience_years} year(s)\n"
+#                             if getattr(g, 'bio', ''):
+#                                 bio = (g.bio or '').strip()
+#                                 if bio:
+#                                     context_info += f"  Bio: {bio[:140]}"
+#                                     if len(bio) > 140:
+#                                         context_info += "..."
+#                                     context_info += "\n"
+#                     _step(f"TourGuide flow: guides_found={bool(guides_to_show)}")
+#                 except Exception as e:
+#                     print('TourGuide suggestions error:', e)
+#                     _step(f"TourGuide flow: error {type(e).__name__}")
+            
+#             # Supplemental: if the user asked about food, prefer local resort food packages when available
+#             elif is_about_food:
+#                 _step("Food flow: building food/dining context")
+#                 try:
+#                     from django.db.models import Prefetch, Q
+#                     from django.utils import timezone
+#                     from resorts.models import resortPackages, Packages
+
+#                     MAX_RESORTS = 6
+#                     MAX_PACKAGES_PER_RESORT = 3
+#                     MAX_SUBPACKAGES_PER_PACKAGE = 4
+#                     import re
+#                     # Tokenize the user's message to build a backend query.
+#                     tokens = re.findall(r"[a-z0-9]{3,}", message_lower)
+#                     stop_tokens = {
+#                         'what', 'can', 'you', 'please', 'plz', 'the', 'and', 'or', 'for', 'to', 'in', 'on', 'at',
+#                         'with', 'from', 'near', 'around', 'need', 'want', 'looking', 'find', 'where', 'how',
+#                         'get', 'buy', 'have', 'offer', 'available',
+#                         # broad terms that don't help matching specific items
+#                         'food', 'foods', 'eat', 'eats', 'eating', 'dining', 'menu', 'restaurant', 'restaurants',
+#                         'dish', 'dishes', 'meal', 'meals', 'drink', 'drinks',
+#                         # location/app noise
+#                         'siargao', 'resort', 'resorts'
+#                     }
+#                     query_tokens = [t for t in tokens if t not in stop_tokens]
+
+#                     # De-dupe while preserving order
+#                     seen = set()
+#                     query_tokens = [t for t in query_tokens if not (t in seen or seen.add(t))]
+
+#                     def _format_resort_header(resort_obj) -> tuple[str, str, str]:
+#                         resort_name_local = resort_obj.RealName if resort_obj.RealName else resort_obj.name
+#                         contact_items = []
+#                         if getattr(resort_obj, 'contactNumber', ''):
+#                             contact_items.append(f" {resort_obj.contactNumber}")
+#                         if getattr(resort_obj, 'contactEmail', ''):
+#                             contact_items.append(f" {resort_obj.contactEmail}")
+#                         contact_line_local = " | ".join(contact_items)
+#                         website_line_local = f" {resort_obj.websiteURL}" if getattr(resort_obj, 'websiteURL', '') else ""
+#                         return resort_name_local, contact_line_local, website_line_local
+
+#                     # Backend filtering first: only fetch packages/subpackages that match user keywords.
+#                     now = timezone.now()
+#                     if query_tokens:
+#                         rel_q = Q()
+#                         sub_q = Q()
+#                         for t in query_tokens:
+#                             rel_q |= (
+#                                 Q(PackageTitle__icontains=t)
+#                                 | Q(subPackages__title__icontains=t)
+#                                 | Q(subPackages__description__icontains=t)
+#                                 | Q(subPackages__information__icontains=t)
+#                             )
+#                             sub_q |= (
+#                                 Q(title__icontains=t)
+#                                 | Q(description__icontains=t)
+#                                 | Q(information__icontains=t)
+#                             )
+
+#                         matching_subs_qs = (
+#                             Packages.objects.filter(sub_q, is_available=True)
+#                             .filter(Q(expires_at__isnull=True) | Q(expires_at__gt=now))
+#                             .only('title', 'description', 'information', 'price', 'website')
+#                             .distinct()
+#                         )
+#                         matching_pkgs_qs = (
+#                             resortPackages.objects.filter(rel_q)
+#                             .only('PackageTitle')
+#                             .distinct()
+#                             .prefetch_related(
+#                                 Prefetch('subPackages', queryset=matching_subs_qs, to_attr='matching_subpackages')
+#                             )
+#                         )
+
+#                         food_resorts_qs = (
+#                             place.resortList.filter(resortFood__in=matching_pkgs_qs)
+#                             .distinct()
+#                             .prefetch_related(
+#                                 Prefetch('resortFood', queryset=matching_pkgs_qs, to_attr='food_packages')
+#                             )
+#                         )
+
+#                         if food_resorts_qs.exists():
+#                             context_info += "\n\nRecommended Food (matched to your request):\n"
+#                             for resort in food_resorts_qs[:MAX_RESORTS]:
+#                                 resort_name, contact_line, website_line = _format_resort_header(resort)
+#                                 context_info += f"\n{resort_name}:\n"
+#                                 if contact_line:
+#                                     context_info += f"  Contact: {contact_line}\n"
+#                                 if website_line:
+#                                     context_info += f"  {website_line}\n"
+
+#                                 food_packages = getattr(resort, 'food_packages', None) or []
+#                                 shown_pkg = 0
+#                                 for pkg in food_packages:
+#                                     if shown_pkg >= MAX_PACKAGES_PER_RESORT:
+#                                         break
+
+#                                     pkg_title = getattr(pkg, 'PackageTitle', '') or ''
+#                                     matching_subs = getattr(pkg, 'matching_subpackages', None) or []
+#                                     if not pkg_title and not matching_subs:
+#                                         continue
+
+#                                     if pkg_title:
+#                                         context_info += f"  {pkg_title}:\n"
+#                                     shown_sub = 0
+#                                     for sub in matching_subs:
+#                                         if shown_sub >= MAX_SUBPACKAGES_PER_PACKAGE:
+#                                             break
+#                                         context_info += f"    • {sub.title}"
+#                                         if getattr(sub, 'price', 0) and sub.price > 0:
+#                                             context_info += f" - ₱{sub.price}"
+#                                         if getattr(sub, 'website', ''):
+#                                             context_info += f" (link: {sub.website})"
+#                                         if getattr(sub, 'description', ''):
+#                                             desc = (sub.description or '')[:60]
+#                                             if desc:
+#                                                 context_info += f"\n      {desc}"
+#                                                 if len(sub.description or '') > 60:
+#                                                     context_info += "..."
+#                                         context_info += "\n"
+#                                         shown_sub += 1
+#                                     shown_pkg += 1
+#                         else:
+#                             context_info += "\n\nNo matching food items found. Try a more specific keyword.\n"
+#                     else:
+#                         # No meaningful tokens: keep a compact generic list.
+#                         food_resorts_qs = (
+#                             place.resortList.filter(resortFood__isnull=False)
+#                             .distinct()
+#                             .prefetch_related(Prefetch('resortFood', to_attr='food_packages'))
+#                         )
+#                         if food_resorts_qs.exists():
+#                             context_info += "\n\nAvailable Food & Dining:\n"
+#                             for resort in food_resorts_qs[:MAX_RESORTS]:
+#                                 resort_name, contact_line, website_line = _format_resort_header(resort)
+#                                 context_info += f"\n{resort_name}:\n"
+#                                 if contact_line:
+#                                     context_info += f"  Contact: {contact_line}\n"
+#                                 if website_line:
+#                                     context_info += f"  {website_line}\n"
+#                                 food_packages = getattr(resort, 'food_packages', None) or resort.resortFood.all()
+#                                 shown_pkg = 0
+#                                 for pkg in food_packages:
+#                                     if shown_pkg >= MAX_PACKAGES_PER_RESORT:
+#                                         break
+#                                     pkg_title = getattr(pkg, 'PackageTitle', '') or ''
+#                                     if pkg_title:
+#                                         context_info += f"  {pkg_title}\n"
+#                                     shown_pkg += 1
+#                 except Exception as e:
+#                     print('Food suggestions error:', e)
+#                     _step(f"Food flow: error {type(e).__name__}")
+
+#             # If user asked about activities, prefer resort activity packages and tours
+#             elif is_about_activities:
+#                 _step("Activities flow: building activities/tours context")
+#                 try:
+#                     from django.db.models import Prefetch, Q
+#                     from django.utils import timezone
+#                     from resorts.models import resortPackages, Packages
+#                     import re
+
+#                     MAX_RESORTS = 6
+#                     MAX_PACKAGES_PER_RESORT = 3
+#                     MAX_SUBPACKAGES_PER_PACKAGE = 4
+
+#                     # Tokenize the user's message to build a backend query.
+#                     tokens = re.findall(r"[a-z0-9]{3,}", message_lower)
+#                     stop_tokens = {
+#                         'what', 'can', 'you', 'please', 'plz', 'the', 'and', 'or', 'for', 'to', 'in', 'on', 'at',
+#                         'with', 'from', 'near', 'around', 'need', 'want', 'looking', 'find', 'where', 'how',
+#                         'get', 'book', 'price', 'cost', 'available', 'offer', 'offered',
+#                         'activity', 'activities', 'things', 'thing', 'do', 'doing',
+#                         # broad app/location noise
+#                         'siargao', 'resort', 'resorts'
+#                     }
+#                     query_tokens = [t for t in tokens if t not in stop_tokens]
+
+#                     # De-dupe while preserving order
+#                     seen = set()
+#                     query_tokens = [t for t in query_tokens if not (t in seen or seen.add(t))]
+
+#                     def _format_resort_header(resort_obj) -> tuple[str, str, str]:
+#                         resort_name_local = resort_obj.RealName if resort_obj.RealName else resort_obj.name
+#                         contact_items = []
+#                         if getattr(resort_obj, 'contactNumber', ''):
+#                             contact_items.append(f" {resort_obj.contactNumber}")
+#                         if getattr(resort_obj, 'contactEmail', ''):
+#                             contact_items.append(f" {resort_obj.contactEmail}")
+#                         contact_line_local = " | ".join(contact_items)
+#                         website_line_local = f" {resort_obj.websiteURL}" if getattr(resort_obj, 'websiteURL', '') else ""
+#                         return resort_name_local, contact_line_local, website_line_local
+
+#                     now = timezone.now()
+
+#                     if query_tokens:
+#                         rel_q = Q()
+#                         sub_q = Q()
+#                         for t in query_tokens:
+#                             rel_q |= (
+#                                 Q(PackageTitle__icontains=t)
+#                                 | Q(subPackages__title__icontains=t)
+#                                 | Q(subPackages__description__icontains=t)
+#                                 | Q(subPackages__information__icontains=t)
+#                             )
+#                             sub_q |= (
+#                                 Q(title__icontains=t)
+#                                 | Q(description__icontains=t)
+#                                 | Q(information__icontains=t)
+#                             )
+
+#                         matching_subs_qs = (
+#                             Packages.objects.filter(sub_q, is_available=True)
+#                             .filter(Q(expires_at__isnull=True) | Q(expires_at__gt=now))
+#                             .only('title', 'description', 'information', 'price', 'website')
+#                             .distinct()
+#                         )
+#                         matching_pkgs_qs = (
+#                             resortPackages.objects.filter(rel_q)
+#                             .only('PackageTitle')
+#                             .distinct()
+#                             .prefetch_related(
+#                                 Prefetch('subPackages', queryset=matching_subs_qs, to_attr='matching_subpackages')
+#                             )
+#                         )
+
+#                         activity_resorts_qs = (
+#                             place.resortList.filter(
+#                                 Q(resortActivities__in=matching_pkgs_qs) | Q(resortTour__in=matching_pkgs_qs)
+#                             )
+#                             .distinct()
+#                             .prefetch_related(
+#                                 Prefetch('resortActivities', queryset=matching_pkgs_qs, to_attr='activity_packages'),
+#                                 Prefetch('resortTour', queryset=matching_pkgs_qs, to_attr='tour_packages'),
+#                             )
+#                         )
+
+#                         if activity_resorts_qs.exists():
+#                             context_info += "\n\nRecommended Activities & Tours (matched to your request):\n"
+#                             for resort in activity_resorts_qs[:MAX_RESORTS]:
+#                                 resort_name, contact_line, website_line = _format_resort_header(resort)
+#                                 context_info += f"\n{resort_name}:\n"
+#                                 if contact_line:
+#                                     context_info += f"  Contact: {contact_line}\n"
+#                                 if website_line:
+#                                     context_info += f"  {website_line}\n"
+
+#                                 activity_pkgs = getattr(resort, 'activity_packages', None) or []
+#                                 tour_pkgs = getattr(resort, 'tour_packages', None) or []
+
+#                                 # Prefer showing direct subpackage matches; keep it small.
+#                                 def _render_pkg_list(label: str, pkgs: list):
+#                                     nonlocal context_info
+#                                     shown_pkg = 0
+#                                     for pkg in pkgs:
+#                                         if shown_pkg >= MAX_PACKAGES_PER_RESORT:
+#                                             break
+#                                         pkg_title = getattr(pkg, 'PackageTitle', '') or ''
+#                                         matching_subs = getattr(pkg, 'matching_subpackages', None) or []
+#                                         if not pkg_title and not matching_subs:
+#                                             continue
+
+#                                         context_info += f"  {label}: {pkg_title}\n" if pkg_title else f"  {label}:\n"
+#                                         shown_sub = 0
+#                                         for sub in matching_subs:
+#                                             if shown_sub >= MAX_SUBPACKAGES_PER_PACKAGE:
+#                                                 break
+#                                             context_info += f"    • {sub.title}"
+#                                             if getattr(sub, 'price', 0) and sub.price > 0:
+#                                                 context_info += f" - ₱{sub.price}"
+#                                             if getattr(sub, 'website', ''):
+#                                                 context_info += f" (link: {sub.website})"
+#                                             if getattr(sub, 'description', ''):
+#                                                 desc = (sub.description or '')[:60]
+#                                                 if desc:
+#                                                     context_info += f"\n      {desc}"
+#                                                     if len(sub.description or '') > 60:
+#                                                         context_info += "..."
+#                                             context_info += "\n"
+#                                             shown_sub += 1
+#                                         shown_pkg += 1
+
+#                                 if activity_pkgs:
+#                                     _render_pkg_list('Activity', activity_pkgs)
+#                                 if tour_pkgs:
+#                                     _render_pkg_list('Tour', tour_pkgs)
+#                         else:
+#                             context_info += "\n\nNo matching activities found. Try a more specific keyword (e.g., surf, snorkel, island hopping).\n"
+#                     else:
+#                         # No meaningful tokens: keep a compact generic list.
+#                         activity_resorts_qs = (
+#                             place.resortList.filter(Q(resortActivities__isnull=False) | Q(resortTour__isnull=False))
+#                             .distinct()
+#                             .prefetch_related(
+#                                 Prefetch('resortActivities', to_attr='activity_packages'),
+#                                 Prefetch('resortTour', to_attr='tour_packages'),
+#                             )
+#                         )
+#                         if activity_resorts_qs.exists():
+#                             context_info += "\n\nAvailable Activities & Tours:\n"
+#                             for resort in activity_resorts_qs[:MAX_RESORTS]:
+#                                 resort_name, contact_line, website_line = _format_resort_header(resort)
+#                                 context_info += f"\n{resort_name}:\n"
+#                                 if contact_line:
+#                                     context_info += f"  Contact: {contact_line}\n"
+#                                 if website_line:
+#                                     context_info += f"  {website_line}\n"
+#                                 shown = 0
+#                                 for pkg in (getattr(resort, 'activity_packages', None) or resort.resortActivities.all())[:4]:
+#                                     if shown >= 4:
+#                                         break
+#                                     title = getattr(pkg, 'PackageTitle', '') or ''
+#                                     if title:
+#                                         context_info += f"  Activity: {title}\n"
+#                                         shown += 1
+#                                 shown = 0
+#                                 for pkg in (getattr(resort, 'tour_packages', None) or resort.resortTour.all())[:4]:
+#                                     if shown >= 3:
+#                                         break
+#                                     title = getattr(pkg, 'PackageTitle', '') or ''
+#                                     if title:
+#                                         context_info += f"  Tour: {title}\n"
+#                                         shown += 1
+#                 except Exception as e:
+#                     print('Activities suggestions error:', e)
+#                     _step(f"Activities flow: error {type(e).__name__}")
+
+#             # Add blog context to main context
+#             context_info += blog_context
+
+#             # Hard cap: keep prompt small to avoid token bloat.
+#             if len(context_info) > MAX_CONTEXT_CHARS:
+#                 context_info = context_info[:MAX_CONTEXT_CHARS].rsplit('\n', 1)[0]
+#                 context_info += "\n\n(Additional results omitted for brevity.)"
+#             _step(f"Context built chars={len(context_info)}")
+#             print('Context Info:', context_info)
+            
+#             # Single AI call with combined safety check, question detection, and response
+#             context_text = f'\n\nUse this context to answer:\n{context_info}' if context_info else ''
+
+#             prompt = f"""
+#                 You are a travel assistant for {place.placename}.
+#                 User message: "{data.get('message')}"
+#                 SAFETY CHECK:
+#                 If offensive → respond ONLY with: OFFENSIVE
+#                 Response (max 80 words):
+#                 - Use <strong> tags for emphasis (NOT markdown **bold**)
+#                 - if resort is recommended always include contact details (phone/email/website put it in html input element readonly and onclick="this.select()")  if available and their link like <a href="URL" target="_blank" rel="noopener">TITLE</a>
+#                 - If tour guides exist in context and user asked for a tour guide, include 1-2 tour guide suggestions with their contact details
+#                 - When blogs exist in context, your response recommend the blog in <a> tag with exact URL'
+#                 - ALWAYS copy URLs exactly from context
+#                 {context_text}
+#                 """
+            
+#             try:
+#                 _step("Calling OpenAI for assistant response")
+#                 ai_response = client.chat.completions.create(
+#                     model=settings.GROK_MODEL_NAME,
+#                     messages=[{"role": "user", "content": prompt}],
+#                 )
+#                 ai_message = ai_response.choices[0].message.content.strip()
+#                 _step(f"OpenAI responded chars={len(ai_message)}")
+                
+#                 # Convert any remaining markdown bold to HTML (failsafe)
+#                 import re
+#                 ai_message = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', ai_message)
+                
+#                     # Save AI response
+#                 ai_discuss = PlaceDiscussion.objects.create(
+#                     discuss=ai_message,
+#                     discusserName="Assistant",
+#                     place=place
+#                 )
+#                 place.discussion.add(ai_discuss)
+#                 _step("Saved AI response discussion")
+#             except Exception as e:
+#                 print(f"AI Error: {e}")
+#                 _step(f"AI call failed: {type(e).__name__}")
+            
+#             objectRecords = place.discussions.order_by('-id').values()[:2]
+#             _step("Returning latest 5 discussions")
+#             return JsonResponse({"response": list(objectRecords)})
+    
+#     _step("No message provided; returning latest discussions")
+#     objectRecords = place.discussions.order_by('-id').values()[:5]
+#     return JsonResponse({"response": list(objectRecords)})
+ 
 
 def _discussion_records(place, limit=5):
     return list(place.discussions.order_by("-id").values()[:limit])

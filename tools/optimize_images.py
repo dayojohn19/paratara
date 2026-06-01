@@ -21,7 +21,7 @@ def optimize_image(path: Path, quality=75, make_webp=True):
         with Image.open(path) as im:
             im_format = im.format
             # Skip tiny files
-            if path.stat().st_size < 2000:
+            if path.stat().st_size < 500:
                 return False
             # Convert/resize if very large
             max_dim = 1920

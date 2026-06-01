@@ -350,7 +350,7 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,700;1,9..144,300;1,9..144,400;1,9..144,500&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@272&display=swap')
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@272&display=swap');
 :root {{
     --surface: #fffaf2;
     --surface-alt: #edf7f2;
@@ -1126,7 +1126,7 @@ async function fetchAndInsertImages() {{
 
 
 // Consolidated fetch function with error handling
-async function fetchData(endpoint, elementId, templateFn, errorMsg) {{
+async function fetchData(endpoint, elementId, templateFn, errorMsg, onEmpty) {{
     const csrftoken = getCookie('csrftoken');
     try {{
         const response = await fetch(`/apis/${{endpoint}}/`, {{
@@ -1141,6 +1141,10 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg) {{
         const data = await response.json();
         
         if (!data || !data.length) {{
+            if (typeof onEmpty === 'function') {{
+                onEmpty();
+                return;
+            }}
             const element = document.getElementById(elementId);
             if (element) element.textContent = errorMsg;
             return;
@@ -1173,77 +1177,79 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg) {{
     }}
 
     function fetchCollections() {{
-        fetchData('getPlaceCollections/' + placename, 'collections-loading', (data) => {{
-            const collectionsDiv = document.querySelector('#dynamic-collections');
-            const fragment = document.createDocumentFragment();
-            if (!data || data === 0 || data.length === 0) {{
-            const collectionsHeader = document.querySelector('#collections-header');
+        fetchData(
+            'getPlaceCollections/' + placename,
+            'collections-loading',
+            (data) => {{
+                const collectionsDiv = document.querySelector('#dynamic-collections');
+                const fragment = document.createDocumentFragment();
 
-            if (collectionsHeader) {{
-                collectionsHeader.style.display = 'none';
-            }}
+                data.forEach(col => {{
+                    const div = document.createElement('div');
+                    div.className = 'collection-item';
+                    
+                    if (col.collectionPicture) {{
+                        const img = document.createElement('img');
+                        img.src = col.collectionPicture;
+                        img.alt = col.collectionName || 'Collection image';
+                        img.loading = 'lazy';
+                        div.appendChild(img);
+                    }}
+                    
+                    const h4 = document.createElement('h4');
+                    h4.textContent = col.name || '';
+                    div.appendChild(h4);
+                    
+                    if (col.address || col.collectionDescription) {{
+                        const p = document.createElement('p');
+                        p.textContent = (col.collectionDescription || '').substring(0, 130) + '...';
+                        div.appendChild(p);
+                    }}
 
-            return;
-            }}
+                    // Add Directions link with icon
+                    const address = col.address || col.name || '';
+                    if (address) {{
+                        const directionsLink = document.createElement('a');
+                        directionsLink.href = `https://www.google.com/maps/search/?api=1&query=${{encodeURIComponent(address)}}`;
+                        directionsLink.target = '_blank';
+                        directionsLink.rel = 'noopener noreferrer';
+                        directionsLink.className = 'directions-link';
 
-            data.forEach(col => {{
-                const div = document.createElement('div');
-                div.className = 'collection-item';
-                
-                if (col.collectionPicture) {{
-                    const img = document.createElement('img');
-                    img.src = col.collectionPicture;
-                    img.alt = col.collectionName || 'Collection image';
-                    img.loading = 'lazy';
-                    div.appendChild(img);
+                        // SVG icon for directions (Google Maps style)
+                        const svgIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                        svgIcon.setAttribute('width', '20');
+                        svgIcon.setAttribute('height', '20');
+                        svgIcon.setAttribute('viewBox', '0 0 24 24');
+                        svgIcon.setAttribute('fill', 'none');
+                        svgIcon.setAttribute('stroke', '#2563eb');
+                        svgIcon.setAttribute('stroke-width', '2');
+                        svgIcon.setAttribute('stroke-linecap', 'round');
+                        svgIcon.setAttribute('stroke-linejoin', 'round');
+                        svgIcon.innerHTML = `<path d="M21.71 11.29l-9-9a1 1 0 0 0-1.42 0l-9 9a1 1 0 0 0 0 1.42l9 9a1 1 0 0 0 1.42 0l9-9a1 1 0 0 0 0-1.42z"/><circle cx="12" cy="12" r="3"/>`;
+
+                        directionsLink.appendChild(svgIcon);
+                        const span = document.createElement('span');
+                        span.textContent = 'Directions';
+                        directionsLink.appendChild(span);
+                        div.appendChild(directionsLink);
+                    }}
+
+                    fragment.appendChild(div);
+                }});
+
+                collectionsDiv.appendChild(fragment);
+                document.getElementById('collections-loading').style.display = 'none';
+            }}, 'No local collections found nearby.', () => {{
+                const collectionsHeader = document.querySelector('#collections-header');
+                if (collectionsHeader) {{
+                    collectionsHeader.style.display = 'none';
                 }}
-                
-                const h4 = document.createElement('h4');
-                h4.textContent = col.name || '';
-                div.appendChild(h4);
-                
-                if (col.address || col.collectionDescription) {{
-                    const p = document.createElement('p');
-                    p.textContent = (col.collectionDescription || '').substring(0, 130) + '...';
-                    div.appendChild(p);
+                const loading = document.getElementById('collections-loading');
+                if (loading) {{
+                    loading.style.display = 'none';
                 }}
-
-                // Add Directions link with icon
-                const address = col.address || col.name || '';
-                if (address) {{
-                    const directionsLink = document.createElement('a');
-                    directionsLink.href = `https://www.google.com/maps/search/?api=1&query=${{encodeURIComponent(address)}}`;
-                    directionsLink.target = '_blank';
-                    directionsLink.rel = 'noopener noreferrer';
-                    directionsLink.className = 'directions-link';
-
-                    // SVG icon for directions (Google Maps style)
-                    const svgIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                    svgIcon.setAttribute('width', '20');
-                    svgIcon.setAttribute('height', '20');
-                    svgIcon.setAttribute('viewBox', '0 0 24 24');
-                    svgIcon.setAttribute('fill', 'none');
-                    svgIcon.setAttribute('stroke', '#2563eb');
-                    svgIcon.setAttribute('stroke-width', '2');
-                    svgIcon.setAttribute('stroke-linecap', 'round');
-                    svgIcon.setAttribute('stroke-linejoin', 'round');
-                    svgIcon.innerHTML = `<path d="M21.71 11.29l-9-9a1 1 0 0 0-1.42 0l-9 9a1 1 0 0 0 0 1.42l9 9a1 1 0 0 0 1.42 0l9-9a1 1 0 0 0 0-1.42z"/><circle cx="12" cy="12" r="3"/>`;
-
-                    directionsLink.appendChild(svgIcon);
-                    const span = document.createElement('span');
-                    span.textContent = 'Directions';
-                    directionsLink.appendChild(span);
-                    div.appendChild(directionsLink);
-                }}
-
-                fragment.appendChild(div);
             }});
-
-            collectionsDiv.appendChild(fragment);
-            document.getElementById('collections-loading').style.display = 'none';
-        }}, 'No local collections found nearby.');
     }}
-
 
     function getParagraphCleanText(paragraph) {{
         const clone = paragraph.cloneNode(true);
@@ -1263,14 +1269,30 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg) {{
         return Boolean(clone.textContent.trim() || clone.querySelector('img[src]'));
     }}
 
-    function insertUploadedImageIntoSection(paragraph, imageUrl) {{
-        if (!imageUrl) return;
+	    function insertUploadedImageIntoSection(paragraph, imageUrl) {{
+	        if (!imageUrl) return;
 
-        const isUrlOrFilePath = (() => {{
-            // Check for valid URL
-            try {{
-                new URL(imageUrl);
-                return true;
+	        function getImageAltFromUrl(rawUrl) {{
+	            if (!rawUrl || typeof rawUrl !== 'string') return '';
+	            try {{
+	                const parsed = new URL(rawUrl, window.location.href);
+	                const baseName = (parsed.pathname || '').split('/').filter(Boolean).pop() || '';
+	                return decodeURIComponent(baseName);
+	            }} catch {{}}
+	            const withoutQuery = rawUrl.split('#')[0].split('?')[0];
+	            const baseName = withoutQuery.split('/').filter(Boolean).pop() || '';
+	            try {{
+	                return decodeURIComponent(baseName);
+	            }} catch {{
+	                return baseName;
+	            }}
+	        }}
+
+	        const isUrlOrFilePath = (() => {{
+	            // Check for valid URL
+	            try {{
+	                new URL(imageUrl);
+	                return true;
             }} catch {{}}
             // Check for file path patterns: starts with '/', './', '../', or 'file:'
             if (
@@ -1286,16 +1308,16 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg) {{
             return false;
         }})();
 
-        let toadd = imageUrl;
-        if (isUrlOrFilePath) {{
-            const img = document.createElement('img');
-            img.src = imageUrl;
-            img.alt = 'Blog content image';
-            img.loading = 'lazy';
-            img.decoding = 'async';
-            img.className = 'editable-blog-image';
-            toadd = img;
-        }} else {{
+	        let toadd = imageUrl;
+	        if (isUrlOrFilePath) {{
+	            const img = document.createElement('img');
+	            img.src = imageUrl;
+	            img.alt = getImageAltFromUrl(imageUrl) || 'Image';
+	            img.loading = 'lazy';
+	            img.decoding = 'async';
+	            img.className = 'editable-blog-image';
+	            toadd = img;
+	        }} else {{
             console.log("It's plain text");
         }}
 
@@ -2145,7 +2167,7 @@ document.addEventListener('click', (ev) => {{
         f.write(html_content)
 
     try:
-        # optimize_file(file_path)
+        optimize_file(file_path)
         logger.info("Optimized blog file: %s", file_path)
     except Exception as e:
         logger.exception("Optimization failed for %s", file_path)  
