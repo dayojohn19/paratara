@@ -3164,6 +3164,7 @@ def discussion(request, placeID):
                         from difflib import SequenceMatcher
                         blogs = list(place.blogs.all())
                         matched_blogs = []
+                        created_or_matched_blog_url = ""
                         # direct token and n-gram matching
                         _step(f"Checking blog:   {message_lower}")
                         print('---')
@@ -3205,6 +3206,8 @@ def discussion(request, placeID):
                                     blog_url = f"{current_domain}/pages/blog/{place_slug}/{title_slug}/"
                                 
                                 if blog_url:
+                                    if not created_or_matched_blog_url:
+                                        created_or_matched_blog_url = blog_url
                                     blog_context += f" - URL: {blog_url}\n"
                                 else:
                                     blog_context += "\n"
@@ -3323,14 +3326,27 @@ def discussion(request, placeID):
                                 # else:
                                 #     _step(f"Blog flow: title from AI response: {title!r}")
 
-                                from django.utils.text import slugify
-                                from singlepage2.htmlwriter import generate_blog_object
-                                # SOON CHANGE THIS TOO
-                                threading.Thread(
-                                    target=process_creating_blog,
-                                    args=(request,place,None,message_lower,),
-                                    daemon=True
-                                ).start()
+                                blog_thread_result = {"url": "", "error": None}
+
+                                def run_blog_creation():
+                                    try:
+                                        blog_thread_result["url"] = process_creating_blog(
+                                            request,
+                                            place,
+                                            None,
+                                            message_lower,
+                                        ) or ""
+                                    except Exception as exc:
+                                        blog_thread_result["error"] = exc
+
+                                blog_thread = threading.Thread(target=run_blog_creation)
+                                blog_thread.start()
+                                blog_thread.join()
+
+                                if blog_thread_result["error"] is not None:
+                                    raise blog_thread_result["error"]
+
+                                created_or_matched_blog_url = blog_thread_result["url"]
                                 # # FROM
                                 # blog_obj = generate_blog_object(
                                 #     request,
@@ -3341,29 +3357,36 @@ def discussion(request, placeID):
                                 #     category=blogcategory,
                                 # )
                                 # _step(f"Blog flow: saved new blog title={getattr(blog_obj,'title',None)!r}")
+                                
 
 
                             except Exception as e:
                                 print('Blog generation error:', e)
                                 _step(f"Blog flow: error {type(e).__name__}")
-                        blog_context = ""
-                        print('Blog context to be added:', blog_context)
-                        return True
+                        print('Blog URL to be returned:', created_or_matched_blog_url)
+                        return {
+                            "is_about_blogs": True,
+                            "blog_url": created_or_matched_blog_url,
+                        }
                     else:
                         _step("Not about blog")
-                        return False
+                        return {
+                            "is_about_blogs": False,
+                            "blog_url": "",
+                        }
 
 
-                    
-                    
-                    
-                    return is_about_blogs
-                is_about_blogs = Checkblog(message_lower, place)
+                blog_check = Checkblog(message_lower, place)
+                is_about_blogs = blog_check.get("is_about_blogs", False)
 
                 print('\n\n is_about_blogs:', is_about_blogs)
                 if is_about_blogs:
                     print('Message classified as about blogs/articles; returning blog context')
-                    return JsonResponse("Blog Created or Matched", safe=False)
+                    return JsonResponse({
+                        "response": [],
+                        "blog_url": blog_check.get("blog_url", ""),
+                        "message": "Blog Created or Matched",
+                    })
                     # return HttpResponse("Blog Created or Matched")
                     # return JsonResponse({"response": 'Blog Created  or Matched'})
                 _step("Early check: running local message classifier")

@@ -2360,8 +2360,29 @@
         return response.json();
       })
       .then((data) => {
+        if (data.blog_url) {
+          discussionBuilder({
+            discusserName: "Paratara",
+            discuss: `Blog ready: [Open blog](${data.blog_url})`,
+            timestamp: new Date().toISOString()
+          });
 
-        discussionBuilder(data.response[1]);
+          lastMessageTime = now;
+          timestamps.push(now);
+          localStorage.setItem('messageTimestamps', JSON.stringify(timestamps));
+
+          button.disabled = false;
+          button.innerHTML = originalContent;
+          return;
+        }
+
+        if (!data.response || data.response.length === 0) {
+          button.disabled = false;
+          button.innerHTML = originalContent;
+          return;
+        }
+
+        if (data.response[1]) discussionBuilder(data.response[1]);
         discussionBuilder(data.response[0]);
         
         // Update spam protection tracking

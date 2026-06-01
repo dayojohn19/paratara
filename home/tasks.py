@@ -64,6 +64,19 @@ def _parse_blog_response(full_response, fallback_title, place_name):
         blog_summary = blog_summary[8:].strip()
 
     blog_content = parts[1] if len(parts) > 1 else full_response
+    try:
+        if len(blog_content) == 0:
+            print('Blog Full response :', full_response[:1000])
+            print()
+            print(parts[1] if len(parts) > 1 else 'No content section found in response')
+            print()            
+            print("   ⚠️ No content found after splitting, using full response as content")
+            print("   ⚠️ No content found after splitting, using full response as content")
+            print("   ⚠️ No content found after splitting, using full response as content")
+            print('Blog content before cleaning:', blog_content[:1000])
+    except Exception as e:
+        pass
+    
     blog_content = re.sub(r'^\s*Title:\s*[^\n]+\n+', '', blog_content, flags=re.IGNORECASE).strip()
     for _ in range(2):
         blog_content = re.sub(r'\s*(Category|Summary):\s*[^\n]+\s*$', '', blog_content, flags=re.IGNORECASE).strip()
@@ -184,7 +197,7 @@ Summary: [One-line summary for preview, max 140 chars]
 HTML TEMPLATE EXAMPLE:
 <article class="blog-post">
   <div class="intro-section">
-    <h2>🎯 [Emoji + Title]</h2>
+    <h1>🎯 [Emoji + Title]</h1>
     <p>[Engaging intro paragraph]</p>
   </div>
   <div class="content-section">
@@ -201,11 +214,11 @@ HTML TEMPLATE EXAMPLE:
     <ul><li>Tip 1</li><li>Tip 2</li></ul>
   </div>
   <div class="mindset-box">
-    <h2>⚠️ Safety & Updates</h2>
+    <h1>⚠️ Safety & Updates</h1>
     <p>[Safety information and current local news]</p>
   </div>
   <div class="cta-section">
-    <h2>🚀 Ready to Visit?</h2>
+    <h1>🚀 Ready to Visit?</h1>
     <p>[Strong call to action]</p>
   </div>
 </article>
@@ -335,7 +348,9 @@ HTML TEMPLATE EXAMPLE:
 
         print(f"\n{'='*60}")
         print(f"✅ COMPLETED: {blog__title}")
+        print(f"link: {url}")
         print(f"{'='*60}\n")
+        return url
 
     except Exception as e:
         print(f"\n{'='*60}")

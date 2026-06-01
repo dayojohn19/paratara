@@ -191,9 +191,11 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
     schema_date = timezone.localtime(generated_at).date().isoformat()
 
     collections_html = f'''
-                        <h2>📱 Local Collections & QR Experiences</h2>
-                        <p id="collections-loading">Discover interactive collections nearby. Scan QR codes for memories! Loading...</p>
-                        <div id="dynamic-collections" class="collection-section">
+                        <div id="collections-header">
+                            <h2>📱 Local Collections & QR Experiences</h2>
+                            <p id="collections-loading">Discover interactive collections nearby. Scan QR codes for memories! Loading...</p>
+                            <div id="dynamic-collections" class="collection-section">
+                            </div>
                         </div>
                         '''
 
@@ -421,6 +423,7 @@ h3 {{
 
 p {{
     margin-bottom: 1.1rem;
+    font-size: clamp(1.05rem, 2.5vw, 1.25rem);
 }}
 
 li {{
@@ -491,8 +494,8 @@ img {{
     width: 100%;
     height: 3px;
     margin-top: 4px;
-    background: var(--accent-dark);
     border-radius: 3px;
+    background: cadetblue;
 }}
 
 .hamburger span:first-child {{
@@ -594,7 +597,6 @@ img {{
 .cta-section {{
     padding: clamp(1.5rem, 4vw, 2.5rem);
     margin: 2rem 0;
-    color: #b8b7b7;
     background: linear-gradient(135deg, var(--accent-dark), var(--accent-blue));
 
 }}
@@ -608,7 +610,8 @@ img {{
 
 .intro-section p,
 .cta-section p {{
-    color: rgba(255, 255, 255, 0.92);
+    color: rgba(61, 26, 26, 0.92);
+    font-size: clamp(1.05rem, 2.5vw, 1.25rem);
 }}
 
 .content-section {{
@@ -779,7 +782,9 @@ footer button {{
 
 #blog-editable-body [data-blog-edit-index] {{
     position: relative;
-    padding: 1.5rem;
+    padding: 1rem;
+    font-weight:300;
+    word-spacing:0.1rem
 }}
 
 #blog-editable-body [data-editing="true"] {{
@@ -807,15 +812,16 @@ footer button {{
     width: 28px;
     height: 28px;
     margin-left: 0.45rem;
-    color: var(--accent-dark);
     font: inherit;
     font-size: 0.9rem;
-    font-weight: 700;
+
     border: 1px solid var(--border);
-    border-radius: 999px;
-    background: #ffffff;
+
+
     cursor: pointer;
     vertical-align: middle;
+    color: rgba(0, 0, 0, 0.63);
+    background: rgba(97, 76, 76, 0);
 }}
 
 .blog-edit-button:hover {{
@@ -844,7 +850,6 @@ footer button {{
 .blog-save-button {{
     color: #ffffff;
     border: 0;
-    background: var(--accent);
 }}
 
 .blog-cancel-button {{
@@ -930,14 +935,11 @@ footer button {{
 
 .faq-item {{
     border: 1px solid var(--border);
-    border-radius: 8px;
-    background: #ffffff;
 }}
 
 .faq-item summary {{
     padding: 0.95rem 1rem;
     color: var(--accent-dark);
-    font-weight: 700;
     cursor: pointer;
 }}
 
@@ -1167,7 +1169,11 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg) {{
         fetchData('getPlaceCollections/' + placename, 'collections-loading', (data) => {{
             const collectionsDiv = document.querySelector('#dynamic-collections');
             const fragment = document.createDocumentFragment();
-            
+              if (!data || data.length === 0) {{
+                collectionsHeader = document.querySelector('#collections-header');
+                collectionsHeader.remove() = 'none';
+              return
+              }}
             data.forEach(col => {{
                 const div = document.createElement('div');
                 div.className = 'collection-item';
