@@ -169,11 +169,6 @@ text-transform: uppercase;
   fill: currentColor;
 }
 
-.create-schedule-button:hover,
-.schedule-prompt:hover {
-  background: #1b5f50;
-}
-
 .dropdown-menu {
   position: absolute;
   top: calc(100% + 0.45rem);

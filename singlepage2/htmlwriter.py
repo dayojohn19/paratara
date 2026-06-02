@@ -380,7 +380,9 @@ body {{
     background: linear-gradient(to bottom right, rgb(242, 242, 242), rgb(224, 224, 224) 52%, rgb(216, 216, 216));
 }}
 
-h1,
+.white-color{{
+    color: wheat;
+}}
 h2,
 h3 {{
     line-height: 1.25;
@@ -608,9 +610,14 @@ img {{
     margin-top: 0;
 }}
 
+.cta-section h1 {{
+    color: var(--white);
+    border: 0;
+    margin-top: 0;
+}}
 .intro-section p,
 .cta-section p {{
-    color: rgba(61, 26, 26, 0.92);
+    color: rgba(241, 241, 241, 0.92);
     font-size: clamp(1.05rem, 2.5vw, 1.25rem);
 }}
 
@@ -815,7 +822,7 @@ footer button {{
     font: inherit;
     font-size: 0.9rem;
 
-    border: 1px solid var(--border);
+    border: none;
 
 
     cursor: pointer;

@@ -5,7 +5,7 @@ from . import addingCollection
 app_name = 'garden'
 urlpatterns = [
     path('assets/<path:path>', views.sveltepageforgarden, name='svelte-spa'),
-    path('order', views.order_page, name='order_page-index'),
+    path('order/', views.order_page, name='order_page-index'),
     
     path('add-collection/', addingCollection.update_all_collection_place_direct , name="add_collection"),
     path("map/<str:placeName>", views.get_map, name="getMap"),

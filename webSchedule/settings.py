@@ -347,6 +347,7 @@ if ENABLE_SITE_CACHE:
     ]
 
 MIDDLEWARE += [
+    'webSchedule.middleware.TemplateDoesNotExistRedirectMiddleware',
     "corsheaders.middleware.CorsMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',

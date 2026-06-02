@@ -197,7 +197,7 @@ Summary: [One-line summary for preview, max 140 chars]
 HTML TEMPLATE EXAMPLE:
 <article class="blog-post">
   <div class="intro-section">
-    <h1>🎯 [Emoji + Title]</h1>
+    <h1 class="white-color">🎯 [Emoji + Title]</h1>
     <p>[Engaging intro paragraph]</p>
   </div>
   <div class="content-section">

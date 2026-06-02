@@ -60,10 +60,13 @@ class StaticViewsSitemap(Sitemap):
             'siargao/cloud9',          # maps to /cloud9/ in your urls.py
             'siargao/sugba-lagoon',
             'siargao/bucasgrande',
+            '/garden/order/',
             'other/hat',    # maps to /sugba-lagoon/
             'other/chemtrix'
         ]
 
     def location(self, item):
+        if item.startswith('/'):
+            return item
         # If your URLs are like /cloud9/ and /sugba-lagoon/
         return f'/pages/blog/{item}/'

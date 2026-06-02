@@ -1,5 +1,8 @@
-from django.http import HttpResponseForbidden
+import logging
 import time
+
+from django.http import HttpResponseForbidden, HttpResponseRedirect
+from django.template import TemplateDoesNotExist
 from django.core.cache import cache
 from home.models import RequestLog, RequestPage, BlockedIP
 from django.contrib.gis.geoip2 import GeoIP2
@@ -8,6 +11,8 @@ import ipaddress
 from typing import Optional
 
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 
 """
@@ -20,6 +25,30 @@ Prevents SPAMMING and excessive requests.
 from datetime import timedelta
 from django.http import HttpResponse
 from django.utils import timezone
+
+
+class TemplateDoesNotExistRedirectMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        try:
+            return self.get_response(request)
+        except TemplateDoesNotExist:
+            logger.exception("Template does not exist for path %s", request.path)
+            if request.path == "/":
+                raise
+            return HttpResponseRedirect("/")
+
+    def process_exception(self, request, exception):
+        if not isinstance(exception, TemplateDoesNotExist):
+            return None
+
+        logger.exception("Template does not exist for path %s", request.path)
+        if request.path == "/":
+            return None
+        return HttpResponseRedirect("/")
+
 
 class NotFoundIPBlockMiddleware:
     
