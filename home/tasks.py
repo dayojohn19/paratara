@@ -139,7 +139,7 @@ def process_creating_blog(request, for_place,blog__title=None,to_title=None,crea
         print(f"\n[3/5] 📰 Generating blog content...")
         blog_title = str(blog__title or '').strip() or f"Blog in {place_name}"
         blog_category = "Guide"
-        blog_summary = f"Discover {blog_title} in {place_name}"
+        blog_summary = f"Travel {blog_title} in {place_name}"
         blog_content = ""
         try:
             print(f"Generating blog for {blog__title} in {place_name}...")

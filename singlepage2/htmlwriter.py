@@ -130,7 +130,7 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
             return _blog_searchable
         except Exception as e:
             logger.exception("Meta description generation failed")
-            _blog_searchable = f"Discover {title} in {place_name}: Complete travel guide with directions, top activities, entrance fees, insider tips, and best times to visit for an unforgettable experience."
+            _blog_searchable = f"Things to do {title} in {place_name}: Complete travel guide with directions, top activities, entrance fees, insider tips, and best times to visit for an unforgettable experience."
         
         return _blog_searchable
     
@@ -193,7 +193,7 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
     collections_html = f'''
                         <div id="collections-header">
                             <h2>📱 Local Collections & QR Experiences</h2>
-                            <p id="collections-loading">Discover interactive collections nearby. Scan QR codes for memories! Loading...</p>
+                            <p id="collections-loading">Things to do interactive collections nearby. Scan QR codes for memories! Loading...</p>
                             <div id="dynamic-collections" class="collection-section">
                             </div>
                         </div>
@@ -334,7 +334,7 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
 
                                                 <!-- Open Graph -->
                                                 <meta property="og:title" content="{title} — {place_name}">
-                                                <meta property="og:description" content="{blog_searchable_keys_description if blog_searchable_keys_description else f'Discover {title} in {place_name}: Complete travel guide with directions, top activities, entrance fees, insider tips, and best times to visit for an unforgettable experience.'}">
+                                                <meta property="og:description" content="{blog_searchable_keys_description if blog_searchable_keys_description else f'Things to {title} in {place_name}: Complete travel guide with directions, top activities, entrance fees, insider tips, and best times to visit for an unforgettable experience.'}">
                                                 <meta property="og:type" content="article">
                                                 <meta property="og:url" content="{canonical_url}">
                                                 <meta property="og:image" content="{cover_image_url}">

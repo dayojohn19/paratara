@@ -2730,7 +2730,7 @@ def place_v2(request, placenameURL=None ,id=None, currentMonth=1, currentYear=1)
             'place': place,
             'page_title': f'{place.placename} Travel Guide, Resorts & Schedules | Paratara',
             'meta_description': (
-                f'Discover {place.placename} travel guides, resort options, local events, '
+                f'Things to do {place.placename} travel guides, resort options, local events, '
                 'tourist spots, and shared trip schedules with Paratara.'
             ),
             'canonical_url': request.build_absolute_uri(place_url_path),
