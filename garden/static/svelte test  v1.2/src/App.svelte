@@ -1392,7 +1392,7 @@ async function fetchLookPlaceData() {
               <p>{scannedPostcardDetails.location}</p>
               <p>{formatCollectedDate(scannedPostcardDetails.collected)}</p>
               <p>{scannedPostcardDetails.collector}</p>
-               <a href={`/places/${scannedPostcardDetails.collectionPlaceDirect}/${currentYear}/${currentMonth}/`} class=""><p> See More </p></a>
+               <a href={`/places/${scannedPostcardDetails.collectionPlaceDirect}/${currentYear}/${currentMonth}/`} class=""><p> Learn More </p></a>
             </div>  
             
             
@@ -1585,6 +1585,8 @@ async function fetchLookPlaceData() {
 </div>
 
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,700;1,9..144,300;1,9..144,400;1,9..144,500&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@272&display=swap');
   :global(body) {
     margin: 0;
     font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
@@ -1593,7 +1595,7 @@ async function fetchLookPlaceData() {
   }
 
   .page {
-    max-width: 1080px;
+
     margin: 0 auto;
     background-color: #fcfcfe;
     min-height: 100vh;
@@ -1605,22 +1607,26 @@ async function fetchLookPlaceData() {
     align-items: center;
     gap: 1rem;
     justify-content: space-between;
-    background-color: rgba(252, 252, 254, 0.96);
-    border-bottom: 1px solid #e4e9f0;
     padding: 0.65rem 1rem;
   }
 
   .brand {
-    font-family: 'Cormorant Garamond', serif;
+    font-family: "Fraunces",Georgia,serif;
     padding:1em;
-
-    font-size: 1.75rem !important;
     font-weight: 800;
     color: rgb(18,	29,	3	);
     letter-spacing: 0;
     display: inline-block;
     text-align:center;
     padding-bottom: 0;
+
+    letter-spacing: .02em;
+  margin-bottom: 1rem;
+  font-family: Fraunces,Georgia,serif;
+  font-size: clamp(36px,5vw,72px);
+  font-style: italic;
+  font-weight: 300;
+  line-height: 1;
 
   }
   .sub-brand {
@@ -1675,9 +1681,6 @@ async function fetchLookPlaceData() {
     align-items: center;
     gap: 0.75rem;
     font-size: 0.82rem;
-    background-color: #f5f7fb;
-    border: 1px solid #e0e7f0;
-    border-radius: 999px;
     padding: 0.35rem 0.45rem 0.35rem 0.75rem;
     white-space: nowrap;
   }
@@ -1757,8 +1760,8 @@ async function fetchLookPlaceData() {
 
   :global(body[data-theme='light'] .account-chip) {
     color: #465a7b;
-    background-color: #f5f7fb;
-    border-color: #e0e7f0;
+    
+    
   }
 
   :global(body[data-theme='light'] .account-chip span) {
@@ -2211,10 +2214,6 @@ justify-content: flex-end;
     flex-direction: column;
     justify-content: flex-start;
     align-items: stretch;
-    border: 1px solid #e0e7f0;
-    border-radius: 8px;
-    background: #ffffff;
-    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
   }
 
   .loading-state {
@@ -2272,9 +2271,8 @@ justify-content: flex-end;
   .meta-grid p {
     margin: 0;
     color: #334155;
-    background: #f8fafc;
-    border: 1px solid #e6ecf3;
-    border-radius: 8px;
+
+
     padding: 0.65rem;
     font-size: 0.9rem;
     line-height: 1.35;
@@ -2331,6 +2329,7 @@ justify-content: flex-end;
   .grid-title {
     margin: 0 0 0.75rem;
     font-size: 1.2rem;
+    font-family: "Roboto Mono", monospace;
   }
 
   .collection-memory {
@@ -2499,7 +2498,7 @@ justify-content: flex-end;
       flex-wrap: wrap;
       gap: 0.5rem;
       white-space: normal;
-      border-radius: 0;
+
 
       padding-bottom: 0;
     }
@@ -2719,8 +2718,6 @@ justify-content: flex-end;
 .gardenhead{
   text-align: center;
   padding: 1.2rem 1rem 0.9rem;
-  border-bottom: 1px solid #edf1f5;
-  background: #ffffff;
 }
 
 .memory-container {

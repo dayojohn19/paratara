@@ -181,14 +181,6 @@ REQUIREMENTS:
 - Avoid keyword stuffing and hard-sell language
 
 CONTENT STRUCTURE (must include ALL sections, but adapt headings/content to the intent):
-1. Intro Section (150 words max) - Hook the reader with a relevant story or situation
-2. What Makes It Worth Reading - Explain the subject, product, place, or idea and why it matters
-3. Local Connection - Connect the topic to "{place_name}" in a useful, believable way
-4. Best Uses / Things To Do / Key Benefits - Choose the label that fits the topic
-5. Practical Breakdown - Costs, budget, time, features, comparisons, or planning details when relevant
-6. How To Experience / Use / Choose It - Practical next steps, directions, usage tips, or buying advice
-7. Safety, Updates & Smart Tips - Safety, maintenance, local cautions, verification advice, or current-year considerations without inventing facts
-8. Call to Action - Strong closing statement that fits the topic
 
 EXTRACT AT END:
 Category: [Choose ONE based on intent: 'Guide', 'Story', 'Tip and Trick', 'Explore', 'Product']
@@ -198,22 +190,23 @@ HTML TEMPLATE EXAMPLE:
 <article class="blog-post">
   <div class="intro-section">
     <h1 class="white-color">🎯 [Emoji + Title]</h1>
-    <p>[Engaging intro paragraph]</p>
+    <p>[Intro Section (150 words max) - Hook the reader with a relevant story or situation]</p>
   </div>
   <div class="content-section">
-    <h2>🧭 [personal Experience]</h2>
-    <p>[describe experience]</p>
+    <h2>🧭 [What Makes It Worth personal Experience]</h2>
+    <p>[How To Experience / Use / Choose It - Practical next steps, directions, usage tips, or buying advice]</p>
   </div>  
   <div class="content-section">
     <h2>✨ [Feature Title]</h2>
-    <p>[Details and descriptions]</p>
+    <p>[Best Uses / Things To Do / Key Benefits - Choose the label that fits the topic]</p>
     <div class="highlight-box">
       <h3>Known for:</h3>
       <ul><li>✅ Item 1</li><li>✅ Item 2</li></ul>
     </div>
   </div>
-  [Additional sections...]
+  [Practical Breakdown - Costs, budget, time, features, comparisons, or planning details when relevant]
   <div class="tip-box">
+  [Safety, Updates & Smart Tips - Safety, maintenance, local cautions, verification advice, or current-year considerations without inventing facts]
     <p><strong>💡 Pro Tips:</strong></p>
     <ul><li>Tip 1</li><li>Tip 2</li></ul>
   </div>
@@ -223,7 +216,7 @@ HTML TEMPLATE EXAMPLE:
   </div>
   <div class="cta-section">
     <h1>🚀 Ready to Visit?</h1>
-    <p>[Strong call to action include festivals and date if applicable ]</p>
+    <p>[Call to Action - Strong closing statement that fits the topic ]</p>
   </div>
 </article>
 '''

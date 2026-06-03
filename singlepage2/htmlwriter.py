@@ -571,11 +571,7 @@ img {{
 }}
 
 #body-contents {{
-    max-width: 920px;
     margin: 1.5rem auto 0;
-
-
-
     border-bottom: 0;
 }}
 
@@ -1948,19 +1944,19 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg, onEmpty) {{
         urlInput.addEventListener('keydown', handleUrlInputKeydown);
 
         tools.appendChild(saveButton);
-        tools.appendChild(status);
         tools.appendChild(cancelButton);
-        tools.appendChild(imageUploadButton);
+        tools.appendChild(status);
+        tools.appendChild(startRecognitionButton);
+        tools.appendChild(stopRecognitionButton);
+        tools.appendChild(copyRecognitionButton);
+        tools.appendChild(liveTextRecognition);
+        tools.appendChild(fixedTextRecognition);
         tools.appendChild(imageNameInput);
+        tools.appendChild(imageUploadButton);
         tools.appendChild(imageUploadInput);
         tools.appendChild(urlInput);
         tools.appendChild(linkTextInput);
         tools.appendChild(addUrlButton);
-        tools.appendChild(liveTextRecognition);
-        tools.appendChild(fixedTextRecognition);
-        tools.appendChild(stopRecognitionButton);
-        tools.appendChild(startRecognitionButton);
-        tools.appendChild(copyRecognitionButton);
         
         
         paragraph.insertAdjacentElement('afterend', tools);
