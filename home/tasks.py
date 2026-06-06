@@ -204,7 +204,7 @@ HTML TEMPLATE EXAMPLE:
       <ul><li>✅ Item 1</li><li>✅ Item 2</li></ul>
     </div>
   </div>
-  [Practical Breakdown - Costs, budget, time, features, comparisons, or planning details when relevant]
+  [Practical Breakdown - Costs, budget, time, features, comparisons, or planning details when relevant, how to get there, or how to use/buy]
   <div class="tip-box">
   [Safety, Updates & Smart Tips - Safety, maintenance, local cautions, verification advice, or current-year considerations without inventing facts]
     <p><strong>💡 Pro Tips:</strong></p>

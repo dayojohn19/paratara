@@ -3029,6 +3029,7 @@ def _discussion_local_view(request, placeID):
         # even if generic words match existing blog titles (e.g., "guide").
         create_blog_verbs = ['make', 'create', 'write', 'generate']
         create_blog_phrases = ['make a blog', 'create a blog', 'write a blog', 'generate a blog', 'make blog', 'create blog', 'write blog', 'generate blog']
+        human_message_prompt = human_message_prompt.lower()
         wants_new_blog = (
             any(p in human_message_prompt for p in create_blog_phrases)
             or ('blog' in human_message_prompt and any(v in human_message_prompt for v in create_blog_verbs))
