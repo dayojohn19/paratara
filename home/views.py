@@ -3047,9 +3047,9 @@ def _discussion_local_view(request, placeID):
             for b in blogs:
                 text = f"{getattr(b,'title','')} {getattr(b,'summarize','') or ''}".lower()
                 sim = SequenceMatcher(a=human_message_prompt, b=text).ratio()
-                if sim > 0.7:
+                if sim > 1:
                     matched_blogs.append((b, [f'fuzzy:{sim:.2f}']))
-            max_match_blog = 1
+            max_match_blog = 3
             if len(matched_blogs) >= max_match_blog:
                 print('\n\nMatched Blogs: ',matched_blogs)
                 print(f"Found {len(matched_blogs)} relevant blogs/articles.\n\n")
