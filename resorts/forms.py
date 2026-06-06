@@ -109,10 +109,10 @@ class ResortForm(forms.ModelForm):
         labels = {
             'place':'Location / Place',
             'province':'Province',
-            'RealName':' Establishment Name',
+            'RealName':' Business Name',
             'address':' Address',
             'contactNumber':'Contact Number',
-            'contactEmail':'Establishment Email',
+            'contactEmail':'Business Email',
             'whatsappNumber':'WhatsApp Number',
             'open_hours': 'Open Hours',
             'promotionalVideo':'Promotional Video Link',

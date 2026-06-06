@@ -1007,7 +1007,8 @@ html {
       stepDiv.setAttribute('data-step', index);
 
       if (step.type === 'fields') {
-        const isFirstStep = index === 0;
+        const hasLatitude = step.fields.some(f => f && f.name === 'latitude');
+        const hasLongitude = step.fields.some(f => f && f.name === 'longitude');
 
         step.fields.forEach(field => {
           const questionBlock = document.createElement('div');
@@ -1074,17 +1075,19 @@ html {
           }
         });
 
-        // Put the location helper on the first step so it can fill later fields too.
-        if (isFirstStep) {
+        // If this step contains both latitude and longitude, add a helper button.
+        if (hasLatitude && hasLongitude) {
           const geoBlock = document.createElement('div');
           geoBlock.className = 'question-block';
           geoBlock.innerHTML = `
-            <label>Auto-fill Location</label>
+            <label>Location</label>
             <div class="d-flex gap-2 flex-wrap align-items-center">
               <button type="button" class="btn btn-prev" id="useGeolocationBtn" style="padding: 0.6rem 1rem;">Use my current location</button>
+              <a href="#" class="link-primary" id="confirmLocationLink">Confirm location</a>
+              <a href="#" class="link-primary disabled" aria-disabled="true" id="openGoogleMapsLink" target="_blank" rel="noopener noreferrer">Open Google Maps</a>
               <small class="form-text" style="margin-top: 0;" id="geoStatus"></small>
             </div>
-            <small class="form-text">This asks for browser location permission, fills coordinates, and tries to fill province, place, and address.</small>
+            <small class="form-text">This uses your browser's location permission and may be less accurate indoors.</small>
           `;
           stepDiv.appendChild(geoBlock);
 
@@ -1092,6 +1095,21 @@ html {
           setTimeout(() => {
             const btn = document.getElementById('useGeolocationBtn');
             if (btn) btn.addEventListener('click', fillFromGeolocation);
+
+            const confirmLink = document.getElementById('confirmLocationLink');
+            if (confirmLink) {
+              confirmLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                confirmLocation();
+              });
+            }
+
+            const latEl = document.getElementById('id_latitude');
+            const lngEl = document.getElementById('id_longitude');
+            if (latEl) latEl.addEventListener('input', updateGoogleMapsLink);
+            if (lngEl) lngEl.addEventListener('input', updateGoogleMapsLink);
+
+            updateGoogleMapsLink();
           }, 0);
         }
       } else if (step.type === 'amenities') {
@@ -1231,19 +1249,11 @@ html {
   function setInputValueById(id, value) {
     const input = document.getElementById(id);
     if (!input) return false;
-    let nextValue = String(value || '');
-    if (typeof input.maxLength === 'number' && input.maxLength > 0 && nextValue.length > input.maxLength) {
-      nextValue = nextValue.slice(0, input.maxLength);
-    }
-    input.value = nextValue;
-    dispatchFormEvents(input);
-    return true;
-  }
-
-  function dispatchFormEvents(input) {
-    if (!input) return;
+    input.value = value;
+    // Trigger events in case there are listeners/validation
     input.dispatchEvent(new Event('input', { bubbles: true }));
     input.dispatchEvent(new Event('change', { bubbles: true }));
+    return true;
   }
 
   function setGeoStatus(message, isError = false) {
@@ -1253,148 +1263,47 @@ html {
     statusEl.style.color = isError ? '#e53e3e' : '#718096';
   }
 
-  function normalizeLocationText(value) {
-    return String(value || '')
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9]+/g, ' ')
-      .trim();
+  function getLatLngFromInputs() {
+    const latEl = document.getElementById('id_latitude');
+    const lngEl = document.getElementById('id_longitude');
+    if (!latEl || !lngEl) return null;
+
+    const lat = parseFloat(String(latEl.value).trim());
+    const lng = parseFloat(String(lngEl.value).trim());
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+
+    return { lat, lng };
   }
 
-  function compactUniqueParts(parts) {
-    const seen = new Set();
-    return parts
-      .map(part => String(part || '').trim())
-      .filter(part => {
-        const key = normalizeLocationText(part);
-        if (!key || seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      });
-  }
+  function updateGoogleMapsLink() {
+    const link = document.getElementById('openGoogleMapsLink');
+    if (!link) return;
 
-  function firstText() {
-    for (let i = 0; i < arguments.length; i += 1) {
-      const value = String(arguments[i] || '').trim();
-      if (value) return value;
-    }
-    return '';
-  }
-
-  function getProvinceFromGeocode(data) {
-    const address = data && data.address ? data.address : {};
-    return firstText(address.province, address.state, address.region, address.county, address.state_district);
-  }
-
-  function buildAddressTextFromGeocode(data) {
-    const address = data && data.address ? data.address : {};
-    const street = address.house_number && address.road ? `${address.house_number} ${address.road}` : address.road;
-    const locality = firstText(address.city, address.town, address.village, address.municipality);
-    const parts = compactUniqueParts([
-      street,
-      address.neighbourhood,
-      address.suburb,
-      address.quarter,
-      address.hamlet,
-      locality,
-      address.county,
-      getProvinceFromGeocode(data),
-      address.country
-    ]);
-
-    return parts.join(', ') || firstText(data && data.display_name);
-  }
-
-  function getPlaceCandidatesFromGeocode(data) {
-    const address = data && data.address ? data.address : {};
-    return compactUniqueParts([
-      data && data.name,
-      address.city,
-      address.town,
-      address.village,
-      address.municipality,
-      address.island,
-      address.suburb,
-      address.neighbourhood,
-      address.county,
-      address.province,
-      address.state
-    ]);
-  }
-
-  function setPlaceFieldFromCandidates(candidates) {
-    const field = document.getElementById('id_place');
-    const normalizedCandidates = compactUniqueParts(candidates).map(normalizeLocationText).filter(Boolean);
-    if (!field || normalizedCandidates.length === 0) return false;
-
-    if (field.tagName && field.tagName.toLowerCase() === 'select') {
-      const options = Array.from(field.options || []).filter(option => String(option.value || '').trim() !== '');
-      let matchedOption = options.find(option => {
-        const text = normalizeLocationText(option.textContent);
-        const value = normalizeLocationText(option.value);
-        return normalizedCandidates.includes(text) || normalizedCandidates.includes(value);
-      });
-
-      if (!matchedOption) {
-        matchedOption = options.find(option => {
-          const text = normalizeLocationText(option.textContent);
-          return normalizedCandidates.some(candidate => text && candidate && (text.includes(candidate) || candidate.includes(text)));
-        });
-      }
-
-      if (!matchedOption) return false;
-      field.value = matchedOption.value;
-      dispatchFormEvents(field);
-      return true;
+    const coords = getLatLngFromInputs();
+    if (!coords) {
+      link.href = '#';
+      link.classList.add('disabled');
+      link.setAttribute('aria-disabled', 'true');
+      return;
     }
 
-    return setInputValueById('id_place', candidates[0]);
+    const { lat, lng } = coords;
+    link.href = `https://www.google.com/maps?q=${encodeURIComponent(lat + ',' + lng)}`;
+    link.classList.remove('disabled');
+    link.setAttribute('aria-disabled', 'false');
   }
 
-  async function reverseGeocodeCoordinates(lat, lng) {
-    const url = new URL('https://nominatim.openstreetmap.org/reverse');
-    url.searchParams.set('format', 'jsonv2');
-    url.searchParams.set('lat', lat);
-    url.searchParams.set('lon', lng);
-    url.searchParams.set('zoom', '18');
-    url.searchParams.set('addressdetails', '1');
-
-    const response = await fetch(url.toString(), {
-      headers: {
-        'Accept': 'application/json'
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error('Reverse geocoding failed');
+  function confirmLocation() {
+    const coords = getLatLngFromInputs();
+    if (!coords) {
+      setGeoStatus('Enter valid latitude and longitude first.', true);
+      updateGoogleMapsLink();
+      return;
     }
 
-    return response.json();
-  }
-
-  async function fillAddressFieldsFromCoordinates(lat, lng) {
-    setGeoStatus('Coordinates filled. Looking up address...');
-
-    try {
-      const data = await reverseGeocodeCoordinates(lat, lng);
-      const updatedFields = [];
-      const province = getProvinceFromGeocode(data);
-      const addressText = buildAddressTextFromGeocode(data);
-      const placeCandidates = getPlaceCandidatesFromGeocode(data);
-
-      if (province && setInputValueById('id_province', province)) updatedFields.push('province');
-      if (addressText && setInputValueById('id_address', addressText)) updatedFields.push('address');
-      if (setPlaceFieldFromCandidates(placeCandidates)) updatedFields.push('place');
-
-      if (updatedFields.length > 0) {
-        setGeoStatus(`Location filled. Updated ${updatedFields.join(', ')}.`);
-      } else {
-        setGeoStatus('Coordinates filled. Choose province, place, and address manually if needed.');
-      }
-    } catch (error) {
-      setGeoStatus('Coordinates filled, but address lookup was unavailable. Please add province/address manually.');
-    }
+    const { lat, lng } = coords;
+    updateGoogleMapsLink();
+    setGeoStatus(`Location confirmed: ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
   }
 
   function fillFromGeolocation() {
@@ -1408,24 +1317,22 @@ html {
     setGeoStatus('Requesting current location…');
 
     navigator.geolocation.getCurrentPosition(
-      async (pos) => {
+      (pos) => {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
 
-        const latOk = setInputValueById('id_latitude', lat.toFixed(6));
-        const lngOk = setInputValueById('id_longitude', lng.toFixed(6));
+        const latOk = setInputValueById('id_latitude', lat);
+        const lngOk = setInputValueById('id_longitude', lng);
 
-        try {
-          if (latOk && lngOk) {
-            await fillAddressFieldsFromCoordinates(lat.toFixed(6), lng.toFixed(6));
-          } else {
-            setGeoStatus('Could not find latitude/longitude inputs on the page.', true);
-          }
-
-        } finally {
-          if (btn) btn.disabled = false;
+        if (latOk && lngOk) {
+          setGeoStatus('Location filled. You can fine-tune if needed.');
+        } else {
+          setGeoStatus('Could not find latitude/longitude inputs on the page.', true);
         }
 
+        updateGoogleMapsLink();
+
+        if (btn) btn.disabled = false;
       },
       (err) => {
         let msg = 'Unable to get your location.';
