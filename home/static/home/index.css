@@ -53,7 +53,10 @@ body {
 }
 
 .home-search-panel {
-  height: 80vh;
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  margin: 0 auto;
+  max-width: 700px;
   padding: 1em;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(300px, 480px);
