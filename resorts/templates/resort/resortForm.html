@@ -1010,6 +1010,26 @@ html {
       if (step.type === 'fields') {
         const isFirstStep = index === 0;
 
+        // Put the location helper at the top of the first field section.
+        if (isFirstStep) {
+          const geoBlock = document.createElement('div');
+          geoBlock.className = 'question-block';
+          geoBlock.innerHTML = `
+            <label>Auto-fill Address</label>
+            <div class="d-flex gap-2 flex-wrap align-items-center">
+              <button type="button" class="btn btn-prev" id="useGeolocationBtn" style="padding: 0.6rem 1rem;">Use my current location</button>
+              <small class="form-text" style="margin-top: 0;" id="geoStatus"></small>
+            </div>
+            <small class="form-text">This asks for browser location permission and fills the address based on your current location.</small>
+          `;
+          stepDiv.appendChild(geoBlock);
+
+          setTimeout(() => {
+            const btn = document.getElementById('useGeolocationBtn');
+            if (btn) btn.addEventListener('click', fillFromGeolocation);
+          }, 0);
+        }
+
         step.fields.forEach(field => {
           const questionBlock = document.createElement('div');
           questionBlock.className = 'question-block';
@@ -1074,27 +1094,6 @@ html {
             setTimeout(() => initOpenHoursBuilder(questionBlock), 0);
           }
         });
-
-        // Put the location helper on the first step so it can fill later fields too.
-        if (isFirstStep) {
-          const geoBlock = document.createElement('div');
-          geoBlock.className = 'question-block';
-          geoBlock.innerHTML = `
-            <label>Auto-fill Location</label>
-            <div class="d-flex gap-2 flex-wrap align-items-center">
-              <button type="button" class="btn btn-prev" id="useGeolocationBtn" style="padding: 0.6rem 1rem;">Use my current location</button>
-              <small class="form-text" style="margin-top: 0;" id="geoStatus"></small>
-            </div>
-            <small class="form-text">This asks for browser location permission, fills coordinates, and tries to fill province, place, and address.</small>
-          `;
-          stepDiv.appendChild(geoBlock);
-
-          // Wire up after insertion
-          setTimeout(() => {
-            const btn = document.getElementById('useGeolocationBtn');
-            if (btn) btn.addEventListener('click', fillFromGeolocation);
-          }, 0);
-        }
       } else if (step.type === 'amenities') {
         const amenitiesSection = document.createElement('div');
         amenitiesSection.className = 'question-block';

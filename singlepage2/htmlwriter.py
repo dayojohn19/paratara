@@ -273,7 +273,7 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
             "@context": "https://schema.org",
             "@type": "Article",
             "headline": f"{title} — {place_name}",
-            "description": blog_searchable_keys_description or f"Discover {title} in {place_name}",
+            "description": blog_searchable_keys_description or f"How {title} in {place_name}",
             "image": cover_image_url,
             "author": {
                 "@type": "Organization",
@@ -373,9 +373,10 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
 
 body {{
     min-height: 100vh;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-    font-size: 16px;
-    line-height: 1.68;
+
+    font-family: "Source Sans 3", Arial, sans-serif;
+    font-size: 17px;
+    line-height: 1.7;
     color: var(--text);
     background: linear-gradient(to bottom right, rgb(242, 242, 242), rgb(224, 224, 224) 52%, rgb(216, 216, 216));
 }}

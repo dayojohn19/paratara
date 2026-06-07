@@ -18,6 +18,17 @@ from urllib.parse import urlparse
 from html import unescape
 from mimetypes import guess_type
 
+try:
+    from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+except ImportError:
+    AutoModelForSeq2SeqLM = None
+    AutoTokenizer = None
+
+try:
+    import torch
+except ImportError:
+    torch = None
+
 # Create your views here.
 from django.views.decorators.csrf import csrf_exempt
 
@@ -64,6 +75,85 @@ BLOG_EDIT_ALLOWED_ATTRS = {
     "img": {"src", "alt", "title", "width", "height", "loading", "decoding", "class"},
     "span": {"class"},
 }
+
+_GRAMMAR_MODEL = None
+_GRAMMAR_TOKENIZER = None
+
+
+def _load_grammar_model():
+    global _GRAMMAR_MODEL, _GRAMMAR_TOKENIZER
+    if _GRAMMAR_MODEL is not None and _GRAMMAR_TOKENIZER is not None:
+        return True
+
+    if AutoModelForSeq2SeqLM is None or AutoTokenizer is None:
+        return False
+
+    model_source = getattr(settings, "GRAMMAR_MODEL_PATH", None) or getattr(settings, "GRAMMAR_MODEL_NAME", None)
+    if not model_source:
+        model_source = "vennify/t5-base-grammar-correction"
+
+    try:
+        _GRAMMAR_TOKENIZER = AutoTokenizer.from_pretrained(model_source, local_files_only=True)
+        _GRAMMAR_MODEL = AutoModelForSeq2SeqLM.from_pretrained(model_source, local_files_only=True)
+        if torch is not None and torch.cuda.is_available():
+            _GRAMMAR_MODEL.to(torch.device("cuda"))
+        return True
+    except Exception as exc:
+        print(f"Local grammar model load failed: {exc}")
+
+    try:
+        _GRAMMAR_TOKENIZER = AutoTokenizer.from_pretrained(model_source, local_files_only=False)
+        _GRAMMAR_MODEL = AutoModelForSeq2SeqLM.from_pretrained(model_source, local_files_only=False)
+        if torch is not None and torch.cuda.is_available():
+            _GRAMMAR_MODEL.to(torch.device("cuda"))
+        return True
+    except Exception as exc:
+        print(f"Grammar model load failed: {exc}")
+        _GRAMMAR_MODEL = None
+        _GRAMMAR_TOKENIZER = None
+        return False
+
+
+def _correct_grammar_text(text: str) -> str:
+    text = (text or "").strip()
+    if not text:
+        return text
+    if not _load_grammar_model():
+        return text
+
+    prompt_prefix = getattr(settings, "GRAMMAR_MODEL_PROMPT_PREFIX", "fix grammar: ")
+    prompt = f"{prompt_prefix}{text}"
+
+    try:
+        inputs = _GRAMMAR_TOKENIZER(prompt, return_tensors="pt", truncation=True, max_length=1024)
+        if torch is not None and torch.cuda.is_available():
+            inputs = {k: v.to(torch.device("cuda")) for k, v in inputs.items()}
+
+        outputs = _GRAMMAR_MODEL.generate(
+            **inputs,
+            max_length=1024,
+            num_beams=3,
+            early_stopping=True,
+        )
+        corrected = _GRAMMAR_TOKENIZER.decode(outputs[0], skip_special_tokens=True)
+        return corrected.strip() or text
+    except Exception as exc:
+        print(f"Grammar correction failed: {exc}")
+        return text
+
+
+def _correct_html_text_nodes(html: str) -> str:
+    fragment = BeautifulSoup(html or "", "html.parser")
+    for text_node in fragment.find_all(string=True):
+        if text_node.parent.name in {"script", "style"}:
+            continue
+        original = str(text_node).strip()
+        if not original:
+            continue
+        corrected = _correct_grammar_text(original)
+        if corrected != original:
+            text_node.replace_with(corrected)
+    return str(fragment)
 
 
 def _is_allowed_blog_edit_url(value, *, image=False):
@@ -404,6 +494,7 @@ def save_blog_paragraph_file_edit(request):
     if raw_edited_html is None:
         raw_edited_html = payload.get("edited_text") or ""
     edited_html = _sanitize_blog_edit_html(raw_edited_html).strip()
+    edited_html = _correct_html_text_nodes(edited_html).strip()
     edited_text = _strip_html_tags(edited_html).strip()
 
     try:

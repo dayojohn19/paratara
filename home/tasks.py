@@ -58,7 +58,7 @@ def _parse_blog_response(full_response, fallback_title, place_name):
         blog_category = "Guide"
 
     summary_match = re.search(r'^Summary:\s*([^\n]+)', full_response, flags=re.IGNORECASE | re.MULTILINE)
-    blog_summary = summary_match.group(1).strip() if summary_match else f"Discover {fallback_title} in {place_name}"
+    blog_summary = summary_match.group(1).strip() if summary_match else f"Guide/How {fallback_title} in {place_name}"
     blog_summary = _strip_anchor_tags(blog_summary)
     if blog_summary.lower().startswith('summary:'):
         blog_summary = blog_summary[8:].strip()
