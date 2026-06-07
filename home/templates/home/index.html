@@ -70,3 +70,41 @@
     </section>
   </main>
 </section>
+   <footer class="bg-light py-5 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>Paratara</h5>
+                    <p>Your go-to platform for carpooling and resort bookings. Discover places, connect with travelers, and plan your adventures.</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="/" class="text-muted">Home</a></li>
+                        <li><a href="{% url 'home:privacy_policy' %}" class="text-muted">Privacy Policy</a></li>
+                        <li><a href="{% url 'userProfile:termsandconditions' %}" class="text-muted">Terms and Conditions</a></li>
+                        <li><a href="{% url 'userProfile:aboutUs' %}" class="text-muted">About Us</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>Account & Tools</h5>
+                    {% if user.is_authenticated %}
+                        <p><a href="{% url 'userProfile:logoutUserJSON' %}" class="text-muted">Log Out</a></p>
+                    {% else %}
+                        <p><a href="{% url 'userProfile:registerUser' %}" class="text-muted">Login or Register</a></p>
+                    {% endif %}
+                    <button id="get-loc" class="btn btn-outline-secondary btn-sm">Get Location</button>
+                    <p id="status" class="mt-2"></p>
+                    <small class="text-muted">{% now 'h:i a F j' %}</small>
+                </div>
+            </div>
+
+            <hr class="my-4">
+
+            <div class="row">
+                <div class="col-12 text-center">
+                    <p class="mb-0">&copy; {% now 'Y' %} Paratara. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
