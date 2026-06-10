@@ -65,7 +65,7 @@ def _parse_blog_response(full_response, fallback_title, place_name):
 
     blog_content = parts[1] if len(parts) > 1 else full_response
     try:
-        if len(blog_content) == 0:
+        if blog_content:
             print('Blog Full response :', full_response[:1000])
             print()
             print(parts[1] if len(parts) > 1 else 'No content section found in response')
@@ -224,7 +224,7 @@ HTML TEMPLATE EXAMPLE:
             res = client.chat.completions.create(
                 model=settings.GROK_MODEL_NAME,
                 messages=[{"role": "user", "content": blog_prompt}],
-                max_tokens=4000
+                max_tokens=12000
             )
 
             full_response = res.choices[0].message.content.strip()

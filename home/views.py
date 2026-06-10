@@ -2480,24 +2480,24 @@ def viaje_v2(request):
             newPlace.save()
             # Finding / Adding Resort
 
-            # list_of_tourist_spots = make_list_of_tourist_place(place)
-            # # Make list_of_tourist_spot a key object where each list of tourist spots should be [{'name':'namevalue','latitude':'latvalue','longitude':'longvalue','picture':'picturevalue'}]
-            # for idx, tourist_spot in enumerate(list_of_tourist_spots):
-            #     print(f"[TOURIST-SPOT] ({idx+1}/{len(list_of_tourist_spots)}) Preparing to add: {tourist_spot}")
-            #     data = request.POST.copy()
-            #     print(f"[TOURIST-SPOT] Copied POST data: {dict(data)}")
-            #     data['place'] = newPlace.id
+            list_of_tourist_spots = make_list_of_tourist_place(place)
+            # Make list_of_tourist_spot a key object where each list of tourist spots should be [{'name':'namevalue','latitude':'latvalue','longitude':'longvalue','picture':'picturevalue'}]
+            for idx, tourist_spot in enumerate(list_of_tourist_spots):
+                print(f"[TOURIST-SPOT] ({idx+1}/{len(list_of_tourist_spots)}) Preparing to add: {tourist_spot}")
+                data = request.POST.copy()
+                print(f"[TOURIST-SPOT] Copied POST data: {dict(data)}")
+                data['place'] = newPlace.id
 
                 
-            #     print(f"[TOURIST-SPOT] Set to: {tourist_spot}")
-            #     # print(f"[TOURIST-SPOT] Calling create_tourist_spot with data: {{'place': {data['place']}, 'name': {data['name']}}}")
-            #     data.method = 'POST'
-            #     data.META = request.META
-            #     data['name'] = tourist_spot['name']
-            #     data['latitude'] = tourist_spot['latitude']
-            #     data['longitude'] = tourist_spot['longitude']
-            #     create_tourist_spot(data)
-            #     print(f"[TOURIST-SPOT] Finished create_tourist_spot for: {tourist_spot}\n")
+                print(f"[TOURIST-SPOT] Set to: {tourist_spot}")
+                # print(f"[TOURIST-SPOT] Calling create_tourist_spot with data: {{'place': {data['place']}, 'name': {data['name']}}}")
+                data.method = 'POST'
+                data.META = request.META
+                data['name'] = tourist_spot['name']
+                data['latitude'] = tourist_spot['latitude']
+                data['longitude'] = tourist_spot['longitude']
+                create_tourist_spot(data)
+                print(f"[TOURIST-SPOT] Finished create_tourist_spot for: {tourist_spot}\n")
 
 
         allMeetDate = request.POST.getlist('meetDate')

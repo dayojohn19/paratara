@@ -1368,13 +1368,6 @@ async function fetchLookPlaceData() {
     
 
   <section class="hero">
-    <div class="hero-copy">
-      <p class="eyebrow">{t('eyebrow')}</p>
-      <h1>{t('brandTitle')}</h1>
-      <p class="subtext">
-        {t('subtext')}
-      </p>
-    </div>
     {#if showCredentialsForm}
       <div class="credentials-box" aria-live="polite">
         <h3>{t('enterAccount')}</h3>
@@ -1489,21 +1482,18 @@ async function fetchLookPlaceData() {
       </div>
     {/if}
   </section>
+  <div class="brand">{t('brandTitle')}</div>
 
-  <section class="support-grid" aria-label="Postcard supporting memories">
-    <div class="support-card collection-memory">
-      <div class="support-card-header">
-        <div class="support-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24">
-            <path d="M4 7.5A2.5 2.5 0 0 1 6.5 5h11A2.5 2.5 0 0 1 20 7.5v9a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5v-9Zm2.5-.8a.8.8 0 0 0-.8.8v7.2l3.7-3.2a1.4 1.4 0 0 1 1.8 0l2.2 1.8 1.2-1.1a1.4 1.4 0 0 1 1.9 0l1.8 1.7V7.5a.8.8 0 0 0-.8-.8h-11Zm11.8 9.5-2.7-2.6-1.2 1.1a1.4 1.4 0 0 1-1.8.1l-2.3-1.9-4.1 3.6c.1.5.5.8 1 .8h10.3c.4 0 .7-.2.8-.5v-.6ZM8.3 9.2a1.1 1.1 0 1 1 2.2 0 1.1 1.1 0 0 1-2.2 0Z" />
-          </svg>
-        </div>
-        <div>
-          <h2>Photo memories</h2>
-          <p>Uploaded moments connected to this postcard.</p>
-        </div>
-      </div>
+
+
+  <section class="collection-memory">
+
+
     {#if getCollectionMemoryItems().length}
+      <p class="eyebrow">{t('eyebrow')}</p>
+    <p class="subtext">
+      {t('subtext')}
+    </p>    
       <div class="memory-grid">
         {#each getCollectionMemoryItems() as memory}
             {#if memory.image}
@@ -1519,48 +1509,30 @@ async function fetchLookPlaceData() {
         {/each}
       </div>
     {:else}
-      <div class="empty-support-card">
-        <strong>No photos yet</strong>
-        <p>Add a memory note and upload photos when you are signed in as the collector.</p>
-      </div>
+      <p class="memory-empty">{t('noCollectionMemory')}</p>
     {/if}
-    </div>
+  </section>
 
   
-    <div class="support-card related-memory-card">
-      <div class="support-card-header">
-        <div class="support-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24">
-            <path d="M6 4.5h12a2 2 0 0 1 2 2v9.8a2 2 0 0 1-2 2H8.2L4 21V6.5a2 2 0 0 1 2-2Zm0 2v10.8l1.6-1h10.4V6.5H6Zm2.3 2.2h7.4v1.6H8.3V8.7Zm0 3.2h5.2v1.6H8.3v-1.6Z" />
-          </svg>
-        </div>
-        <div>
-          <h2>{t('gridTitle')}</h2>
-          <p>Browse the postcard collection and open a larger preview.</p>
-        </div>
-      </div>
-      {#if postcardMemories.length}
-        <div class="related-memory-grid">
-          {#each postcardMemories as postcard}
-            <div class="memory-card">
-              <button
-                class="image-trigger"
-                type="button"
-                on:click={() => openImagePreview(postcard.src, postcard.title, `/garden/look/${postcard.id}/`)}
-                aria-label={`View ${postcard.title}`}
-              >
-                <div class="memory-image-collection" style="background-image: url({postcard.src}) "></div>
-              </button>    
-            </div>
-          {/each}
-        </div>
-      {:else}
-        <div class="empty-support-card">
-          <strong>No related postcards found</strong>
-          <p>Once this account loads a postcard collection, previews will appear here.</p>
-        </div>
-      {/if}
-    </div>
+  <section class="memory-container">
+    <h2 class="grid-title">{t('gridTitle')}</h2>
+    {#each postcardMemories as postcard}
+
+
+  <div class="memory-card">
+    <button
+      class="image-trigger"
+      type="button"
+      on:click={() => openImagePreview(postcard.src, postcard.title, `/garden/look/${postcard.id}/`)}
+      aria-label={`View ${postcard.title}`}
+    >
+      <div class="memory-image-collection" style="background-image: url({postcard.src}) "></div>
+    </button>    
+  </div>
+
+
+
+    {/each}
   </section>
 
   {#if showTourBookingModal}
@@ -1634,8 +1606,7 @@ async function fetchLookPlaceData() {
   .page {
 
     margin: 0 auto;
-    background:
-      linear-gradient(180deg, #fbfaf4 0%, #f4f0e7 54%, #eef3ea 100%);
+    background-color: #fcfcfe;
     min-height: 100vh;
     box-shadow: 0 0 0 1px rgba(31, 41, 55, 0.06);
   }
@@ -1835,8 +1806,8 @@ async function fetchLookPlaceData() {
 
   :global(body[data-theme='light'] .postcard-frame),
   :global(body[data-theme='light'] ) {
-    background: #fffdf6;
-    border-color: #cbd8bd;
+    background: #ffffff;
+    border-color: #d3deef;
   }
 
   :global(body[data-theme='light'] .postcard-meta) {
@@ -1941,49 +1912,28 @@ async function fetchLookPlaceData() {
   }
 
   .hero {
-    width: min(100% - 2rem, 940px);
-    margin: 0 auto;
-    padding: 0 0 1rem;
-  }
-
-  .hero-copy {
-    display: grid;
-    justify-items: center;
-    gap: 0.45rem;
-    margin: 0 auto 1rem;
-    text-align: center;
-  }
-
-  .hero-copy h1 {
-    margin: 0;
-    max-width: 12ch;
-    color: #27351f;
-    font-family: Fraunces, Georgia, serif;
-    font-size: clamp(2.35rem, 7vw, 4.6rem);
-    font-style: italic;
-    font-weight: 300;
-    line-height: 0.95;
-    letter-spacing: 0;
+      padding-left:1.5em;
+      padding-right:1.5em;
 
   }
 
   .eyebrow {
     margin: 0;
-    color: #6f7f5a;
+    color: #5b6f93;
     letter-spacing: 0.08em;
     font-size: 0.75rem;
     font-weight: 700;
-    padding-left: 0;
+    padding-left: 1em;
   }
 
   .subtext {
     margin: 0;
-    max-width: 42rem;
-    color: #5b4739;
+    max-width: 60ch;
+    color: #334155;
     font-size: 1.05rem;
     line-height: 1.55;
     font-weight: 500;
-    padding-left: 0;
+    padding-left: 1em;
   }
 
   .hero-actions {
@@ -2299,22 +2249,18 @@ justify-content: flex-end;
     height: auto;
     max-height: 80vh;
     object-fit: cover;
-    border-radius: 12px;
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.85), inset 0 0 0 1px rgba(89, 102, 67, 0.1);
   }
 
   .postcard-meta {
-    padding: 1rem 0 0.15rem;
-    border-top: none;
-    background: transparent;
+    padding: 1rem;
+    border-top: 1px solid #e5eaf2;
+    background: #ffffff;
   }
 
   .postcard-meta h3 {
     margin: 0;
-    color: #27351f;
-    font-family: Fraunces, Georgia, serif;
-    font-size: clamp(1.2rem, 2.3vw, 1.55rem);
-    font-weight: 500;
+    color: #1f2937;
+    font-size: 1.15rem;
     line-height: 1.25;
   }
 
@@ -2326,42 +2272,19 @@ justify-content: flex-end;
 
   .meta-grid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0.55rem;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.65rem;
     margin-top: 0.75rem;
   }
 
   .meta-grid p {
     margin: 0;
-    color: #36402c;
-    min-height: 100%;
-    padding: 0.7rem 0.75rem;
+    color: #334155;
+
+
+    padding: 0.65rem;
     font-size: 0.9rem;
     line-height: 1.35;
-    box-sizing: border-box;
-  }
-
-  .meta-grid p::before {
-    display: block;
-    margin-bottom: 0.18rem;
-    color: #7a895f;
-    font-size: 0.68rem;
-    font-weight: 800;
-    letter-spacing: 0.08em;
-    line-height: 1.2;
-    text-transform: uppercase;
-  }
-
-  .meta-grid p:nth-child(1)::before {
-    content: "Location";
-  }
-
-  .meta-grid p:nth-child(2)::before {
-    content: "Collected";
-  }
-
-  .meta-grid p:nth-child(3)::before {
-    content: "Collector";
   }
 
   .meta-grid a {
@@ -2369,14 +2292,8 @@ justify-content: flex-end;
   }
 
   .meta-grid a p {
-    color: #3f5b2c;
+    color: #2563eb;
     font-weight: 700;
-    background: #eff5e7;
-    border-color: rgba(110, 132, 77, 0.45);
-  }
-
-  .meta-grid a p::before {
-    content: "Details";
   }
 
   .meta-grid span {
@@ -2424,71 +2341,19 @@ justify-content: flex-end;
     font-family: "Roboto Mono", monospace;
   }
 
-  .support-grid {
-    width: min(100% - 2rem, 940px);
-    margin: 0 auto;
-    padding: 0.75rem 0 2.5rem;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 1rem;
-    align-items: start;
+  .collection-memory {
+    margin: 0.5rem 0 1.2rem;
   }
 
-  .support-card {
-    min-width: 0;
-    background: rgba(255, 253, 246, 0.92);
-    border: 1px solid #d2dcc5;
-    border-radius: 16px;
-    padding: 1rem;
-    box-shadow: 0 12px 36px rgba(55, 67, 39, 0.1);
-    box-sizing: border-box;
-  }
-
-  .support-card-header {
-    display: flex;
-    gap: 0.75rem;
-    align-items: flex-start;
-    margin-bottom: 0.85rem;
-  }
-
-  .support-icon {
-    width: 2.3rem;
-    height: 2.3rem;
-    flex: 0 0 auto;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 999px;
-    background: #eef5e6;
-    border: 1px solid rgba(138, 154, 108, 0.42);
-    color: #3f5b2c;
-  }
-
-  .support-icon svg {
-    width: 1.25rem;
-    height: 1.25rem;
-    fill: currentColor;
-  }
-
-  .support-card h2 {
-    margin: 0;
-    color: #27351f;
-    font-family: Fraunces, Georgia, serif;
-    font-size: 1.22rem;
-    font-weight: 500;
-    line-height: 1.15;
-  }
-
-  .support-card-header p {
-    margin: 0.22rem 0 0;
-    color: #665a4a;
-    font-size: 0.9rem;
-    line-height: 1.42;
+  .collection-memory h2 {
+    margin: 0 0 0.75rem;
+    font-size: 1.2rem;
   }
 
   .memory-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0;
   }
 
   .memory-card {
@@ -2500,9 +2365,10 @@ justify-content: flex-end;
   .memory-image {
     display: block;
     width: 100%;
-    height: 126px;
+    height: 120px;
+    border-radius: 0;
     object-fit: cover;
-    border: 1px solid rgba(150, 167, 123, 0.28);
+    border: none;
   }
 
   .memory-card h3 {
@@ -2519,31 +2385,6 @@ justify-content: flex-end;
     margin: 0;
     color: #5b6b88;
     font-size: 0.92rem;
-  }
-
-  .empty-support-card {
-    min-height: 126px;
-    display: grid;
-    align-content: center;
-    gap: 0.35rem;
-    padding: 1rem;
-    border: 1px dashed rgba(138, 154, 108, 0.58);
-    border-radius: 12px;
-    background: rgba(246, 248, 239, 0.72);
-    color: #5b4739;
-    box-sizing: border-box;
-  }
-
-  .empty-support-card strong {
-    color: #334028;
-    font-size: 0.98rem;
-  }
-
-  .empty-support-card p {
-    margin: 0;
-    color: #6a6254;
-    font-size: 0.9rem;
-    line-height: 1.45;
   }
 
 
@@ -2649,16 +2490,8 @@ justify-content: flex-end;
     }
 
     .hero {
-      width: min(100% - 1.5rem, 940px);
-      padding-bottom: 0.75rem;
-    }
-
-    .hero-copy {
-      margin-bottom: 0.8rem;
-    }
-
-    .hero-copy h1 {
-      font-size: clamp(2rem, 12vw, 3.1rem);
+      padding-left:1.5em;
+      padding-right:1.5em;
     }
 
     .subtext {
@@ -2706,13 +2539,6 @@ justify-content: flex-end;
     .postcard-frame {
       width: 100%;
       flex-direction:column;
-    }
-
-    .support-grid {
-      width: min(100% - 1.5rem, 940px);
-      grid-template-columns: 1fr;
-      gap: 0.75rem;
-      padding-bottom: 1.5rem;
     }
 
     .credentials-box {
@@ -2792,7 +2618,7 @@ justify-content: flex-end;
 
     .memory-grid {
       grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-      gap: 0.5rem;
+      gap: 0;
     }
 
     .collection-image,
@@ -2824,9 +2650,9 @@ justify-content: flex-end;
       font-size: 0.94rem;
     }
 
-    .hero,
-    .support-grid {
-      width: min(100% - 1rem, 940px);
+    .hero {
+      padding-left:1.5em;
+      padding-right:1.5em;
     }
 
     .postcard-frame,
@@ -2844,7 +2670,7 @@ justify-content: flex-end;
     }
 
     .postcard-meta h3,
-    .support-card h2,
+    .collection-memory h2,
     .grid-title {
       font-size: 1rem;
     }
@@ -2900,13 +2726,15 @@ justify-content: flex-end;
 }
 .gardenhead{
   text-align: center;
-  padding: 1.2rem 1rem 0.45rem;
+  padding: 1.2rem 1rem 0.9rem;
 }
 
-.related-memory-grid {
+.memory-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
-  gap: 0.6rem;
+  grid-template-columns: repeat(3, 1fr);
+
+  gap: 8px;
+  padding: 1rem;
 }
 
 .memory-card {
@@ -2917,8 +2745,12 @@ justify-content: flex-end;
 .memory-image-collection {
   width: 100%;
   aspect-ratio: 1.2 / 1;
+
+
   border-radius: 8px;
-  margin-bottom: 0;
+
+  margin-bottom: 12px;
+
   background-size: cover;
   background-position: center;
   box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08);

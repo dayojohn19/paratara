@@ -155,6 +155,8 @@ def get_map(request, placeName):
 
 # Security salt
 QR_SALT = "only-from-qr-v1"
+from django_ratelimit.decorators import ratelimit
+@ratelimit(key="ip", rate="10/m", block=True)
 def qr_entry(request, code):
     """
     Entry point when the QR code is scanned.
@@ -192,6 +194,48 @@ def secret_page(request):
     #     "code": data["code"]
     #     })
 
+    from django.conf import settings
+    import os
+    collectionStr= data["code"]
+    dist_dir = os.path.join(settings.BASE_DIR, 'garden/static/svelte test  v1.2/dist')
+    if collectionStr:
+        asset_path = os.path.join(dist_dir, collectionStr.replace('/garden/', '').lstrip('/'))
+    else:
+        asset_path = os.path.join(dist_dir, 'index.html')
+    
+    if os.path.exists(asset_path) and os.path.isfile(asset_path):
+        # Set MIME type based on extension
+        if asset_path.endswith('.html'):
+            with open(asset_path, 'r', encoding='utf-8') as f:
+                content = inject_garden_auth_session(f.read(), request)
+            return HttpResponse(content, content_type='text/html')
+
+        with open(asset_path, 'rb') as f:
+            content = f.read()
+
+        if asset_path.endswith('.css'):
+            mime_type = 'text/css'
+        elif asset_path.endswith('.js'):
+            mime_type = 'application/javascript'
+        elif asset_path.endswith(('.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico')):
+            mime_type = 'image/' + asset_path.split('.')[-1]
+        elif asset_path.endswith(('.woff', '.woff2')):
+            mime_type = 'font/' + asset_path.split('.')[-1]
+        else:
+            mime_type = 'application/octet-stream'
+        return HttpResponse(content, content_type=mime_type)
+    else:
+        # Fallback to index.html for SPA routing
+        index_path = os.path.join(dist_dir, 'index.html')
+        if os.path.exists(index_path):
+            with open(index_path, 'r', encoding='utf-8') as f:
+                content = inject_garden_auth_session(f.read(), request)
+            return HttpResponse(content, content_type='text/html')
+        return HttpResponse('SPA not found', status=404)
+    # return render(request, "garden/static/svelte test  v1.2/dist/index.html", {
+    return render(request, "garden/static/svelte test v1.2/dist/index.html", {
+        'collectionStr': data["code"]
+        })
     return render(request, "garden/index.html", {
         'collectionStr': data["code"]
         })
@@ -586,8 +630,11 @@ def registerAllImage(request):
         # Step 1: upload all submitted files and get remote URLs
         # collection_group = cform.cleaned_data['collectionGroup']
         collection_group = request.POST.get('collectionGroupName') or request.POST.get('collectionName') or customTitlerequest or 'Default Group'
-        print('Making folder name : ',collection_group)
-        image_urls = get_uploaded_image_urls(files, folder_name=collection_group)
+        # TEMPORARY COMMENTED
+        # TODO
+        # print('Making folder name : ',collection_group)
+        # image_urls = get_uploaded_image_urls(files, folder_name=collection_group)
+        image_urls = ['https://test1','https://test2','https://test2','https://test2','https://test2','https://test2','https://test2'] 
 
         if not image_urls:
             return render(
@@ -634,7 +681,8 @@ def registerAllImage(request):
             collection_form.save_m2m()
             collection_group.collections.add(collection)
             # Always generate QR code, but only handle heading/QR pasting if checked
-            CreateQRCode(
+            from .createQR import CreateQRCode as create_collection_qr
+            create_collection_qr(
                 request,
                 collection,
                 'https://www.upload-apk.com/jGKFBqod1LMjQry',
@@ -865,9 +913,10 @@ def upload_images(request):
 
 
 
-
+import secrets
 def UniqueGenerator(size=6, chars=string.ascii_uppercase + string.digits):
-    return ''.join(random.choice(chars) for _ in range(size))
+    return secrets.token_urlsafe(32)
+    # return ''.join(random.choice(chars) for _ in range(size))
 
 
 # header_img = create_wordart(collectionObj.collectionName)
@@ -1139,7 +1188,7 @@ def CreateQRCode(request, collectionObj, appDownloadLink, customTitle="", includ
         box_size=10,
         border=2,  # default is 4; 2 is ~50% smaller
     )
-    qr_builder.add_data(f'https://www.paratara.com/garden/home/{collectionObj.collectionUniqueID}')
+    qr_builder.add_data(f'https://www.paratara.com/garden/qr/{collectionObj.collectionUniqueID}/')
     qr_builder.make(fit=True)
     qrImage = qr_builder.make_image(fill_color="black", back_color="white")
     response = requests.get(collectionObj.collectionPicture)
