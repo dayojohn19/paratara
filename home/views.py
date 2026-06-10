@@ -2448,6 +2448,10 @@ def fill_tourist_spot_images(request):
 def viaje_v2(request):
     if not request.user.is_authenticated:
         return redirect('userProfile:profile')
+    if request.method == 'GET':
+        return render(request, 'home/viaje_form.html', {
+            'places': Places_v2.objects.order_by('placename'),
+        })
     if request.method == 'POST':
         print(request.POST)
         place = request.POST.get('placenameschedule')
