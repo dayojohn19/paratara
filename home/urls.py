@@ -39,7 +39,9 @@ urlpatterns = [
     path("home/scrape", views.scrappePage, name="scrape"),  # for StandONRUnner.py  
     path("home/surf/", views.surfFacebookPostDirectly, name="surf"),
     path("home/form/", views.viewAllForms, name="homeForm"),
-
+# cleanenv3/bin/python manage.py create_random_viaje_places 10 --username admin
+# cleanenv3/bin/python manage.py create_random_viaje_places 10 --dry-run
+# cleanenv3/bin/python manage.py create_random_viaje_places 10 --seed 1
      path("placeslug/<slug:slug>/", views.checkPlace_v2, name="checkPlaceSlug"),
      path("place/<str:place_slug>/on-visit/", views.place_current_visitors, name="place_current_visitors"),
 #     path("resort/", views.ResortsDetailView.as_view(), name="resort_details"),
