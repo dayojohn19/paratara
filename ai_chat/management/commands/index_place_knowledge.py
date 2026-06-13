@@ -1,4 +1,3 @@
-import logging
 
 from django.core.management.base import BaseCommand, CommandError
 
@@ -6,7 +5,6 @@ from ai_chat.services.discussion_retrieval_service import index_place_knowledge
 from home.models import Places_v2
 
 
-logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):

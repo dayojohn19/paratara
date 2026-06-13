@@ -4,7 +4,6 @@ import os
 from django.utils.text import slugify
 from django.conf import settings
 import json
-import logging
 import time
 from garden.models import Collection, CollectionGroup
 from openai import OpenAI
@@ -14,7 +13,6 @@ from apis.models import Blogs
 from singlepage2.pyhtmlopt import optimize_file
 import re
 client = OpenAI(api_key=settings.GROK_API_KEY, base_url='https://api.x.ai/v1')
-logger = logging.getLogger(__name__)
 
 # USES call htmlwriter then calls generate_blog_object to save the blog in the database, then generates the html page with SEO optimizations, FAQ schema, and article schema for better search engine visibility. The generated HTML is saved in the appropriate folder structure for serving as a static page on the site.
 def generate_blog_object(request, place_name, title, category='Guide', summary='No Summary Provided', text_content=''):
@@ -99,16 +97,13 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
     if blog_searchable_keys_description:
         print(f"Searchable Keys Description: {blog_searchable_keys_description}")
         time.sleep(0.5)
-    logger.info(f"Generating blog page: {title} in {place_name}")
     
     csrf_token = ""
-    if request is None:
-        logger.warning("Request object is None, CSRF token unavailable")
-    else:
+    if request is not None:
         try:
             csrf_token = get_token(request)
-        except Exception as e:
-            logger.error(f"Error obtaining CSRF token: {e}")
+        except Exception:
+            pass
     upload_url = reverse("imageapp:uploadimage")
     subscribe_url = reverse("apis:subscribe_email")
 # def generate_blog_page(place_name, title, body_text, cover_image_url="/static/images/default-cover.jpg", faq_list=None):
@@ -125,13 +120,11 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
     # Create folder if missing
     try:
         os.makedirs(folder_path, exist_ok=True)
-    except OSError as e:
-        logger.error(f"Failed to create folder {folder_path}: {e}")
+    except OSError:
         raise
 
     # The final HTML file location
     file_path = os.path.join(folder_path, f"{title_slug}.html")
-    logger.debug(f"Output file path: {file_path}")
 
     # The canonical full URL on your live site
     canonical_url = f"https://www.paratara.com/pages/blog/{place_slug}/{title_slug}/"
@@ -1276,7 +1269,6 @@ document.addEventListener('click', (ev) => {{
 </body>
 </html>
 """
-    logger.info(f"Blog page generated successfully: {len(html_content)} bytes")
 
 
 
@@ -1313,4 +1305,3 @@ document.addEventListener('click', (ev) => {{
 
 
     return html_content
-

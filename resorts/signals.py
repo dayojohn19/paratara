@@ -4,7 +4,6 @@ from .models import resortItem, resortPackages, Packages
 from home.models import SiargaoEventSchedule
 from django.conf import settings
 from openai import OpenAI
-import logging
 import json
 from datetime import datetime
 import cloudinary
@@ -12,7 +11,6 @@ import cloudinary.uploader
 
 from .date_patterns import expand_every_weekday_in_month
 
-logger = logging.getLogger(__name__)
 _openai_client = None
 
 
@@ -287,7 +285,6 @@ def create_event_on_resort_tour_add(sender, instance, action, pk_set, **kwargs):
                             created_count += 1
                             print(f"✅ Created event '{event.scheduleTitle}' (ID: {event.id}) for {place.placename}")
                             print(f"   📅 Date: {event.exactDate} ({event.monthN}/{event.dateN}/{event.yearN})")
-                        logger.info(f"Created {created_count} events for {sub_data['title']} at {place.placename}")
 
                     except Exception as e:
                         print(f"❌ Error creating event for subpackage '{sub_data['title']}': {e}")
@@ -301,7 +298,6 @@ def create_event_on_resort_tour_add(sender, instance, action, pk_set, **kwargs):
                 print(f"❌ Error creating event for package {package_id}: {e}")
                 import traceback
                 traceback.print_exc()
-                logger.error(f"Error creating event for package {package_id}: {e}")
 
 
 def _create_events_for_subpackage(sub: Packages):
@@ -405,7 +401,6 @@ def _create_events_for_subpackage(sub: Packages):
             created += 1
             print(f"✅ Created promo event '{event.scheduleTitle}' (ID: {event.id}) for {place.placename}")
             print(f"   📅 Date: {event.exactDate} ({event.monthN}/{event.dateN}/{event.yearN})")
-        logger.info(f"Created {created} promo events for {sub.title} at {place.placename}")
 
     except Exception as e:
         print(f"❌ Error creating events for subpackage '{sub}': {e}")
@@ -514,9 +509,8 @@ def delete_events_for_resort(sender, instance: resortItem, **kwargs):
             qs = qs.filter(place=place)
 
         deleted_count, _ = qs.delete()
-        logger.info(f"🗑️ Deleted {deleted_count} events for resort {instance} ({slug_or_name})")
-    except Exception as e:
-        logger.error(f"Error deleting events for resort {instance}: {e}")
+    except Exception:
+        pass
 
 
 # When a promotion (subpackage) is deleted, remove its events from the place
@@ -539,9 +533,8 @@ def delete_events_for_package(sender, instance: Packages, **kwargs):
             qs = qs.filter(place=place)
 
         deleted_count, _ = qs.delete()
-        logger.info(f"🗑️ Deleted {deleted_count} events for package {instance.title} ({deleted_count} removed)")
-    except Exception as e:
-        logger.error(f"Error deleting events for package {instance}: {e}")
+    except Exception:
+        pass
 
 
 # When a promotion (subpackage) is about to be deleted, remove its images from Cloudinary
@@ -581,11 +574,10 @@ def delete_images_for_package(sender, instance: Packages, **kwargs):
                 continue
             try:
                 cloudinary.uploader.destroy(public_id)
-                logger.info(f"🗑️ Deleted Cloudinary asset {public_id} for package {instance.title}")
-            except Exception as cloud_err:
-                logger.warning(f"⚠️ Failed to delete Cloudinary asset {public_id}: {cloud_err}")
+            except Exception:
+                pass
 
         # Clean up sideImagesURLs rows tied to this package
         instance.ImageURL.all().delete()
-    except Exception as e:
-        logger.error(f"Error deleting images for package {instance}: {e}")
+    except Exception:
+        pass

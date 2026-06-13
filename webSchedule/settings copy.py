@@ -105,7 +105,7 @@ LOGGING = {
         # 3. ADD A CATCH-ALL ROOT LOGGER FOR YOUR OWN CODE
         '': {  # An empty string acts as the root logger for your whole project
             'handlers': ['console'],
-            'level': 'DEBUG',  # Set to DEBUG so logger.debug() actually prints
+            'level': 'DEBUG',
             'propagate': True,
         },
     }

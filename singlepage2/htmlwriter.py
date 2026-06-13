@@ -5,7 +5,6 @@ import os
 from django.utils.text import slugify
 from django.conf import settings
 import json
-import logging
 from garden.models import Collection, CollectionGroup
 from openai import OpenAI
 import ast
@@ -16,7 +15,6 @@ import re
 from html import escape
 from bs4 import BeautifulSoup
 client = OpenAI(api_key=settings.GROK_API_KEY, base_url='https://api.x.ai/v1')
-logger = logging.getLogger(__name__)
 BLOG_CATEGORY_VALUES = {choice[0] for choice in Blogs.category_choices}
 DEFAULT_SUMMARY_VALUES = {"", "No Summary Provided", "Discover more about this destination"}
 FAQ_QUESTIONS_BY_CATEGORY = {
@@ -128,7 +126,6 @@ def generate_blog_object(request, place_name, title, category='Guide', summary='
     title_slug = slugify(title)
     plain_text_content = re.sub('<[^<]+?>', '', text_content or '')
     readtime = max(1, len(plain_text_content.split()) // 185) if plain_text_content else 5
-    logger.debug("Blog content word count: %s", len(plain_text_content.split()))
 
     place_blog_list = list(place.blog.all())
     for b in place_blog_list:
@@ -146,9 +143,7 @@ def generate_blog_object(request, place_name, title, category='Guide', summary='
 
             if update_fields:
                 b.save(update_fields=update_fields)
-                logger.info("Updated blog metadata for existing blog: %s", title)
 
-            logger.info("Blog already exists: %s", title)
             return b    
     title = re.sub(r'<a\b[^>]*>(.*?)</a>',r'\1',title,flags=re.IGNORECASE | re.DOTALL)            
     blog_item = Blogs.objects.create(
@@ -162,14 +157,7 @@ def generate_blog_object(request, place_name, title, category='Guide', summary='
     generate_blog_page(request, place_name, title, text_content, category=category)
     place.blog.add(blog_item)
 
-    current_domain = request.build_absolute_uri('/').rstrip('/')
-    place_slug = slugify(getattr(place, 'slug', '') or place.placename)
-    title_slug = slugify(title)
-    blog_context = f"\n\nAvailable Blogs & Articles:\n📝 {title} - URL: {current_domain}/pages/blog/{place_slug}/{title_slug}/\n"
-    logger.info(blog_context)
-
 def generate_blog_page(request, place_name, title, body_text, cover_image_url=None, faq_entries=None, blog_searchable_keys_description=None, category=None):
-    logger.info("Generating blog page: %s", title)
     category = normalize_blog_category(category)
     def _get_image_cover(place_name, title):
         from imageapp.imageuploader import getTitlePhoto
@@ -190,13 +178,9 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
                 messages=[{"role": "user", "content": meta_prompt}],
                 max_tokens=200
             )
-            if hasattr(meta_res, 'usage'):
-                logger.debug("Meta description token usage: %s", meta_res.usage)
             _blog_searchable = meta_res.choices[0].message.content.strip().strip('"')
-            logger.info("Generated SEO meta description")
             return _blog_searchable
-        except Exception as e:
-            logger.exception("Meta description generation failed")
+        except Exception:
             _blog_searchable = f"Things to do {title} in {place_name}: Complete travel guide with directions, top activities, entrance fees, insider tips, and best times to visit for an unforgettable experience."
         
         return _blog_searchable
@@ -212,18 +196,13 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
     # Print FAQ entries and searchable keys with 0.5s delays
     # blog_obj = generate_blog_object(request, place_name, title, category=category, summary=blog_searchable_keys_description or "", text_content=body_text)
 
-    if blog_searchable_keys_description:
-        logger.debug("Searchable keys description: %s", blog_searchable_keys_description)
-    logger.info(f"Generating blog page: {title} in {place_name}")
     
     csrf_token = ""
-    if request is None:
-        logger.warning("Request object is None, CSRF token unavailable")
-    else:
+    if request is not None:
         try:
             csrf_token = get_token(request)
-        except Exception as e:
-            logger.error(f"Error obtaining CSRF token: {e}")
+        except Exception:
+            pass
     upload_url = reverse("imageapp:uploadimage")
     subscribe_url = reverse("apis:subscribe_email")
     blog_edit_save_url = reverse("singlepage2:save_blog_paragraph_file_edit")
@@ -241,13 +220,11 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
     # Create folder if missing
     try:
         os.makedirs(folder_path, exist_ok=True)
-    except OSError as e:
-        logger.error(f"Failed to create folder {folder_path}: {e}")
+    except OSError:
         raise
 
     # The final HTML file location
     file_path = os.path.join(folder_path, f"{title_slug}.html")
-    logger.debug(f"Output file path: {file_path}")
 
     # The canonical full URL on your live site
     canonical_url = f"https://www.paratara.com/pages/blog/{place_slug}/{title_slug}/"
@@ -270,7 +247,6 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
     try:
         faq_entries = []
         faq_questions = FAQ_QUESTIONS_BY_CATEGORY.get(category, FAQ_QUESTIONS_BY_CATEGORY["Guide"])
-        logger.debug("Using %s FAQ questions", category)
 
         faq_prompt = f'''Generate 5 most searched words and FAQs about "{title}" in "{place_name}".
         
@@ -287,27 +263,19 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
             messages=[{"role": "user", "content": faq_prompt}],
             max_tokens=1000
         )
-        if hasattr(res, 'usage'):
-            logger.debug("FAQ generation token usage: %s", res.usage)
         faq_text = res.choices[0].message.content.strip()
     
         # Try to parse as JSON
         faq_entries = ast.literal_eval(faq_text) if faq_text.startswith('[') else []
         
         # Post-process: ensure all @id fields use the canonical URL
-        for idx, entry in enumerate(faq_entries, start=1):
+        for entry in faq_entries:
             if isinstance(entry, dict):
                 entry["@id"] = f"{canonical_url}#{slugify(entry['name'])}"
-                logger.debug("Processed FAQ entry %s: %s", idx, entry['name'])
         
-        logger.info("Generated %s FAQ entries", len(faq_entries))
-    except Exception as e:
-        logger.exception("FAQ generation failed")
+    except Exception:
         faq_entries = []
     
-    if faq_entries:
-        logger.debug("FAQ entries: %s", faq_entries)
-        
     faq_schema = ""
     if faq_entries:
                 faq_schema = f"""
@@ -2206,7 +2174,6 @@ document.addEventListener('click', (ev) => {{
     
 
 
-    logger.info(f"Blog page generated successfully: {len(html_content)} bytes")
 
 
 
@@ -2218,16 +2185,14 @@ document.addEventListener('click', (ev) => {{
 
     blog_slug = slugify(title)
     file_path = os.path.join(folder, f"{blog_slug}.html")
-    logger.info("Saving blog file: %s", file_path)
 
     with open(file_path, "w", encoding="utf-8") as f:
         f.write(html_content)
 
     try:
         optimize_file(file_path)
-        logger.info("Optimized blog file: %s", file_path)
-    except Exception as e:
-        logger.exception("Optimization failed for %s", file_path)  
+    except Exception:
+        pass
 
 
     return html_content

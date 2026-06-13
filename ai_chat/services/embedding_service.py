@@ -1,10 +1,8 @@
-import logging
 import threading
 
 from django.conf import settings
 
 
-logger = logging.getLogger(__name__)
 
 DEFAULT_EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 
@@ -32,11 +30,6 @@ def get_embedding_model():
 
         from sentence_transformers import SentenceTransformer
 
-        logger.info(
-            "Loading discussion embedding model on CPU: %s local_files_only=%s",
-            configured_name,
-            local_files_only,
-        )
         _model = SentenceTransformer(
             configured_name,
             device="cpu",

@@ -1,10 +1,8 @@
-import logging
 import threading
 
 from django.conf import settings
 
 
-logger = logging.getLogger(__name__)
 
 STRICT_LOCAL_PROMPT = """You are a local travel assistant for {place_name}.
 Answer only from the provided context.
@@ -58,7 +56,6 @@ def generate_local_llm_answer(message, place_name, matches):
         return generate_with_ollama(message, place_name, matches)
     if backend == "llama_cpp":
         return generate_with_llama_cpp(message, place_name, matches)
-    logger.warning("Unknown AI_DISCUSSION_BACKEND=%s; using template fallback", backend)
     return ""
 
 

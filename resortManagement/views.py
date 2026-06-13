@@ -24,14 +24,12 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 import base64
 import json
-import logging
 import os
 import re
 from django.forms.models import model_to_dict
 from django.utils.dateparse import parse_datetime
 from django.urls import reverse
 
-logger = logging.getLogger(__name__)
 
 PAYPAL_API_BASE = getattr(settings, 'PAYPAL_API_BASE', 'https://api-m.paypal.com')
 PAYPAL_SUBSCRIPTION_PLAN_ID = os.getenv(
@@ -103,7 +101,6 @@ def _handle_paypal_subscription_event(event_type, resource, payload):
         None,
     )
     if not subscription_id:
-        logger.debug('PayPal event missing subscription identifier, skipping: %s', event_type)
         return False
 
     subscription = ResortSubscription.objects.filter(paypal_subscription_id=subscription_id).first()
@@ -127,7 +124,6 @@ def _handle_paypal_subscription_event(event_type, resource, payload):
     if not subscription:
         target_resort = _resort_from_custom_id(custom_id)
         if not target_resort:
-            logger.info('PayPal event for unknown subscription %s (custom_id=%s)', subscription_id, custom_id)
             return False
         subscription = ResortSubscription.objects.create(
             resort=target_resort,
@@ -182,12 +178,10 @@ def paypal_webhook(request):
     try:
         payload = json.loads(request.body.decode('utf-8')) if request.body else {}
     except json.JSONDecodeError:
-        logger.warning('PayPal webhook received invalid JSON', exc_info=True)
         return JsonResponse({'error': 'invalid payload'}, status=400)
 
     event_type = payload.get('event_type')
     resource = payload.get('resource', {})
-    logger.info('PayPal webhook %s %s', event_type, resource.get('id'))
 
     allowed_events = settings.PAYPAL_WEBHOOK_EVENTS
     if allowed_events and allowed_events.lower() != 'all events':
@@ -342,7 +336,6 @@ def subscription_subscribe(request, resort_id):
     try:
         paypal_result = _create_paypal_subscription(resort, request.user, notes=notes)
     except (ValueError, requests.RequestException) as exc:
-        logger.exception('PayPal subscription initiation failed for resort %s', resort.id)
         return JsonResponse({'message': str(exc)}, status=502)
 
     return JsonResponse({

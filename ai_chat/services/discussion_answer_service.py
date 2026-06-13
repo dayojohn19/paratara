@@ -1,5 +1,4 @@
 import html
-import logging
 import re
 from dataclasses import dataclass
 from difflib import SequenceMatcher
@@ -17,7 +16,6 @@ from ai_chat.services.discussion_retrieval_service import (
 from ai_chat.services.local_llm_service import discussion_backend, generate_local_llm_answer
 
 
-logger = logging.getLogger(__name__)
 
 NOT_ENOUGH_INFORMATION = "I don't have enough local information about that yet."
 
@@ -138,8 +136,7 @@ def check_blog_intent(message, place, request=None):
 
         blogs = Blogs.objects.filter(bloglists=place).distinct()
         blogs = blogs | Blogs.objects.filter(blogplace=place).distinct()
-    except Exception as exc:
-        logger.warning("Blog lookup failed for discussion: %s", exc)
+    except Exception:
         blogs = []
 
     best_blog = None
@@ -272,7 +269,7 @@ def answer_discussion_message(message, place, request=None):
             llm_answer = sanitize_html_fragment(llm_answer)
             if llm_answer:
                 return llm_answer
-        except Exception as exc:
-            logger.warning("Local LLM backend failed; using template fallback: %s", exc)
+        except Exception:
+            pass
 
     return generate_template_answer(message, place, matches)

@@ -1,4 +1,3 @@
-import logging
 import time
 
 from django.http import HttpResponseForbidden, HttpResponseRedirect
@@ -12,7 +11,6 @@ from typing import Optional
 
 from django.conf import settings
 
-logger = logging.getLogger(__name__)
 
 
 """
@@ -35,7 +33,6 @@ class TemplateDoesNotExistRedirectMiddleware:
         try:
             return self.get_response(request)
         except TemplateDoesNotExist:
-            logger.exception("Template does not exist for path %s", request.path)
             if request.path == "/":
                 raise
             return HttpResponseRedirect("/")
@@ -44,7 +41,6 @@ class TemplateDoesNotExistRedirectMiddleware:
         if not isinstance(exception, TemplateDoesNotExist):
             return None
 
-        logger.exception("Template does not exist for path %s", request.path)
         if request.path == "/":
             return None
         return HttpResponseRedirect("/")

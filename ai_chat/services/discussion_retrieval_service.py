@@ -1,6 +1,5 @@
 import hashlib
 import json
-import logging
 import re
 from dataclasses import dataclass, field
 
@@ -14,7 +13,6 @@ from ai_chat.models import PlaceKnowledgeEmbedding
 from ai_chat.services.embedding_service import cosine_similarity, embed_text, embed_texts
 
 
-logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -588,8 +586,7 @@ def retrieve_semantic_context(message, place, top_k=None, min_score=None):
 
     try:
         records = list(PlaceKnowledgeEmbedding.objects.filter(place=place))
-    except (OperationalError, ProgrammingError) as exc:
-        logger.warning("Discussion knowledge table unavailable: %s", exc)
+    except (OperationalError, ProgrammingError):
         return []
 
     if not records:
@@ -616,8 +613,8 @@ def retrieve_discussion_context(message, place, request=None, top_k=None):
     semantic_matches = []
     try:
         semantic_matches = retrieve_semantic_context(message, place, top_k=top_k)
-    except Exception as exc:
-        logger.warning("Semantic discussion retrieval failed: %s", exc)
+    except Exception:
+        pass
 
     deterministic_matches = retrieve_deterministic_context(message, place, request=request, top_k=top_k)
     combined = semantic_matches + deterministic_matches
@@ -683,4 +680,3 @@ def index_place_knowledge(place, request=None, delete_stale=True):
         "skipped": skipped,
         "deleted": deleted,
     }
-

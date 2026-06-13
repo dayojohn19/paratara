@@ -2,7 +2,6 @@
 # https://dayotreep.herokuapp.com/ | https://git.heroku.com/dayotreep.git
 from collections import defaultdict
 import html
-import logging
 from urllib.parse import unquote, urlsplit
 
 from django.utils import timezone
@@ -29,7 +28,6 @@ from .models import PlaceDiscussion, TouristSpot, Visit
 from django import forms
 import threading
 
-logger = logging.getLogger(__name__)
 _EXTERNAL_AI_CLIENT = None
 _DISCUSSION_ANSWER_SERVICE = None
 _PLACE_PHOTO_FETCHER = None
@@ -2300,7 +2298,6 @@ def _discussion_local_view(request, placeID):
         body_text = request.body.decode("utf-8") if request.body else "{}"
         data = json.loads(body_text)
     except (UnicodeDecodeError, json.JSONDecodeError):
-        logger.warning("Invalid discussion JSON for placeID=%s", placeID)
         return JsonResponse({"error": "Invalid JSON body", "response": []}, status=400)
 
     if not isinstance(data, dict):
@@ -2471,7 +2468,7 @@ def _discussion_local_view(request, placeID):
         try:
             ensure_user_profile(request.user)
         except Exception:
-            logger.exception("Failed to synchronize user profile before discussion save")
+            pass
 
     _save_place_discussion(place, safe_user_message, username_to_use)
 
@@ -2481,7 +2478,6 @@ def _discussion_local_view(request, placeID):
     try:
         assistant_message = answer_discussion_message(message_content, place, request=request)
     except Exception:
-        logger.exception("Local discussion answer generation failed")
         assistant_message = "I don't have enough local information about that yet."
 
     if assistant_message:

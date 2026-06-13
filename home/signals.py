@@ -4,10 +4,8 @@ from django.db import transaction
 from django.utils import timezone
 from django.core.management import call_command
 import os
-import logging
 
 
-logger = logging.getLogger(__name__)
 
 
 @receiver(post_save, sender='home.SiargaoEventSchedule')
@@ -147,7 +145,6 @@ def _publish_bulletin_post_to_social(*, post_id: int) -> None:
             CommunityBulletinPost.objects.filter(pk=post_id).update(social_last_error=str(exc)[:2000])
         except Exception:
             pass
-        logger.exception("Community bulletin social post failed (post_id=%s)", post_id)
         return
 
 
