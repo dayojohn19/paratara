@@ -9,6 +9,7 @@ import os
 import time
 import uuid
 import io
+import traceback
 
 try:
     from pillow_heif import register_heif_opener
@@ -43,42 +44,48 @@ def _blur_faces(image):
         import cv2
         import numpy as np
     except ImportError as error:
-        raise ValueError("opencv-python-headless is required to detect and blur faces") from error
-
-    cascade_path = os.path.join(cv2.data.haarcascades, "haarcascade_frontalface_default.xml")
-    face_cascade = cv2.CascadeClassifier(cascade_path)
-    if face_cascade.empty():
-        raise ValueError("OpenCV face detector could not be loaded")
-
-    from PIL import ImageFilter
-
-    rgb_image = image.convert("RGB")
-    cv_image = cv2.cvtColor(np.array(rgb_image), cv2.COLOR_RGB2GRAY)
-    faces = face_cascade.detectMultiScale(
-        cv_image,
-        scaleFactor=1.1,
-        minNeighbors=5,
-        minSize=(30, 30),
-    )
-
-    if len(faces) == 0:
+        print(f"Face blur skipped because OpenCV/Numpy is unavailable: {error}")
         return image
 
-    blurred_image = image.copy()
-    width, height = blurred_image.size
-    for x, y, face_width, face_height in faces:
-        padding_x = int(face_width * 0.18)
-        padding_y = int(face_height * 0.24)
-        left = max(0, x - padding_x)
-        top = max(0, y - padding_y)
-        right = min(width, x + face_width + padding_x)
-        bottom = min(height, y + face_height + padding_y)
-        face_region = blurred_image.crop((left, top, right, bottom))
-        blur_radius = max(12, min(face_width, face_height) // 3)
-        face_region = face_region.filter(ImageFilter.GaussianBlur(radius=blur_radius))
-        blurred_image.paste(face_region, (left, top))
+    try:
+        cascade_path = os.path.join(cv2.data.haarcascades, "haarcascade_frontalface_default.xml")
+        face_cascade = cv2.CascadeClassifier(cascade_path)
+        if face_cascade.empty():
+            print("Face blur skipped because the OpenCV face detector could not be loaded")
+            return image
 
-    return blurred_image
+        from PIL import ImageFilter
+
+        rgb_image = image.convert("RGB")
+        cv_image = cv2.cvtColor(np.array(rgb_image), cv2.COLOR_RGB2GRAY)
+        faces = face_cascade.detectMultiScale(
+            cv_image,
+            scaleFactor=1.1,
+            minNeighbors=5,
+            minSize=(30, 30),
+        )
+
+        if len(faces) == 0:
+            return image
+
+        blurred_image = image.copy()
+        width, height = blurred_image.size
+        for x, y, face_width, face_height in faces:
+            padding_x = int(face_width * 0.18)
+            padding_y = int(face_height * 0.24)
+            left = max(0, int(x) - padding_x)
+            top = max(0, int(y) - padding_y)
+            right = min(width, int(x + face_width) + padding_x)
+            bottom = min(height, int(y + face_height) + padding_y)
+            face_region = blurred_image.crop((left, top, right, bottom))
+            blur_radius = max(12, int(min(face_width, face_height)) // 3)
+            face_region = face_region.filter(ImageFilter.GaussianBlur(radius=blur_radius))
+            blurred_image.paste(face_region, (left, top))
+
+        return blurred_image
+    except Exception as error:
+        print(f"Face blur skipped after detection error: {error}")
+        return image
 
 
 def _save_blog_editor_webp(request):
@@ -192,6 +199,7 @@ def uploadimage(request):
         try:
             saved_image = _save_blog_editor_webp(request)
         except Exception as error:
+            traceback.print_exc()
             return JsonResponse({"status": "error", "error": str(error)}, status=400)
 
         newimage = googleimagemodel.objects.create(
