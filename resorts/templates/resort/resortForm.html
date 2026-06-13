@@ -466,7 +466,7 @@
 
   .amenity-item {
     background: white;
-    padding: 1.25rem;
+
     border-radius: var(--radius-lg);
     border: 2px solid var(--stroke);
     transition: 
@@ -1114,7 +1114,7 @@ html {
           const amenityDiv = document.createElement('div');
           amenityDiv.className = 'amenity-item';
           amenityDiv.innerHTML = `
-            <label style="display: flex; align-items: center; gap: 0.75rem; width: 100%; cursor: pointer; margin: 0;">
+            <label style="display: flex; align-items: center; gap: 0.75rem; width: 100%; cursor: pointer; margin: 0; padding:1.25rem;">
               ${input ? input.outerHTML : ''}
               <span>${field.label}</span>
             </label>

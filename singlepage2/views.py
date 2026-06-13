@@ -8,6 +8,8 @@ from bs4 import BeautifulSoup
 from django.db.models import Q
 from django.utils import timezone
 from django.views.decorators.http import require_POST
+from django.views.decorators.cache import never_cache
+from django.core.cache import cache
 import re
 import os
 import json
@@ -333,6 +335,18 @@ def _get_request_ip(request):
         return None
 
 
+def _clear_blog_page_cache_after_edit():
+    if not getattr(settings, "ENABLE_SITE_CACHE", False):
+        return False
+
+    try:
+        cache.clear()
+        return True
+    except Exception as exc:
+        print(f"Could not clear blog page cache after edit: {exc}")
+        return False
+
+
 def _update_article_schema_modified_date(soup, updated_at):
     date_modified = timezone.localtime(updated_at).date().isoformat()
 
@@ -494,7 +508,6 @@ def save_blog_paragraph_file_edit(request):
     if raw_edited_html is None:
         raw_edited_html = payload.get("edited_text") or ""
     edited_html = _sanitize_blog_edit_html(raw_edited_html).strip()
-    edited_html = _correct_html_text_nodes(edited_html).strip()
     edited_text = _strip_html_tags(edited_html).strip()
 
     try:
@@ -538,6 +551,7 @@ def save_blog_paragraph_file_edit(request):
         )
         blog_updated = True
 
+    cache_cleared = _clear_blog_page_cache_after_edit()
     updated_at_iso, updated_at_display = _format_blog_datetime(edited_at)
     return JsonResponse({
         "ok": True,
@@ -552,6 +566,7 @@ def save_blog_paragraph_file_edit(request):
         "last_updated_ip": edited_ip,
         "file_updated": file_updated,
         "file_path": file_path or "",
+        "cache_cleared": cache_cleared,
     })
 
 
@@ -756,6 +771,7 @@ def blogFunc(request):
 
 
 
+@never_cache
 def blog_html(request, slug,slugSec, slugName=None):    
     if slugName:
         from home.models import TouristSpot

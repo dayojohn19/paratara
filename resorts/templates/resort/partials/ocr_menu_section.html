@@ -94,7 +94,7 @@
         </div>
         
         {% for item in foodPackage.subPackages.all %}
-          <div class="menu-item-row" data-item-id="{{ item.id }}" style="gap:0.75rem;align-items:start;padding:0.5rem;background:white;border-radius:4px;border:1px solid #ddd;margin-bottom:0.5rem;{% if not item.is_available %}opacity:0.55;{% endif %}">
+          <div class="menu-item-row{% if not item.is_available %} is-unavailable{% endif %}" data-item-id="{{ item.id }}">
           <!-- Item Image -->
           {% if item.ImageURL.all %}
           <div style="flex-shrink:0;">
@@ -110,7 +110,7 @@
               <div style="font-weight:600;color:var(--primary);white-space:nowrap;">₱{{ item.price|intcomma }}</div>
               {% endif %}
               {% if managerUser %}
-              <label style="display:flex;align-items:center;gap:0.35rem;font-size:0.8rem;color:var(--muted);white-space:nowrap;">
+              <label class="availability-control" aria-label="Toggle availability for {{ item.title }}">
                 <input
                   type="checkbox"
                   class="availability-toggle"
@@ -129,10 +129,8 @@
           
           <!-- Item Details -->
           <div style="flex:1;">
-            <div class="menu-item-title" style="font-weight:600;font-size:0.95rem;{% if not item.is_available %}text-decoration:line-through;{% endif %}">{{ item.title }}</div>
-            {% if not item.is_available %}
-            <div style="color:var(--muted);font-size:0.8rem;margin-top:0.2rem;">Unavailable</div>
-            {% endif %}
+            <div class="menu-item-title" style="font-weight:600;font-size:0.95rem;">{{ item.title }}</div>
+            <div class="menu-item-status">Unavailable</div>
             {% if item.description %}
             <div style="color:var(--muted);font-size:0.85rem;margin-top:0.25rem;">{{ item.description }}</div>
             {% endif %}
@@ -238,8 +236,8 @@
         }
 
         if (label) label.textContent = data.is_available ? 'Available' : 'Unavailable';
-        if (row) row.style.opacity = data.is_available ? '' : '0.55';
-        if (title) title.style.textDecoration = data.is_available ? '' : 'line-through';
+        if (row) row.classList.toggle('is-unavailable', !data.is_available);
+        if (title) title.style.textDecoration = '';
       } catch (err) {
         checkbox.checked = !previousChecked;
         alert('❌ ' + err.message);

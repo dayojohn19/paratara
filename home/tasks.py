@@ -9,6 +9,7 @@ from django.utils.text import slugify
 
 from .models import TouristSpot, Places_v2
 
+from singlepage2.blog_prompt import build_blog_prompt
 from singlepage2.htmlwriter import generate_blog_object
 
 
@@ -18,10 +19,144 @@ client = OpenAI(api_key=settings.GROK_API_KEY, base_url='https://api.x.ai/v1')
 
 
 BLOG_CATEGORIES = {"Guide", "Story", "Tip and Trick", "Explore", "Product"}
+BLOG_CATEGORY_ALIASES = {
+    "guide": "Guide",
+    "travel guide": "Guide",
+    "local guide": "Guide",
+    "story": "Story",
+    "personal story": "Story",
+    "experience": "Story",
+    "tip": "Tip and Trick",
+    "tips": "Tip and Trick",
+    "tips and tricks": "Tip and Trick",
+    "tip and tricks": "Tip and Trick",
+    "tip & trick": "Tip and Trick",
+    "tip & tricks": "Tip and Trick",
+    "how to": "Tip and Trick",
+    "explore": "Explore",
+    "things to do": "Explore",
+    "activity": "Explore",
+    "activities": "Explore",
+    "event": "Explore",
+    "events": "Explore",
+    "product": "Product",
+    "product review": "Product",
+    "buying guide": "Product",
+    "shopping": "Product",
+    "promotion": "Product",
+}
+TITLE_LABELS = ("Title", "Blog Title", "blog_title")
+CATEGORY_LABELS = ("Category", "Blog Category", "blog_category", "BlogCategory")
+SUMMARY_LABELS = ("Summary", "Blog Summary", "blog_summary", "BlogSummary", "Summarize", "Description")
 
 
 def _strip_anchor_tags(value):
     return re.sub(r'<a\b[^>]*>(.*?)</a>', r'\1', str(value or ''), flags=re.IGNORECASE | re.DOTALL).strip()
+
+
+def _plain_text(value):
+    value = _strip_anchor_tags(value)
+    value = re.sub(r'<[^>]+>', ' ', value)
+    return re.sub(r'\s+', ' ', value).strip()
+
+
+def _clean_metadata_value(value):
+    value = _plain_text(value)
+    value = re.sub(r'^\s*(?:[-*#>]+|\d+[.)])\s*', '', value)
+    value = value.strip().strip("'\"`").strip()
+    value = re.sub(r'^\*+', '', value)
+    value = re.sub(r'\*+$', '', value)
+    return value.strip()
+
+
+def _label_pattern(labels):
+    return "|".join(re.escape(label) for label in labels)
+
+
+def _extract_labeled_value(text, labels):
+    if not text:
+        return ""
+
+    label_pattern = _label_pattern(labels)
+    patterns = (
+        rf'(?im)^\s*(?:[-*]\s*)?(?:\*\*)?\s*(?:{label_pattern})\s*(?:\*\*)?\s*[:\-]\s*(.+?)\s*$',
+        rf'(?is)<(?:p|span|li)[^>]*>\s*(?:<(?:strong|b)[^>]*>)?\s*(?:{label_pattern})\s*:?\s*(?:</(?:strong|b)>)?\s*(.*?)\s*</(?:p|span|li)>',
+    )
+    for pattern in patterns:
+        match = re.search(pattern, text)
+        if match:
+            return _clean_metadata_value(match.group(1))
+    return ""
+
+
+def _normalized_key(value):
+    return re.sub(r'[^a-z0-9]+', ' ', str(value or '').lower()).strip()
+
+
+def _infer_blog_category(value):
+    source = _normalized_key(value)
+    if not source:
+        return "Guide"
+
+    for alias, category in BLOG_CATEGORY_ALIASES.items():
+        if source == _normalized_key(alias):
+            return category
+
+    keyword_groups = (
+        ("Product", r'\b(product|buy|buyer|buying|shop|shopping|review|price|promo|promotion|brand|store)\b'),
+        ("Story", r'\b(story|experience|journey|memory|personal)\b'),
+        ("Tip and Trick", r'\b(tip|tips|trick|tricks|how to|checklist|advice|avoid|budget|cost)\b'),
+        ("Explore", r'\b(explore|things to do|activity|activities|attraction|event|events|festival|where to go)\b'),
+    )
+    for category, pattern in keyword_groups:
+        if re.search(pattern, source):
+            return category
+
+    return "Guide"
+
+
+def _normalize_blog_category(value, fallback_text=""):
+    cleaned_value = _clean_metadata_value(value)
+    if cleaned_value in BLOG_CATEGORIES:
+        return cleaned_value
+
+    normalized_value = _normalized_key(cleaned_value)
+    for alias, category in BLOG_CATEGORY_ALIASES.items():
+        alias_key = _normalized_key(alias)
+        if normalized_value == alias_key or alias_key in normalized_value:
+            return category
+
+    return _infer_blog_category(f"{cleaned_value} {fallback_text}")
+
+
+def _fallback_blog_summary(title, place_name, blog_content="", category="Guide"):
+    plain_content = _plain_text(blog_content)
+    if plain_content:
+        sentences = re.split(r'(?<=[.!?])\s+', plain_content)
+        for sentence in sentences:
+            sentence = _clean_metadata_value(sentence)
+            if sentence and not sentence.lower().startswith(("title:", "category:", "summary:")):
+                return sentence[:400]
+
+    title = _clean_metadata_value(title) or "this topic"
+    place_name = _clean_metadata_value(place_name) or "this place"
+    fallback_by_category = {
+        "Product": f"Practical product guide for {title}, with useful local context for {place_name}.",
+        "Story": f"A local story about {title} in {place_name}.",
+        "Tip and Trick": f"Useful tips for {title} in {place_name}.",
+        "Explore": f"Explore {title} in {place_name} with practical local tips.",
+        "Guide": f"Helpful guide to {title} in {place_name}.",
+    }
+    return fallback_by_category.get(category, fallback_by_category["Guide"])[:400]
+
+
+def _remove_labeled_metadata_lines(text):
+    label_pattern = _label_pattern(TITLE_LABELS + CATEGORY_LABELS + SUMMARY_LABELS)
+    return re.sub(
+        rf'(?im)^\s*(?:[-*]\s*)?(?:\*\*)?\s*(?:{label_pattern})\s*(?:\*\*)?\s*[:\-]\s*.+?\s*$',
+        '',
+        text or '',
+    ).strip()
 
 
 def _get_place_slug(place):
@@ -44,35 +179,36 @@ def _get_list_value(data, key):
 
 def _parse_blog_response(full_response, fallback_title, place_name):
     full_response = (full_response or '').strip()
-    parts = re.split(r'\n\s*\n', full_response, maxsplit=1)
+    full_response = re.sub(r'^\s*```(?:html)?\s*', '', full_response, flags=re.IGNORECASE)
+    full_response = re.sub(r'\s*```\s*$', '', full_response).strip()
 
-    raw_title = parts[0].strip() if parts else ''
-    blog_title = re.sub(r'^Title:\s*', '', raw_title, flags=re.IGNORECASE).strip().strip('"')
+    blog_title = _extract_labeled_value(full_response, TITLE_LABELS)
     if not blog_title or blog_title.lower().startswith('<article'):
         blog_title = fallback_title
     blog_title = _strip_anchor_tags(blog_title) or fallback_title
 
-    category_match = re.search(r'^Category:\s*([^\n]+)', full_response, flags=re.IGNORECASE | re.MULTILINE)
-    blog_category = category_match.group(1).strip().strip("'\"") if category_match else "Guide"
-    if blog_category not in BLOG_CATEGORIES:
-        blog_category = "Guide"
+    raw_category = _extract_labeled_value(full_response, CATEGORY_LABELS)
+    blog_category = _normalize_blog_category(raw_category, fallback_text=f"{fallback_title} {full_response[:1000]}")
 
-    summary_match = re.search(r'^Summary:\s*([^\n]+)', full_response, flags=re.IGNORECASE | re.MULTILINE)
-    blog_summary = summary_match.group(1).strip() if summary_match else f"Guide/How {fallback_title} in {place_name}"
-    blog_summary = _strip_anchor_tags(blog_summary)
+    article_match = re.search(r'<article\b.*?</article>', full_response, flags=re.IGNORECASE | re.DOTALL)
+    if article_match:
+        blog_content = article_match.group(0).strip()
+    else:
+        blog_content = _remove_labeled_metadata_lines(full_response)
+
+    blog_summary = _extract_labeled_value(full_response, SUMMARY_LABELS)
+    blog_summary = _clean_metadata_value(blog_summary)
     if blog_summary.lower().startswith('summary:'):
         blog_summary = blog_summary[8:].strip()
+    if not blog_summary:
+        blog_summary = _fallback_blog_summary(fallback_title, place_name, blog_content, blog_category)
 
-    blog_content = parts[1] if len(parts) > 1 else full_response
     try:
         if blog_content:
             print('Blog Full response :', full_response[:1000])
             print()
-            print(parts[1] if len(parts) > 1 else 'No content section found in response')
+            print(blog_content[:1000])
             print()            
-            print("   ⚠️ No content found after splitting, using full response as content")
-            print("   ⚠️ No content found after splitting, using full response as content")
-            print("   ⚠️ No content found after splitting, using full response as content")
             print('Blog content before cleaning:', blog_content[:1000])
     except Exception as e:
         pass
@@ -80,6 +216,8 @@ def _parse_blog_response(full_response, fallback_title, place_name):
     blog_content = re.sub(r'^\s*Title:\s*[^\n]+\n+', '', blog_content, flags=re.IGNORECASE).strip()
     for _ in range(2):
         blog_content = re.sub(r'\s*(Category|Summary):\s*[^\n]+\s*$', '', blog_content, flags=re.IGNORECASE).strip()
+    if not blog_content and full_response:
+        blog_content = full_response
 
     return blog_title, blog_content, blog_category, blog_summary[:400]
 
@@ -138,8 +276,9 @@ def process_creating_blog(request, for_place,blog__title=None,to_title=None,crea
                 blog__title = to_title
         print(f"\n[3/5] 📰 Generating blog content...")
         blog_title = str(blog__title or '').strip() or f"Blog in {place_name}"
-        blog_category = "Guide"
-        blog_summary = f"Travel {blog_title} in {place_name}"
+        fallback_metadata_source = f"{blog_title} {to_title or ''} {link_promotion_present or ''}"
+        blog_category = _infer_blog_category(fallback_metadata_source)
+        blog_summary = _fallback_blog_summary(blog_title, place_name, category=blog_category)
         blog_content = ""
         try:
             print(f"Generating blog for {blog__title} in {place_name}...")
@@ -150,76 +289,11 @@ def process_creating_blog(request, for_place,blog__title=None,to_title=None,crea
                 else "No promotional URL was provided."
             )
 
-            blog_prompt = f'''Create a polished, engaging blog post from this user topic/request:
-"{blog__title}"
-
-Local context/place: "{place_name}"
-Promotion/link instruction: {promotion_instruction}
-
-IMPORTANT INTENT RULES:
-- First understand the real intent of the topic/request. It may be travel, a product promotion, a general lifestyle topic, a local guide, an event, a story, a tip article, or something else.
-- Do NOT force every article to be a tourist travel guide.
-- If the topic is travel, attractions, restaurants, resorts, activities, events, or visiting "{place_name}", write a useful travel/local guide.
-- If the topic promotes a product or includes a promotional URL, write an editorial blog that connects "{place_name}" to the product naturally. For example, show how the product helps with a local activity, trip, lifestyle, climate, family outing, commute, resort stay, beach day, pool day, or everyday need. Mention the product with helpful context, not as spam.
-- If the topic is not travel-related, write about the requested subject directly and use "{place_name}" only as a relevant local angle, example, audience context, or setting.
-- If the request text includes words like "create a blog about", "write about", or similar instructions, ignore those command words and focus on the actual subject.
-- Never invent specific breaking news, official rules, festival dates, prices, or safety alerts. If exact current details are uncertain, say readers should verify official/local sources before going or buying.
-
-RESPONSE FORMAT (EXACTLY):
-Title: [Catchy title, max 60 chars]
-
-[HTML content below]
-
-REQUIREMENTS:
-- HTML only (no markdown)
-- Use CSS classes: blog-post, intro-section, content-section, highlight-box, tip-box, mindset-box, cta-section
-- Include emojis in all h2 headings
-- Match the audience to the intent: tourists for travel topics, local readers for local/lifestyle topics, shoppers for product topics, and general readers for broad topics
-- Be specific, practical, warm, and premium in tone
-- Include estimated costs, comparisons, practical tips, activities, use cases, or buying considerations only when relevant to the topic
-- If a URL was provided, include the exact link HTML from the promotion/link instruction once, with natural context
-- Avoid keyword stuffing and hard-sell language
-
-CONTENT STRUCTURE (must include ALL sections, but adapt headings/content to the intent):
-
-EXTRACT AT END:
-Category: [Choose ONE based on intent: 'Guide', 'Story', 'Tip and Trick', 'Explore', 'Product']
-Summary: [One-line summary for preview, max 140 chars]
-
-HTML TEMPLATE EXAMPLE:
-<article class="blog-post">
-  <div class="intro-section">
-    <h1 class="white-color">🎯 [Emoji + Title]</h1>
-    <p>[Intro Section (150 words max) - Hook the reader with a relevant story or situation]</p>
-  </div>
-  <div class="content-section">
-    <h2>🧭 [What Makes It Worth personal Experience]</h2>
-    <p>[How To Experience / Use / Choose It - Practical next steps, directions, usage tips, or buying advice]</p>
-  </div>  
-  <div class="content-section">
-    <h2>✨ [Feature Title]</h2>
-    <p>[Best Uses / Things To Do / Key Benefits - Choose the label that fits the topic]</p>
-    <div class="highlight-box">
-      <h3>Known for:</h3>
-      <ul><li>✅ Item 1</li><li>✅ Item 2</li></ul>
-    </div>
-  </div>
-  [Practical Breakdown - Costs, budget, time, features, comparisons, or planning details when relevant, how to get there, or how to use/buy]
-  <div class="tip-box">
-  [Safety, Updates & Smart Tips - Safety, maintenance, local cautions, verification advice, or current-year considerations without inventing facts]
-    <p><strong>💡 Pro Tips:</strong></p>
-    <ul><li>Tip 1</li><li>Tip 2</li></ul>
-  </div>
-  <div class="mindset-box">
-    <h1>⚠️ Safety & Updates</h1>
-    <p>[Safety information and current local news]</p>
-  </div>
-  <div class="cta-section">
-    <h1>🚀 Ready to Visit?</h1>
-    <p>[Call to Action - Strong closing statement that fits the topic ]</p>
-  </div>
-</article>
-'''
+            blog_prompt = build_blog_prompt(
+                blog_title=blog__title,
+                place_name=place_name,
+                promotion_instruction=promotion_instruction,
+            )
 
             res = client.chat.completions.create(
                 model=settings.GROK_MODEL_NAME,

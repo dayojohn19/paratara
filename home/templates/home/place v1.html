@@ -23,393 +23,6 @@
 {% include "home/placeJS.html" %}
 
 <script>
-  (function () {
-    function runWhenReady(callback) {
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', callback, { once: true });
-      } else {
-        callback();
-      }
-    }
-
-    function runWhenIdle(callback) {
-      if ('requestIdleCallback' in window) {
-        window.requestIdleCallback(callback, { timeout: 1500 });
-      } else {
-        window.setTimeout(callback, 150);
-      }
-    }
-
-    function runWhenVisible(target, callback, options) {
-      let hasRun = false;
-      const run = function () {
-        if (hasRun) return;
-        hasRun = true;
-        callback();
-      };
-
-      if (!target) {
-        runWhenIdle(run);
-        return;
-      }
-
-      if ('IntersectionObserver' in window) {
-        const observer = new IntersectionObserver(function (entries) {
-          if (entries.some(function (entry) { return entry.isIntersecting; })) {
-            observer.disconnect();
-            run();
-          }
-        }, Object.assign({ rootMargin: '300px 0px', threshold: 0.01 }, options || {}));
-        observer.observe(target);
-      } else {
-        runWhenIdle(run);
-      }
-    }
-
-    function cssUrl(url) {
-      return 'url("' + String(url).replace(/["\\]/g, '\\$&') + '")';
-    }
-
-    window.placePageReady = runWhenReady;
-    window.placeIdle = runWhenIdle;
-    window.placeWhenVisible = runWhenVisible;
-    window.placeLazyBackground = function (element, url) {
-      if (!element || !url) return;
-      runWhenVisible(element, function () {
-        element.style.backgroundImage = cssUrl(url);
-      });
-    };
-    window.placeLazyImageAttrs = ' loading="lazy" decoding="async"';
-    window.ensurePlaceSubCardStyles = function () {
-      if (document.getElementById('sub-card-style')) return;
-
-      const style = document.createElement('style');
-      style.id = 'sub-card-style';
-      style.textContent = `
-        .sub-card-grid {
-          display: flex;
-          flex-wrap: wrap;
-          gap:0.2rem;
-          margin: 1.2rem 0 0 0;
-        }
-        .sub-card {
-          background: #fff;
-          overflow: hidden;
-          width: 220px;
-          display: flex;
-          flex-direction: column;
-          align-items: stretch;
-        }
-        button.sub-card,
-        .place-item-card {
-          border: 0;
-          padding: 0;
-          color: inherit;
-          cursor: pointer;
-          font: inherit;
-          text-align: left;
-        }
-        .place-item-card:focus-visible {
-          outline: 2px solid #667eea;
-          outline-offset: 2px;
-        }
-        .activity-group {
-          margin-bottom: 1.35rem;
-        }
-        .activity-group__title {
-          color: #222;
-          font-size: 1.05rem;
-          font-weight: 700;
-          line-height: 1.35;
-          margin: 0;
-        }
-        .sub-card-img {
-          width: 100%;
-          height: 200px;
-          object-fit: cover;
-          display: block;
-        }
-        .sub-card-body {
-          padding: 0.8rem 1rem 1.1rem 1rem;
-          flex: 1 1 auto;
-          display: flex;
-          flex-direction: column;
-          justify-content: flex-start;
-          align-items: flex-start;
-        }
-        .sub-card-title {
-          font-size: 0.92rem;
-          font-weight: 650;
-          line-height: 1.35;
-          margin-bottom: 0.35rem;
-          color: #222;
-        }
-        .sub-card-price {
-          font-size: 0.88rem;
-          line-height: 1.35;
-          color: #667eea;
-          font-weight: 650;
-        }
-        @media (max-width: 600px) {
-          .sub-card {
-            width: calc(50% - 0.1rem);
-          }
-          .sub-card-img {
-            height: 120px;
-          }
-        }
-      `;
-      document.head.appendChild(style);
-    };
-
-    const htmlEscapeMap = {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;',
-    };
-    const itemModalState = {
-      images: [],
-      index: 0,
-      item: null,
-    };
-    const itemDetails = [];
-
-    function firstValue() {
-      for (let i = 0; i < arguments.length; i += 1) {
-        const value = arguments[i];
-        if (value !== undefined && value !== null && String(value).trim() !== '') {
-          return value;
-        }
-      }
-      return '';
-    }
-
-    function escapeHtml(value) {
-      return String(value || '').replace(/[&<>"']/g, function (char) {
-        return htmlEscapeMap[char];
-      });
-    }
-
-    function normalizeImages(value) {
-      if (Array.isArray(value)) {
-        return value
-          .map(function (item) {
-            if (typeof item === 'string') return item;
-            return item && (item.urlField || item.url || item.imageURL || item.src || '');
-          })
-          .filter(function (url) { return Boolean(url); });
-      }
-      if (typeof value === 'string' && value.trim() !== '') return [value];
-      return [];
-    }
-
-    function normalizeItem(rawItem, fallbackTitle) {
-      const item = rawItem || {};
-      let images = normalizeImages(item.images);
-      if (!images.length) images = normalizeImages(item.package_image);
-      if (!images.length) images = normalizeImages(item.imageURL);
-      if (!images.length) images = normalizeImages(item.resort_Gallery);
-      return Object.assign({}, item, {
-        title: firstValue(
-          item.title,
-          item.package_title,
-          item.package_name,
-          item.PackageTitle,
-          item.name,
-          fallbackTitle,
-          'Item'
-        ),
-        description: firstValue(item.description, item.package_description),
-        information: firstValue(item.information, item.package_information),
-        price: firstValue(item.price, item.package_price),
-        images: images,
-        resortLink: firstValue(item.resortLink, item.resortURL, item.resort_websiteURL),
-        resortName: firstValue(item.resortName, item.resort_RealName, item.resort_name),
-        websiteURL: firstValue(item.websiteURL, item.website, item.package_website),
-      });
-    }
-
-    function formatPrice(value, emptyLabel) {
-      const label = emptyLabel === undefined ? 'Price not listed' : emptyLabel;
-      if (value === undefined || value === null || String(value).trim() === '' || String(value) === '0') {
-        return label;
-      }
-      const numberValue = Number(value);
-      if (Number.isFinite(numberValue)) {
-        return '₱' + numberValue.toLocaleString();
-      }
-      const textValue = String(value).trim();
-      return textValue.indexOf('₱') === 0 ? textValue : '₱' + textValue;
-    }
-
-    function setText(id, value) {
-      const element = document.getElementById(id);
-      if (element) element.textContent = value || '';
-      return element;
-    }
-
-    function setItemModalImage(nextIndex) {
-      const image = document.getElementById('placeItemModalImage');
-      const empty = document.getElementById('placeItemModalEmpty');
-      const counter = document.getElementById('placeItemModalCounter');
-      const prev = document.getElementById('placeItemPrev');
-      const next = document.getElementById('placeItemNext');
-      const images = itemModalState.images || [];
-      if (!image || !empty) return;
-
-      if (!images.length) {
-        image.removeAttribute('src');
-        image.style.display = 'none';
-        empty.style.display = 'flex';
-        if (counter) counter.textContent = '0 / 0';
-        if (prev) prev.hidden = true;
-        if (next) next.hidden = true;
-        return;
-      }
-
-      itemModalState.index = (nextIndex + images.length) % images.length;
-      image.src = images[itemModalState.index];
-      image.alt = itemModalState.item ? itemModalState.item.title : 'Item photo';
-      image.style.display = 'block';
-      empty.style.display = 'none';
-      if (counter) counter.textContent = (itemModalState.index + 1) + ' / ' + images.length;
-      if (prev) prev.hidden = images.length <= 1;
-      if (next) next.hidden = images.length <= 1;
-    }
-
-    window.placeItemModalState = itemModalState;
-    window.placeItemDetails = itemDetails;
-    window.placeEscapeHtml = escapeHtml;
-    window.placeNormalizeImages = normalizeImages;
-    window.placeFormatPrice = formatPrice;
-    window.placePageSize = 10;
-    window.placeGetPaginatedResults = function (payload, legacyNestedKey) {
-      if (payload && Array.isArray(payload.results)) return payload.results;
-      const rows = [];
-      (Array.isArray(payload) ? payload : []).forEach(function (item) {
-        if (item && legacyNestedKey && Array.isArray(item[legacyNestedKey])) {
-          rows.push.apply(rows, item[legacyNestedKey]);
-        } else if (item) {
-          rows.push(item);
-        }
-      });
-      return rows;
-    };
-    window.placeSetLoadMoreButton = function (containerId, hasNext, isLoading, onClick) {
-      const container = document.getElementById(containerId);
-      if (!container) return;
-      if (!hasNext && !isLoading) {
-        container.innerHTML = '';
-        container.hidden = true;
-        return;
-      }
-      container.hidden = false;
-      container.innerHTML = '<button type="button" class="button button--ghost place-load-more-btn">' + (isLoading ? 'Loading...' : 'Load more') + '</button>';
-      const button = container.querySelector('button');
-      if (!button) return;
-      button.disabled = !!isLoading;
-      if (!isLoading) button.addEventListener('click', onClick);
-    };
-    window.registerPlaceItemDetail = function (rawItem, fallbackTitle) {
-      const item = normalizeItem(rawItem, fallbackTitle);
-      itemDetails.push(item);
-      return itemDetails.length - 1;
-    };
-    window.placeBuildItemCard = function (rawItem, fallbackTitle) {
-      const item = normalizeItem(rawItem, fallbackTitle);
-      const index = window.registerPlaceItemDetail(item, fallbackTitle);
-      const imageSrc = item.images[0] || '';
-      const imageTag = imageSrc
-        ? `<img src="${escapeHtml(imageSrc)}" alt="${escapeHtml(item.title)}" class="sub-card-img"${window.placeLazyImageAttrs || ''} />`
-        : '';
-      return `
-        <button type="button" class="sub-card place-item-card js-place-item-card" data-place-item-index="${index}" aria-label="View ${escapeHtml(item.title)}">
-          ${imageTag}
-          <span class="sub-card-body">
-            <span class="sub-card-title">${escapeHtml(item.title)}</span>
-            <span class="sub-card-price">${escapeHtml(formatPrice(item.price))}</span>
-          </span>
-        </button>
-      `;
-    };
-    window.openPlaceItemModal = function (itemOrIndex) {
-      const modal = document.getElementById('placeItemDetailsModal');
-      if (!modal) return;
-      const item = typeof itemOrIndex === 'number'
-        ? itemDetails[itemOrIndex]
-        : normalizeItem(itemOrIndex || {});
-      if (!item) return;
-
-      itemModalState.item = item;
-      itemModalState.images = item.images || [];
-      itemModalState.index = 0;
-
-      setText('placeItemModalTitle', item.title);
-      setText('placeItemModalResort', item.resortName);
-      setText('placeItemModalPrice', formatPrice(item.price));
-      const description = [item.description, item.information].filter(Boolean).join('\n\n');
-      const descriptionElement = setText('placeItemModalDescription', description);
-      if (descriptionElement) {
-        descriptionElement.hidden = !description;
-      }
-
-      const link = document.getElementById('placeItemModalLink');
-      const linkUrl = item.resortLink || item.websiteURL || '';
-      if (link && linkUrl) {
-        link.href = linkUrl;
-        link.textContent = item.resortLink ? 'View Resort' : 'Open Link';
-        link.hidden = false;
-      } else if (link) {
-        link.hidden = true;
-        link.removeAttribute('href');
-      }
-
-      setItemModalImage(0);
-      modal.classList.add('is-open');
-      modal.setAttribute('aria-hidden', 'false');
-      document.body.style.overflow = 'hidden';
-    };
-    window.closePlaceItemModal = function () {
-      const modal = document.getElementById('placeItemDetailsModal');
-      const image = document.getElementById('placeItemModalImage');
-      if (image) image.removeAttribute('src');
-      if (modal) {
-        modal.classList.remove('is-open');
-        modal.setAttribute('aria-hidden', 'true');
-      }
-      document.body.style.overflow = '';
-    };
-    window.shiftPlaceItemModalImage = function (direction) {
-      setItemModalImage(itemModalState.index + direction);
-    };
-
-    runWhenReady(function () {
-      const closeButton = document.getElementById('placeItemClose');
-      const prevButton = document.getElementById('placeItemPrev');
-      const nextButton = document.getElementById('placeItemNext');
-      if (closeButton) closeButton.addEventListener('click', window.closePlaceItemModal);
-      if (prevButton) prevButton.addEventListener('click', function () { window.shiftPlaceItemModalImage(-1); });
-      if (nextButton) nextButton.addEventListener('click', function () { window.shiftPlaceItemModalImage(1); });
-
-      document.addEventListener('click', function (event) {
-        const card = event.target && event.target.closest ? event.target.closest('.js-place-item-card') : null;
-        if (!card) return;
-        const index = Number(card.getAttribute('data-place-item-index'));
-        if (Number.isFinite(index)) window.openPlaceItemModal(index);
-      });
-
-      document.addEventListener('keydown', function (event) {
-        const modal = document.getElementById('placeItemDetailsModal');
-        if (!modal || !modal.classList.contains('is-open')) return;
-        if (event.key === 'Escape') window.closePlaceItemModal();
-        if (event.key === 'ArrowLeft') window.shiftPlaceItemModalImage(-1);
-        if (event.key === 'ArrowRight') window.shiftPlaceItemModalImage(1);
-      });
-    });
-  }());
-
   function openBulletinImageModal(imageUrl) {
     const modal = document.getElementById('bulletinImageModal');
     const imageElement = document.getElementById('bulletinModalImage');
@@ -439,7 +52,7 @@
     openBulletinImageModal(imageUrl);
   });
 
-  window.placePageReady(function() {
+  document.addEventListener('DOMContentLoaded', function() {
     const button = document.getElementById('bulletinPostButton');
     const form = document.getElementById('bulletinPostForm');
     if (!button || !form) return;
@@ -450,7 +63,7 @@
     });
   });
 
-  window.placePageReady(function () {
+  document.addEventListener('DOMContentLoaded', function () {
     const navToggle = document.getElementById('placeNavToggle');
     const navMenu = document.getElementById('placeNavMenu');
     if (!navToggle || !navMenu) return;
@@ -503,35 +116,20 @@
 
     --border: #d8d2c3;
 
-    --shadow-sm: none;
-    --shadow-md: none;
+    --shadow-sm: 0 6px 18px rgba(56, 70, 31, 0.08);
+    --shadow-md: 0 12px 34px rgba(56, 70, 31, 0.12);
     --radius-lg: 0px;
     --radius-md: 0px;
     --radius-sm: 0px;
-    --transition: 0s linear;
-    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Helvetica Neue", Arial, sans-serif;
-    --font-size-base: 16px;
-    --line-height-base: 1.58;
+    --transition: 0.2s ease;
   }
 
 
   body {
-    font-family: var(--font-sans);
-    font-size: var(--font-size-base);
-    line-height: var(--line-height-base);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", sans-serif;
     color: var(--text);
     min-height: 100vh;
     margin: 0;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-  }
-
-  input,
-  select,
-  textarea,
-  button {
-    font: inherit;
-    line-height: 1.35;
   }
 
 
@@ -555,7 +153,7 @@
   .hero__icon {
     width: 60px;
     height: 60px;
-    background: var(--accent);
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -576,15 +174,17 @@
 
   .hero__heading {
     font-size: clamp(1.9rem, 4vw, 2.6rem);
-    font-weight: 750;
-    color: var(--accent);
-    line-height: 1.12;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.05;
   }
 
   .hero__subtitle {
     color: var(--text-muted);
-    font-size: 1rem;
-    line-height: 1.5;
+    font-size: 0.95rem;
   }
 
   .hero__actions {
@@ -613,13 +213,14 @@
   .ask-input:focus {
     outline: none;
     border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
   }
 
   .ask-send-btn {
     padding: 0.6rem;
     border-radius: var(--radius-sm);
     border: none;
-    background: var(--accent);
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
     color: #ffffff;
     cursor: pointer;
     display: flex;
@@ -638,8 +239,8 @@
     padding: 0.7rem 1.3rem;
     border-radius: var(--radius-sm);
     border: 1px solid transparent;
-    font-weight: 650;
-    font-size: 0.98rem;
+    font-weight: 600;
+    font-size: 0.95rem;
     background: transparent;
     color: var(--text);
     cursor: pointer;
@@ -653,7 +254,7 @@
   }
 
   .button--primary {
-    background: var(--accent);
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
     color: #ffffff;
   }
 
@@ -663,6 +264,11 @@
     
     border-color: var(--border);
     color: var(--accent);
+  }
+
+  .button--ghost:hover {
+    background: #edf2ff;
+    border-color: #c3d1ff;
   }
 
   .primary-grid {
@@ -704,16 +310,14 @@
   }
 
   .section-header h2 {
-    font-size: clamp(1.45rem, 3vw, 1.9rem);
+    font-size: clamp(1.35rem, 3vw, 1.8rem);
     font-weight: 700;
-    line-height: 1.25;
     color: rgba(167, 163, 100, 0.84);
   }
 
   .section-header p {
     color: var(--text-muted);
-    font-size: 1rem;
-    line-height: 1.55;
+    font-size: 0.95rem;
   }
 
   #calendar-container {
@@ -730,14 +334,13 @@
   #calendar-container td {
     padding: 14px;
     text-align: center;
-    font-size: 0.95rem;
-    line-height: 1.35;
+    font-size: 0.9rem;
   }
 
   #calendar-container th {
     background: #eef2ff;
     color: var(--accent);
-    letter-spacing: 0.03em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     font-weight: 700;
   }
@@ -748,6 +351,12 @@
     color: #4a5568;
     cursor: pointer;
     transition: background var(--transition), color var(--transition), transform var(--transition);
+  }
+
+  #calendar-container td:hover {
+    background: #f3f6ff;
+    color: var(--accent);
+    transform: translateY(-2px);
   }
 
   .calendar-header {
@@ -763,9 +372,8 @@
   .calendar-header h2 {
     font-size: 1.35rem;
     color: var(--text);
-    font-weight: 650;
-    letter-spacing: 0;
-    line-height: 1.25;
+    font-weight: 400;
+    letter-spacing: 1.2px;
   }
 
   .nav-buttons {
@@ -799,6 +407,12 @@
     transition: background var(--transition), color var(--transition), transform var(--transition);
   }
 
+  .nav-btn:hover {
+    background: var(--accent);
+    color: #ffffff;
+    transform: translateY(-1px);
+  }
+
   .add-schedule-btn {
     padding: 0.55rem 0.9rem;
     border-radius: var(--radius-sm);
@@ -810,6 +424,12 @@
     transition: background var(--transition), color var(--transition), box-shadow var(--transition), transform var(--transition);
   }
 
+  .add-schedule-btn:hover {
+    background: #eef2ff;
+    color: var(--accent-dark);
+    transform: translateY(-1px);
+  }
+
   .badge {
     display: inline-flex;
     align-items: center;
@@ -817,7 +437,8 @@
     padding: 2px 6px;
     background: var(--accent);
     color: #ffffff;
-    font-size: 0.82rem;
+    border-radius: 9999px;
+    font-size: 0.6rem;
     font-weight: 600;
     transition: transform var(--transition), background var(--transition);
     position: absolute;
@@ -827,6 +448,11 @@
 
   td.has-badge {
     position: relative;
+  }
+
+  .badge:hover {
+    transform: scale(1.05);
+    background: var(--accent-dark);
   }
 
   .chat-container {
@@ -853,18 +479,21 @@
 
   .chat-messages::-webkit-scrollbar-track {
     background: #edf2f7;
+    border-radius: 999px;
   }
 
   .chat-messages::-webkit-scrollbar-thumb {
     background: #cbd5e0;
+    border-radius: 999px;
   }
 
   .message-bubble {
     background: #ffffff;
     padding: 14px 16px;
     border-radius: var(--radius-md);
-    font-size: 1rem;
-    line-height: 1.65;
+    box-shadow: 0 4px 16px rgba(13, 27, 62, 0.08);
+    font-size: 0.95rem;
+    line-height: 1.55;
     word-break: break-word;
   }
 
@@ -876,7 +505,7 @@
 
   .message-time {
     margin-top: 8px;
-    font-size: 0.82rem;
+    font-size: 0.75rem;
     color: var(--text-muted);
   }
 
@@ -892,7 +521,7 @@
     padding: 14px 16px;
     border-radius: var(--radius-md);
     border: 2px solid var(--border);
-    font-size: 1rem;
+    font-size: 0.95rem;
     resize: none;
     min-height: 56px;
     transition: border-color var(--transition), box-shadow var(--transition);
@@ -902,6 +531,7 @@
   .chat-input:focus {
     outline: none;
     border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.18);
   }
 
   .chat-send-btn {
@@ -909,13 +539,18 @@
     height: 54px;
     border-radius: var(--radius-sm);
     border: none;
-    background: var(--accent);
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     flex-shrink: 0;
     transition: transform var(--transition), box-shadow var(--transition), opacity var(--transition);
+  }
+
+  .chat-send-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
   }
 
   .chat-send-btn:disabled {
@@ -955,10 +590,15 @@
     cursor: pointer;
   }
 
+  .calendar-event-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+  }
+
   .card-overlay {
     position: absolute;
     inset: 0;
-    background: rgba(14, 23, 53, 0.58);
+    background: linear-gradient(180deg, rgba(14, 23, 53, 0.2) 0%, rgba(14, 23, 53, 0.85) 100%);
   }
 
   .card-content {
@@ -975,12 +615,10 @@
   .card-content h4 {
     font-size: 1.15rem;
     font-weight: 700;
-    line-height: 1.3;
   }
 
   .card-content p {
-    font-size: 0.95rem;
-    line-height: 1.45;
+    font-size: 0.9rem;
     opacity: 0.9;
   }
 
@@ -1008,23 +646,106 @@
     margin: 32px auto;
   }
 
+  .resort-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .resort-list__scroller {
+    max-height: 40vh;
+    overflow-y: auto;
+    padding-right: 6px;
+  }
+
+  .resort-list__scroller::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .resort-list__scroller::-webkit-scrollbar-track {
+    background: #edf2f7;
+    border-radius: 999px;
+  }
+
+  .resort-list__scroller::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+    border-radius: 999px;
+  }
+
+  .resort-list ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .resort-list li {
+    background: var(--surface-alt);
+    border-radius: var(--radius-md);
+    padding: 16px 18px;
+    border: 1px solid transparent;
+    transition: transform var(--transition), border-color var(--transition), background var(--transition);
+  }
+
+  .resort-list li:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent);
+    background: #eef2ff;
+  }
+
+  .resort-list a {
+    text-decoration: none;
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 1rem;
+    display: inline-flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .resort-list small {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+
   .blog-grid {
     display: grid;
     gap: 24px;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   }
 
-.blog-category {
+
+  .blog-category {
   display: inline-block;
   padding: 5px 12px;
+  border-radius: 999px;
 
-  font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 
   color: #fff;
-  line-height: 1.2;
+  background: var(--accent);
+
+  line-height: 1;
+  white-space: nowrap;
+
+  border: 1px solid rgba(255,255,255,0.08);
+  }
+.blog-category {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 999px;
+
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+
+  color: #fff;
+  line-height: 1;
   white-space: nowrap;
 }
 
@@ -1049,17 +770,17 @@
   background: #dc2626;
 }
   .blog-title {
-    font-size: 1.22rem;
+    font-size: 1.25rem;
     color: var(--text);
     margin-bottom: 12px;
-    font-weight: 650;
-    line-height: 1.35;
+    font-weight: 300;
+    line-height: 1.4;
   }
 
   .blog-excerpt {
-    color: var(--text-muted);
-    font-size: 1rem;
-    line-height: 1.65;
+    color: #9d978c;
+    font-size: 0.95rem;
+    line-height: 1.6;
     margin-bottom: 18px;
   }
 
@@ -1076,8 +797,7 @@
     gap: 16px;
     flex-wrap: wrap;
     color: var(--text-muted);
-    font-size: 0.92rem;
-    line-height: 1.4;
+    font-size: 0.85rem;
   }
 
   .blog-meta-item {
@@ -1088,17 +808,16 @@
 
   .blog-card {
     color: var(--accent);
-    font-weight: 650;
+    font-weight: 600;
     text-decoration: none;
-    font-size: 0.98rem;
+    font-size: 0.95rem;
     transition: color var(--transition);
   }
 
 
   .empty-state {
     text-align: center;
-    font-size: 1rem;
-    line-height: 1.55;
+    font-size: 0.95rem;
     color: var(--text-muted);
     padding: 24px;
     background: var(--surface-alt);
@@ -1130,6 +849,13 @@
     text-align: center;
   }
 
+  .pagination-btn:hover {
+    background: var(--accent);
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+  }
+
   .pagination-btn.active {
     background: var(--accent);
     color: #ffffff;
@@ -1142,21 +868,6 @@
     color: var(--text-muted);
     font-size: 0.9rem;
     user-select: none;
-  }
-
-  .load-more-wrap {
-    display: flex;
-    justify-content: center;
-    margin-top: 16px;
-  }
-
-  .load-more-wrap[hidden] {
-    display: none;
-  }
-
-  .place-load-more-btn:disabled {
-    opacity: 0.65;
-    cursor: default;
   }
 
   @media (max-width: 480px) {
@@ -1216,6 +927,11 @@
     z-index: 2;
   }
 
+  #closeMapBtn:hover {
+    background: #f0f4ff;
+    transform: scale(1.05);
+  }
+
   .modal {
     display: none;
     position: fixed;
@@ -1223,6 +939,7 @@
     width: 100%;
     height: 100%;
     background: rgba(13, 27, 62, 0.65);
+    backdrop-filter: blur(6px);
     z-index: 2000;
     padding-top: 24px;
     overflow-y: auto;
@@ -1233,12 +950,13 @@
     border-radius: var(--radius-lg);
     max-width: 700px;
     overflow: hidden;
-    box-shadow: none;
+    box-shadow: var(--shadow-md);
+    animation: modalSlideIn 0.3s ease;
     margin: 0 auto;
   }
 
   .modal-header {
-    background: var(--accent);
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
     color: #ffffff;
     padding: 13px 15px;
     display: flex;
@@ -1248,23 +966,26 @@
 
   .modal-header h2 {
     margin: 0;
-    font-size: 1.35rem;
-    line-height: 1.25;
-    font-weight: 700;
+    font-size: 1.5rem;
   }
 
   .close {
     font-size: 32px;
-    font-weight: 400;
+    font-weight: 300;
     cursor: pointer;
     transition: transform var(--transition), opacity var(--transition);
-    line-height: 1.1;
+    line-height: 1;
+  }
+
+  .close:hover {
+    transform: rotate(90deg);
+    opacity: 0.8;
   }
 
   .modal-body {
     padding: 0;
     color: var(--text);
-    line-height: 1.65;
+    line-height: 1.6;
     background-color: white;
   }
 
@@ -1308,7 +1029,7 @@
     padding: 10px 12px;
     border: 1px solid var(--border);
     border-radius: 10px;
-    font-size: 1rem;
+    font-size: 0.95rem;
     
     transition: border var(--transition), box-shadow var(--transition);
   }
@@ -1317,6 +1038,7 @@
   #addScheduleForm select:focus {
     outline: none;
     border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
   }
 
   #addScheduleStatus {
@@ -1335,6 +1057,17 @@
   @keyframes spin {
     to {
       transform: rotate(360deg);
+    }
+  }
+
+  @keyframes modalSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-40px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
     }
   }
 
@@ -1437,22 +1170,28 @@
     bottom: calc(20px + env(safe-area-inset-bottom, 0px));
     width: 56px;
     height: 56px;
-    border-radius: 0;
-    border: 0;
-    background: var(--accent);
-    box-shadow: none;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.42);
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+    box-shadow: 0 14px 34px rgba(56, 70, 31, 0.28);
     cursor: pointer;
     display: none;
     align-items: center;
     justify-content: center;
     z-index: 2;
-    transition: none;
+    transition: transform var(--transition), box-shadow var(--transition), filter var(--transition);
   }
 
   #mobileChatBtn svg {
     width: 24px;
     height: 24px;
     fill: #ffffff;
+  }
+
+  #mobileChatBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 42px rgba(56, 70, 31, 0.34);
+    filter: brightness(1.03);
   }
 
   #mobileChatModal {
@@ -1467,11 +1206,11 @@
     max-height: min(760px, calc(100dvh - 36px)) !important;
     margin: clamp(12px, 5vh, 42px) auto 0;
     background: var(--surface);
-    border: 0;
-    border-radius: 0;
+    border: 1px solid rgba(216, 210, 195, 0.95);
+    border-radius: 8px;
     display: flex;
     flex-direction: column;
-    box-shadow: none;
+    box-shadow: 0 22px 70px rgba(31, 35, 24, 0.32);
   }
 
   #mobileChatModal .modal-header {
@@ -1479,32 +1218,38 @@
     min-height: 58px;
     background: #fffdf8;
     color: var(--text);
-    border-bottom: 0;
+    border-bottom: 1px solid var(--border);
   }
 
   #mobileChatModal .modal-header h2 {
-    font-size: 1.12rem;
-    font-weight: 700;
+    font-size: 1.05rem;
+    font-weight: 750;
     letter-spacing: 0;
   }
 
   #mobileChatModal .close {
     width: 36px;
     height: 36px;
-    border-radius: 0;
+    border-radius: 50%;
     background: var(--surface-alt);
     color: var(--text-muted);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     font-size: 28px;
-    line-height: 1.1;
+    line-height: 1;
+  }
+
+  #mobileChatModal .close:hover {
+    background: #ebe4d5;
+    color: var(--text);
+    transform: none;
   }
 
   #mobileChatModal .modal-body {
     flex: 1;
     min-height: 0;
-    background: #f2efe4;
+    background: linear-gradient(180deg, #faf7ee 0%, #f2efe4 100%);
   }
 
   #mobileChatModal .chat-container {
@@ -1534,25 +1279,23 @@
     width: fit-content;
     max-width: 100%;
     padding: 12px 14px;
-    border: 0;
-    border-radius: 0;
+    border: 1px solid rgba(216, 210, 195, 0.9);
+    border-radius: 8px;
     background: #ffffff;
-    box-shadow: none;
+    box-shadow: 0 6px 18px rgba(56, 70, 31, 0.08);
   }
 
   #mobileChatModal .message-bubble span {
     display: block;
     margin: 0 0 4px;
     color: var(--accent-dark);
-    font-size: 0.9rem;
-    line-height: 1.35;
+    font-size: 0.82rem;
   }
 
   #mobileChatModal .message-time {
     margin-top: 8px;
     color: var(--text-muted);
-    font-size: 0.8rem;
-    line-height: 1.35;
+    font-size: 0.72rem;
   }
 
   #mobileChatModal .chat-input-area {
@@ -1561,32 +1304,30 @@
     gap: 10px;
     padding: 12px;
     background: rgba(255, 253, 248, 0.96);
-    border-top: 0;
-    box-shadow: none;
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -12px 28px rgba(56, 70, 31, 0.08);
   }
 
   #mobileChatModal .chat-input {
     min-height: 48px;
     max-height: 120px;
     padding: 12px 14px;
-    border: 0;
-    border-radius: 0;
+    border: 1px solid var(--border);
+    border-radius: 8px;
     background: #ffffff;
     color: var(--text);
-    font-size: 1rem;
-    line-height: 1.45;
   }
 
   #mobileChatModal .chat-input:focus {
-    outline: 1px solid var(--accent);
-    box-shadow: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(85, 107, 47, 0.16);
   }
 
   #mobileChatModal .chat-send-btn {
     width: 48px;
     height: 48px;
-    border-radius: 0;
-    box-shadow: none;
+    border-radius: 8px;
+    box-shadow: 0 8px 18px rgba(56, 70, 31, 0.18);
   }
 
   @media (max-width: 680px) {
@@ -1615,7 +1356,7 @@
       border-right: 0;
       border-bottom: 0;
       border-left: 0;
-      border-radius: 0;
+      border-radius: 8px 8px 0 0;
     }
 
     #mobileChatModal .modal-header {
@@ -1656,11 +1397,10 @@
 
 
     .date-month {
-      font-size: 0.95rem;
-      font-weight: 700;
+      /* font-size: 0.75rem; */
+      font-weight: 600;
       text-transform: uppercase;
       color: #667eea;
-      line-height: 1.35;
     }
 
 
@@ -1669,11 +1409,12 @@
     .schedule-type-badge {
       display: inline-block;
       padding: 0.25rem 0.75rem;
-      font-size: 0.9rem;
-      font-weight: 650;
+      border-radius: 20px;
+      /* font-size: 0.875rem; */
+      font-weight: 600;
       background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
       width: fit-content;
-      line-height: 1.35;
     }
 
 
@@ -1681,8 +1422,7 @@
     .schedule-description {
       margin: 0 0 1.5rem 0;
       color: #555;
-      font-size: 1rem;
-      line-height: 1.65;
+      line-height: 1.6;
     }
 
     .schedule-details-grid {
@@ -1694,17 +1434,13 @@
 
 
     .detail-label {
-      font-weight: 700;
+      font-weight: 600;
       color: #333;
       min-width: 120px;
-      font-size: 0.95rem;
-      line-height: 1.4;
     }
 
     .detail-value {
       color: #666;
-      font-size: 1rem;
-      line-height: 1.45;
     }
 
     .schedule-footer {
@@ -1747,16 +1483,13 @@
     }
 
     .poster-name {
-      font-weight: 700;
+      font-weight: 600;
       color: #333;
-      font-size: 1rem;
-      line-height: 1.35;
     }
 
     .poster-contact {
-      font-size: 0.95rem;
+      /* font-size: 0.875rem; */
       color: #666;
-      line-height: 1.4;
     }
 
     .schedule-actions {
@@ -1766,57 +1499,68 @@
     }
 
     .review-count {
-      font-size: 0.9rem;
+      /* font-size: 0.875rem; */
       color: #666;
-      line-height: 1.35;
     }
 
     .btn-join {
-      background: #667eea;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
       border: none;
       padding: 0.625rem 1.5rem;
-      font-size: 0.98rem;
-      font-weight: 650;
-      line-height: 1.35;
+      border-radius: 6px;
+      font-weight: 600;
       cursor: pointer;
-      transition: none;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-join:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
     }
 
     .btn-join:active {
-      background: #4558b8;
+      transform: scale(0.98);
     }
 
     .btn-view-joiners {
-      background: #0078d4;
+      background: linear-gradient(135deg, #4c9aff 0%, #0078d4 100%);
       color: white;
       border: none;
       padding: 0.625rem 1.5rem;
-      font-size: 0.98rem;
-      font-weight: 650;
-      line-height: 1.35;
+      border-radius: 6px;
+      font-weight: 600;
       cursor: pointer;
-      transition: none;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-view-joiners:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(76, 154, 255, 0.4);
     }
 
     .btn-view-joiners:active {
-      background: #005ca3;
+      transform: scale(0.98);
     }
 
     .btn-delete-schedule {
-      background: #cf1322;
+      background: linear-gradient(135deg, #ff4d4f 0%, #cf1322 100%);
       color: white;
       border: none;
       padding: 0.625rem 1.5rem;
-      font-size: 0.98rem;
-      font-weight: 650;
-      line-height: 1.35;
+      border-radius: 6px;
+      font-weight: 600;
       cursor: pointer;
-      transition: none;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-delete-schedule:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(255, 77, 79, 0.35);
     }
 
     .btn-delete-schedule:active {
-      background: #99101a;
+      transform: scale(0.98);
     }
 
     html {
@@ -1828,6 +1572,7 @@
       top: 0;
       z-index: 1200;
       background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
       margin-bottom: 18px;
     }
 
@@ -1851,7 +1596,8 @@
     .top-nav__brand-badge {
       width: 36px;
       height: 36px;
-      border-radius: 0;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -1861,7 +1607,7 @@
     .top-nav__brand-badge svg {
       width: 18px;
       height: 18px;
-      fill: var(--accent);
+      fill: #ffffff;
     }
 
     .top-nav__toggle {
@@ -1988,17 +1734,17 @@
   text-align: center;
   padding: 32px 16px;
   color: #6b7280;
-  font-size: 1rem;
-  line-height: 1.55;
+  font-size: 15px;
   background-color: #f9fafb;
-  border-radius: 0;
-  border: 0;
+  border-radius: 8px;
+  border: 1px dashed #d1d5db;
 }
 
 /* Resort Activities Block */
 .resort-activities-block {
   background-color: #ffffff;
-  transition: none;
+  padding: 20px;
+  transition: box-shadow 0.2s ease;
 }
 
 .resort-activities-block li {
@@ -2007,9 +1753,8 @@
 }
 
 .resort-activities-block h4 {
-  font-size: 1.15rem;
-  font-weight: 700;
-  line-height: 1.35;
+  font-size: 20px;
+  font-weight: 600;
   color: #111827;
   margin: 0 0 12px 0;
 }
@@ -2021,14 +1766,19 @@
   background-color: #3b82f6;
   color: #ffffff;
   text-decoration: none;
-  font-size: 0.98rem;
-  font-weight: 650;
-  line-height: 1.35;
-  transition: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.btn-join:hover {
+  background-color: #2563eb;
+  transform: translateY(-1px);
 }
 
 .btn-join:active {
-  background-color: #1d4ed8;
+  transform: translateY(0);
 }
 
 /* Activities List */
@@ -2054,11 +1804,15 @@
   padding: 10px;
   margin-bottom: 8px;
   background-color: #ffffff;
+  border-radius: 6px;
 
-  font-size: 0.98rem;
-  line-height: 1.45;
+  font-size: 14px;
   color: #374151;
-  transition: none;
+  transition: background-color 0.2s ease;
+}
+
+.activities-list ul li:hover {
+  background-color: #f3f4f6;
 }
 
 .activities-list ul li:last-child {
@@ -2071,8 +1825,9 @@
   width: 60px;
   height: 60px;
   object-fit: cover;
+  border-radius: 8px;
   margin-right: 12px;
-  border: 0;
+  border: 1px solid #e5e7eb;
 }
 
 /* Price Styling */
@@ -2082,13 +1837,17 @@
 
 /* Responsive Design */
 @media (max-width: 640px) {
+  .resort-activities-block {
+    padding: 16px;
+  }
+
   .resort-activities-block h4 {
-    font-size: 1.08rem;
+    font-size: 18px;
   }
 
 
   .activities-list ul li {
-    font-size: 0.95rem;
+    font-size: 13px;
   }
 
   .activities-list ul li img {
@@ -2137,6 +1896,7 @@
   height: 100%;
   background: white;
   z-index: 1000;
+  transition: right 0.4s ease;
   overflow-y: auto;
 }
 /* Active state */
@@ -2168,6 +1928,7 @@
   width: 100%;
   padding: 12px 48px 12px 12px; /* extra right padding for button */
   border: 1px solid #ccc;
+  border-radius: 999px;
   box-sizing: border-box;
 }
 
@@ -2180,284 +1941,13 @@
   width: 36px;
   height: 36px;
   border: none;
+  border-radius: 50%;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
   cursor: pointer;
-}
-
-.place-item-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 12000;
-  display: none;
-  background: #ffffff;
-  color: var(--text);
-  overflow-y: auto;
-}
-
-.place-item-modal.is-open {
-  display: block;
-}
-
-.place-item-modal__shell {
-  min-height: 100vh;
-  display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.75fr);
-}
-
-.place-item-modal__media {
-  position: relative;
-  min-height: 100vh;
-  background: #111827;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.place-item-modal__image {
-  display: block;
-  max-width: 100%;
-  max-height: 100vh;
-  object-fit: contain;
-}
-
-.place-item-modal__empty {
-  display: none;
-  min-height: 280px;
-  align-items: center;
-  justify-content: center;
-  color: #ffffff;
-  font-size: 1rem;
-}
-
-.place-item-modal__close {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  z-index: 2;
-  width: 44px;
-  height: 44px;
-  border: 0;
-  background: #ffffff;
-  color: #111827;
-  font-size: 1.8rem;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.place-item-modal__controls {
-  position: absolute;
-  left: 16px;
-  right: 16px;
-  bottom: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
-
-.place-item-modal__nav,
-.place-item-modal__counter {
-  border: 0;
-  background: #ffffff;
-  color: #111827;
-  padding: 10px 14px;
-  font-size: 0.95rem;
-  font-weight: 650;
-  line-height: 1.2;
-}
-
-.place-item-modal__nav {
-  cursor: pointer;
-}
-
-.place-item-modal__details {
-  padding: clamp(24px, 5vw, 56px);
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  justify-content: center;
-}
-
-.place-item-modal__resort {
-  min-height: 1.2em;
-  color: var(--text-muted);
-  font-size: 0.98rem;
-  font-weight: 650;
-  line-height: 1.35;
-  margin: 0;
-}
-
-.place-item-modal__details h2 {
-  color: var(--text);
-  font-size: clamp(1.55rem, 3vw, 2.35rem);
-  font-weight: 750;
-  line-height: 1.2;
-  margin: 0;
-}
-
-.place-item-modal__price {
-  color: var(--accent);
-  font-size: 1.15rem;
-  font-weight: 750;
-  line-height: 1.35;
-  margin: 0;
-}
-
-.place-item-modal__description {
-  color: var(--text-muted);
-  font-size: 1rem;
-  line-height: 1.65;
-  margin: 0;
-  white-space: pre-line;
-}
-
-.place-item-modal__link {
-  align-self: flex-start;
-  margin-top: 8px;
-  text-decoration: none;
-}
-
-@media (max-width: 760px) {
-  .place-item-modal__shell {
-    display: block;
-  }
-
-  .place-item-modal__media {
-    min-height: 52vh;
-  }
-
-  .place-item-modal__image {
-    max-height: 52vh;
-  }
-
-  .place-item-modal__details {
-    padding: 22px 18px 32px;
-    justify-content: flex-start;
-  }
-}
-
-/* Low-cost render pass: flatten decorative paint work while keeping layout intact. */
-.hero__icon,
-.ask-send-btn,
-.button--primary,
-.chat-send-btn,
-.modal-header,
-#mobileChatBtn,
-.btn-join,
-.btn-view-joiners,
-.btn-delete-schedule {
-  background: var(--accent) !important;
-}
-
-.button,
-.ask-input,
-.ask-send-btn,
-.chat-input,
-.chat-send-btn,
-.nav-btn,
-.add-schedule-btn,
-.badge,
-.message-bubble,
-.calendar-event-card,
-.blog-category,
-.empty-state,
-.pagination-btn,
-#mapModal > div,
-#closeMapBtn,
-.modal-content,
-#addScheduleForm input,
-#addScheduleForm select,
-#mobileChatBtn,
-#mobileChatModal .modal-content,
-#mobileChatModal .close,
-#mobileChatModal .message-bubble,
-#mobileChatModal .chat-input,
-#mobileChatModal .chat-send-btn,
-.schedule-type-badge,
-.btn-join,
-.btn-view-joiners,
-.btn-delete-schedule,
-.activities-list ul li,
-.activities-list ul li img,
-.sub-card {
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  filter: none !important;
-  transition: none !important;
-}
-
-.button,
-.button--ghost,
-.add-schedule-btn,
-#calendar-container td,
-.calendar-header,
-.calendar-list,
-.blog-category,
-.empty-state,
-.pagination-btn,
-#closeMapBtn,
-#addScheduleForm input,
-#addScheduleForm select,
-#mobileChatModal .modal-content,
-#mobileChatModal .modal-header,
-#mobileChatModal .message-bubble,
-#mobileChatModal .chat-input-area,
-#mobileChatModal .chat-input,
-.activities-list ul li img {
-  border: 0 !important;
-}
-
-.modal,
-.top-nav,
-.schedule-type-badge {
-  backdrop-filter: none !important;
-}
-
-/* Readability pass: consistent system typography without extra font downloads. */
-.section-header h2,
-.blog-title,
-.modal-header h2,
-#mobileChatModal .modal-header h2,
-.poster-name,
-.detail-label,
-.sub-card-title {
-  font-weight: 700;
-}
-
-.message-bubble,
-.blog-excerpt,
-.schedule-description,
-.detail-value,
-.modal-body,
-.resort-activities-block,
-.activities-list ul li {
-  line-height: 1.6;
-}
-
-.button,
-.add-schedule-btn,
-.pagination-btn,
-.btn-join,
-.btn-view-joiners,
-.btn-delete-schedule,
-.blog-card,
-.top-nav__links a {
-  font-size: 0.98rem;
-  font-weight: 650;
-  line-height: 1.35;
-}
-
-.blog-meta-left,
-.message-time,
-#mobileChatModal .message-time,
-.poster-contact,
-.review-count {
-  font-size: 0.9rem;
-  line-height: 1.4;
 }
 </style>
 
@@ -2576,7 +2066,7 @@
 
     // Prepare form data
     const formData = new FormData();
-    const manualContact = (prompt('Enter your Contact Details') || '').trim();
+    manualContact = (prompt('Enter your Contact Details') || '').trim();
     formData.append('pickContact', manualContact);
     if (userLocation) {
       formData.append('pickCoordinate', JSON.stringify(userLocation));
@@ -2660,9 +2150,9 @@
             z-index: 10000;
           `;
           modal.innerHTML = `
-          <div style="background: white; padding: 30px; max-width: 500px; max-height: 80vh; overflow-y: auto;">
+            <div style="background: white; padding: 30px; border-radius: 12px; max-width: 500px; max-height: 80vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
               ${joinersHTML}
-              <button onclick="this.closest('div').parentElement.remove()" style="margin-top: 20px; padding: 10px 20px; background: #667eea; color: white; border: none; cursor: pointer;">Close</button>
+              <button onclick="this.closest('div').parentElement.remove()" style="margin-top: 20px; padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer;">Close</button>
             </div>
           `;
           document.body.appendChild(modal);
@@ -2766,17 +2256,17 @@
 
   function convertMarkdownLinks(text) {
     // Convert markdown links [text](url) to HTML anchor tags
-    return String(text || '').replace(/\[([^\]]+)\]\(([^\)]+)\)/g, '<a href="$2" target="_blank" style="color: #667eea; text-decoration: underline;">$1</a>');
+    return text.replace(/\[([^\]]+)\]\(([^\)]+)\)/g, '<a href="$2" target="_blank" style="color: #667eea; text-decoration: underline;">$1</a>');
   }
 
   function discussionViewer(placeID, method) {
-    const discussionNode = document.getElementById("allDiscussion");
-    if (!discussionNode) return Promise.resolve();
+    discussionNode = document.querySelector("#allDiscussion");
+    element = document.querySelector("#container-placeDiscussion");
 
     const username = localStorage.getItem('username') || '';
     const userID = localStorage.getItem('userID') || '';
 
-    return fetch(`/discuss/${placeID}`, {
+    fetch(`/discuss/${placeID}`, {
       method: method,
       headers: {
         'Content-Type': 'application/json',
@@ -2790,27 +2280,18 @@
     })
       .then((response) => response.json())
       .then((data) => {
-        (data.response || []).forEach(discussionBuilder);
+        for (d in data.response) {
+          discussionBuilder(data.response[d]);
+        }
       });
-  }
-
-  let discussionHistoryPromise = null;
-  function ensureDiscussionHistory() {
-    if (!discussionHistoryPromise) {
-      discussionHistoryPromise = discussionViewer(`{{placeid}}`, 'POST').catch((error) => {
-        discussionHistoryPromise = null;
-        console.error('Failed to load discussions:', error);
-      });
-    }
-    return discussionHistoryPromise;
   }
 
   // Spam protection variables
   let lastMessageTime = 0;
+  let messageCount = 0;
   const MESSAGE_COOLDOWN = 10000; // 10 seconds between messages
   const RATE_LIMIT_WINDOW = 60000; // 1 minute
   const MAX_MESSAGES_PER_MINUTE = 5;
-  const renderedDiscussionKeys = new Set();
 
   function discussionFetcher(placeID, method, button) {
     const messageInput = document.querySelector("#discuss-message");
@@ -2926,20 +2407,9 @@
   }
 
   function discussionBuilder(element) {
-    const discusslists = document.getElementById("allDiscussion");
-    if (!element || !discusslists) return;
-
-    const discussionKey = [
-      element.discusserName || '',
-      element.discuss || '',
-      element.timestamp || ''
-    ].join('|');
-    if (renderedDiscussionKeys.has(discussionKey)) return;
-    renderedDiscussionKeys.add(discussionKey);
-
-    const discussContainer = document.createElement("div");
-    const newDate = new Date(element.timestamp);
-    const options = {
+    let discussContainer = document.createElement("div");
+    let newDate = new Date(element.timestamp);
+    let options = {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -2951,13 +2421,14 @@
     discussContainer.classList.add("other-message");
     discussContainer.classList.add("user-message");
 
-    const discuss = document.createElement("div");
+    let discuss = document.createElement("div");
     discuss.classList.add("message-bubble")
     // Convert markdown links to HTML before inserting
     const messageWithLinks = convertMarkdownLinks(element.discuss);
     discuss.innerHTML = `<span>${element.discusserName}:</span> ${messageWithLinks} <div class="message-time">${formattedDate}</div>`;
 
     discussContainer.appendChild(discuss);
+    const discusslists = document.querySelector("#allDiscussion");
     const firstDiscussionMessage = discusslists.firstChild;
     discusslists.insertBefore(discussContainer, firstDiscussionMessage);
   }
@@ -3149,29 +2620,6 @@
   </div>
 </div>
 
-<!-- Activity / Accommodation Details Modal -->
-<div class="place-item-modal" id="placeItemDetailsModal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="placeItemModalTitle">
-  <div class="place-item-modal__shell">
-    <div class="place-item-modal__media">
-      <button type="button" class="place-item-modal__close" id="placeItemClose" aria-label="Close">&times;</button>
-      <img id="placeItemModalImage" class="place-item-modal__image" alt="" />
-      <div id="placeItemModalEmpty" class="place-item-modal__empty">No image available</div>
-      <div class="place-item-modal__controls">
-        <button type="button" id="placeItemPrev" class="place-item-modal__nav" aria-label="Previous image">Previous</button>
-        <span id="placeItemModalCounter" class="place-item-modal__counter">0 / 0</span>
-        <button type="button" id="placeItemNext" class="place-item-modal__nav" aria-label="Next image">Next</button>
-      </div>
-    </div>
-    <div class="place-item-modal__details">
-      <p id="placeItemModalResort" class="place-item-modal__resort"></p>
-      <h2 id="placeItemModalTitle"></h2>
-      <p id="placeItemModalPrice" class="place-item-modal__price"></p>
-      <p id="placeItemModalDescription" class="place-item-modal__description"></p>
-      <a id="placeItemModalLink" class="button button--primary place-item-modal__link" target="_blank" rel="noopener">View Resort</a>
-    </div>
-  </div>
-</div>
-
 <!-- Community Bulletin Image Modal -->
 <div class="modal" id="bulletinImageModal" aria-hidden="true" aria-label="Community bulletin photo" role="dialog">
   <div class="modal-content" style="max-width: 92vw; max-height: 88vh;">
@@ -3276,16 +2724,9 @@
   </div>
 
   <div class="primary-grid">
-    <section class="" aria-labelledby="calendar-heading">
-      <div class="panel__body">
-        <div id="calendar-container">
-          {{calendar|safe}}
-        </div>
-      </div>
-    </section>
-
     <section class="panel panel--blogs" id="blogs" aria-labelledby="blog-heading">
       <div class="section-header">
+
       </div>
       <div class="blog-grid" id="blog-grid"></div>
       <div id="blog-pagination"></div>
@@ -3293,7 +2734,13 @@
 
 
 
-
+    <section class="" aria-labelledby="calendar-heading">
+      <div class="panel__body">
+        <div id="calendar-container">
+          {{calendar|safe}}
+        </div>
+      </div>
+    </section>
   </div>
 
 
@@ -3305,76 +2752,124 @@
         <h2 id="resort-activities-heading" >Activities and Services</h2>
       </div>
       <div id="resort-activities-list-js"></div>
-      <div id="resort-activities-load-more" class="load-more-wrap" hidden></div>
       <script>
-        const resortActivitiesPagination = { offset: 0, loading: false };
-        async function fetchAndRenderResortActivities(placeId, append) {
+        async function fetchAndRenderResortActivities(placeId) {
           const container = document.getElementById('resort-activities-list-js');
-          if (!container) return;
-          if (resortActivitiesPagination.loading) return;
-          if (window.ensurePlaceSubCardStyles) window.ensurePlaceSubCardStyles();
-          resortActivitiesPagination.loading = true;
-          if (!append) {
-            resortActivitiesPagination.offset = 0;
-            container.innerHTML = '<div class="loading-symbol"></div>';
-          }
-          window.placeSetLoadMoreButton('resort-activities-load-more', true, true, function () {});
+          container.innerHTML = '<div class="loading-symbol"></div>';
           try {
-            const params = new URLSearchParams({
-              flat: '1',
-              paginate: '1',
-              limit: String(window.placePageSize || 10),
-              offset: String(resortActivitiesPagination.offset),
-            });
-            const res = await fetch(`/apis/getPlaceActivities/${placeId}/?${params.toString()}`);
+            // Adjust the URL to your API endpoint for fetching activities by place
+            const res = await fetch(`/apis/getPlaceActivities/${placeId}/`);
             if (!res.ok) throw new Error('Failed to fetch activities');
-            const payload = await res.json();
-            const activities = window.placeGetPaginatedResults(payload, 'ActivitiesList');
-            if (!activities.length) {
-              if (!append) container.innerHTML = '<div class="empty-state">No activities found for this place.</div>';
-              window.placeSetLoadMoreButton('resort-activities-load-more', false, false, function () {});
+            const resorts = await res.json();
+            if (!resorts || resorts.length === 0) {
+              container.innerHTML = '<div class="empty-state">No resorts found for this place.</div>';
               return;
             }
-            if (!append || !document.getElementById('resort-activities-grid')) {
-              container.innerHTML = '<div class="resort-activities-block" style="margin-bottom: 24px;"><div class="sub-card-grid" id="resort-activities-grid"></div></div>';
-            }
             let html = '';
-            activities.forEach(activity => {
-              const groupTitle = activity.groupTitle || activity.PackageTitle || activity.package_title || activity.title || 'Activity';
-              if (activity.subPackagesList && activity.subPackagesList.length > 0) {
-                activity.subPackagesList.forEach(sub => {
-                  html += window.placeBuildItemCard(Object.assign({}, activity, sub, {
-                    PackageTitle: sub.title || activity.PackageTitle,
-                    resortLink: sub.resortLink || activity.resortLink,
-                    resortName: sub.resortName || activity.resortName,
-                    websiteURL: sub.websiteURL || sub.website || activity.websiteURL || activity.website || '',
-                  }), groupTitle);
+            resorts.forEach(resort => {
+              html += `<div class="resort-activities-block" style="margin-bottom: 24px;">`;
+              // html += `<h4 style="margin-bottom: 6px;">${resort.RealName || resort.name || 'Resort'}</h4>`;
+
+              if (resort.ActivitiesList && resort.ActivitiesList.length > 0) {
+              //   html += '<ul class="activities-list">';
+              //                   if (resort.websiteURL) {
+              //   html += `<a href="${resort.websiteURL}" class="btn-join" target="_blank" rel="noopener" style="margin-bottom:8px;display:inline-block;">Visit Website</a>`;
+              // }
+                resort.ActivitiesList.forEach(activity => {
+                    html += `<li><strong>${activity.PackageTitle || activity.package_title || 'Activity'}</strong>`;
+                    if (activity.subPackagesList && activity.subPackagesList.length > 0) {
+                      html += '<div class="sub-card-grid">';
+                      activity.subPackagesList.forEach(sub => {
+                        let subImgTag = '';
+                        const subImages = sub.package_image || sub.imageURL || [];
+                        if (subImages && subImages.length > 0) {
+                          const imgSrc = Array.isArray(subImages) ? subImages[0] : subImages;
+                          subImgTag = `<img src="${imgSrc}" alt="${sub.title || sub.package_title || ''}" class="sub-card-img" />`;
+                        }
+                        const visitUrl = sub.websiteURL || sub.website || activity.websiteURL || activity.website || resort.websiteURL || resort.website || '';
+                        const visitBtn = visitUrl ? `<a href="${visitUrl}" class="btn-join" target="_blank" rel="noopener" style="margin-top:8px; display:inline-block;">Visit Website</a>` : '';
+                        html += `<div class="sub-card">${subImgTag}<div class="sub-card-body"><div class="sub-card-title">${sub.title || ''}</div><div class="sub-card-price">${sub.price ? '₱' + sub.price : ''}</div>${visitBtn}</div></div>`;
+                      });
+                      html += '</div>';
+                    } else {
+                      const visitUrlActivity = activity.websiteURL || activity.website || resort.websiteURL || resort.website || '';
+                      const visitBtnActivity = visitUrlActivity ? `<a href="${visitUrlActivity}" class="btn-join" target="_blank" rel="noopener" style="margin-top:8px; display:inline-block;">Visit Website</a>` : '';
+                      html += visitBtnActivity;
+                    }
+                    html += '</li>';
                 });
+                html += '</ul>';
               } else {
-                html += window.placeBuildItemCard(activity, groupTitle);
+                html += '<div class="empty-state">No activities listed for this resort.</div>';
               }
+              html += '</div>';
+          // Add sub-card CSS if not already present
+          if (!document.getElementById('sub-card-style')) {
+            const style = document.createElement('style');
+            style.id = 'sub-card-style';
+            style.textContent = `
+              .sub-card-grid {
+                display: flex;
+                flex-wrap: wrap;
+                gap:0.2rem;
+                margin: 1.2rem 0 0 0;
+              }
+              .sub-card {
+                background: #fff;
+                overflow: hidden;
+                width: 220px;
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+                transition: transform 0.18s;
+              }
+              .sub-card:hover {
+                transform: translateY(-4px) scale(1.03);
+              }
+              .sub-card-img {
+                width: 100%;
+                height: 200px;
+                object-fit: cover;
+                display: block;
+              }
+              .sub-card-body {
+                padding: 0.8rem 1rem 1.1rem 1rem;
+                flex: 1 1 auto;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-start;
+                align-items: flex-start;
+              }
+              .sub-card-title {
+                font-size: 0.54rem;
+                font-weight: 600;
+                margin-bottom: 0.3rem;
+                color: #222;
+              }
+              .sub-card-price {
+                font-size: 0.5rem;
+                color: #667eea;
+                font-weight: 500;
+              }
+              @media (max-width: 600px) {
+                .sub-card {
+                }
+                .sub-card-img {
+                  height: 120px;
+                }
+              }
+            `;
+            document.head.appendChild(style);
+          }
             });
-            const grid = document.getElementById('resort-activities-grid');
-            if (grid) grid.insertAdjacentHTML('beforeend', html);
-            resortActivitiesPagination.offset = payload && payload.next_offset !== null && payload.next_offset !== undefined
-              ? payload.next_offset
-              : resortActivitiesPagination.offset + activities.length;
-            window.placeSetLoadMoreButton('resort-activities-load-more', !!(payload && payload.has_next), false, function () {
-              fetchAndRenderResortActivities(placeId, true);
-            });
+            container.innerHTML = html;
           } catch (e) {
-            if (!append) container.innerHTML = '<div class="empty-state">Failed to load activities.</div>';
-            window.placeSetLoadMoreButton('resort-activities-load-more', !!append, false, function () {
-              fetchAndRenderResortActivities(placeId, true);
-            });
-          } finally {
-            resortActivitiesPagination.loading = false;
+            container.innerHTML = '<div class="empty-state">Failed to load activities.</div>';
           }
         }
-        window.placePageReady(function() {
-          window.placeWhenVisible(document.getElementById('things-to-do'), function () {
-            fetchAndRenderResortActivities('{{ placeid }}', false);
-          });
+        // Call this with the current place ID (from Django context)
+        document.addEventListener('DOMContentLoaded', function() {
+          fetchAndRenderResortActivities('{{ placeid }}');
         });
       </script>
     </section>
@@ -3386,75 +2881,139 @@
         <h2 id="accommodations-heading">Accommodations</h2>
       </div>
       <div id="accommodations-list-js"></div>
-      <div id="accommodations-load-more" class="load-more-wrap" hidden></div>
       <script>
-        const accommodationsPagination = { offset: 0, loading: false };
-        async function fetchAndRenderAccommodations(placeId, append) {
+        async function fetchAndRenderAccommodations(placeId) {
           const container = document.getElementById('accommodations-list-js');
-          if (!container) return;
-          if (accommodationsPagination.loading) return;
-          if (window.ensurePlaceSubCardStyles) window.ensurePlaceSubCardStyles();
-          accommodationsPagination.loading = true;
-          if (!append) {
-            accommodationsPagination.offset = 0;
-            container.innerHTML = '<div class="loading-symbol"></div>';
-          }
-          window.placeSetLoadMoreButton('accommodations-load-more', true, true, function () {});
+          container.innerHTML = '<div class="loading-symbol"></div>';
           try {
-            const params = new URLSearchParams({
-              flat: '1',
-              paginate: '1',
-              limit: String(window.placePageSize || 10),
-              offset: String(accommodationsPagination.offset),
-            });
-            const res = await fetch(`/apis/getPlaceAccommodations/${placeId}/?${params.toString()}`);
+            // Adjust the URL to your API endpoint for fetching accommodations by place
+            const res = await fetch(`/apis/getPlaceAccommodations/${placeId}/`);
             if (!res.ok) throw new Error('Failed to fetch accommodations');
-            const payload = await res.json();
-            const accommodations = window.placeGetPaginatedResults(payload, 'AccommodationsList');
-            if (!accommodations.length) {
-              if (!append) container.innerHTML = '<div class="empty-state">No accommodations found for this place.</div>';
-              window.placeSetLoadMoreButton('accommodations-load-more', false, false, function () {});
+            const resorts = await res.json();
+            if (!resorts || resorts.length === 0) {
+              container.innerHTML = '<div class="empty-state">No accommodations found for this place.</div>';
               return;
             }
-            if (!append || !document.getElementById('accommodations-grid')) {
-              container.innerHTML = '<div class="resort-activities-block" style="margin-bottom: 24px;"><div class="sub-card-grid" id="accommodations-grid"></div></div>';
-            }
             let html = '';
-            accommodations.forEach(acc => {
-              if (acc.subPackagesList && acc.subPackagesList.length > 0) {
-                acc.subPackagesList.forEach(pkg => {
-                  html += window.placeBuildItemCard(Object.assign({}, acc, pkg, {
-                    PackageTitle: pkg.title || acc.PackageTitle,
-                    resortLink: pkg.resortLink || acc.resortLink,
-                    resortName: pkg.resortName || acc.resortName,
-                    websiteURL: pkg.websiteURL || pkg.website || acc.websiteURL || acc.website || '',
-                  }), acc.PackageTitle || acc.title || 'Room');
+            resorts.forEach(resort => {
+              html += `<div class="resort-activities-block" style="margin-bottom: 24px;">`;
+              if (resort.AccommodationsList && resort.AccommodationsList.length > 0) {
+                // if (resort.websiteURL) {
+                //   html += `<a href="${resort.websiteURL}" class="btn-join" target="_blank" rel="noopener" style="margin-bottom:8px;display:inline-block;">Visit Website</a>`;
+                // }
+                html += '<div class="sub-card-grid">';
+                resort.AccommodationsList.forEach(acc => {
+                  const fallbackImage = "{% static 'home/images/me.jpg' %}";
+                  // If accommodation has subPackages, render those first
+                  if (acc.subPackagesList && acc.subPackagesList.length > 0) {
+                    acc.subPackagesList.forEach(pkg => {
+                      let imgTag = '';
+                      const pkgImages = pkg.package_image || pkg.imageURL || [];
+                      if (pkgImages && pkgImages.length > 0) {
+                        const imgSrc = Array.isArray(pkgImages) ? pkgImages[0] : pkgImages;
+                        imgTag = `<img src="${imgSrc}" alt="${pkg.title || pkg.name || acc.title || acc.name || resort.name || 'Package'}" class="sub-card-img" />`;
+                      }
+                      if (!imgTag) {
+                        const accImages = acc.resort_Gallery || acc.imageURL || [];
+                        const resortImages = resort.resort_Gallery || resort.imageURL || [];
+                        const fallbackSrc = (accImages && accImages.length > 0) ? (Array.isArray(accImages) ? accImages[0] : accImages) : (resortImages && resortImages.length > 0 ? (Array.isArray(resortImages) ? resortImages[0] : resortImages) : fallbackImage);
+                        imgTag = `<img src="${fallbackSrc}" alt="${pkg.title || pkg.name || acc.title || acc.name || resort.name || 'Package'}" class="sub-card-img" />`;
+                      }
+                      const displayTitle = pkg.title || pkg.name || acc.title || acc.name || 'Package';
+                      const displayPrice = (pkg.price && String(pkg.price).trim().length > 0) ? ('₱' + pkg.price) : (acc.price ? ('₱' + acc.price) : (resort.price ? ('₱' + resort.price) : 'Price not listed'));
+                      const visitUrl = pkg.websiteURL || pkg.website || acc.websiteURL || acc.website || resort.websiteURL || resort.website || '';
+                      const visitBtn = visitUrl ? `<a href="${visitUrl}" class="btn-join" target="_blank" rel="noopener" style="margin-top:8px; display:inline-block;">Visit Website</a>` : '';
+                      html += `<div class="sub-card">${imgTag}<div class="sub-card-body"><div class="sub-card-title">${displayTitle}</div><div class="sub-card-price">${displayPrice}</div>${visitBtn}</div></div>`;
+                    });
+                  } else {
+                    // no subPackages; render the accommodation itself
+                    let imgTag = '';
+                    const accImages = acc.resort_Gallery || acc.imageURL || [];
+                    if (accImages && accImages.length > 0) {
+                      const imgSrc = Array.isArray(accImages) ? accImages[0] : accImages;
+                      imgTag = `<img src="${imgSrc}" alt="${acc.title || acc.name || resort.name || 'Room'}" class="sub-card-img" />`;
+                    }
+                    if (!imgTag) {
+                      const resortImages = resort.resort_Gallery || resort.imageURL || [];
+                      const fallbackSrc = resortImages && resortImages.length > 0 ? (Array.isArray(resortImages) ? resortImages[0] : resortImages) : fallbackImage;
+                      imgTag = `<img src="${fallbackSrc}" alt="${acc.title || acc.name || resort.name || 'Room'}" class="sub-card-img" />`;
+                    }
+                    const displayTitle = acc.title || acc.name || 'Room';
+                    const displayPrice = (acc.price && String(acc.price).trim().length > 0) ? ('₱' + acc.price) : (resort.price ? ('₱' + resort.price) : 'Price not listed');
+                    const visitUrl = acc.websiteURL || acc.website || resort.websiteURL || resort.website || '';
+                    const visitBtn = visitUrl ? `<a href="${visitUrl}" class="btn-join" target="_blank" rel="noopener" style="margin-top:8px; display:inline-block;">Visit Website</a>` : '';
+                    html += `<div class="sub-card">${imgTag}<div class="sub-card-body"><div class="sub-card-title">${displayTitle}</div><div class="sub-card-price">${displayPrice}</div>${visitBtn}</div></div>`;
+                  }
                 });
+                html += '</div>';
               } else {
-                html += window.placeBuildItemCard(acc, acc.PackageTitle || acc.title || 'Room');
+                html += '<div class="empty-state">No accommodations listed for this resort.</div>';
+              }
+              html += '</div>';
+
+              // Reuse sub-card CSS from activities if not already present
+              if (!document.getElementById('sub-card-style')) {
+                const style = document.createElement('style');
+                style.id = 'sub-card-style';
+                style.textContent = `
+                  .sub-card-grid {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap:0.2rem;
+                    margin: 1.2rem 0 0 0;
+                  }
+                  .sub-card {
+                    background: #fff;
+                    box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+                    overflow: hidden;
+                    width: 220px;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: stretch;
+                    transition: transform 0.18s;
+                  }
+
+                  .sub-card-img {
+                    width: 100%;
+                    height: 200px;
+                    object-fit: cover;
+                    display: block;
+                  }
+                  .sub-card-body {
+                    padding: 0.8rem 1rem 1.1rem 1rem;
+                    flex: 1 1 auto;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: flex-start;
+                    align-items: flex-start;
+                  }
+                  .sub-card-title {
+                    font-size: 0.54rem;
+                    font-weight: 600;
+                    margin-bottom: 0.3rem;
+                    color: #222;
+                  }
+                  .sub-card-price {
+                    font-size: 0.5rem;
+                    color: #667eea;
+                    font-weight: 500;
+                  }
+                  @media (max-width: 600px) {
+                    .sub-card-img {
+                      height: 120px;
+                    }
+                  }
+                `;
+                document.head.appendChild(style);
               }
             });
-            const grid = document.getElementById('accommodations-grid');
-            if (grid) grid.insertAdjacentHTML('beforeend', html);
-            accommodationsPagination.offset = payload && payload.next_offset !== null && payload.next_offset !== undefined
-              ? payload.next_offset
-              : accommodationsPagination.offset + accommodations.length;
-            window.placeSetLoadMoreButton('accommodations-load-more', !!(payload && payload.has_next), false, function () {
-              fetchAndRenderAccommodations(placeId, true);
-            });
+            container.innerHTML = html;
           } catch (e) {
-            if (!append) container.innerHTML = '<div class="empty-state">Failed to load accommodations.</div>';
-            window.placeSetLoadMoreButton('accommodations-load-more', !!append, false, function () {
-              fetchAndRenderAccommodations(placeId, true);
-            });
-          } finally {
-            accommodationsPagination.loading = false;
+            container.innerHTML = '<div class="empty-state">Failed to load accommodations.</div>';
           }
         }
-        window.placePageReady(function() {
-          window.placeWhenVisible(document.getElementById('accommodations'), function () {
-            fetchAndRenderAccommodations('{{ placeid }}', false);
-          });
+        document.addEventListener('DOMContentLoaded', function() {
+          fetchAndRenderAccommodations('{{ placeid }}');
         });
       </script>
     </section>    
@@ -3479,14 +3038,14 @@
 
 
         {% if community_bulletins %}
-          <div class="calendar-grid" id="community-bulletin-grid" style="margin-top: 12px;">
+          <div class="calendar-grid" style="margin-top: 12px;">
             {% for post in community_bulletins %}
               <div class="calendar-item" style="overflow:hidden;">
                 {% with first_image=post.images.all.0 %}
                   {% if first_image and first_image.image_url %}
                     <div style="width:100%; height:160px; overflow:hidden;">
                       <a href="{{ first_image.image_url }}" class="bulletin-image-link" data-image-url="{{ first_image.image_url }}" style="display:block; width:100%; height:160px;">
-                        <img src="{{ first_image.image_url }}" alt="{{ post.ai_title|default:'Bulletin image' }}" loading="lazy" decoding="async" style="width:100%; height:160px; object-fit:cover;" />
+                        <img src="{{ first_image.image_url }}" alt="{{ post.ai_title|default:'Bulletin image' }}" style="width:100%; height:160px; object-fit:cover;" />
                       </a>
                     </div>
                   {% endif %}
@@ -3509,7 +3068,7 @@
                       {% for img in post.images.all %}
                         {% if img.image_url %}
                           <a href="{{ img.image_url }}" class="bulletin-image-link" data-image-url="{{ img.image_url }}" style="display:inline-block;">
-                            <img src="{{ img.image_url }}" alt="Bulletin photo" loading="lazy" decoding="async" style="width:64px; height:64px; object-fit:cover;" />
+                            <img src="{{ img.image_url }}" alt="Bulletin photo" style="width:64px; height:64px; object-fit:cover; border-radius: 10px;" />
                           </a>
                         {% endif %}
                       {% endfor %}
@@ -3523,9 +3082,6 @@
         {% else %}
           <div class="empty-state" style="margin-top: 12px;">No bulletin posts yet.</div>
         {% endif %}
-        <div id="community-bulletin-load-more" class="load-more-wrap" {% if community_bulletins|length < 10 %}hidden{% endif %}>
-          <button type="button" class="button button--ghost place-load-more-btn" onclick="loadMoreCommunityBulletins('{{ placeid }}')">Load more</button>
-        </div>
       </div>
 
       <!-- All Schedules Section -->
@@ -3536,7 +3092,6 @@
         <ul id="calendar-allsched-list" class="calendar-list schedules-list">
           <!-- Schedule items will be dynamically inserted here -->
         </ul>
-        <div id="schedules-load-more" class="load-more-wrap" hidden></div>
       </div>
 
       <div class="section-header">
@@ -3544,17 +3099,24 @@
         <p>Join upcoming experiences and get a quick glance at schedules and plans.</p>
       </div>
       <div id="event-objects-list" class="calendar-grid"></div>
-      <div id="events-load-more" class="load-more-wrap" hidden></div>
       <div id="calendar-objects-list" class="calendar-list">
         <div class="loading-symbol"></div>
       </div>
     </section>
 
+    <section class="panel panel--resorts" aria-labelledby="resorts-heading">
+      <div class="section-header">
+        <h2 id="resorts-heading"></h2>
+      </div>
+      <div id="resort-list-container"></div>
+    </section>
+
+
   </div>
 </div>
 
 <!-- Mobile Chat Button -->
-<div id="mobileChatBtn" style="position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: var(--accent); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1;">
+<div id="mobileChatBtn" style="position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--shadow-md); z-index: 1; transition: transform var(--transition);">
   <svg viewBox="0 0 16 16" style="width: 24px; height: 24px; fill: white;">
     <path d="M14 1a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4.414A2 2 0 0 0 3 11.586l-2 2V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12.793a.5.5 0 0 0 .854.353l2.853-2.853A1 1 0 0 1 4.414 12H14a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/>
     <path d="M3 3.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zM3 6a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9A.5.5 0 0 1 3 6zm0 2.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5z"/>
@@ -3564,87 +3126,19 @@
 <script>
 
 
-const communityBulletinState = { offset: 10, loading: false, hasNext: true };
-
-function renderCommunityBulletinPost(post) {
-  const images = Array.isArray(post.images) ? post.images.filter(Boolean) : [];
-  const firstImage = images[0] || '';
-  const title = post.ai_title || 'Community bulletin';
-  const canDelete = "{{ user.is_superuser|yesno:'true,false' }}" === "true";
-  const imageBlock = firstImage ? `
-    <div style="width:100%; height:160px; overflow:hidden;">
-      <a href="${window.placeEscapeHtml(firstImage)}" class="bulletin-image-link" data-image-url="${window.placeEscapeHtml(firstImage)}" style="display:block; width:100%; height:160px;">
-        <img src="${window.placeEscapeHtml(firstImage)}" alt="${window.placeEscapeHtml(title)}" loading="lazy" decoding="async" style="width:100%; height:160px; object-fit:cover;" />
-      </a>
-    </div>
-  ` : '';
-  const thumbnails = images.length > 1 ? `
-    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
-      ${images.map(function (imageUrl) {
-        return `
-          <a href="${window.placeEscapeHtml(imageUrl)}" class="bulletin-image-link" data-image-url="${window.placeEscapeHtml(imageUrl)}" style="display:inline-block;">
-            <img src="${window.placeEscapeHtml(imageUrl)}" alt="Bulletin photo" loading="lazy" decoding="async" style="width:64px; height:64px; object-fit:cover;" />
-          </a>
-        `;
-      }).join('')}
-    </div>
-  ` : '';
-  const deleteUrl = "{% url 'home:community_bulletin_delete' placeid 0 %}".replace('/0/delete/', '/' + post.id + '/delete/');
-  const adminBlock = canDelete ? `
-    <div style="padding: 12px;">
-      <form method="post" action="${deleteUrl}" style="display:flex; justify-content:flex-end; margin-bottom: 6px;">
-        <input type="hidden" name="csrfmiddlewaretoken" value="${window.placeEscapeHtml(csrftoken || '')}" />
-        <button type="submit" class="button button--ghost" style="border-color: #e2e8f0;">Delete</button>
-      </form>
-      <div style="font-weight: 800; margin-bottom: 6px;">${window.placeEscapeHtml(title)}</div>
-      ${thumbnails}
-    </div>
-  ` : '';
-  return `<div class="calendar-item" style="overflow:hidden;">${imageBlock}${adminBlock}</div>`;
-}
-
-async function loadMoreCommunityBulletins() {
-  if (communityBulletinState.loading || !communityBulletinState.hasNext) return;
-  const grid = document.getElementById('community-bulletin-grid');
-  if (!grid) return;
-  communityBulletinState.loading = true;
-  window.placeSetLoadMoreButton('community-bulletin-load-more', true, true, function () {});
-  try {
-    const params = new URLSearchParams({
-      limit: String(window.placePageSize || 10),
-      offset: String(communityBulletinState.offset),
-    });
-    const response = await fetch(`{% url 'home:community_bulletin_list' placeid %}?${params.toString()}`, {
-      headers: { Accept: 'application/json' },
-    });
-    if (!response.ok) throw new Error('Failed to fetch bulletin posts');
-    const payload = await response.json();
-    const posts = Array.isArray(payload.posts) ? payload.posts : [];
-    if (posts.length) {
-      grid.insertAdjacentHTML('beforeend', posts.map(renderCommunityBulletinPost).join(''));
-    }
-    const pagination = payload.pagination || {};
-    communityBulletinState.offset = pagination.next_offset || communityBulletinState.offset + posts.length;
-    communityBulletinState.hasNext = !!pagination.has_next;
-    window.placeSetLoadMoreButton('community-bulletin-load-more', communityBulletinState.hasNext, false, loadMoreCommunityBulletins);
-  } catch (error) {
-    window.placeSetLoadMoreButton('community-bulletin-load-more', true, false, loadMoreCommunityBulletins);
-  } finally {
-    communityBulletinState.loading = false;
-  }
-}
-
-
 function openModalWithContent(event, url){
   event.preventDefault();
-  const modal = document.getElementById("modal-for-blog-id");
-  const modalContentframe = document.getElementById("modalforblogContentframe");
-  if (!modal || !modalContentframe) return;
+  let modal = document.getElementById("modal-for-blog-id");
+  let modalContentframe = document.getElementById("modalforblogContentframe");
   modalContentframe.src = url;
   try {
+    console.log("Loading page:", url);
+
     // Fetch page
     // let response = await fetch(url);
     // let html = await response.text();
+
+    console.log("Page content loaded");
 
     // Insert page content
     // modalContent.innerHTML = html;
@@ -3658,15 +3152,11 @@ function openModalWithContent(event, url){
 }
 
 // Close button
-const closeBlogModalButton = document.getElementById("closemodalpageBtn");
-if (closeBlogModalButton) {
-  closeBlogModalButton.addEventListener("click", () => {
-    const modal = document.getElementById("modal-for-blog-id");
-    const modalContentframe = document.getElementById("modalforblogContentframe");
-    if (modal) modal.classList.remove("show");
-    if (modalContentframe) modalContentframe.src = '';
-  });
-}
+document.getElementById("closemodalpageBtn").addEventListener("click", () => {
+  document.getElementById("modal-for-blog-id").classList.remove("show");
+  let modalContentframe = document.getElementById("modalforblogContentframe");
+  modalContentframe.src = '';
+});
 
 
   function formatModelDate(datestr) {
@@ -3681,11 +3171,8 @@ if (closeBlogModalButton) {
   let currentPage = 1;
   const blogsPerPage = 4;
   let allBlogs = [];
-  let pendingBlogPlaceName = '';
-  let blogsLoadScheduled = false;
 
   async function loadBlogs(placeName) {
-    if (!placeName) return;
     const base = window.location.origin;
     const res = await fetch(`${base}/apis/getPlaceBlogs/${placeName}/`);
     if (!res.ok) return;
@@ -3693,21 +3180,6 @@ if (closeBlogModalButton) {
     allBlogs = await res.json();
     currentPage = 1;
     renderBlogs();
-  }
-
-  function scheduleBlogsLoad(placeName) {
-    pendingBlogPlaceName = placeName;
-    if (blogsLoadScheduled) return;
-
-    blogsLoadScheduled = true;
-    const blogSection = document.getElementById("blogs");
-    if (window.placeWhenVisible) {
-      window.placeWhenVisible(blogSection, function () {
-        loadBlogs(pendingBlogPlaceName);
-      }, { rootMargin: '600px 0px' });
-    } else {
-      loadBlogs(pendingBlogPlaceName);
-    }
   }
 
   function renderBlogs() {
@@ -3827,63 +3299,19 @@ container.innerHTML = cards;
 </script>
 
 <script>
-  window.allDates = [];
-  const allTD = document.querySelectorAll(".wed,.mon,.tue,.thu,.fri,.sat,.sun");
+  allDates = [];
+  allTD = document.querySelectorAll(".wed,.mon,.tue,.thu,.fri,.sat,.sun");
   allTD.forEach((element) => {
-    if (element.textContent.trim()) {
-      window.allDates.push(element);
+    if (element.innerHTML != "&nbsp") {
+      allDates.push(element);
     }
   });
 </script>
 
 <script>
-  const placePlanPagination = {
-    eventOffset: 0,
-    eventHasNext: false,
-    eventLoading: false,
-    scheduleOffset: 0,
-    scheduleHasNext: false,
-    scheduleLoading: false,
-  };
+  function getPlan(whatPlan) {
 
-  function buildPlacePlanUrl(params) {
-    const base = window.placePlanBaseUrl || '';
-    const joiner = base.indexOf('?') === -1 ? '?' : '&';
-    return base + joiner + new URLSearchParams(params).toString();
-  }
-
-  function loadMorePlaceEvents() {
-    if (placePlanPagination.eventLoading || !placePlanPagination.eventHasNext) return;
-    placePlanPagination.eventLoading = true;
-    window.placeSetLoadMoreButton('events-load-more', true, true, function () {});
-    getPlan(buildPlacePlanUrl({
-      include_resorts: '0',
-      track_view: '0',
-      event_limit: String(window.placePageSize || 10),
-      event_offset: String(placePlanPagination.eventOffset),
-      schedule_limit: '0',
-      schedule_offset: '0',
-    }), { appendEvents: true, renderSchedules: false, skipBlogs: true });
-  }
-
-  function loadMorePlaceSchedules() {
-    if (placePlanPagination.scheduleLoading || !placePlanPagination.scheduleHasNext) return;
-    placePlanPagination.scheduleLoading = true;
-    window.placeSetLoadMoreButton('schedules-load-more', true, true, function () {});
-    getPlan(buildPlacePlanUrl({
-      include_resorts: '0',
-      track_view: '0',
-      event_limit: '0',
-      event_offset: '0',
-      schedule_limit: String(window.placePageSize || 10),
-      schedule_offset: String(placePlanPagination.scheduleOffset),
-    }), { appendSchedules: true, renderEvents: false, skipBlogs: true });
-  }
-
-  function getPlan(whatPlan, options) {
-    options = options || {};
-
-    const todaysMonth = parseInt(`{{currentMonth}}`, 10);
+    todaysMonth = parseInt(`{{currentMonth}}`);
     fetch(whatPlan, {
       headers: {
         "Content-Type": "application/json",
@@ -3897,88 +3325,133 @@ container.innerHTML = cards;
         return response.json();
       })
       .then((data) => {
-        const placeName = data['placeName'];
-        const placeNameElement = document.getElementById("place-name");
-        const endPlaceElement = document.getElementById("endPlace");
-        if (placeNameElement) placeNameElement.innerText = placeName;
-        if (endPlaceElement) endPlaceElement.value = placeName;
+        document.querySelector("#place-name").innerText = data['placeName'];
+        document.querySelector("#endPlace").value = data['placeName']
+        xx = "/garden/map/"
+        y = `${data['placeName'].toLowerCase().replace(/\s+/g, "-")}`
+        c = xx + y
         // document.querySelector("#map-modal").src = c;
-        if (!options.skipBlogs) scheduleBlogsLoad(placeName);
+        loadBlogs(data['placeName'])
+        // console.log(data);
+        resorts = data['placeResorts']
+        // console.log(resorts);
+        if (typeof resorts === 'string') {
+          resorts = JSON.parse(resorts);
+        }
+        // Normalize resorts from either legacy Django-serializer format ({fields: {...}})
+        // or the newer lightweight format ({name, link}).
+        const normalizedResorts = (Array.isArray(resorts) ? resorts : []).map(item => {
+          if (item && item.fields) {
+            const r = item.fields;
+            return {
+              name: (r.RealName || r.name || '').toString() || 'Resort',
+              link: r.website || r.websiteURL || r.websiteUrl || null,
+              address: (r.address || '').toString(),
+            };
+          }
+          return {
+            name: (item && item.name ? item.name : 'Resort').toString(),
+            link: (item && (item.link || item.url) ? (item.link || item.url) : null),
+            address: (item && item.address ? item.address : '').toString(),
+          };
+        });
 
-        const placeEventItems = data['placeEvents'] || [];
+        window.placeResorts = normalizedResorts;
+        const resortContainer = document.querySelector("#resort-list-container");
+        if (normalizedResorts && normalizedResorts.length > 0) {
+          const resortItems = normalizedResorts
+            .map(r => {
+              const href = r.link ? r.link : '#';
+              const target = r.link ? ' target="_blank"' : '';
+              return `
+                <li>
+                  <a href="${href}"${target}>
+                    ${r.name}
+                    ${r.address ? `<small>${r.address}</small>` : ''}
+                  </a>
+                </li>
+                `;
+            })
+            .join('');
+
+          resortContainer.innerHTML = `
+            <div class="resort-list">
+              <div class="resort-list__scroller">
+                <ul>
+                  ${resortItems}
+                </ul>
+              </div>
+            </div>
+          `;
+        } 
+        // else {
+          // resortContainer.innerHTML = '<div class="empty-state">No resorts available right now.</div>';
+        // }
+
+        placeEventItems = data['placeEvents'];
+        console.log('Data data: ',data)
+        ii = 0;
         const today = new Date();
         today.setHours(0, 0, 0, 0); // Reset time to midnight for accurate date comparison
 
+        const scheduleContainer = document.getElementById('calendar-objects-list');
+        scheduleContainer.innerHTML = '';
         let scheduleCount = 0;
-        if (options.renderEvents !== false) {
-          const scheduleContainer = document.getElementById('calendar-objects-list');
-          if (scheduleContainer && !options.appendEvents) scheduleContainer.innerHTML = '';
 
-          for (const item of placeEventItems) {
-            if (item.fields.monthN == todaysMonth) {
-              const eventDate = new Date(item.fields.exactDate);
-              if (eventDate >= today) {
-                new dateObjects(item.fields).createObject(item.fields);
-                scheduleCount += 1;
-              }
+        for (d in placeEventItems) {
+          console.log('Eevent',d)
+          if (placeEventItems[d].fields.monthN == todaysMonth) {
+            const eventDate = new Date(placeEventItems[d].fields.exactDate);
+            if (eventDate >= today) {
+              new dateObjects(placeEventItems[d].fields).createObject(placeEventItems[d].fields);
+              scheduleCount += 1;
+              ii += 1;
             }
-          }
-
-          const event_container = document.getElementById('event-objects-list');
-          if (event_container && !options.appendEvents) event_container.innerHTML = '';
-          let upcomingEvents = 0;
-
-          placeEventItems.forEach(event => {
-            const e = { ...event.fields, _pk: event.pk };
-            const eventDate = new Date(e.exactDate);
-
-            if (eventDate >= today && event_container) {
-              const card = document.createElement('div');
-              card.className = 'calendar-event-card';
-              card.style.backgroundColor = '#667eea';
-              if (e.backgroundURL && window.placeLazyBackground) {
-                window.placeLazyBackground(card, e.backgroundURL);
-              } else if (e.backgroundURL) {
-                card.style.backgroundImage = `url('${e.backgroundURL}')`;
-              }
-              card.onclick = () => showEventModal(e);
-              card.style.cursor = 'pointer';
-
-              const overlay = document.createElement('div');
-              overlay.className = 'card-overlay';
-              card.appendChild(overlay);
-
-              const content = document.createElement('div');
-              content.className = 'card-content';
-              content.innerHTML = `
-                <h4>${e.scheduleTitle}</h4>
-                <p>📅 ${e.exactDate}</p>
-              `;
-              card.appendChild(content);
-              event_container.appendChild(card);
-              upcomingEvents += 1;
-            }
-          });
-
-          if (!upcomingEvents && !options.appendEvents && event_container) {
-            event_container.innerHTML = '<div class="empty-state">No upcoming events yet.</div>';
-          }
-
-          if (data.eventPagination) {
-            placePlanPagination.eventOffset = data.eventPagination.next_offset || 0;
-            placePlanPagination.eventHasNext = !!data.eventPagination.has_next;
-            placePlanPagination.eventLoading = false;
-            window.placeSetLoadMoreButton('events-load-more', placePlanPagination.eventHasNext, false, loadMorePlaceEvents);
           }
         }
+        
+        const event_container = document.getElementById('event-objects-list');
+        event_container.innerHTML = '';
+        let upcomingEvents = 0;
 
-        const placeScheduleItems = data['placeSchedule'] || [];
+        placeEventItems.forEach(event => {
+          const e = { ...event.fields, _pk: event.pk };
+          const eventDate = new Date(e.exactDate);
+          
+          if (eventDate >= today) {
+            const card = document.createElement('div');
+            card.className = 'calendar-event-card';
+            card.style.backgroundImage = e.backgroundURL ? `url('${e.backgroundURL}')` : 'linear-gradient(135deg, rgba(102, 126, 234, 0.85), rgba(118, 75, 162, 0.85))';
+            card.onclick = () => showEventModal(e);
+            card.style.cursor = 'pointer';
 
-        if (options.renderSchedules !== false) {
-          const allSchedContainer = document.querySelector("#calendar-allsched-list");
-          if (allSchedContainer && !options.appendSchedules) allSchedContainer.innerHTML = '';
+            const overlay = document.createElement('div');
+            overlay.className = 'card-overlay';
+            card.appendChild(overlay);
 
-          if (placeScheduleItems.length > 0 && allSchedContainer) {
+            const content = document.createElement('div');
+            content.className = 'card-content';
+            content.innerHTML = `
+              <h4>${e.scheduleTitle}</h4>
+              <p>📅 ${e.exactDate}</p>
+            `;
+            card.appendChild(content);
+            event_container.appendChild(card);
+            upcomingEvents += 1;
+          }
+        });
+
+        if (!upcomingEvents) {
+          event_container.innerHTML = '<div class="empty-state">No upcoming events yet.</div>';
+        }
+
+        placeScheduleItems = data['placeSchedule'];
+
+        
+        const allSchedContainer = document.querySelector("#calendar-allsched-list");
+        allSchedContainer.innerHTML = '';
+        
+        if (placeScheduleItems && placeScheduleItems.length > 0) {
           placeScheduleItems.forEach(schedItem => {
             // Also add to calendar
             new dateObjects(schedItem.fields).createObject(schedItem.fields);            
@@ -3990,6 +3463,7 @@ container.innerHTML = cards;
             
             // Get current user ID from request.user.id (server-side)
             const currentUserID = `{{request.user.id|default:"null"}}`;
+            console.log('Current User ID:', currentUserID);
             // Check if current user is the poster
             const isPoster = currentUserID && String(sched.posterID) === String(currentUserID);
             
@@ -4063,32 +3537,18 @@ container.innerHTML = cards;
             
 
           });
-          } else if (!options.appendSchedules && allSchedContainer) {
-            allSchedContainer.innerHTML = '<div class="empty-state">No schedules available for this location.</div>';
-          }
+        } else {
+          allSchedContainer.innerHTML = '<div class="empty-state">No schedules available for this location.</div>';
+        }
 
-          if (data.schedulePagination) {
-            placePlanPagination.scheduleOffset = data.schedulePagination.next_offset || 0;
-            placePlanPagination.scheduleHasNext = !!data.schedulePagination.has_next;
-            placePlanPagination.scheduleLoading = false;
-            window.placeSetLoadMoreButton('schedules-load-more', placePlanPagination.scheduleHasNext, false, loadMorePlaceSchedules);
-          }
-
-          if (!scheduleCount) {
-            // scheduleContainer.innerHTML = '<div class="empty-state">No upcoming highlights this month.</div>';
-          }
+        if (!scheduleCount) {
+          // scheduleContainer.innerHTML = '<div class="empty-state">No upcoming highlights this month.</div>';
         }
       })
       .then(() => {
         setTimeout(() => {
           // showObjectListDIv();
         }, 500);
-      })
-      .catch(() => {
-        placePlanPagination.eventLoading = false;
-        placePlanPagination.scheduleLoading = false;
-        window.placeSetLoadMoreButton('events-load-more', placePlanPagination.eventHasNext, false, loadMorePlaceEvents);
-        window.placeSetLoadMoreButton('schedules-load-more', placePlanPagination.scheduleHasNext, false, loadMorePlaceSchedules);
       });
   }
 
@@ -4151,6 +3611,9 @@ container.innerHTML = cards;
     const websiteContainer = document.getElementById('eventWebsiteContainer');
     if (eventData.scheduleWebsite) {
       document.getElementById('eventWebsite').href = eventData.scheduleWebsite;
+      websiteContainer.style.display = 'block';
+    } else if (window.placeResorts && window.placeResorts.length > 0 && window.placeResorts[0].link) {
+      document.getElementById('eventWebsite').href = window.placeResorts[0].link;
       websiteContainer.style.display = 'block';
     } else {
       websiteContainer.style.display = 'none';
@@ -4243,9 +3706,8 @@ container.innerHTML = cards;
   }
 
   document.addEventListener("DOMContentLoaded", function() {
-    const putCalendarHeader = document.querySelector("#calendar-container")
-    if (!putCalendarHeader) return;
-    const navButtons = document.createElement("div");
+    putCalendarHeader = document.querySelector("#calendar-container")
+    navButtons = document.createElement("div");
       const prevLink = "{% if place_slug %}{% url 'home:place_by_slug_with_date' place_slug=place_slug year=previousYear month=previousMonth %}{% else %}{% url 'home:place' id=placeid currentMonth=previousMonth currentYear=previousYear %}{% endif %}";
       const nextLink = "{% if place_slug %}{% url 'home:place_by_slug_with_date' place_slug=place_slug year=nextYear month=nextMonth %}{% else %}{% url 'home:place' id=placeid currentMonth=nextMonth currentYear=nextYear %}{% endif %}";
     navButtons.innerHTML = `
@@ -4266,14 +3728,12 @@ container.innerHTML = cards;
         </div>
       </div>
     `
-    const getElementInsertBeforeit = putCalendarHeader.firstChild
+    getElementInsertBeforeit = putCalendarHeader.firstChild
     putCalendarHeader.insertBefore(navButtons, getElementInsertBeforeit);
-    const makeItHeader = document.querySelector("#calendar-container > table > tbody > tr:nth-child(1) > th")
-    const currentHeader = document.querySelector("#month-year")
-    if (makeItHeader && currentHeader) {
-      currentHeader.innerHTML = makeItHeader.innerHTML
-      makeItHeader.remove()
-    }
+    makeItHeader = document.querySelector("#calendar-container > table > tbody > tr:nth-child(1) > th")
+    currentHeader = document.querySelector("#month-year")
+    currentHeader.innerHTML = makeItHeader.innerHTML
+    makeItHeader.remove()
 
     const createScheduleUrl = "{% url 'home:create_schedule_for_place' placeid %}";
     const addScheduleModal = document.getElementById('addScheduleModal');
@@ -4398,6 +3858,8 @@ container.innerHTML = cards;
         .then(data => {
           if (data.error) {
             console.error("User registration error:", data.error);
+          } else {
+            console.log("User registered successfully");
           }
         })
         .catch(error => {
@@ -4406,13 +3868,9 @@ container.innerHTML = cards;
       }
     }
 
-    window.placePlanBaseUrl = `{% url 'home:placeCalendarJSONMonth' placeid currentMonth currentYear %}?include_resorts=0`;
-    getPlan(buildPlacePlanUrl({
-      event_limit: String(window.placePageSize || 10),
-      event_offset: '0',
-      schedule_limit: String(window.placePageSize || 10),
-      schedule_offset: '0',
-    }));
+    discussionViewer(`{{placeid}}`, 'POST')
+    thisPlan = `{% url 'home:placeCalendarJSONMonth' placeid currentMonth currentYear %}`;
+    getPlan(thisPlan);
 
     const closeMapBtn = el('closeMapBtn');
     if (closeMapBtn) closeMapBtn.addEventListener('click', () => {
@@ -4432,20 +3890,15 @@ container.innerHTML = cards;
     }
 
     // Mobile chat functionality
-    const mobileChatBtn = document.getElementById('mobileChatBtn');
-    const mobileChatModal = document.getElementById('mobileChatModal');
-    const openMobileChat = () => {
-      if (mobileChatModal) mobileChatModal.style.display = 'block';
-      ensureDiscussionHistory();
-    };
-    if (mobileChatBtn) mobileChatBtn.addEventListener('click', openMobileChat);
+    document.getElementById('mobileChatBtn').addEventListener('click', () => {
+      document.getElementById('mobileChatModal').style.display = 'block';
+    });
 
     // Quick ask functionality
     const quickAskInput = document.getElementById('quick-ask-input');
     const quickAskSend = document.getElementById('quick-ask-send');
 
     const sendQuickAsk = () => {
-      if (!quickAskInput || !quickAskSend) return;
       const message = quickAskInput.value.trim();
       if (message) {
         // Set the message in the modal's textarea
@@ -4468,19 +3921,16 @@ container.innerHTML = cards;
         // Clear the input
         quickAskInput.value = '';
         // Open the modal
-        openMobileChat();
+        document.getElementById('mobileChatModal').style.display = 'block';
       }
     };
 
-    if (quickAskInput) {
-      quickAskInput.addEventListener('focus', ensureDiscussionHistory, { once: true });
-      quickAskInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-          sendQuickAsk();
-        }
-      });
-    }
-    if (quickAskSend) quickAskSend.addEventListener('click', sendQuickAsk);
+    quickAskSend.addEventListener('click', sendQuickAsk);
+    quickAskInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        sendQuickAsk();
+      }
+    });
 
 
 

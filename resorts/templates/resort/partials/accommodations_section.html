@@ -16,11 +16,11 @@
     <div class="card">
       <div class="card-body">
       <div style="font-weight:600;margin-bottom:0.75rem;">Add accommodation</div>
-      <div id="accommodationAddSaving" style="display:none;margin-bottom:0.75rem;color:var(--muted);font-weight:600;">
+      <div id="accommodationAddSaving" role="status" aria-live="polite" style="display:none;margin-bottom:0.75rem;color:var(--muted);font-weight:600;">
         Saving…
       </div>
-      <div id="accommodationAddSuccess" style="display:none;margin-bottom:0.75rem;color:var(--primary);font-weight:600;">
-        Saved. You can add another accommodation now.
+      <div id="accommodationAddSuccess" role="status" aria-live="polite" style="display:none;margin-bottom:0.75rem;color:var(--success-500, var(--primary, #16a34a));font-weight:600;">
+        Accommodation added successfully. You can add another now.
       </div>
 
       <form class="image-upload-form package-form" enctype="multipart/form-data" method="post" action="{% url 'resorts:createPackaged' %}">
@@ -127,11 +127,9 @@
                   if (!successNow && btn && btn.disabled) {
                     if (stillSaving) stillSaving.style.display = 'none';
                     btn.disabled = false;
-                    f=document.querySelector('input[placeholder="Accommodation name"]')
-                    f.value=''
-
-
-                    btn.textContent = btn.dataset.originalText || 'Saved, Add another ?';
+                    var nameInput = form.querySelector('input[name="title"]');
+                    if (nameInput) nameInput.value = '';
+                    btn.textContent = btn.dataset.originalText || 'Add accommodation';
                   }
                 } catch (e) {
                   // ignore

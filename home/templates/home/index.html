@@ -2,7 +2,10 @@
 {% load static %}
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="{% static 'home/itemcontainer.css' %}" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,300&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="preload" as="image" href="{% static 'home/images/wholeearth2.webp' %}" fetchpriority="high">
 <link rel="stylesheet" href="{% static 'home/index.css' %}" />
 <script src="{% static 'home/index.js' %}" defer></script>
 
@@ -14,12 +17,12 @@
     <div class="home-search-copy">
 
 
-      <p class="home-eyebrow">Paratara</p>
-      <h1>Where are you headed?</h1>
+      <!-- <p class="home-eyebrow">Paratara</p> -->
+      <!-- <h1>Where are you headed?</h1> -->
       <div>
-          <div>{% include "home/navBar.html" %}</div>
+          <!-- <div>{% include "home/navBar.html" %}</div> -->
       </div>      
-      <p class="home-lede">Destination guides, schedules, local collections, and travel notes in one place.</p>
+      <!-- <p class="home-lede">Destination guides, schedules, local collections, and travel notes in one place.</p> -->
     </div>
 
     <div class="search-container" id="placeSearchContainer" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-owns="place_id_for_drop_down_filter">
@@ -29,11 +32,12 @@
 
       <input
         class="where-to-go"
-        type="text"
-        placeholder="Search destinations"
+        type="search"
+        placeholder="Search places"
         id="place_input_id_for_filter"
-        aria-label="Search destinations"
+        aria-label="Search places"
         autocomplete="off"
+        enterkeyhint="search"
       />
 
       <!-- <button class="create-schedule-button" type="button" data-create-schedule aria-label="Create schedule">

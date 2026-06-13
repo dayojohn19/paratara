@@ -233,7 +233,7 @@
           confirmBtn.className = 'confirm';
           confirmBtn.textContent = 'Confirm & Save All Items';
           confirmBtn.style.marginTop = '8px';
-          confirmBtn.onclick = ()=> confirmResult(e);
+          confirmBtn.onclick = ()=> confirmResult(e, div);
           
           menuContainer.appendChild(addItemBtn);
           menuContainer.appendChild(confirmBtn);
@@ -323,7 +323,26 @@
       }
     }
 
-    function confirmResult(entry){
+    function removeSavedEntry(entry, entryElement){
+      const entryIndex = entries.indexOf(entry);
+      if(entryIndex !== -1){
+        entries.splice(entryIndex, 1);
+      }
+
+      if(entryElement && entryElement.parentElement === fileList){
+        entryElement.remove();
+      } else {
+        renderList();
+        return;
+      }
+
+      if(entries.length === 0){
+        input.value = '';
+        fileList.innerHTML = '<p>No images selected.</p>';
+      }
+    }
+
+    function confirmResult(entry, entryElement){
       // User confirmed the edited OpenAI result
       if(!entry.openaiResult || !entry.openaiResult.items){
         alert('No menu items found!');
@@ -353,10 +372,10 @@
       }
       
       // Save to database
-      saveMenuToDatabase(resortId, packageTitle, items, entry);
+      saveMenuToDatabase(resortId, packageTitle, items, entry, entryElement);
     }
     
-    async function saveMenuToDatabase(resortId, packageTitle, items, entry){
+    async function saveMenuToDatabase(resortId, packageTitle, items, entry, entryElement){
       try{
         const res = await fetch('/resorts/ocr-save-menu/', {
           method: 'POST',
@@ -381,7 +400,7 @@
           entry.openaiResultText = '';
           entry.openaiResult = null;
           entry.status = 'saved';
-          renderList();
+          removeSavedEntry(entry, entryElement);
         } else if(json.error){
           alert('❌ Error: ' + json.error);
         } else {

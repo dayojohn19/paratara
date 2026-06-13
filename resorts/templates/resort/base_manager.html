@@ -856,6 +856,126 @@
       box-shadow: var(--shadow-tight);
     }
 
+    .menu-item-row {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 0.65rem;
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.32);
+      border-radius: var(--radius-sm);
+      margin-bottom: 0.55rem;
+      transition: var(--transition);
+    }
+
+    .menu-item-row.is-unavailable {
+      opacity: 0.68;
+      background: rgba(248, 250, 252, 0.92);
+      border-color: rgba(148, 163, 184, 0.5);
+    }
+
+    .menu-item-row.is-unavailable img {
+      filter: grayscale(100%) brightness(0.9);
+    }
+
+    .menu-item-row.is-unavailable .menu-item-title {
+      color: var(--ink-500);
+      text-decoration: line-through;
+    }
+
+    .menu-item-status {
+      display: none;
+      color: var(--danger-500);
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-top: 0.2rem;
+    }
+
+    .menu-item-row.is-unavailable .menu-item-status {
+      display: block;
+    }
+
+    .availability-control {
+      display: inline-flex;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .availability-toggle {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .availability-label {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      min-width: 118px;
+      min-height: 34px;
+      padding: 0.35rem 0.75rem 0.35rem 2.45rem;
+      border: 1px solid rgba(220, 38, 38, 0.26);
+      border-radius: 999px;
+      background: rgba(254, 226, 226, 0.85);
+      color: #991b1b;
+      font-size: 0.78rem;
+      font-weight: 800;
+      line-height: 1;
+      transition: var(--transition);
+    }
+
+    .availability-label::before,
+    .availability-label::after {
+      content: '';
+      position: absolute;
+      transition: var(--transition);
+    }
+
+    .availability-label::before {
+      left: 0.5rem;
+      width: 1.55rem;
+      height: 0.9rem;
+      border-radius: 999px;
+      background: rgba(220, 38, 38, 0.32);
+    }
+
+    .availability-label::after {
+      left: 0.58rem;
+      width: 0.64rem;
+      height: 0.64rem;
+      border-radius: 999px;
+      background: #dc2626;
+      box-shadow: 0 1px 4px rgba(15, 23, 42, 0.22);
+    }
+
+    .availability-toggle:checked + .availability-label {
+      border-color: rgba(22, 163, 74, 0.32);
+      background: rgba(220, 252, 231, 0.9);
+      color: #166534;
+    }
+
+    .availability-toggle:checked + .availability-label::before {
+      background: #16a34a;
+    }
+
+    .availability-toggle:checked + .availability-label::after {
+      transform: translateX(0.64rem);
+      background: #ffffff;
+    }
+
+    .availability-toggle:focus-visible + .availability-label {
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.22);
+    }
+
+    .availability-toggle:disabled + .availability-label {
+      cursor: wait;
+      opacity: 0.62;
+    }
+
     progress {
       width: 100%;
       height: 10px;
@@ -1046,4 +1166,3 @@
   {% block scripts %}{% endblock %}
 </body>
 </html>
-

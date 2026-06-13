@@ -17,6 +17,56 @@ from html import escape
 from bs4 import BeautifulSoup
 client = OpenAI(api_key=settings.GROK_API_KEY, base_url='https://api.x.ai/v1')
 logger = logging.getLogger(__name__)
+BLOG_CATEGORY_VALUES = {choice[0] for choice in Blogs.category_choices}
+DEFAULT_SUMMARY_VALUES = {"", "No Summary Provided", "Discover more about this destination"}
+FAQ_QUESTIONS_BY_CATEGORY = {
+    "Guide": [
+        "What is the best time to visit?",
+        "How much is the entrance fee or total cost?",
+        "How do I get there?",
+        "What should I bring for the trip?",
+        "Is it safe to visit and what travel tips should I know?",
+    ],
+    "Story": [
+        "What is the main story or experience about?",
+        "What can readers learn from this experience?",
+        "Who is this story most useful for?",
+        "What local details or moments should readers notice?",
+        "How can readers plan a similar experience?",
+    ],
+    "Tip and Trick": [
+        "What are the most important tips to know first?",
+        "What common mistakes should readers avoid?",
+        "How can readers save time, money, or effort?",
+        "What should readers prepare before they start?",
+        "What is the safest or smartest way to do this?",
+    ],
+    "Explore": [
+        "What are the best things to do nearby?",
+        "How much time should visitors plan for this experience?",
+        "What places, activities, or stops should be prioritized?",
+        "How do visitors get there or move around locally?",
+        "What should visitors check before going?",
+    ],
+    "Product": [
+        "What is the best product to buy in 2026?",
+        "Where is the best place to buy it?",
+        "How much does it currently cost?",
+        "What are the top alternatives or competitors?",
+        "Is it worth buying in 2026?",
+    ],
+}
+
+
+def clean_blog_metadata(value):
+    value = re.sub(r'<a\b[^>]*>(.*?)</a>', r'\1', str(value or ''), flags=re.IGNORECASE | re.DOTALL)
+    value = re.sub(r'<[^>]+>', ' ', value)
+    return re.sub(r'\s+', ' ', value).strip()
+
+
+def normalize_blog_category(category):
+    category = clean_blog_metadata(category).strip("'\"")
+    return category if category in BLOG_CATEGORY_VALUES else 'Guide'
 
 
 def mark_editable_blog_body(body_html):
@@ -73,6 +123,8 @@ def render_faq_section(faq_entries):
 # USES call htmlwriter then calls generate_blog_object to save the blog in the database, then generates the html page with SEO optimizations, FAQ schema, and article schema for better search engine visibility. The generated HTML is saved in the appropriate folder structure for serving as a static page on the site.
 def generate_blog_object(request, place_name, title, category='Guide', summary='No Summary Provided', text_content=''):
     place = Places_v2.objects.filter(placename__iexact=place_name).first()    
+    category = normalize_blog_category(category)
+    summary = clean_blog_metadata(summary)[:400] or 'No Summary Provided'
     title_slug = slugify(title)
     plain_text_content = re.sub('<[^<]+?>', '', text_content or '')
     readtime = max(1, len(plain_text_content.split()) // 185) if plain_text_content else 5
@@ -81,10 +133,24 @@ def generate_blog_object(request, place_name, title, category='Guide', summary='
     place_blog_list = list(place.blog.all())
     for b in place_blog_list:
         if slugify(getattr(b, 'title', '') or '') == title_slug:
+            update_fields = []
+            existing_category = getattr(b, 'category', '') or ''
+            if category != existing_category and (category != 'Guide' or existing_category in ('', 'Guide')):
+                b.category = category
+                update_fields.append('category')
+
+            existing_summary = clean_blog_metadata(getattr(b, 'summarize', '') or '')
+            if summary not in DEFAULT_SUMMARY_VALUES and summary != existing_summary:
+                b.summarize = summary
+                update_fields.append('summarize')
+
+            if update_fields:
+                b.save(update_fields=update_fields)
+                logger.info("Updated blog metadata for existing blog: %s", title)
+
             logger.info("Blog already exists: %s", title)
             return b    
     title = re.sub(r'<a\b[^>]*>(.*?)</a>',r'\1',title,flags=re.IGNORECASE | re.DOTALL)            
-    summary = re.sub(r'<a\b[^>]*>(.*?)</a>', r'\1', summary, flags=re.IGNORECASE | re.DOTALL)
     blog_item = Blogs.objects.create(
         category=category,
         blogplace=place,
@@ -104,6 +170,7 @@ def generate_blog_object(request, place_name, title, category='Guide', summary='
 
 def generate_blog_page(request, place_name, title, body_text, cover_image_url=None, faq_entries=None, blog_searchable_keys_description=None, category=None):
     logger.info("Generating blog page: %s", title)
+    category = normalize_blog_category(category)
     def _get_image_cover(place_name, title):
         from imageapp.imageuploader import getTitlePhoto
         togen = f"{title} {place_name} travel guide cover photo, vibrant and eye-catching, showcasing the essence of the destination with iconic landmarks or scenic views, optimized for web display."
@@ -202,22 +269,8 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
     # Build FAQ Schema and Article Schema
     try:
         faq_entries = []
-        faq_questions = [
-    "What is the best time to visit?",
-    "How much is the entrance fee or total cost?",
-    "How do I get there?",
-    "What should I bring for the trip?",
-    "Is it safe to visit and what travel tips should I know?"
-]
-        if category == 'Product':
-            logger.debug("Using product FAQ questions")
-            faq_questions = [
-    "What is the best product to buy in 2026?",
-    "Where is the best place to buy it?",
-    "How much does it currently cost?",
-    "What are the top alternatives or competitors?",
-    "Is it worth buying in 2026?"
-]
+        faq_questions = FAQ_QUESTIONS_BY_CATEGORY.get(category, FAQ_QUESTIONS_BY_CATEGORY["Guide"])
+        logger.debug("Using %s FAQ questions", category)
 
         faq_prompt = f'''Generate 5 most searched words and FAQs about "{title}" in "{place_name}".
         
@@ -1986,7 +2039,7 @@ async function saveParagraphEdit(paragraph, tools) {{
     status.textContent = 'Saving...';
     status.classList.remove('error');
     saveButton.textContent = 'Saving...';
-    saveButton.disable = true;
+    saveButton.disabled = true;
 
     try {{
         let response = await fetch(blogParagraphSaveUrl, {{
@@ -2011,16 +2064,16 @@ async function saveParagraphEdit(paragraph, tools) {{
             throw new Error(data.error || `HTTP ${{response.status}}`);
         }}
         saveButton.textContent = 'Saved';
-        saveButton.disable = false;
+        saveButton.disabled = false;
         updateVisibleLastUpdated(data);
         finishParagraphEdit(paragraph, tools, data.edited_html || editedHTML);
     }} catch (err) {{
         console.error("Error saving paragraph:", err);
         saveButton.disabled = false;
-        status.textContent = 'Save failed. Please try again.';
+        status.textContent = `Save failed: ${{err.message || 'Please try again.'}}`;
         status.classList.add('error');
         saveButton.textContent = 'Save Again';
-        saveButton.disable = false;
+        saveButton.disabled = false;
     }}
 }}
 

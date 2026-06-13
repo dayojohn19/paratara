@@ -1,5 +1,6 @@
 {% load static %}
 {% load humanize %}
+{% load custom_filters %}
 
 <!DOCTYPE html>
 
@@ -192,9 +193,6 @@
       color: var(--text);
       font-size: 0.95rem !important;
       line-height: 1.35;
-      border-radius: 0.7rem;
-      background: #fff;
-      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
     }
 
     .profile-card .profile-meta {
@@ -262,9 +260,7 @@
       margin-top: 1rem;
       padding: 1rem;
       text-align: left;
-      background: var(--surface-muted);
-      border: 1px solid var(--line);
-      border-radius: 0.75rem;
+
     }
 
     .bank-info-panel h6 {
@@ -416,9 +412,6 @@
       align-items: center;
       position: relative;
       margin: 0.25rem 0;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      background: var(--surface-muted);
     }
 
     .comment-sender {
@@ -731,19 +724,19 @@
                         <div class="bank-info-summary">
                           <div class="bank-info-summary-row">
                             <small>Bank Name</small>
-                            <span>****{{ pageUser.bank_name|slice:"-6:" }}</span>
+                            <span>{{ pageUser.bank_name|mask_middle }}</span>
                           </div>
                           <div class="bank-info-summary-row">
                             <small>Bank Account Name</small>
-                            <span>****{{ pageUser.bank_account_name|slice:"-4:" }}</span>
+                            <span>{{ pageUser.bank_account_name|mask_middle }}</span>
                           </div>
                           <div class="bank-info-summary-row">
                             <small>Bank Account Number</small>
-                            <span>****{{ pageUser.bank_account_number|slice:"-4:" }}</span>
+                            <span>{{ pageUser.bank_account_number|mask_middle }}</span>
                           </div>
                           <div class="bank-info-summary-row">
                             <small>Contact</small>
-                            <span>****{{ pageUser.bank_contact|slice:"-4:" }}</span>
+                            <span>{{ pageUser.bank_contact|mask_middle }}</span>
                           </div>
 	                        </div>
 	                        <div class="bank-info-actions">

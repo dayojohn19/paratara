@@ -178,6 +178,97 @@
       });
     });
 
+    function getPackageFeedbackConfig(form) {
+      const packageType = (form.querySelector('input[name="packageType"]')?.value || '').toLowerCase();
+      const configs = {
+        accomodation: {
+          savingId: 'accommodationAddSaving',
+          successId: 'accommodationAddSuccess',
+          metaId: 'accommodationSavedMeta',
+          selectId: 'accommodationPackageSelect',
+          clearSelector: 'input[name="title"]',
+          buttonText: 'Add accommodation',
+          successText: 'Accommodation added successfully. You can add another now.',
+          metaText: 'Accommodation saved'
+        },
+        accommodation: {
+          savingId: 'accommodationAddSaving',
+          successId: 'accommodationAddSuccess',
+          metaId: 'accommodationSavedMeta',
+          selectId: 'accommodationPackageSelect',
+          clearSelector: 'input[name="title"]',
+          buttonText: 'Add accommodation',
+          successText: 'Accommodation added successfully. You can add another now.',
+          metaText: 'Accommodation saved'
+        },
+        activity: {
+          savingId: 'activityAddSaving',
+          successId: 'activityAddSuccess',
+          selectId: 'activityPackageSelect',
+          buttonText: 'Add activity',
+          successText: 'Activity added successfully. You can add another now.'
+        }
+      };
+      return configs[packageType] || null;
+    }
+
+    function setPackageSubmitting(form, config, submitting) {
+      const btn = form.querySelector('button[type="submit"]');
+      const savingBanner = config ? document.getElementById(config.savingId) : null;
+      const successBanner = config ? document.getElementById(config.successId) : null;
+
+      if (savingBanner) savingBanner.style.display = submitting ? '' : 'none';
+      if (submitting && successBanner) successBanner.style.display = 'none';
+
+      if (btn) {
+        btn.dataset.originalText = btn.dataset.originalText || btn.textContent;
+        btn.disabled = submitting;
+        btn.textContent = submitting ? 'Saving...' : (btn.dataset.originalText || config.buttonText);
+      }
+    }
+
+    function showPackageSuccess(form, config) {
+      const successBanner = document.getElementById(config.successId);
+      const headerMeta = config.metaId ? document.getElementById(config.metaId) : null;
+
+      setPackageSubmitting(form, config, false);
+      if (successBanner) {
+        successBanner.textContent = config.successText;
+        successBanner.style.color = 'var(--success-500, var(--primary, #16a34a))';
+        successBanner.style.display = '';
+        window.setTimeout(() => {
+          successBanner.style.display = 'none';
+        }, 3500);
+      }
+      if (headerMeta) {
+        headerMeta.textContent = config.metaText;
+        headerMeta.style.display = '';
+        window.setTimeout(() => {
+          headerMeta.style.display = 'none';
+          headerMeta.textContent = '';
+        }, 3500);
+      }
+      if (config.clearSelector) {
+        const clearInput = form.querySelector(config.clearSelector);
+        if (clearInput) clearInput.value = '';
+      } else if (typeof form.reset === 'function') {
+        form.reset();
+        const packageSelect = config.selectId ? document.getElementById(config.selectId) : null;
+        if (packageSelect) packageSelect.dispatchEvent(new Event('change'));
+      }
+    }
+
+    function showPackageError(form, config) {
+      const successBanner = document.getElementById(config.successId);
+
+      setPackageSubmitting(form, config, false);
+      if (successBanner) {
+        successBanner.textContent = 'Could not save. Please try again.';
+        successBanner.style.color = 'var(--danger-500, var(--warn, #dc2626))';
+        successBanner.style.display = '';
+      }
+    }
+
     // AJAX handler for image upload forms
     $(document).on('submit', '.image-upload-form', function(e) {
       const hasFile = $(this).find('input[type="file"]').length > 0;
@@ -188,6 +279,7 @@
       const formData = new FormData(form);
       const $form = $(this);
       const subID = $form.find('input[name="subID"]').val();
+      const packageFeedbackConfig = getPackageFeedbackConfig(form);
       const resultBox = $(subID ? '#upload-result-' + subID : '<div/>');
       
       $.ajax({
@@ -198,13 +290,19 @@
         contentType: false,
         headers: { 'X-CSRFToken': $form.find('input[name="csrfmiddlewaretoken"]').val() },
         beforeSend: function() { 
+          if (packageFeedbackConfig) setPackageSubmitting(form, packageFeedbackConfig, true);
           if (resultBox.length) resultBox.html('<p>Uploading...</p>'); 
         },
         success: function(response) {
+          if (packageFeedbackConfig) {
+            showPackageSuccess(form, packageFeedbackConfig);
+            return;
+          }
           if (resultBox.length) resultBox.html("<p style='color:green;'>✅ Uploaded successfully!</p>");
           form.querySelector('input[type="file"]').value = '';
         },
         error: function(xhr, status, error) {
+          if (packageFeedbackConfig) showPackageError(form, packageFeedbackConfig);
           if (resultBox.length) resultBox.html("<p style='color:red;'>❌ Upload failed</p>");
           console.error('Error:', error, xhr.responseText);
         }
@@ -541,7 +639,7 @@
             confirmBtn.textContent = 'Saving...';
 
             try {
-              const ok = await confirmOcrResult(e);
+              const ok = await confirmOcrResult(e, div);
               if (!ok) {
                 confirmBtn.disabled = false;
                 confirmBtn.dataset.busy = '0';
@@ -622,7 +720,26 @@
       }
     }
 
-    async function confirmOcrResult(entry){
+    function removeSavedOcrEntry(entry, entryElement){
+      const entryIndex = ocrEntries.indexOf(entry);
+      if(entryIndex !== -1){
+        ocrEntries.splice(entryIndex, 1);
+      }
+
+      if(entryElement && entryElement.parentElement === ocrFileList){
+        entryElement.remove();
+      } else {
+        renderOcrList();
+        return;
+      }
+
+      if(ocrEntries.length === 0){
+        ocrInput.value = '';
+        ocrFileList.innerHTML = '<p style="color:var(--muted);">No images selected.</p>';
+      }
+    }
+
+    async function confirmOcrResult(entry, entryElement){
       if(!entry.openaiResult || !entry.openaiResult.items){
         alert('No menu items found!');
         return false;
@@ -641,10 +758,10 @@
         return false;
       }
       
-      return await saveOcrMenuToDatabase(resortId, packageTitle, items, entry);
+      return await saveOcrMenuToDatabase(resortId, packageTitle, items, entry, entryElement);
     }
     
-    async function saveOcrMenuToDatabase(resortId, packageTitle, items, entry){
+    async function saveOcrMenuToDatabase(resortId, packageTitle, items, entry, entryElement){
       try{
         // Use FormData to support file uploads
         const formData = new FormData();
@@ -680,13 +797,9 @@
             : `Created new package "${json.package_title}"`;
             
           alert(`✅ Success!\n\n${packageInfo}\n\nCreated ${json.items.length} menu items:\n\n${itemsList}`);
-          document.querySelector('#ocrClearAll').click();
           entry.openaiResult = null;
           entry.status = 'saved';
-          renderOcrList();
-          
-          // Scroll to existing menu items section to see the changes
-          document.querySelector('#ocr-menu-upload')?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+          removeSavedOcrEntry(entry, entryElement);
           return true;
         } else if(json.error){
           alert('❌ Error: ' + json.error);

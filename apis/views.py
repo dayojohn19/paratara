@@ -13,6 +13,7 @@ from .forms import BlogsForm,BloggerForm, EmailSubscriberForm
 from userProfile.forms import ImageForm
 from userProfile.services import ensure_user_profile, get_user_profile_by_id
 from django.http import JsonResponse
+from django.urls import reverse
 from django.utils.text import slugify
 from calendar import HTMLCalendar
 from datetime import date
@@ -27,6 +28,108 @@ from resorts.models import resortItem
 from home.models import Places_v2
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+
+
+def _resort_detail_link(place, resort):
+    place_slug = (getattr(place, 'slug', '') or slugify(getattr(place, 'placename', ''))).strip()
+    resort_slug = (getattr(resort, 'slug', '') or getattr(resort, 'name', '') or '').strip()
+    if place_slug and resort_slug:
+        try:
+            return reverse('home:resort_by_slugs', kwargs={
+                'place_slug': place_slug,
+                'resort_slug': resort_slug,
+            })
+        except Exception:
+            return f'/{place_slug}/check/{resort_slug}/'
+    return getattr(resort, 'websiteURL', '') or ''
+
+
+def _package_images(package):
+    return [
+        image.urlField
+        for image in package.ImageURL.all()
+        if getattr(image, 'urlField', '')
+    ]
+
+
+def _package_payload(package, resort, place):
+    images = _package_images(package)
+    website = getattr(package, 'website', '') or ''
+    return {
+        'title': getattr(package, 'title', ''),
+        'description': getattr(package, 'description', ''),
+        'information': getattr(package, 'information', ''),
+        'price': getattr(package, 'price', None),
+        'imageURL': images[0] if images else '',
+        'images': images,
+        'package_image': images,
+        'websiteURL': website,
+        'website': website,
+        'resortLink': _resort_detail_link(place, resort),
+        'resortName': getattr(resort, 'RealName', '') or getattr(resort, 'name', ''),
+    }
+
+
+def _pagination_params(request, default_limit=10, max_limit=10):
+    def parse_int(value, default):
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return default
+
+    limit = parse_int(request.GET.get('limit'), default_limit)
+    offset = parse_int(request.GET.get('offset'), 0)
+    return max(1, min(limit, max_limit)), max(0, offset)
+
+
+def _paginated_payload(items, request):
+    limit, offset = _pagination_params(request)
+    total = len(items)
+    next_offset = offset + limit
+    return {
+        'results': items[offset:next_offset],
+        'count': total,
+        'limit': limit,
+        'offset': offset,
+        'next_offset': next_offset if next_offset < total else None,
+        'has_next': next_offset < total,
+    }
+
+
+def _package_group_payload(package_group, resort, place, group_title, item_type):
+    return {
+        'title': group_title or item_type.title(),
+        'description': '',
+        'information': '',
+        'price': None,
+        'imageURL': '',
+        'images': [],
+        'package_image': [],
+        'websiteURL': '',
+        'website': '',
+        'resortLink': _resort_detail_link(place, resort),
+        'resortName': getattr(resort, 'RealName', '') or getattr(resort, 'name', ''),
+        'groupTitle': group_title or item_type.title(),
+        'itemType': item_type,
+    }
+
+
+def _collect_package_items(resorts, package_attr, place, item_type):
+    items = []
+    for resort in resorts:
+        for package_group in getattr(resort, package_attr):
+            group_title = getattr(package_group, 'PackageTitle', '') or item_type.title()
+            subpackages = list(package_group.subPackagesList) if hasattr(package_group, 'subPackagesList') else []
+            if subpackages:
+                for subpackage in subpackages:
+                    item = _package_payload(subpackage, resort, place)
+                    item['PackageTitle'] = group_title
+                    item['groupTitle'] = group_title
+                    item['itemType'] = item_type
+                    items.append(item)
+            else:
+                items.append(_package_group_payload(package_group, resort, place, group_title, item_type))
+    return items
 
 
 
@@ -69,34 +172,45 @@ def getPlaceActivities(request, place_id):
         place = Places_v2.objects.get(id=place_id)
     except Places_v2.DoesNotExist:
         return Response({'error': 'Place not found'}, status=404)
+    flat = request.GET.get('flat') == '1'
     # Get all resorts linked to this place (via FK or M2M)
-    resorts = resortItem.objects.filter(place=place)
+    resorts = resortItem.objects.filter(place=place).prefetch_related(
+        'resortActivities__subPackages__ImageURL'
+    )
+    if request.GET.get('paginate') == '1':
+        items = _collect_package_items(resorts, 'ActivitiesList', place, 'activity')
+        return Response(_paginated_payload(items, request))
+
     # Optionally, merge with place.resortItem.all() if you use M2M as well
     result = []
     for resort in resorts:
         # Use the serialize method, but only keep relevant fields for activities
-        data = {
-            'id': resort.id,
-            'name': resort.name,
-            'RealName': resort.RealName,
+        data = None
+        if not flat:
+            data = {
+                'id': resort.id,
+                'name': resort.name,
+                'RealName': resort.RealName,
                 'websiteURL': getattr(resort, 'websiteURL', None),
                 'ActivitiesList': []
-        }
+            }
         for activity in resort.ActivitiesList:
             activity_data = {
                 'PackageTitle': getattr(activity, 'PackageTitle', ''),
+                'websiteURL': getattr(activity, 'websiteURL', None),
+                'resortLink': _resort_detail_link(place, resort),
+                'resortName': getattr(resort, 'RealName', '') or getattr(resort, 'name', ''),
                 'subPackagesList': []
             }
             if hasattr(activity, 'subPackagesList'):
                 for sub in activity.subPackagesList:
-                    print('subpackage:', sub.ImageURL.first())
-                    activity_data['subPackagesList'].append({
-                        'title': getattr(sub, 'title', ''),
-                        'price': getattr(sub, 'price', None),
-                        'imageURL': sub.ImageURL.first().urlField if sub.ImageURL.exists() else ''
-                    })
-            data['ActivitiesList'].append(activity_data)
-        result.append(data)
+                    activity_data['subPackagesList'].append(_package_payload(sub, resort, place))
+            if flat:
+                result.append(activity_data)
+            else:
+                data['ActivitiesList'].append(activity_data)
+        if not flat:
+            result.append(data)
     return Response(result)
 
 
@@ -106,30 +220,45 @@ def getPlaceAccommodations(request, place_id):
         place = Places_v2.objects.get(id=place_id)
     except Places_v2.DoesNotExist:
         return Response({'error': 'Place not found'}, status=404)
-    resorts = resortItem.objects.filter(place=place)
+    flat = request.GET.get('flat') == '1'
+    resorts = resortItem.objects.filter(place=place).prefetch_related(
+        'resortAccomodations__subPackages__ImageURL'
+    )
+    if request.GET.get('paginate') == '1':
+        items = _collect_package_items(resorts, 'AccomodationsList', place, 'accommodation')
+        return Response(_paginated_payload(items, request))
+
     result = []
     for resort in resorts:
-        data = {
-            'id': resort.id,
-            'name': resort.name,
-            'RealName': resort.RealName,
-            'websiteURL': getattr(resort, 'websiteURL', None),
-            'AccommodationsList': []
-        }
+        data = None
+        if not flat:
+            data = {
+                'id': resort.id,
+                'name': resort.name,
+                'RealName': resort.RealName,
+                'websiteURL': getattr(resort, 'websiteURL', None),
+                'AccommodationsList': []
+            }
         for acc in resort.AccomodationsList:
             acc_data = {
                 'PackageTitle': getattr(acc, 'PackageTitle', ''),
+                'title': getattr(acc, 'title', '') or getattr(acc, 'PackageTitle', ''),
+                'price': getattr(acc, 'price', None),
+                'imageURL': '',
+                'websiteURL': getattr(acc, 'websiteURL', None),
+                'resortLink': _resort_detail_link(place, resort),
+                'resortName': getattr(resort, 'RealName', '') or getattr(resort, 'name', ''),
                 'subPackagesList': []
             }
             if hasattr(acc, 'subPackagesList'):
                 for sub in acc.subPackagesList:
-                    acc_data['subPackagesList'].append({
-                        'title': getattr(sub, 'title', ''),
-                        'price': getattr(sub, 'price', None),
-                        'imageURL': sub.ImageURL.first().urlField if sub.ImageURL.exists() else ''
-                    })
-            data['AccommodationsList'].append(acc_data)
-        result.append(data)
+                    acc_data['subPackagesList'].append(_package_payload(sub, resort, place))
+            if flat:
+                result.append(acc_data)
+            else:
+                data['AccommodationsList'].append(acc_data)
+        if not flat:
+            result.append(data)
     return Response(result)
 
 @api_view(['GET'])
