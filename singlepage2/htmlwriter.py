@@ -1450,16 +1450,16 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg, onEmpty) {{
     function isHeifImage(file) {{
         const type = (file.type || '').toLowerCase();
         const name = (file.name || '').toLowerCase();
-        return type.includes('heic') || type.includes('heif') || /\.(heic|heif)$/i.test(name);
+        return type.includes('heic') || type.includes('heif') || /\\.(heic|heif)$/i.test(name);
     }}
 
     function shouldNormalizeImageUpload(file) {{
         const type = (file.type || '').toLowerCase();
         const name = (file.name || '').toLowerCase();
-        if (type === 'image/gif' || type === 'image/svg+xml' || /\.(gif|svg)$/i.test(name)) {{
+        if (type === 'image/gif' || type === 'image/svg+xml' || /\\.(gif|svg)$/i.test(name)) {{
             return false;
         }}
-        return type.startsWith('image/') || /\.(heic|heif|jpe?g|png|webp)$/i.test(name);
+        return type.startsWith('image/') || /\\.(heic|heif|jpe?g|png|webp)$/i.test(name);
     }}
 
     function loadImageFile(file) {{
@@ -1516,7 +1516,7 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg, onEmpty) {{
             context.drawImage(img, 0, 0, width, height);
 
             const blob = await canvasToBlob(canvas, 'image/jpeg', 0.84);
-            const originalName = (file.name || 'camera-image').replace(/\.[^.]+$/, '');
+            const originalName = (file.name || 'camera-image').replace(/\\.[^.]+$/, '');
             const normalizedFile = new File([blob], `${{originalName || 'camera-image'}}.jpg`, {{
                 type: 'image/jpeg',
                 lastModified: Date.now(),
