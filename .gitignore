@@ -16,7 +16,7 @@ __pycache__/
 singlepage2/templates/blogs
 # Media & generated
 staticfiles/
-
+media/qr_codes/
 imageuploads/
 storyvideo/
 image_bank_uploaded/
