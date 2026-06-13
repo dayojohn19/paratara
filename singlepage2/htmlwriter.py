@@ -1447,21 +1447,123 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg, onEmpty) {{
         return true;
     }}
 
+    function isHeifImage(file) {{
+        const type = (file.type || '').toLowerCase();
+        const name = (file.name || '').toLowerCase();
+        return type.includes('heic') || type.includes('heif') || /\.(heic|heif)$/i.test(name);
+    }}
+
+    function shouldNormalizeImageUpload(file) {{
+        const type = (file.type || '').toLowerCase();
+        const name = (file.name || '').toLowerCase();
+        if (type === 'image/gif' || type === 'image/svg+xml' || /\.(gif|svg)$/i.test(name)) {{
+            return false;
+        }}
+        return type.startsWith('image/') || /\.(heic|heif|jpe?g|png|webp)$/i.test(name);
+    }}
+
+    function loadImageFile(file) {{
+        return new Promise((resolve, reject) => {{
+            const objectUrl = URL.createObjectURL(file);
+            const img = new Image();
+            img.onload = () => {{
+                URL.revokeObjectURL(objectUrl);
+                resolve(img);
+            }};
+            img.onerror = () => {{
+                URL.revokeObjectURL(objectUrl);
+                reject(new Error('This phone image format could not be opened in the browser.'));
+            }};
+            img.src = objectUrl;
+        }});
+    }}
+
+    function canvasToBlob(canvas, type, quality) {{
+        return new Promise((resolve, reject) => {{
+            canvas.toBlob(blob => {{
+                if (blob) {{
+                    resolve(blob);
+                    return;
+                }}
+                reject(new Error('This browser could not prepare the image for upload.'));
+            }}, type, quality);
+        }});
+    }}
+
+    async function normalizeImageForUpload(file) {{
+        if (!file || !shouldNormalizeImageUpload(file)) {{
+            return file;
+        }}
+
+        const heif = isHeifImage(file);
+        if (!window.URL || !document.createElement('canvas').getContext) {{
+            if (heif) {{
+                throw new Error('Phone camera HEIC/HEIF images need to be converted to JPEG before upload.');
+            }}
+            return file;
+        }}
+
+        try {{
+            const img = await loadImageFile(file);
+            const maxDimension = 1800;
+            const scale = Math.min(1, maxDimension / Math.max(img.naturalWidth || img.width, img.naturalHeight || img.height));
+            const width = Math.max(1, Math.round((img.naturalWidth || img.width) * scale));
+            const height = Math.max(1, Math.round((img.naturalHeight || img.height) * scale));
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const context = canvas.getContext('2d');
+            context.drawImage(img, 0, 0, width, height);
+
+            const blob = await canvasToBlob(canvas, 'image/jpeg', 0.84);
+            const originalName = (file.name || 'camera-image').replace(/\.[^.]+$/, '');
+            const normalizedFile = new File([blob], `${{originalName || 'camera-image'}}.jpg`, {{
+                type: 'image/jpeg',
+                lastModified: Date.now(),
+            }});
+
+            if (!heif && file.type === 'image/jpeg' && normalizedFile.size >= file.size) {{
+                return file;
+            }}
+            return normalizedFile;
+        }} catch (error) {{
+            if (heif) {{
+                throw error;
+            }}
+            console.warn('Image normalization skipped:', error);
+            return file;
+        }}
+    }}
+
     async function uploadImageIntoSection(paragraph, imageInput, imageNameInput, uploadButton, status) {{
         const file = imageInput.files && imageInput.files[0];
         if (!file) return;
 
+        uploadButton.disabled = true;
+        status.textContent = 'Preparing image...';
+        status.classList.remove('error');
+
+        let fileToUpload;
+        try {{
+            fileToUpload = await normalizeImageForUpload(file);
+        }} catch (err) {{
+            console.error("Error preparing image:", err);
+            status.textContent = `Image upload failed: ${{err.message || 'Please choose a JPEG or PNG image.'}}`;
+            status.classList.add('error');
+            uploadButton.disabled = false;
+            imageInput.value = '';
+            return;
+        }}
+
         const formData = new FormData();
-        formData.append('image', file);
+        formData.append('image', fileToUpload);
         formData.append('image_name', imageNameInput.value.trim());
         formData.append('imageclassID', place_name);
         formData.append('blog_place_slug', blogPlaceSlug);
         formData.append('blog_title_slug', blogTitleSlug);
         formData.append('source', 'blog_inline_editor');
 
-        uploadButton.disabled = true;
         status.textContent = 'Uploading image...';
-        status.classList.remove('error');
 
         try {{
             const response = await fetch(blogImageUploadUrl, {{
@@ -1473,7 +1575,15 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg, onEmpty) {{
                 }}
             }});
 
-            const data = await response.json();
+            let data = {{}};
+            try {{
+                data = await response.json();
+            }} catch (jsonError) {{
+                if (!response.ok) {{
+                    throw new Error(`HTTP ${{response.status}}`);
+                }}
+                throw jsonError;
+            }}
             if (!response.ok || data.status !== 'success' || !data.image_url) {{
                 throw new Error(data.error || `HTTP ${{response.status}}`);
             }}
@@ -1483,7 +1593,7 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg, onEmpty) {{
             imageNameInput.value = '';
         }} catch (err) {{
             console.error("Error uploading image:", err);
-            status.textContent = 'Image upload failed. Please try again.';
+            status.textContent = `Image upload failed: ${{err.message || 'Please try again.'}}`;
             status.classList.add('error');
         }} finally {{
             uploadButton.disabled = false;
@@ -1600,7 +1710,7 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg, onEmpty) {{
 
         let imageUploadInput = document.createElement('input');
         imageUploadInput.type = 'file';
-        imageUploadInput.accept = 'image/*';
+        imageUploadInput.accept = 'image/jpeg,image/png,image/webp,image/heic,image/heif,image/*';
         imageUploadInput.className = 'blog-image-upload-input';
 
         let addUrlButton = document.createElement('button');
