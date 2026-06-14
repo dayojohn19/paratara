@@ -1,0 +1,5095 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{% if page_title %}{{ page_title }}{% elif place.placename %}{{ place.placename }} Travel Guide | Paratara{% else %}Paratara{% endif %}</title>
+  <meta name="description" content="{% if meta_description %}{{ meta_description }}{% elif place.placename %}Discover {{ place.placename }} travel guides, resort options, local events, tourist spots, and shared trip schedules with Paratara.{% else %}Plan trips with Paratara.{% endif %}">
+  {% if canonical_url %}
+    <link rel="canonical" href="{{ canonical_url }}">
+  {% endif %}
+  {% if meta_image_url %}
+    <meta property="og:image" content="{{ meta_image_url }}">
+    <meta name="twitter:image" content="{{ meta_image_url }}">
+  {% endif %}
+  <meta property="og:title" content="{% if page_title %}{{ page_title }}{% elif place.placename %}{{ place.placename }} Travel Guide | Paratara{% else %}Paratara{% endif %}">
+  <meta property="og:description" content="{% if meta_description %}{{ meta_description }}{% elif place.placename %}Discover {{ place.placename }} travel guides, resort options, local events, tourist spots, and shared trip schedules with Paratara.{% else %}Plan trips with Paratara.{% endif %}">
+  <meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+{% block body %}
+
+{% include "home/placeJS.html" %}
+
+<script>
+  (function () {
+    function runWhenReady(callback) {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', callback, { once: true });
+      } else {
+        callback();
+      }
+    }
+
+    function runWhenIdle(callback) {
+      if ('requestIdleCallback' in window) {
+        window.requestIdleCallback(callback, { timeout: 1500 });
+      } else {
+        window.setTimeout(callback, 150);
+      }
+    }
+
+    function runWhenVisible(target, callback, options) {
+      let hasRun = false;
+      const run = function () {
+        if (hasRun) return;
+        hasRun = true;
+        callback();
+      };
+
+      if (!target) {
+        runWhenIdle(run);
+        return;
+      }
+
+      if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver(function (entries) {
+          if (entries.some(function (entry) { return entry.isIntersecting; })) {
+            observer.disconnect();
+            run();
+          }
+        }, Object.assign({ rootMargin: '300px 0px', threshold: 0.01 }, options || {}));
+        observer.observe(target);
+      } else {
+        runWhenIdle(run);
+      }
+    }
+
+    function cssUrl(url) {
+      return 'url("' + String(url).replace(/["\\]/g, '\\$&') + '")';
+    }
+
+    window.placePageReady = runWhenReady;
+    window.placeIdle = runWhenIdle;
+    window.placeWhenVisible = runWhenVisible;
+    window.placeLazyBackground = function (element, url) {
+      if (!element || !url) return;
+      runWhenVisible(element, function () {
+        element.style.backgroundImage = cssUrl(url);
+      });
+    };
+    window.placeLazyImageAttrs = ' loading="lazy" decoding="async"';
+    window.ensurePlaceSubCardStyles = function () {
+      if (document.getElementById('sub-card-style')) return;
+
+      const style = document.createElement('style');
+      style.id = 'sub-card-style';
+      style.textContent = `
+        .sub-card-grid {
+          display: flex;
+          flex-wrap: wrap;
+          gap:0.2rem;
+          margin: 1.2rem 0 0 0;
+        }
+        .sub-card {
+          background: #fff;
+          overflow: hidden;
+          width: 220px;
+          display: flex;
+          flex-direction: column;
+          align-items: stretch;
+        }
+        button.sub-card,
+        .place-item-card {
+          border: 0;
+          padding: 0;
+          color: inherit;
+          cursor: pointer;
+          font: inherit;
+          text-align: left;
+        }
+        .place-item-card:focus-visible {
+          outline: 2px solid #667eea;
+          outline-offset: 2px;
+        }
+        .activity-group {
+          margin-bottom: 1.35rem;
+        }
+        .activity-group__title {
+          color: #222;
+          font-size: 1.05rem;
+          font-weight: 700;
+          line-height: 1.35;
+          margin: 0;
+        }
+        .sub-card-img {
+          width: 100%;
+          height: 200px;
+          object-fit: cover;
+          display: block;
+        }
+        .sub-card-body {
+          padding: 0.8rem 1rem 1.1rem 1rem;
+          flex: 1 1 auto;
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-start;
+          align-items: flex-start;
+        }
+        .sub-card-title {
+          font-size: 0.92rem;
+          font-weight: 650;
+          line-height: 1.35;
+          margin-bottom: 0.35rem;
+          color: #222;
+        }
+        .sub-card-price {
+          font-size: 0.88rem;
+          line-height: 1.35;
+          color: var(--accent);
+          font-weight: 650;
+        }
+        .sub-card-rating {
+          margin-top: 0.35rem;
+          color: #64748b;
+          font-size: 0.78rem;
+          line-height: 1.3;
+          font-weight: 650;
+        }
+        .place-rating-stars {
+          display: inline-flex;
+          align-items: center;
+          gap: 2px;
+          color: #cbd5e1;
+          line-height: 1;
+        }
+        .place-rating-stars__star {
+          color: #cbd5e1;
+        }
+        .place-rating-stars__star.is-active {
+          color: #f59e0b;
+        }
+        .place-rating-stars__count {
+          color: #64748b;
+          font-size: 0.82rem;
+          line-height: 1;
+          margin-left: 4px;
+        }
+        .place-item-modal__rating {
+          min-height: 1.35rem;
+        }
+        .place-item-modal__rating .place-rating-stars {
+          font-size: 1.1rem;
+        }
+        .place-item-reviews {
+          border-top: 1px solid rgba(148, 163, 184, 0.35);
+          margin-top: 8px;
+          padding-top: 14px;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+        .place-item-reviews[hidden] {
+          display: none;
+        }
+        .place-item-reviews__summary {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          flex-wrap: wrap;
+          color: var(--text);
+          font-size: 0.95rem;
+          font-weight: 700;
+        }
+        .place-item-reviews__plain-btn {
+          border: 1px solid rgba(102, 126, 234, 0.28);
+          background: #fff;
+          color: var(--accent);
+          padding: 7px 10px;
+          font: inherit;
+          font-size: 0.88rem;
+          font-weight: 700;
+          cursor: pointer;
+        }
+        .place-item-review-form {
+          display: grid;
+          gap: 8px;
+        }
+        .place-item-review-form__row {
+          display: grid;
+          grid-template-columns: minmax(90px, 120px) minmax(0, 1fr);
+          gap: 8px;
+        }
+        .place-item-review-form input,
+        .place-item-review-form select,
+        .place-item-review-form textarea {
+          border: 1px solid rgba(148, 163, 184, 0.45);
+          padding: 8px 10px;
+          font: inherit;
+          color: var(--text);
+          background: #fff;
+        }
+        .place-item-review-form textarea {
+          resize: vertical;
+          min-height: 64px;
+        }
+        .place-item-review-form button {
+          justify-self: start;
+          border: 0;
+          background: var(--accent);
+          color: #fff;
+          padding: 8px 12px;
+          font: inherit;
+          font-weight: 750;
+          cursor: pointer;
+        }
+        .place-star-rating {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          flex-wrap: wrap;
+        }
+        .place-item-review-form .place-star-rating__star {
+          border: 0;
+          background: transparent;
+          color: #cbd5e1;
+          padding: 0 2px;
+          font-size: 1.85rem;
+          line-height: 1;
+          cursor: pointer;
+        }
+        .place-item-review-form .place-star-rating__star.is-active {
+          color: #f59e0b;
+        }
+        .place-item-review-form .place-star-rating__star:focus-visible {
+          outline: 2px solid var(--accent);
+          outline-offset: 2px;
+        }
+        .place-star-rating__label {
+          color: #64748b;
+          font-size: 0.88rem;
+          line-height: 1.35;
+          margin-left: 6px;
+        }
+        .place-item-review-status {
+          min-height: 1.2em;
+          color: #64748b;
+          font-size: 0.88rem;
+          line-height: 1.35;
+        }
+        .place-item-review-list {
+          display: grid;
+          gap: 8px;
+        }
+        .place-item-review {
+          border: 1px solid rgba(148, 163, 184, 0.28);
+          padding: 10px;
+          background: #fff;
+        }
+        .place-item-review__meta {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+          color: var(--text);
+          font-size: 0.88rem;
+          font-weight: 700;
+        }
+        .place-item-review__comment {
+          margin: 6px 0 0;
+          color: var(--text-muted);
+          font-size: 0.9rem;
+          line-height: 1.45;
+          white-space: pre-line;
+        }
+        @media (max-width: 600px) {
+          .sub-card {
+            width: calc(50% - 0.1rem);
+          }
+          .sub-card-img {
+            height: 120px;
+          }
+          .place-item-review-form__row {
+            grid-template-columns: 1fr;
+          }
+        }
+      `;
+      document.head.appendChild(style);
+    };
+
+    const htmlEscapeMap = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;',
+    };
+    const itemModalState = {
+      images: [],
+      index: 0,
+      item: null,
+    };
+    const itemDetails = [];
+    const packageReviewState = {
+      packageId: '',
+      commentsLoaded: false,
+      loading: false,
+      nextOffset: 0,
+      hasMore: false,
+    };
+    let placeCanReviewPackage = {{ request.user.is_authenticated|yesno:"true,false" }};
+    const placeLoginUrl = "{% url 'userProfile:loginUser' %}";
+
+    function firstValue() {
+      for (let i = 0; i < arguments.length; i += 1) {
+        const value = arguments[i];
+        if (value !== undefined && value !== null && String(value).trim() !== '') {
+          return value;
+        }
+      }
+      return '';
+    }
+
+    function escapeHtml(value) {
+      return String(value || '').replace(/[&<>"']/g, function (char) {
+        return htmlEscapeMap[char];
+      });
+    }
+
+    function normalizeImages(value) {
+      if (Array.isArray(value)) {
+        return value
+          .map(function (item) {
+            if (typeof item === 'string') return item;
+            return item && (item.urlField || item.url || item.imageURL || item.src || '');
+          })
+          .filter(function (url) { return Boolean(url); });
+      }
+      if (typeof value === 'string' && value.trim() !== '') return [value];
+      return [];
+    }
+
+    function numberValue(value, fallback) {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : fallback;
+    }
+
+    function packageRatingStarsHtml(average, count) {
+      const ratingCount = numberValue(count, 0);
+      if (!ratingCount) return '';
+      const ratingValue = Math.max(0, Math.min(5, Math.round(numberValue(average, 0))));
+      let stars = '';
+      for (let i = 1; i <= 5; i += 1) {
+        stars += '<span class="place-rating-stars__star' + (i <= ratingValue ? ' is-active' : '') + '">&#9733;</span>';
+      }
+      return '<span class="place-rating-stars" aria-label="' + numberValue(average, 0).toFixed(1) + ' out of 5">' + stars + '<span class="place-rating-stars__count">(' + ratingCount + ')</span></span>';
+    }
+
+    function normalizeItem(rawItem, fallbackTitle) {
+      const item = rawItem || {};
+      let images = normalizeImages(item.images);
+      if (!images.length) images = normalizeImages(item.package_image);
+      if (!images.length) images = normalizeImages(item.imageURL);
+      if (!images.length) images = normalizeImages(item.resort_Gallery);
+      const packageId = firstValue(item.package_id, item.packageId);
+      return Object.assign({}, item, {
+        packageId: packageId,
+        title: firstValue(
+          item.title,
+          item.package_title,
+          item.package_name,
+          item.PackageTitle,
+          item.name,
+          fallbackTitle,
+          'Item'
+        ),
+        description: firstValue(item.description, item.package_description),
+        information: firstValue(item.information, item.package_information),
+        price: firstValue(item.price, item.package_price),
+        images: images,
+        resortLink: firstValue(item.resortLink, item.resortURL, item.resort_websiteURL),
+        resortName: firstValue(item.resortName, item.resort_RealName, item.resort_name),
+        websiteURL: firstValue(item.websiteURL, item.website, item.package_website),
+        ratingAverage: numberValue(firstValue(item.package_rating_average, item.rating_average, item.ratingAverage), 0),
+        ratingCount: numberValue(firstValue(item.package_rating_count, item.rating_count, item.ratingCount), 0),
+      });
+    }
+
+    function formatPrice(value, emptyLabel) {
+      const label = emptyLabel === undefined ? 'Price not listed' : emptyLabel;
+      if (value === undefined || value === null || String(value).trim() === '' || String(value) === '0') {
+        return label;
+      }
+      const numberValue = Number(value);
+      if (Number.isFinite(numberValue)) {
+        return '₱' + numberValue.toLocaleString();
+      }
+      const textValue = String(value).trim();
+      return textValue.indexOf('₱') === 0 ? textValue : '₱' + textValue;
+    }
+
+    function setText(id, value) {
+      const element = document.getElementById(id);
+      if (element) element.textContent = value || '';
+      return element;
+    }
+
+    function setItemModalImage(nextIndex) {
+      const image = document.getElementById('placeItemModalImage');
+      const empty = document.getElementById('placeItemModalEmpty');
+      const counter = document.getElementById('placeItemModalCounter');
+      const prev = document.getElementById('placeItemPrev');
+      const next = document.getElementById('placeItemNext');
+      const images = itemModalState.images || [];
+      if (!image || !empty) return;
+
+      if (!images.length) {
+        image.removeAttribute('src');
+        image.style.display = 'none';
+        empty.style.display = 'flex';
+        if (counter) counter.textContent = '0 / 0';
+        if (prev) prev.hidden = true;
+        if (next) next.hidden = true;
+        return;
+      }
+
+      itemModalState.index = (nextIndex + images.length) % images.length;
+      image.src = images[itemModalState.index];
+      image.alt = itemModalState.item ? itemModalState.item.title : 'Item photo';
+      image.style.display = 'block';
+      empty.style.display = 'none';
+      if (counter) counter.textContent = (itemModalState.index + 1) + ' / ' + images.length;
+      if (prev) prev.hidden = images.length <= 1;
+      if (next) next.hidden = images.length <= 1;
+    }
+
+    window.placeItemModalState = itemModalState;
+    window.placeItemDetails = itemDetails;
+    window.placeEscapeHtml = escapeHtml;
+    window.placeNormalizeImages = normalizeImages;
+    window.placeFormatPrice = formatPrice;
+    window.placePageSize = 10;
+    window.placeGetPaginatedResults = function (payload, legacyNestedKey) {
+      if (payload && Array.isArray(payload.results)) return payload.results;
+      const rows = [];
+      (Array.isArray(payload) ? payload : []).forEach(function (item) {
+        if (item && legacyNestedKey && Array.isArray(item[legacyNestedKey])) {
+          rows.push.apply(rows, item[legacyNestedKey]);
+        } else if (item) {
+          rows.push(item);
+        }
+      });
+      return rows;
+    };
+    window.placeSetLoadMoreButton = function (containerId, hasNext, isLoading, onClick) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      if (!hasNext && !isLoading) {
+        container.innerHTML = '';
+        container.hidden = true;
+        return;
+      }
+      container.hidden = false;
+      container.innerHTML = '<button type="button" class="button button--ghost place-load-more-btn">' + (isLoading ? 'Loading...' : 'Load more') + '</button>';
+      const button = container.querySelector('button');
+      if (!button) return;
+      button.disabled = !!isLoading;
+      if (!isLoading) button.addEventListener('click', onClick);
+    };
+    window.registerPlaceItemDetail = function (rawItem, fallbackTitle) {
+      const item = normalizeItem(rawItem, fallbackTitle);
+      itemDetails.push(item);
+      return itemDetails.length - 1;
+    };
+    window.placeBuildItemCard = function (rawItem, fallbackTitle) {
+      const item = normalizeItem(rawItem, fallbackTitle);
+      const index = window.registerPlaceItemDetail(item, fallbackTitle);
+      const imageSrc = item.images[0] || '';
+      const ratingHtml = item.packageId ? packageRatingStarsHtml(item.ratingAverage, item.ratingCount) : '';
+      const imageTag = imageSrc
+        ? `<img src="${escapeHtml(imageSrc)}" alt="${escapeHtml(item.title)}" class="sub-card-img"${window.placeLazyImageAttrs || ''} />`
+        : '';
+      return `
+        <button type="button" class="sub-card place-item-card js-place-item-card" data-place-item-index="${index}" aria-label="View ${escapeHtml(item.title)}">
+          ${imageTag}
+          <span class="sub-card-body">
+            <span class="sub-card-title">${escapeHtml(item.title)}</span>
+            <span class="sub-card-price">${escapeHtml(formatPrice(item.price))}</span>
+            ${ratingHtml ? `<span class="sub-card-rating">${ratingHtml}</span>` : ''}
+          </span>
+        </button>
+      `;
+    };
+
+    function getReviewCsrfToken() {
+      if (typeof getCookie === 'function') return getCookie('csrftoken') || '';
+      return '';
+    }
+
+    function setPackageReviewStatus(message, isError) {
+      const status = document.getElementById('placeItemReviewStatus');
+      if (!status) return;
+      status.textContent = message || '';
+      status.style.color = isError ? '#b91c1c' : '#64748b';
+    }
+
+    function updatePackageReviewSummary(item, average, count) {
+      if (item) {
+        item.ratingAverage = numberValue(average, 0);
+        item.ratingCount = numberValue(count, 0);
+      }
+      const summary = document.getElementById('placeItemReviewSummary');
+      if (summary) {
+        summary.innerHTML = packageRatingStarsHtml(
+          item ? item.ratingAverage : average,
+          item ? item.ratingCount : count
+        ) || '';
+      }
+      const modalRating = document.getElementById('placeItemModalRating');
+      if (modalRating) {
+        const ratingHtml = packageRatingStarsHtml(
+          item ? item.ratingAverage : average,
+          item ? item.ratingCount : count
+        );
+        modalRating.innerHTML = ratingHtml;
+        modalRating.hidden = !ratingHtml;
+      }
+    }
+
+    function setPackageStarRating(value) {
+      const rating = Math.max(1, Math.min(5, numberValue(value, 0)));
+      const ratingField = document.getElementById('placeItemRatingValue');
+      const label = document.getElementById('placeStarRatingLabel');
+      const stars = document.querySelectorAll('.place-star-rating__star');
+
+      if (ratingField) ratingField.value = rating ? String(rating) : '';
+      if (label) label.textContent = rating ? rating + '/5 selected' : 'Choose rating';
+      stars.forEach(function (star) {
+        const starRating = numberValue(star.getAttribute('data-rating'), 0);
+        const active = rating && starRating <= rating;
+        star.classList.toggle('is-active', !!active);
+        star.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+    }
+
+    function renderPackageReviewPanel(item) {
+      const panel = document.getElementById('placeItemReviewPanel');
+      if (!panel) return;
+      const packageId = item && item.packageId ? String(item.packageId) : '';
+      packageReviewState.packageId = packageId;
+      packageReviewState.commentsLoaded = false;
+      packageReviewState.loading = false;
+      packageReviewState.nextOffset = 0;
+      packageReviewState.hasMore = false;
+
+      if (!packageId) {
+        panel.hidden = true;
+        panel.innerHTML = '';
+        return;
+      }
+
+      const reviewForm = placeCanReviewPackage
+        ? `
+          <form id="placeItemReviewForm" class="place-item-review-form">
+            <div class="place-item-review-form__row">
+              <div class="place-star-rating" role="radiogroup" aria-label="Rating">
+                <input type="hidden" name="rating" id="placeItemRatingValue" required />
+                <button type="button" class="place-star-rating__star" data-rating="1" aria-label="1 out of 5" aria-pressed="false">&#9733;</button>
+                <button type="button" class="place-star-rating__star" data-rating="2" aria-label="2 out of 5" aria-pressed="false">&#9733;</button>
+                <button type="button" class="place-star-rating__star" data-rating="3" aria-label="3 out of 5" aria-pressed="false">&#9733;</button>
+                <button type="button" class="place-star-rating__star" data-rating="4" aria-label="4 out of 5" aria-pressed="false">&#9733;</button>
+                <button type="button" class="place-star-rating__star" data-rating="5" aria-label="5 out of 5" aria-pressed="false">&#9733;</button>
+                <span id="placeStarRatingLabel" class="place-star-rating__label">Choose rating</span>
+              </div>
+              <textarea name="comment" maxlength="800" placeholder="Comment optional"></textarea>
+            </div>
+            <button type="submit">Save rating</button>
+          </form>
+        `
+        : `
+          <button type="button" id="placeItemSignupToggle" class="place-item-reviews__plain-btn">Sign up to rate</button>
+          <form id="placeItemSignupForm" class="place-item-review-form" hidden>
+            <input name="contact" type="text" autocomplete="email" placeholder="Contact or email" required />
+            <input name="username" type="text" autocomplete="username" placeholder="Username" required />
+            <input name="password" type="password" autocomplete="new-password" placeholder="Password" minlength="6" required />
+            <button type="submit">Create account</button>
+            <p class="place-item-review-status">Already have an account? <a href="${escapeHtml(placeLoginUrl)}">Login</a>.</p>
+          </form>
+        `;
+
+      panel.hidden = false;
+      panel.innerHTML = `
+        <div class="place-item-reviews__summary">
+          <span id="placeItemReviewSummary">${packageRatingStarsHtml(item.ratingAverage, item.ratingCount)}</span>
+          <button type="button" id="placeItemLoadReviews" class="place-item-reviews__plain-btn">Show comments</button>
+        </div>
+        ${reviewForm}
+        <div id="placeItemReviewStatus" class="place-item-review-status" aria-live="polite"></div>
+        <div id="placeItemReviewList" class="place-item-review-list" hidden></div>
+        <button type="button" id="placeItemReviewMore" class="place-item-reviews__plain-btn" hidden>Load more comments</button>
+      `;
+    }
+
+    function reviewRowHtml(review) {
+      const comment = review.comment
+        ? `<p class="place-item-review__comment">${escapeHtml(review.comment)}</p>`
+        : '';
+      return `
+        <div class="place-item-review">
+          <div class="place-item-review__meta">
+            <span>${escapeHtml(review.user_name || 'User')}</span>
+            <span>${escapeHtml(review.rating)}/5</span>
+          </div>
+          ${comment}
+        </div>
+      `;
+    }
+
+    async function loadPackageReviews(append) {
+      const packageId = packageReviewState.packageId;
+      if (!packageId || packageReviewState.loading) return;
+      const list = document.getElementById('placeItemReviewList');
+      const loadButton = document.getElementById('placeItemLoadReviews');
+      const moreButton = document.getElementById('placeItemReviewMore');
+      const offset = append ? packageReviewState.nextOffset : 0;
+
+      packageReviewState.loading = true;
+      if (list) {
+        list.hidden = false;
+        if (!append) list.innerHTML = '<div class="place-item-review-status">Loading comments...</div>';
+      }
+      if (loadButton) {
+        loadButton.disabled = true;
+        loadButton.textContent = 'Loading...';
+      }
+      if (moreButton) moreButton.disabled = true;
+
+      try {
+        const response = await fetch(`/est/package/${encodeURIComponent(packageId)}/reviews/?limit=5&offset=${offset}`, {
+          headers: { 'Accept': 'application/json' },
+        });
+        if (!response.ok) throw new Error('Failed to load comments');
+        const payload = await response.json();
+        if (packageReviewState.packageId !== packageId) return;
+
+        updatePackageReviewSummary(itemModalState.item, payload.rating_average, payload.rating_count);
+        const reviews = Array.isArray(payload.reviews) ? payload.reviews : [];
+        const html = reviews.map(reviewRowHtml).join('');
+        if (list) {
+          if (append) {
+            list.insertAdjacentHTML('beforeend', html);
+          } else {
+            list.innerHTML = html || '<div class="place-item-review-status">No comments yet.</div>';
+          }
+        }
+        packageReviewState.commentsLoaded = true;
+        packageReviewState.hasMore = !!payload.has_more;
+        packageReviewState.nextOffset = payload.next_offset || 0;
+        if (moreButton) moreButton.hidden = !packageReviewState.hasMore;
+        setPackageReviewStatus('', false);
+      } catch (error) {
+        setPackageReviewStatus('Could not load comments right now.', true);
+      } finally {
+        packageReviewState.loading = false;
+        if (loadButton) {
+          loadButton.disabled = false;
+          loadButton.textContent = packageReviewState.commentsLoaded ? 'Refresh comments' : 'Show comments';
+        }
+        if (moreButton) moreButton.disabled = false;
+      }
+    }
+
+    async function submitPackageReview(form) {
+      const packageId = packageReviewState.packageId;
+      if (!packageId || !form) return;
+      const submitButton = form.querySelector('button[type="submit"]');
+      const ratingField = form.elements.rating;
+      const commentField = form.elements.comment;
+      const rating = ratingField ? ratingField.value : '';
+      const comment = commentField ? commentField.value : '';
+
+      if (!rating) {
+        setPackageReviewStatus('Choose a rating from 1 to 5.', true);
+        return;
+      }
+
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = 'Saving...';
+      }
+      setPackageReviewStatus('', false);
+
+      try {
+        const response = await fetch(`/est/package/${encodeURIComponent(packageId)}/review/`, {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getReviewCsrfToken(),
+          },
+          body: JSON.stringify({ rating: rating, comment: comment }),
+        });
+        const isJson = (response.headers.get('content-type') || '').indexOf('application/json') !== -1;
+        const payload = isJson ? await response.json() : null;
+        if (!response.ok || !payload || payload.success === false) {
+          throw new Error(payload && payload.error ? payload.error : 'Could not save rating');
+        }
+
+        updatePackageReviewSummary(itemModalState.item, payload.rating_average, payload.rating_count);
+        setPackageReviewStatus('Rating saved.', false);
+        if (packageReviewState.commentsLoaded) {
+          await loadPackageReviews(false);
+        }
+      } catch (error) {
+        setPackageReviewStatus(error.message || 'Could not save rating.', true);
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.textContent = 'Save rating';
+        }
+      }
+    }
+
+    async function submitPackageSignup(form) {
+      if (!form) return;
+      const submitButton = form.querySelector('button[type="submit"]');
+      const contact = (form.elements.contact ? form.elements.contact.value : '').trim();
+      const username = (form.elements.username ? form.elements.username.value : '').trim();
+      const password = form.elements.password ? form.elements.password.value : '';
+
+      if (!contact || !username || !password) {
+        setPackageReviewStatus('Fill in contact, username, and password.', true);
+        return;
+      }
+
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = 'Creating...';
+      }
+      setPackageReviewStatus('', false);
+
+      try {
+        const response = await fetch('/userProfile/registerjson', {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getReviewCsrfToken(),
+          },
+          body: JSON.stringify({
+            username: username,
+            contact: contact,
+            password: password,
+            passwordConfirmation: password,
+            placeID: '{{ placeid }}',
+          }),
+        });
+        const payload = await response.json().catch(function () { return null; });
+        if (!response.ok) {
+          const message = Array.isArray(payload) ? payload[0] : (payload && (payload.error || payload.detail));
+          throw new Error(message || 'Could not create account');
+        }
+
+        placeCanReviewPackage = true;
+        renderPackageReviewPanel(itemModalState.item);
+        setPackageReviewStatus('Account ready. You can now rate this package.', false);
+      } catch (error) {
+        setPackageReviewStatus(error.message || 'Could not create account.', true);
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.textContent = 'Create account';
+        }
+      }
+    }
+
+    window.openPlaceItemModal = function (itemOrIndex) {
+      const modal = document.getElementById('placeItemDetailsModal');
+      if (!modal) return;
+      const item = typeof itemOrIndex === 'number'
+        ? itemDetails[itemOrIndex]
+        : normalizeItem(itemOrIndex || {});
+      if (!item) return;
+
+      if (window.ensurePlaceSubCardStyles) window.ensurePlaceSubCardStyles();
+      itemModalState.item = item;
+      itemModalState.images = item.images || [];
+      itemModalState.index = 0;
+
+      setText('placeItemModalTitle', item.title);
+      setText('placeItemModalResort', item.resortName);
+      setText('placeItemModalPrice', formatPrice(item.price));
+      updatePackageReviewSummary(item, item.ratingAverage, item.ratingCount);
+      const description = [item.description, item.information].filter(Boolean).join('\n\n');
+      const descriptionElement = setText('placeItemModalDescription', description);
+      if (descriptionElement) {
+        descriptionElement.hidden = !description;
+      }
+
+      const link = document.getElementById('placeItemModalLink');
+      const linkUrl = item.resortLink || item.websiteURL || '';
+      if (link && linkUrl) {
+        link.href = linkUrl;
+        link.textContent = item.resortLink ? 'View Resort' : 'Open Link';
+        link.hidden = false;
+      } else if (link) {
+        link.hidden = true;
+        link.removeAttribute('href');
+      }
+
+      setItemModalImage(0);
+      renderPackageReviewPanel(item);
+      modal.classList.add('is-open');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    };
+    window.closePlaceItemModal = function () {
+      const modal = document.getElementById('placeItemDetailsModal');
+      const image = document.getElementById('placeItemModalImage');
+      if (image) image.removeAttribute('src');
+      if (modal) {
+        modal.classList.remove('is-open');
+        modal.setAttribute('aria-hidden', 'true');
+      }
+      document.body.style.overflow = '';
+    };
+    window.shiftPlaceItemModalImage = function (direction) {
+      setItemModalImage(itemModalState.index + direction);
+    };
+
+    runWhenReady(function () {
+      const closeButton = document.getElementById('placeItemClose');
+      const prevButton = document.getElementById('placeItemPrev');
+      const nextButton = document.getElementById('placeItemNext');
+      if (closeButton) closeButton.addEventListener('click', window.closePlaceItemModal);
+      if (prevButton) prevButton.addEventListener('click', function () { window.shiftPlaceItemModalImage(-1); });
+      if (nextButton) nextButton.addEventListener('click', function () { window.shiftPlaceItemModalImage(1); });
+
+      document.addEventListener('click', function (event) {
+        const card = event.target && event.target.closest ? event.target.closest('.js-place-item-card') : null;
+        if (!card) return;
+        const index = Number(card.getAttribute('data-place-item-index'));
+        if (Number.isFinite(index)) window.openPlaceItemModal(index);
+      });
+
+      document.addEventListener('click', function (event) {
+        const loadButton = event.target && event.target.closest ? event.target.closest('#placeItemLoadReviews') : null;
+        if (loadButton) {
+          loadPackageReviews(false);
+          return;
+        }
+        const signupButton = event.target && event.target.closest ? event.target.closest('#placeItemSignupToggle') : null;
+        if (signupButton) {
+          const signupForm = document.getElementById('placeItemSignupForm');
+          if (signupForm) {
+            signupForm.hidden = !signupForm.hidden;
+            if (!signupForm.hidden) {
+              const firstField = signupForm.querySelector('input');
+              if (firstField) firstField.focus();
+            }
+          }
+          return;
+        }
+        const starButton = event.target && event.target.closest ? event.target.closest('.place-star-rating__star') : null;
+        if (starButton) {
+          setPackageStarRating(starButton.getAttribute('data-rating'));
+          return;
+        }
+        const moreButton = event.target && event.target.closest ? event.target.closest('#placeItemReviewMore') : null;
+        if (moreButton) loadPackageReviews(true);
+      });
+
+      document.addEventListener('submit', function (event) {
+        if (!event.target || (event.target.id !== 'placeItemReviewForm' && event.target.id !== 'placeItemSignupForm')) return;
+        event.preventDefault();
+        if (event.target.id === 'placeItemSignupForm') {
+          submitPackageSignup(event.target);
+        } else {
+          submitPackageReview(event.target);
+        }
+      });
+
+      document.addEventListener('keydown', function (event) {
+        const modal = document.getElementById('placeItemDetailsModal');
+        if (!modal || !modal.classList.contains('is-open')) return;
+        if (event.key === 'Escape') window.closePlaceItemModal();
+        if (event.key === 'ArrowLeft') window.shiftPlaceItemModalImage(-1);
+        if (event.key === 'ArrowRight') window.shiftPlaceItemModalImage(1);
+      });
+    });
+  }());
+
+  function openBulletinImageModal(imageUrl) {
+    const modal = document.getElementById('bulletinImageModal');
+    const imageElement = document.getElementById('bulletinModalImage');
+    if (!modal || !imageElement) return;
+    imageElement.src = imageUrl;
+    modal.style.display = 'block';
+    modal.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeBulletinImageModal() {
+    const modal = document.getElementById('bulletinImageModal');
+    const imageElement = document.getElementById('bulletinModalImage');
+    if (imageElement) imageElement.src = '';
+    if (modal) {
+
+      modal.style.display = 'none';
+      modal.setAttribute('aria-hidden', 'true');
+    }
+  }
+
+  document.addEventListener('click', function(event) {
+    const link = event.target && event.target.closest ? event.target.closest('a.bulletin-image-link') : null;
+    if (!link) return;
+    event.preventDefault();
+    const imageUrl = link.getAttribute('data-image-url') || link.getAttribute('href');
+    if (!imageUrl) return;
+    openBulletinImageModal(imageUrl);
+  });
+
+  window.placePageReady(function() {
+    const button = document.getElementById('bulletinPostButton');
+    const form = document.getElementById('bulletinPostForm');
+    if (!button || !form) return;
+
+    button.addEventListener('click', function() {
+      const isHidden = form.style.display === 'none' || form.style.display === '';
+      form.style.display = isHidden ? 'flex' : 'none';
+    });
+  });
+
+  window.placePageReady(function () {
+    const navToggle = document.getElementById('placeNavToggle');
+    const navMenu = document.getElementById('placeNavMenu');
+    if (!navToggle || !navMenu) return;
+
+    const navOpenMap = document.getElementById('placeNavOpenMap');
+
+    function closeMenu() {
+      navMenu.classList.remove('is-open');
+      navToggle.setAttribute('aria-expanded', 'false');
+    }
+
+    navToggle.addEventListener('click', function () {
+      const isOpen = navMenu.classList.toggle('is-open');
+      navToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+
+    navMenu.addEventListener('click', function (event) {
+      const actionable = event.target && event.target.closest ? event.target.closest('a, button') : null;
+      if (!actionable) return;
+      closeMenu();
+    });
+
+    if (navOpenMap) {
+      navOpenMap.addEventListener('click', function (event) {
+        if (event && event.preventDefault) event.preventDefault();
+        const existing = document.getElementById('openMapBtn');
+        if (existing) existing.click();
+      });
+    }
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') closeMenu();
+    });
+  });
+</script>
+
+<style>
+  :root {
+    /* Main Palette Inspired by Uploaded Theme */
+    --surface: #fdfbf5;
+    --surface-alt: #f4f0e4;
+    --page-bg: #eef1e4;
+
+    --accent: #556b2f;
+    --accent-dark: #38461f;
+    --accent-light: #8c6b4f;
+
+    --text: #3f3a2f;
+    --text-muted: #7a7468;
+
+    --border: #d8d2c3;
+
+    --shadow-sm: none;
+    --shadow-md: none;
+    --radius-lg: 0px;
+    --radius-md: 0px;
+    --radius-sm: 0px;
+    --transition: 0s linear;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Helvetica Neue", Arial, sans-serif;
+    --font-size-base: 16px;
+    --line-height-base: 1.58;
+  }
+
+
+  body {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-base);
+    color: var(--text);
+    min-height: 100vh;
+    margin: 0;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    font: inherit;
+    line-height: 1.35;
+  }
+
+
+
+  .hero {
+    flex-wrap: wrap;
+    gap: 24px;
+    align-items: center;
+    justify-content: space-between;
+    
+  }
+
+  /* .hero__info {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex: 1 1 280px;
+    min-width: 0;
+  } */
+
+  .hero__icon {
+    width: 60px;
+    height: 60px;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .hero__icon svg {
+    width: 28px;
+    height: 28px;
+    fill: #ffffff;
+  }
+
+  .hero__text {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .hero__heading {
+    font-size: clamp(1.9rem, 4vw, 2.6rem);
+    font-weight: 750;
+    color: var(--accent);
+    line-height: 1.12;
+  }
+
+  .hero__subtitle {
+    color: var(--text-muted);
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  .hero__actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .ask-box {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .ask-input {
+    width: 100vw;
+    padding: 0.6rem 0.8rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    font-size: 1rem;
+    max-width: 700px;
+    transition: border-color var(--transition), box-shadow var(--transition);
+  }
+
+  .ask-input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  .ask-send-btn {
+    padding: 0.6rem;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: var(--accent);
+    color: #ffffff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform var(--transition), box-shadow var(--transition);
+  }
+
+
+
+  .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0.7rem 1.3rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    font-weight: 650;
+    font-size: 0.98rem;
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    transition: transform var(--transition), box-shadow var(--transition), background var(--transition), color var(--transition), border-color var(--transition);
+  }
+
+  .button svg {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+  }
+
+  .button--primary {
+    background: var(--accent);
+    color: #ffffff;
+  }
+
+
+
+  .button--ghost {
+    
+    border-color: var(--border);
+    color: var(--accent);
+  }
+
+  .primary-grid {
+    display: grid;
+    gap: 24px;
+    margin-top: 16px;
+  }
+
+  @media (min-width: 992px) {
+    .primary-grid {
+      grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+    }
+  }
+
+  .panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 1em;
+  }
+
+  .panel__body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .page-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    margin-top: 28px;
+  }
+
+  .section-header {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .section-header h2 {
+    font-size: clamp(1.45rem, 3vw, 1.9rem);
+    font-weight: 700;
+    line-height: 1.25;
+    color: rgba(167, 163, 100, 0.84);
+  }
+
+  .section-header p {
+    color: var(--text-muted);
+    font-size: 1rem;
+    line-height: 1.55;
+  }
+
+  #calendar-container {
+    overflow: hidden;
+  }
+
+  #calendar-container table {
+    width: 100%;
+    border-collapse: collapse;
+    
+  }
+
+  #calendar-container th,
+  #calendar-container td {
+    padding: 14px;
+    text-align: center;
+    font-size: 0.95rem;
+    line-height: 1.35;
+  }
+
+  #calendar-container th {
+    background: #eef2ff;
+    color: var(--accent);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  #calendar-container td {
+    border: 1px solid var(--border);
+    font-weight: 500;
+    color: #4a5568;
+    cursor: pointer;
+    transition: background var(--transition), color var(--transition), transform var(--transition);
+  }
+
+  .calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 18px 20px;
+    background: var(--surface-alt);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .calendar-header h2 {
+    font-size: 1.35rem;
+    color: var(--text);
+    font-weight: 650;
+    letter-spacing: 0;
+    line-height: 1.25;
+  }
+
+  .nav-buttons {
+    display: flex;
+    gap: 10px;
+  }
+
+  .calendar-header-left {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .nav-buttons a {
+    text-decoration: none;
+  }
+
+  .nav-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: #eef2ff;
+    color: var(--accent);
+    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background var(--transition), color var(--transition), transform var(--transition);
+  }
+
+  .add-schedule-btn {
+    padding: 0.55rem 0.9rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--accent);
+    background: #ffffff;
+    color: var(--accent);
+    font-weight: 700;
+    cursor: pointer;
+    transition: background var(--transition), color var(--transition), box-shadow var(--transition), transform var(--transition);
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 6px;
+    background: var(--accent);
+    color: #ffffff;
+    font-size: 0.82rem;
+    font-weight: 600;
+    transition: transform var(--transition), background var(--transition);
+    position: absolute;
+    top: 6px;
+    cursor: pointer;
+  }
+
+  td.has-badge {
+    position: relative;
+  }
+
+  .chat-container {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    height: 100%;
+  }
+
+  .chat-messages {
+    flex: 1;
+    min-height: 320px;
+    max-height: 560px;
+    overflow-y: auto;
+    padding: 5px;
+    flex-direction: column-reverse;
+    gap: 14px;
+
+  }
+
+  .chat-messages::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .chat-messages::-webkit-scrollbar-track {
+    background: #edf2f7;
+  }
+
+  .chat-messages::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+  }
+
+  .message-bubble {
+    background: #ffffff;
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    line-height: 1.65;
+    word-break: break-word;
+  }
+
+  .message-bubble span {
+    font-weight: 700;
+    color: var(--accent);
+    margin-right: 6px;
+  }
+
+  .message-time {
+    margin-top: 8px;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+
+  .chat-input-area {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+    padding: 15px;
+  }
+
+  .chat-input {
+    flex: 1;
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    border: 2px solid var(--border);
+    font-size: 1rem;
+    resize: none;
+    min-height: 56px;
+    transition: border-color var(--transition), box-shadow var(--transition);
+    font-family: inherit;
+  }
+
+  .chat-input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  .chat-send-btn {
+    width: 54px;
+    height: 54px;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: var(--accent);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: transform var(--transition), box-shadow var(--transition), opacity var(--transition);
+  }
+
+  .chat-send-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .chat-send-btn svg {
+    width: 20px;
+    height: 20px;
+    fill: #ffffff;
+  }
+
+  .chat-send-btn .spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  .calendar-grid {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  }
+
+  .calendar-event-card {
+    position: relative;
+    min-height: 220px;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background-size: cover;
+    background-position: center;
+    transition: transform var(--transition), box-shadow var(--transition);
+    cursor: pointer;
+  }
+
+  .card-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(14, 23, 53, 0.58);
+  }
+
+  .card-content {
+    position: absolute;
+    inset: auto 0 0 0;
+    padding: 20px;
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    z-index: 1;
+  }
+
+  .card-content h4 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .card-content p {
+    font-size: 0.95rem;
+    line-height: 1.45;
+    opacity: 0.9;
+  }
+
+  .calendar-list {
+    display: flex;
+    align-items: center;
+    border-top: 1px solid #e9ecef;
+    gap: 1rem;
+    flex-wrap: wrap;
+    overflow: scroll;
+  }
+
+  .calendar-list > * {
+    flex-shrink: 0;
+    min-width: max-content;
+  }
+
+  .loading-symbol {
+    width: 54px;
+    height: 54px;
+    border: 4px solid rgba(103, 120, 219, 0.25);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 32px auto;
+  }
+
+  .blog-grid {
+    display: grid;
+    gap: 24px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+
+.blog-category {
+  display: inline-block;
+  padding: 5px 12px;
+
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+
+  color: #fff;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+/* Category Colors */
+.category-guide {
+  background: #bd7b1c;
+}
+
+.category-story {
+  background: #7f3aed;
+}
+
+.category-tip {
+  background: #499605;
+}
+
+.category-explore {
+  background: #ea0ce3;
+}
+
+.category-product {
+  background: #dc2626;
+}
+  .blog-title {
+    font-size: 1.22rem;
+    color: var(--text);
+    margin-bottom: 12px;
+    font-weight: 650;
+    line-height: 1.35;
+  }
+
+  .blog-excerpt {
+    color: var(--text-muted);
+    font-size: 1rem;
+    line-height: 1.65;
+    margin-bottom: 18px;
+  }
+
+  .blog-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .blog-meta-left {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    line-height: 1.4;
+  }
+
+  .blog-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .blog-card {
+    color: var(--accent);
+    font-weight: 650;
+    text-decoration: none;
+    font-size: 0.98rem;
+    transition: color var(--transition);
+  }
+
+
+  .empty-state {
+    text-align: center;
+    font-size: 1rem;
+    line-height: 1.55;
+    color: var(--text-muted);
+    padding: 24px;
+    background: var(--surface-alt);
+    border-radius: var(--radius-md);
+    border: 1px dashed #cbd5f5;
+  }
+
+  /* Pagination Styles */
+  .pagination-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+  }
+
+  .pagination-btn {
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--accent);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all var(--transition);
+    min-width: 40px;
+    text-align: center;
+  }
+
+  .pagination-btn.active {
+    background: var(--accent);
+    color: #ffffff;
+    border-color: var(--accent);
+    font-weight: 600;
+  }
+
+  .pagination-dots {
+    padding: 8px 4px;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    user-select: none;
+  }
+
+  .load-more-wrap {
+    display: flex;
+    justify-content: center;
+    margin-top: 16px;
+  }
+
+  .load-more-wrap[hidden] {
+    display: none;
+  }
+
+  .place-load-more-btn:disabled {
+    opacity: 0.65;
+    cursor: default;
+  }
+
+  @media (max-width: 480px) {
+    .pagination-controls {
+      gap: 4px;
+    }
+
+    .pagination-btn {
+      padding: 6px 8px;
+      font-size: 0.8rem;
+      min-width: 32px;
+    }
+  }
+
+  #mapModal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(13, 27, 62, 0.45);
+    align-items: center;
+    justify-content: center;
+    z-index: 1500;
+  }
+
+  #mapModal.show {
+    display: flex;
+  }
+
+  #mapModal > div {
+    /* width: min(95vw, 100%);
+    height: min(95vh, 860px); */
+    width: 100%;
+    height: 100%;
+    
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    position: relative;
+    box-shadow: var(--shadow-md);
+  }
+
+  #closeMapBtn {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.9);
+    font-size: 26px;
+    cursor: pointer;
+    color: var(--text);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background var(--transition), transform var(--transition);
+    z-index: 2;
+  }
+
+  .modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(13, 27, 62, 0.65);
+    z-index: 2000;
+    padding-top: 24px;
+    overflow-y: auto;
+  }
+
+  .modal-content {
+    
+    border-radius: var(--radius-lg);
+    max-width: 700px;
+    overflow: hidden;
+    box-shadow: none;
+    margin: 0 auto;
+  }
+
+  .modal-header {
+    background: var(--accent);
+    color: #ffffff;
+    padding: 13px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .modal-header h2 {
+    margin: 0;
+    font-size: 1.35rem;
+    line-height: 1.25;
+    font-weight: 700;
+  }
+
+  .close {
+    font-size: 32px;
+    font-weight: 400;
+    cursor: pointer;
+    transition: transform var(--transition), opacity var(--transition);
+    line-height: 1.1;
+  }
+
+  .modal-body {
+    padding: 0;
+    color: var(--text);
+    line-height: 1.65;
+    background-color: white;
+  }
+
+  .modal-image img {
+    width: 100%;
+    display: block;
+  }
+
+  .modal-footer {
+    padding: 20px 24px;
+    background: var(--surface-alt);
+  }
+
+  /* Add Schedule modal form styling */
+  #addScheduleModal .modal-content {
+    max-width: 720px;
+  }
+
+  #addScheduleForm {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .add-schedule-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+  }
+
+  #addScheduleForm label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  #addScheduleForm input,
+  #addScheduleForm select {
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 1rem;
+    
+    transition: border var(--transition), box-shadow var(--transition);
+  }
+
+  #addScheduleForm input:focus,
+  #addScheduleForm select:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  #addScheduleStatus {
+    min-height: 20px;
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  .add-schedule-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 6px;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @media (max-width: 680px) {
+    .hero {
+      padding: 22px;
+    }
+/* 
+    .hero__info {
+      flex-direction: row;
+      align-items: center;
+    } */
+
+    .hero__icon {
+      width: 52px;
+      height: 52px;
+    }
+
+    .hero__actions {
+      width: 100%;
+      justify-content: flex-start;
+    }
+
+    .ask-box {
+      width: 100%;
+      margin-bottom: 12px;
+    }
+
+    .ask-input {
+      width: 100%;
+      min-width: auto;
+    }
+
+    .chat-messages {
+      max-height: 480px;
+    }
+
+    .chat-input-area {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .chat-send-btn {
+      width: 100%;
+      height: 48px;
+    }
+
+    .calendar-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .nav-buttons {
+      width: 100%;
+      justify-content: flex-start;
+    }
+  }
+
+  @media (max-width: 480px) {
+
+
+    .panel {
+      padding: 20px;
+    }
+
+    #calendar-container th,
+    #calendar-container td {
+      padding: 10px 8px;
+      font-size: 0.8rem;
+    }
+
+    .calendar-event-card {
+      min-height: 200px;
+    }
+
+    .card-content h4 {
+      font-size: 1.05rem;
+    }
+
+    .chat-messages {
+      padding: 16px;
+    }
+
+    .chat-input {
+      font-size: 0.9rem;
+    }
+
+    #allDiscussion {
+      max-height: 35vh !important;
+    }
+
+    #mobileChatModal .modal-content {
+      max-height: 90vh;
+    }
+  }
+
+  #mobileChatBtn {
+    position: fixed;
+    right: 20px;
+    bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+    width: 56px;
+    height: 56px;
+    border-radius: 0;
+    border: 0;
+    background: var(--accent);
+    box-shadow: none;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    transition: none;
+  }
+
+  #mobileChatBtn svg {
+    width: 24px;
+    height: 24px;
+    fill: #ffffff;
+  }
+
+  #mobileChatModal {
+    padding: 18px;
+    overflow: hidden;
+    background: rgba(31, 35, 24, 0.62);
+  }
+
+  #mobileChatModal .modal-content {
+    width: min(520px, calc(100vw - 36px));
+    max-width: 520px !important;
+    max-height: min(760px, calc(100dvh - 36px)) !important;
+    margin: clamp(12px, 5vh, 42px) auto 0;
+    background: var(--surface);
+    border: 0;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    box-shadow: none;
+  }
+
+  #mobileChatModal .modal-header {
+    padding: 14px 16px;
+    min-height: 58px;
+    background: #fffdf8;
+    border-bottom: 0;
+  }
+
+  #mobileChatModal .modal-header h2 {
+    font-size: 1.12rem;
+    font-weight: 700;
+    letter-spacing: 0;
+  }
+
+  #mobileChatModal .close {
+    width: 36px;
+    height: 36px;
+    border-radius: 0;
+    background: var(--surface-alt);
+    color: var(--text-muted);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    line-height: 1.1;
+  }
+
+  #mobileChatModal .modal-body {
+    flex: 1;
+    min-height: 0;
+    background: #f2efe4;
+  }
+
+  #mobileChatModal .chat-container {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    height: 100%;
+    text-align: left !important;
+  }
+
+  #mobileChatModal .chat-messages {
+    flex: 1;
+    min-height: 0;
+    max-height: none !important;
+    overflow-y: auto;
+    padding: 16px;
+    scroll-padding-bottom: 96px;
+  }
+
+  #mobileChatModal .other-message + .other-message {
+    margin-top: 12px;
+  }
+
+  #mobileChatModal .message-bubble {
+    width: fit-content;
+    max-width: 100%;
+    padding: 12px 14px;
+    border: 0;
+    border-radius: 0;
+    background: #ffffff;
+    box-shadow: none;
+  }
+
+  #mobileChatModal .message-bubble span {
+    display: block;
+    margin: 0 0 4px;
+    color: var(--accent-dark);
+    font-size: 0.9rem;
+    line-height: 1.35;
+  }
+
+  #mobileChatModal .message-time {
+    margin-top: 8px;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    line-height: 1.35;
+  }
+
+  #mobileChatModal .chat-input-area {
+    flex-shrink: 0;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    background: rgba(255, 253, 248, 0.96);
+    border-top: 0;
+    box-shadow: none;
+  }
+
+  #mobileChatModal .chat-input {
+    min-height: 48px;
+    max-height: 120px;
+    padding: 12px 14px;
+    border: 0;
+    border-radius: 0;
+    background: #ffffff;
+    color: var(--text);
+    font-size: 1rem;
+    line-height: 1.45;
+  }
+
+  #mobileChatModal .chat-input:focus {
+    outline: 1px solid var(--accent);
+    box-shadow: none;
+  }
+
+  #mobileChatModal .chat-send-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  @media (max-width: 680px) {
+    .panel--chat {
+      display: none;
+    }
+
+    #mobileChatBtn {
+      display: flex;
+    }
+
+    #mobileChatModal {
+      padding: 0;
+    }
+
+    #mobileChatModal .modal-content {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      max-width: none !important;
+      height: min(82dvh, 720px);
+      max-height: calc(100dvh - 10px - env(safe-area-inset-top, 0px)) !important;
+      margin: 0;
+      border-right: 0;
+      border-bottom: 0;
+      border-left: 0;
+      border-radius: 0;
+    }
+
+    #mobileChatModal .modal-header {
+      padding-top: calc(12px + env(safe-area-inset-top, 0px));
+    }
+
+    #mobileChatModal .chat-input-area {
+      padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+      flex-direction: row;
+    }
+
+    #mobileChatModal .chat-send-btn {
+      width: 48px;
+      height: 48px;
+    }
+  }
+  #eventDetailsBody{
+  padding: 1em;
+  }
+
+   /* Schedule Card Styles */
+    .schedule-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 1.5rem;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .schedule-card {
+      margin-top: 1.5em;
+    }
+
+
+
+
+
+    .date-month {
+      font-size: 0.95rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #667eea;
+      line-height: 1.35;
+    }
+
+
+
+
+    .schedule-type-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.9rem;
+      font-weight: 650;
+      background: rgba(255, 255, 255, 0.2);
+      width: fit-content;
+      line-height: 1.35;
+    }
+
+
+
+    .schedule-description {
+      margin: 0 0 1.5rem 0;
+      color: #555;
+      font-size: 1rem;
+      line-height: 1.65;
+    }
+
+    .schedule-details-grid {
+      display: grid;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+
+
+    .detail-label {
+      font-weight: 700;
+      color: #333;
+      min-width: 120px;
+      font-size: 0.95rem;
+      line-height: 1.4;
+    }
+
+    .detail-value {
+      color: #666;
+      font-size: 1rem;
+      line-height: 1.45;
+    }
+
+    .schedule-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .poster-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .poster-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #667eea;
+    }
+
+    .poster-avatar-placeholder {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #e9ecef;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      /* font-size: 1.5rem; */
+    }
+
+    .poster-details {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .poster-name {
+      font-weight: 700;
+      color: #333;
+      font-size: 1rem;
+      line-height: 1.35;
+    }
+
+    .poster-contact {
+      font-size: 0.95rem;
+      color: #666;
+      line-height: 1.4;
+    }
+
+    .schedule-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .review-count {
+      font-size: 0.9rem;
+      color: #666;
+      line-height: 1.35;
+    }
+
+    .btn-join {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 0.625rem 1.5rem;
+      font-size: 0.98rem;
+      font-weight: 650;
+      line-height: 1.35;
+      cursor: pointer;
+      transition: none;
+    }
+
+    .btn-join:active {
+      background: #4558b8;
+    }
+
+    .btn-view-joiners {
+      background: #0078d4;
+      color: white;
+      border: none;
+      padding: 0.625rem 1.5rem;
+      font-size: 0.98rem;
+      font-weight: 650;
+      line-height: 1.35;
+      cursor: pointer;
+      transition: none;
+    }
+
+    .btn-view-joiners:active {
+      background: #005ca3;
+    }
+
+    .btn-delete-schedule {
+      background: #cf1322;
+      color: white;
+      border: none;
+      padding: 0.625rem 1.5rem;
+      font-size: 0.98rem;
+      font-weight: 650;
+      line-height: 1.35;
+      cursor: pointer;
+      transition: none;
+    }
+
+    .btn-delete-schedule:active {
+      background: #99101a;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    .top-nav {
+      /* position: sticky; */
+      top: 0;
+      z-index: 1200;
+      background: rgba(255, 255, 255, 0.9);
+      margin-bottom: 18px;
+    }
+
+    .top-nav__inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 12px 14px;
+    }
+
+    .top-nav__brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .top-nav__brand-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .top-nav__brand-badge svg {
+      width: 18px;
+      height: 18px;
+      fill: var(--accent);
+    }
+
+    .top-nav__toggle {
+    background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  cursor: pointer;
+  outline: inherit;
+    }
+
+    .top-nav__toggle svg {
+      width: 32px;
+      height: 32px;
+      fill: var(--text);
+    }
+
+    .top-nav__links {
+      display: none;
+      flex-direction: column;
+      
+    }
+
+    .top-nav__links.is-open {
+      display: flex;
+    }
+
+.top-nav__links {
+  display: none;
+  flex-direction: column;
+}
+
+.top-nav__links.is-open {
+  display: flex;
+}
+
+.top-nav__links a {
+  position: relative; /* IMPORTANT */
+  
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0.7rem 1rem;
+  text-decoration: none;
+  color: var(--accent-dark);
+  font-weight: 700;
+}
+
+/* border ONLY between links */
+.top-nav__links a:not(:last-child)::after {
+  content: "";
+  position: absolute;
+
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+
+  width: 80%;
+  height: 2px;
+
+  background: var(--accent-dark);
+
+  /* pointed edges */
+  clip-path: polygon(
+    0% 50%,
+    3% 0%,
+    97% 0%,
+    100% 50%,
+    97% 100%,
+    3% 100%
+  );
+}
+
+
+    #events,
+    #community-bulletin,
+    #schedules,
+    #blogs {
+      scroll-margin-top: 92px;
+    }
+
+    @media (min-width: 768px) {
+      .top-nav__toggle {
+        display: none;
+      }
+
+      .top-nav__inner {
+        padding: 12px 18px;
+      }
+
+      .top-nav__links {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-end;
+        padding: 0 18px 12px;
+        flex-wrap: wrap;
+      }
+    }
+
+    /* Resort Activities List Styles */
+
+/* Loading Spinner */
+.loading-symbol {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 40px auto;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 32px 16px;
+  color: #6b7280;
+  font-size: 1rem;
+  line-height: 1.55;
+  background-color: #f9fafb;
+  border-radius: 0;
+  border: 0;
+}
+
+/* Resort Activities Block */
+.resort-activities-block {
+  background-color: #ffffff;
+  transition: none;
+}
+
+.resort-activities-block li {
+  margin-bottom: 1.4em;
+  list-style: none;
+}
+
+.resort-activities-block h4 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: #111827;
+  margin: 0 0 12px 0;
+}
+
+/* Visit Website Button */
+.btn-join {
+  display: inline-block;
+  padding: 8px 16px;
+  background-color: #3b82f6;
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 0.98rem;
+  font-weight: 650;
+  line-height: 1.35;
+  transition: none;
+}
+
+.btn-join:active {
+  background-color: #1d4ed8;
+}
+
+/* Activities List */
+.activities-list {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 0 0;
+}
+
+
+
+/* Sub-packages List (nested) */
+.activities-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0 0;
+
+}
+
+.activities-list ul li {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  margin-bottom: 8px;
+  background-color: #ffffff;
+
+  font-size: 0.98rem;
+  line-height: 1.45;
+  color: #374151;
+  transition: none;
+}
+
+.activities-list ul li:last-child {
+  margin-bottom: 0;
+}
+
+/* Sub-package Images */
+.activities-list ul li img {
+  flex-shrink: 0;
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  margin-right: 12px;
+  border: 0;
+}
+
+/* Price Styling */
+.activities-list ul li::after {
+  margin-left: auto;
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .resort-activities-block h4 {
+    font-size: 1.08rem;
+  }
+
+
+  .activities-list ul li {
+    font-size: 0.95rem;
+  }
+
+  .activities-list ul li img {
+    width: 50px;
+    height: 50px;
+    margin-right: 10px;
+  }
+}
+
+/* Container Spacing */
+#resort-activities-list-js {
+  max-width: 100%;
+  margin: 0 auto;
+    display: flex;
+  flex-direction: row;
+  gap: 1.1rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  position: relative;
+}
+
+/* Temporary: hide all major sections except the calendar and Accommodations */
+/* Keeps .primary-grid (calendar) visible and only the #accommodations section inside .page-stack */
+/* .page-container > *:not(.primary-grid):not(.page-stack) {
+  display: none !important;
+}
+
+.page-stack > section:not(#accommodations) {
+  display: none !important;
+}
+
+.page-container .primary-grid {
+  display: block !important;
+}
+.page-container #accommodations {
+  display: block !important;
+} */
+/* END HIDING  */
+
+.modal-for-blog {
+  position: fixed;
+  top: 0;
+  right: -100%;
+  width: 100%;
+  height: 100%;
+  background: white;
+  z-index: 1000;
+  overflow-y: auto;
+}
+/* Active state */
+.modal-for-blog.show {
+  right: 0;
+}
+
+/* Close button */
+.close-modal-for-blog {
+  position: absolute;
+  z-index: 1;
+  top: 10px;
+  right: 20px;
+  cursor: pointer;
+  font-size: 32px;
+}
+#modalforblogContentframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/*  */
+.ask-box {
+  position: relative;
+}
+
+.ask-input {
+  width: 100%;
+  padding: 12px 48px 12px 12px; /* extra right padding for button */
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+.ask-send-btn {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+
+  width: 36px;
+  height: 36px;
+  border: none;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+}
+
+.place-item-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 12000;
+  display: none;
+  background: #ffffff;
+  color: var(--text);
+  overflow-y: auto;
+}
+
+.place-item-modal.is-open {
+  display: block;
+}
+
+.place-item-modal__shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.75fr);
+}
+
+.place-item-modal__media {
+  position: relative;
+  min-height: 100vh;
+  background: #111827;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.place-item-modal__image {
+  display: block;
+  max-width: 100%;
+  max-height: 100vh;
+  object-fit: contain;
+}
+
+.place-item-modal__empty {
+  display: none;
+  min-height: 280px;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 1rem;
+}
+
+.place-item-modal__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 2;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  background: #ffffff;
+  color: #111827;
+  font-size: 1.8rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.place-item-modal__controls {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.place-item-modal__nav,
+.place-item-modal__counter {
+  border: 0;
+  background: #ffffff;
+  color: #111827;
+  padding: 10px 14px;
+  font-size: 0.95rem;
+  font-weight: 650;
+  line-height: 1.2;
+}
+
+.place-item-modal__nav {
+  cursor: pointer;
+}
+
+.place-item-modal__details {
+  padding: clamp(24px, 5vw, 56px);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  justify-content: center;
+}
+
+.place-item-modal__resort {
+  min-height: 1.2em;
+  color: var(--text-muted);
+  font-size: 0.98rem;
+  font-weight: 650;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.place-item-modal__details h2 {
+  color: var(--text);
+  font-size: clamp(1.55rem, 3vw, 2.35rem);
+  font-weight: 750;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.place-item-modal__price {
+  color: var(--accent);
+  font-size: 1.15rem;
+  font-weight: 750;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.place-item-modal__description {
+  color: var(--text-muted);
+  font-size: 1rem;
+  line-height: 1.65;
+  margin: 0;
+  white-space: pre-line;
+}
+
+.place-item-modal__link {
+  align-self: flex-start;
+  margin-top: 8px;
+  text-decoration: none;
+}
+
+@media (max-width: 760px) {
+  .place-item-modal__shell {
+    display: block;
+  }
+
+  .place-item-modal__media {
+    min-height: 52vh;
+  }
+
+  .place-item-modal__image {
+    max-height: 52vh;
+  }
+
+  .place-item-modal__details {
+    padding: 22px 18px 32px;
+    justify-content: flex-start;
+  }
+}
+
+/* Low-cost render pass: flatten decorative paint work while keeping layout intact. */
+.hero__icon,
+.ask-send-btn,
+.button--primary,
+.chat-send-btn,
+.modal-header,
+#mobileChatBtn,
+.btn-join,
+.btn-view-joiners,
+.btn-delete-schedule {
+  background: var(--accent) !important;
+}
+
+.button,
+.ask-input,
+.ask-send-btn,
+.chat-input,
+.chat-send-btn,
+.nav-btn,
+.add-schedule-btn,
+.badge,
+.message-bubble,
+.calendar-event-card,
+.blog-category,
+.empty-state,
+.pagination-btn,
+#mapModal > div,
+#closeMapBtn,
+.modal-content,
+#addScheduleForm input,
+#addScheduleForm select,
+#mobileChatBtn,
+#mobileChatModal .modal-content,
+#mobileChatModal .close,
+#mobileChatModal .message-bubble,
+#mobileChatModal .chat-input,
+#mobileChatModal .chat-send-btn,
+.schedule-type-badge,
+.btn-join,
+.btn-view-joiners,
+.btn-delete-schedule,
+.activities-list ul li,
+.activities-list ul li img,
+.sub-card {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  filter: none !important;
+  transition: none !important;
+}
+
+.button,
+.button--ghost,
+.add-schedule-btn,
+#calendar-container td,
+.calendar-header,
+.calendar-list,
+.blog-category,
+.empty-state,
+.pagination-btn,
+#closeMapBtn,
+#addScheduleForm input,
+#addScheduleForm select,
+#mobileChatModal .modal-content,
+#mobileChatModal .modal-header,
+#mobileChatModal .message-bubble,
+#mobileChatModal .chat-input-area,
+#mobileChatModal .chat-input,
+.activities-list ul li img {
+  border: 0 !important;
+}
+
+.modal,
+.top-nav,
+.schedule-type-badge {
+  backdrop-filter: none !important;
+}
+
+/* Readability pass: consistent system typography without extra font downloads. */
+.section-header h2,
+.blog-title,
+.modal-header h2,
+#mobileChatModal .modal-header h2,
+.poster-name,
+.detail-label,
+.sub-card-title {
+  font-weight: 700;
+}
+
+.message-bubble,
+.blog-excerpt,
+.schedule-description,
+.detail-value,
+.modal-body,
+.resort-activities-block,
+.activities-list ul li {
+  line-height: 1.6;
+}
+
+.button,
+.add-schedule-btn,
+.pagination-btn,
+.btn-join,
+.btn-view-joiners,
+.btn-delete-schedule,
+.blog-card,
+.top-nav__links a {
+  font-size: 0.98rem;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.blog-meta-left,
+.message-time,
+#mobileChatModal .message-time,
+.poster-contact,
+.review-count {
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+</style>
+
+<script>
+    // Generate math challenge
+    let mathA, mathB, mathCorrectAnswer;
+    function generateMathChallenge() {
+      mathA = Math.floor(Math.random() * 10) + 1;
+      mathB = Math.floor(Math.random() * 10) + 1;
+      mathCorrectAnswer = mathA + mathB;
+      const mathQuestion = document.getElementById('mathQuestion');
+      if (mathQuestion) {
+        mathQuestion.textContent = `${mathA} + ${mathB}`;
+      }
+    }  
+  // Get CSRF token from cookie for Django POST requests
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+  const csrftoken = getCookie('csrftoken');
+
+  // Get user's geolocation
+  function getUserLocation() {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Geolocation is not supported by this browser'));
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const coords = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy
+          };
+          resolve(coords);
+        },
+        (error) => {
+          console.warn('Geolocation error:', error);
+          // Don't reject - allow joining without location
+          resolve(null);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        }
+      );
+    });
+  }
+
+  // Handle schedule join with confirmation and geolocation
+  async function joinSchedule(scheduleId, scheduleTitle) {
+    // Show confirmation dialog
+    const isConfirmed = confirm(`Are you sure you want to join "${scheduleTitle}"?`);
+    
+    if (!isConfirmed) {
+      return;
+    }
+
+    // Check if user is logged in first
+    const currentPageUser = '{{request.user}}';
+    if (currentPageUser === "AnonymousUser") {
+      alert('You must be logged in to join a schedule. Please log in first.');
+      window.location.href = '/userProfile/login/';
+      return;
+    }
+
+    // Request user's location
+    let userLocation = null;
+    let manualPickLocation = '';
+    try {
+      userLocation = await getUserLocation();
+      if (userLocation) {
+        console.log('Location obtained:', userLocation);
+      } else {
+        console.log('Location permission denied or unavailable');
+      }
+    } catch (error) {
+      console.error('Error getting location:', error);
+      // Continue without location
+    }
+
+    // If we don't have GPS coordinates, prompt the user to enter a pickup location
+    if (!userLocation) {
+      manualPickLocation = (prompt('We could not access your location. Please enter your pick-up location address') || '').trim();
+
+      if (!manualPickLocation) {
+        alert('Pickup location is required to join this schedule.');
+        return;
+      }
+
+      // If user entered "lat,lng", also populate pickCoordinate
+      const match = manualPickLocation.match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/);
+      if (match) {
+        const latitude = Number(match[1]);
+        const longitude = Number(match[2]);
+
+        if (Number.isFinite(latitude) && Number.isFinite(longitude)) {
+          userLocation = { latitude, longitude };
+        }
+      }
+    }
+
+    // Prepare form data
+    const formData = new FormData();
+    const manualContact = (prompt('Enter your Contact Details') || '').trim();
+    formData.append('pickContact', manualContact);
+    if (userLocation) {
+      formData.append('pickCoordinate', JSON.stringify(userLocation));
+      formData.append('pickLocation', `${userLocation.latitude},${userLocation.longitude}`);
+    } else if (manualPickLocation) {
+      formData.append('pickLocation', manualPickLocation);
+    }
+
+    // Send request to join
+    fetch(`/schedule/${scheduleId}/join/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': csrftoken,
+      },
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success || data.already_joined) {
+        alert(data.message || 'Successfully joined the schedule!');
+        // Optionally refresh the page or update UI
+        // window.location.reload();
+      } else if (response.status === 401) {
+        alert('Please log in to join this schedule');
+        window.location.href = '/userProfile/login/';
+      } else {
+        alert(data.error || 'Failed to join schedule');
+      }
+    })
+    .catch(error => {
+      console.error('Error joining schedule:', error);
+      alert('An error occurred while joining. Please try again.');
+    });
+  }
+
+  async function viewJoiners(scheduleId, scheduleTitle) {
+    // Check if user is logged in
+    const currentPageUser = '{{request.user}}';
+    if (currentPageUser === "AnonymousUser") {
+      alert('You must be logged in to view joiners.');
+      window.location.href = '/userProfile/login/';
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/schedule/${scheduleId}/joiners/`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrftoken
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.joiners && data.joiners.length > 0) {
+          // Display joiners in a modal or alert
+          let joinersHTML = `<h3>Joiners for "${scheduleTitle}"</h3><ul style="text-align: left;">`;
+          data.joiners.forEach(joiner => {
+            joinersHTML += `<li>
+              <strong>${joiner.userName || 'Anonymous'}</strong><br>
+              📍 Pick Location: ${pickLocationToHtml(joiner.pickLocation)}<br>
+              📞 Contact: ${joiner.contact || 'N/A'}<br>
+              <small>Joined: ${new Date(joiner.timestamp).toLocaleString()}</small>
+            </li>`;
+          });
+          joinersHTML += '</ul>';
+          
+          // Create and show modal
+          const modal = document.createElement('div');
+          modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+          `;
+          modal.innerHTML = `
+          <div style="background: white; padding: 30px; max-width: 500px; max-height: 80vh; overflow-y: auto;">
+              ${joinersHTML}
+              <button onclick="this.closest('div').parentElement.remove()" style="margin-top: 20px; padding: 10px 20px; background: #667eea; color: white; border: none; cursor: pointer;">Close</button>
+            </div>
+          `;
+          document.body.appendChild(modal);
+        } else {
+          alert('No one has joined this schedule yet.');
+        }
+      } else {
+        alert('Failed to load joiners. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error fetching joiners:', error);
+      alert('An error occurred while loading joiners. Please try again.');
+    }
+  }
+
+  async function deleteSchedule(scheduleId, scheduleTitle, clickedButton) {
+    const isConfirmed = confirm(`Are you sure you want to delete "${scheduleTitle}"? This cannot be undone.`);
+    if (!isConfirmed) {
+      return;
+    }
+
+    // Check if user is logged in
+    const currentPageUser = '{{request.user}}';
+    if (currentPageUser === "AnonymousUser") {
+      alert('You must be logged in to delete a schedule.');
+      window.location.href = '/userProfile/';
+      return;
+    }
+
+    try {
+      const response = await fetch(`/schedule/${scheduleId}/delete/`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrftoken,
+        },
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (response.ok && data.success) {
+        alert(data.message || 'Schedule deleted');
+        const card = clickedButton && clickedButton.closest ? clickedButton.closest('.schedule-card') : null;
+        if (card) {
+          card.remove();
+        } else {
+          window.location.reload();
+        }
+        return;
+      }
+
+      if (response.status === 401) {
+        alert('Please log in to delete this schedule.');
+        window.location.href = '/userProfile/';
+        return;
+      }
+
+      alert((data && (data.error || data.message)) || 'Failed to delete schedule');
+    } catch (error) {
+      console.error('Error deleting schedule:', error);
+      alert('An error occurred while deleting. Please try again.');
+    }
+  }
+
+  function escapeHtml(value) {
+    return String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function parseLatLng(text) {
+    const match = String(text || '').match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/);
+    if (!match) return null;
+
+    const latitude = Number(match[1]);
+    const longitude = Number(match[2]);
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+    if (latitude < -90 || latitude > 90) return null;
+    if (longitude < -180 || longitude > 180) return null;
+
+    return { latitude, longitude };
+  }
+
+  function googleMapsDirectionsUrl(latitude, longitude) {
+    const destination = encodeURIComponent(`${latitude},${longitude}`);
+    return `https://www.google.com/maps/dir/?api=1&destination=${destination}`;
+  }
+
+  function pickLocationToHtml(pickLocation) {
+    if (!pickLocation) return 'Not specified';
+
+    const parsed = parseLatLng(pickLocation);
+    if (!parsed) return escapeHtml(pickLocation);
+
+    const coordsLabel = escapeHtml(`${parsed.latitude},${parsed.longitude}`);
+    const href = googleMapsDirectionsUrl(parsed.latitude, parsed.longitude);
+    return `${coordsLabel} — <a href="${href}" target="_blank" rel="noopener noreferrer" style="color: #667eea; text-decoration: underline;">Get directions</a>`;
+  }
+
+  function convertMarkdownLinks(text) {
+    // Convert markdown links [text](url) to HTML anchor tags
+    return String(text || '').replace(/\[([^\]]+)\]\(([^\)]+)\)/g, '<a href="$2" target="_blank" style="color: #667eea; text-decoration: underline;">$1</a>');
+  }
+
+  function discussionViewer(placeID, method) {
+    const discussionNode = document.getElementById("allDiscussion");
+    if (!discussionNode) return Promise.resolve();
+
+    const username = localStorage.getItem('username') || '';
+    const userID = localStorage.getItem('userID') || '';
+
+    return fetch(`/discuss/${placeID}`, {
+      method: method,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken
+      },
+      body: JSON.stringify({
+        message: "",
+        username: username,
+        userID: userID
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        (data.response || []).forEach(discussionBuilder);
+      });
+  }
+
+  let discussionHistoryPromise = null;
+  function ensureDiscussionHistory() {
+    if (!discussionHistoryPromise) {
+      discussionHistoryPromise = discussionViewer(`{{placeid}}`, 'POST').catch((error) => {
+        discussionHistoryPromise = null;
+        console.error('Failed to load discussions:', error);
+      });
+    }
+    return discussionHistoryPromise;
+  }
+
+  // Spam protection variables
+  let lastMessageTime = 0;
+  const MESSAGE_COOLDOWN = 10000; // 10 seconds between messages
+  const RATE_LIMIT_WINDOW = 60000; // 1 minute
+  const MAX_MESSAGES_PER_MINUTE = 5;
+  const renderedDiscussionKeys = new Set();
+
+  function discussionFetcher(placeID, method, button) {
+    const messageInput = document.querySelector("#discuss-message");
+    const message = messageInput.value.trim();
+    
+    // Validation
+    if (message === "") {
+      return Promise.resolve();
+    }
+    
+    if (message.length < 2) {
+      alert("Message is too short. Please write at least 2 characters.");
+      return Promise.resolve();
+    }
+    
+    // Check cooldown
+    const now = Date.now();
+    const timeSinceLastMessage = now - lastMessageTime;
+    
+    if (timeSinceLastMessage < MESSAGE_COOLDOWN) {
+      const remainingSeconds = Math.ceil((MESSAGE_COOLDOWN - timeSinceLastMessage) / 1000);
+      alert(`Please wait ${remainingSeconds} seconds before sending another message.`);
+      return Promise.resolve();
+    }
+    
+    // Check rate limit
+    const storedData = localStorage.getItem('messageTimestamps');
+    let timestamps = storedData ? JSON.parse(storedData) : [];
+    timestamps = timestamps.filter(t => now - t < RATE_LIMIT_WINDOW);
+    
+    if (timestamps.length >= MAX_MESSAGES_PER_MINUTE) {
+      alert("Rate limit exceeded. Please wait a minute before sending more messages.");
+      return Promise.resolve();
+    }
+    
+    // Clear input and disable button
+    messageInput.value = "";
+    button.disabled = true;
+    
+    // Replace button content with spinner
+    const originalContent = button.innerHTML;
+    button.innerHTML = '<div class="spinner"></div>';
+    
+    const username = localStorage.getItem('username') || '';
+    const userID = localStorage.getItem('userID') || '';
+    
+    return fetch(`/discuss/${placeID}`, {
+      method: method,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken
+      },
+      body: JSON.stringify({
+        message: message,
+        username: username,
+        userID: userID
+      }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          return response.json().then(err => {
+            throw new Error(err.error || 'Failed to send message');
+          });
+        }
+        return response.json();
+      })
+      .then((data) => {
+        if (data.blog_url) {
+          discussionBuilder({
+            discusserName: "Paratara",
+            discuss: `Blog ready: [Open blog](${data.blog_url})`,
+            timestamp: new Date().toISOString()
+          });
+
+          lastMessageTime = now;
+          timestamps.push(now);
+          localStorage.setItem('messageTimestamps', JSON.stringify(timestamps));
+
+          button.disabled = false;
+          button.innerHTML = originalContent;
+          return;
+        }
+
+        if (!data.response || data.response.length === 0) {
+          button.disabled = false;
+          button.innerHTML = originalContent;
+          return;
+        }
+
+        if (data.response[1]) discussionBuilder(data.response[1]);
+        discussionBuilder(data.response[0]);
+        
+        // Update spam protection tracking
+        lastMessageTime = now;
+        timestamps.push(now);
+        localStorage.setItem('messageTimestamps', JSON.stringify(timestamps));
+        
+        // Re-enable button and restore content
+        button.disabled = false;
+        button.innerHTML = originalContent;
+      })
+      .catch((error) => {
+        console.error('Error sending message:', error);
+        alert(error.message || 'Failed to send message. Please try again.');
+        
+        // Restore input value on error
+        messageInput.value = message;
+        
+        // Re-enable button
+        button.disabled = false;
+        button.innerHTML = originalContent;
+      });
+  }
+
+  function discussionBuilder(element) {
+    const discusslists = document.getElementById("allDiscussion");
+    if (!element || !discusslists) return;
+
+    const discussionKey = [
+      element.discusserName || '',
+      element.discuss || '',
+      element.timestamp || ''
+    ].join('|');
+    if (renderedDiscussionKeys.has(discussionKey)) return;
+    renderedDiscussionKeys.add(discussionKey);
+
+    const discussContainer = document.createElement("div");
+    const newDate = new Date(element.timestamp);
+    const options = {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    };
+    let formattedDate = newDate.toLocaleString("en-US", options);
+
+    discussContainer.classList.add("other-message");
+    discussContainer.classList.add("user-message");
+
+    const discuss = document.createElement("div");
+    discuss.classList.add("message-bubble")
+    // Convert markdown links to HTML before inserting
+    const messageWithLinks = convertMarkdownLinks(element.discuss);
+    discuss.innerHTML = `<span>${element.discusserName}:</span> ${messageWithLinks} <div class="message-time">${formattedDate}</div>`;
+
+    discussContainer.appendChild(discuss);
+    const firstDiscussionMessage = discusslists.firstChild;
+    discusslists.insertBefore(discussContainer, firstDiscussionMessage);
+  }
+
+
+</script>
+<div class="modal-for-blog">
+  <a href="page2.html" id="openPage">Open Page</a>
+</div>
+
+<div class="modal-for-blog" id="modal-for-blog-id">
+  
+  <span class="close-modal-for-blog" id="closemodalpageBtn">&times;</span>
+  <!-- <div id="modalforblogContent"></div> -->
+  <iframe id="modalforblogContentframe"></iframe>
+</div>
+
+
+<!-- Additional Details Modal -->
+<div class="additionalDetailsModal modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="AdditionalDetailsHeader">Additional Details</h2>
+      <span onclick="closeThisModal(id)" class="close">&times;</span>
+    </div>
+    <div class="modal-body" id="AdditionalDetailsContainer">
+      <p>This is modal-body put ID on this modal</p>
+    </div>
+    <div class="modal-image">
+      <img id="AdditionalDetailsImage" style="width: inherit" />
+    </div>
+    <div class="modal-footer" id="AdditionalDetailsFooter"></div>
+  </div>
+</div>
+
+<!-- Add Schedule Modal -->
+<div class="modal" id="addScheduleModal">
+  <div class="modal-content" style="max-width: 680px;">
+    <div class="modal-header">
+      <h2>Add Schedule</h2>
+      <span class="close" id="addScheduleClose">&times;</span>
+    </div>
+    <div class="modal-body" style="padding: 20px;">
+      <form id="addScheduleForm" style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px;">
+          <label style="display:flex; flex-direction:column; gap:6px; font-weight:600;">
+            Schedule Type
+            <select name="scheduleTypeAndMode" id="scheduleTypeAndMode" required style="padding:10px; border:1px solid var(--border); border-radius:10px;">
+              <option value="carpool">Carpool</option>
+            </select>
+          </label>
+          <label style="display:flex; flex-direction:column; gap:6px; font-weight:600;">
+            Day
+            <input type="number" name="dateN" id="dateN" min="1" max="31" required style="padding:10px; border:1px solid var(--border); border-radius:10px;" />
+          </label>
+          <label style="display:flex; flex-direction:column; gap:6px; font-weight:600;">
+            Month
+            <select name="monthN" id="monthN" required style="padding:10px; border:1px solid var(--border); border-radius:10px;">
+              <option value="" selected disabled>Select month</option>
+              <option value="1">January</option>
+              <option value="2">February</option>
+              <option value="3">March</option>
+              <option value="4">April</option>
+              <option value="5">May</option>
+              <option value="6">June</option>
+              <option value="7">July</option>
+              <option value="8">August</option>
+              <option value="9">September</option>
+              <option value="10">October</option>
+              <option value="11">November</option>
+              <option value="12">December</option>
+            </select>
+          </label>
+          <label style="display:flex; flex-direction:column; gap:6px; font-weight:600;">
+            Year
+            <input type="number" name="yearN" id="yearN" min="2000" required style="padding:10px; border:1px solid var(--border); border-radius:10px;" />
+          </label>
+        </div>
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:12px;">
+
+            <input type="text" name="meetPlace" id="meetPlace" placeholder="Where to meet" required  />
+
+          
+          
+            <input type="text" name="endPlace" id="endPlace" placeholder="Destination" value="{place_current}" required  />
+
+
+          <input type="time" name="meetTime" id="meetTime" placeholder="Meet time" style="padding:10px; border:1px solid var(--border); border-radius:10px;" />
+          
+        </div>
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:12px;">
+          <label style="display:flex; flex-direction:column; gap:6px; font-weight:600;">
+            Contact Details
+            <input type="text" name="detailsContact" id="detailsContact" placeholder="Phone / Messenger / Email" style="padding:10px; border:1px solid var(--border); border-radius:10px;" />
+          </label>
+          <label style="display:flex; flex-direction:column; gap:6px; font-weight:600;">
+            Maker or Looker
+            <select name="MakerOrLooker" id="MakerOrLooker" style="padding:10px; border:1px solid var(--border); border-radius:10px;">
+              <option value="Make" selected>Maker (I have a ride)</option>
+              <option value="Look">Looker (I need a ride)</option>
+            </select>
+          </label>
+        </div>
+        <div id="addScheduleStatus" style="min-height:20px; font-weight:600; color: var(--accent);"></div>
+        <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:4px; margin-bottom: 3em;">
+          <button type="button" class="button button--ghost" id="cancelAddSchedule">Cancel</button>
+          <button type="submit" class="button button--primary" id="addScheduleSubmit">Create schedule</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Map Modal -->
+<div id="mapModal">
+  <div>
+    <button id="closeMapBtn" aria-label="Close map">&times;</button>
+    <iframe id="map-modal" src="" style="width:100%;height:100%;border:0;"></iframe>
+  </div>
+</div>
+
+<!-- Event Details Modal -->
+<div class="modal" id="eventDetailsModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 id="eventDetailsTitle">Event Details</h2>
+      <span class="close" onclick="closeEventModal()">&times;</span>
+    </div>
+    <div class="modal-body">
+      <div id="eventDetailsBody">
+        <p><strong>📅  <span id="eventDate"></span></strong></p>
+        <p><strong>📍 <a id="eventLocationLink" href="" target="_blank"><span id="eventLocation"></span></a></strong> </p>
+        <!-- <p><strong>👤 Host:</strong> <span id="eventHost"></span></p> -->
+        <p id="eventInstagramContainer" style="display:none;"><strong>📷 Instagram:</strong> <a id="eventInstagram" href="" target="_blank"></a></p>
+        <p id="eventWebsiteContainer" style="display:none;"><strong>🔗 Website:</strong> <a id="eventWebsite" href="" target="_blank">Visit Website</a></p>
+        <div id="eventDescriptionContainer" style="display:none; margin-top: 15px;">
+          <p><strong>📝 Description:</strong></p>
+          <p id="eventDescription" style="line-height: 1.6; color: #4a5568;"></p>
+        </div>
+        <div id="eventAdditionalDetailsContainer" style="display:none; margin-top: 15px;">
+          <p><strong>ℹ️ Additional Details:</strong></p>
+          <p id="eventAdditionalDetails" style="line-height: 1.6; color: #4a5568;"></p>
+        </div>
+        <p id="eventDetailsText" style="margin-top: 15px; line-height: 1.6; color: #4a5568;"></p>
+
+        <div style="margin-top: 18px; padding-top: 12px; border-top: 1px solid #e2e8f0;">
+          <h3 style="margin: 0 0 10px 0; font-size: 1.05rem;">Register for this event</h3>
+          <form id="siargaoEventRegisterForm" method="post" data-action-template="{% url 'home:register_siargao_event' 0 %}">
+            {% csrf_token %}
+            <input hidden  name="event_date" id="siargaoEventDate" value="" />
+            <!-- Honeypot field (hidden from users, catches bots) -->
+            <input type="text" name="website" id="website_field" style="display:none;" tabindex="-1" autocomplete="off" />
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div>
+                <label style="display:block; font-weight:600; margin-bottom:6px;">Name</label>
+                <input name="full_name" required placeholder="Your Name" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:10px;" />
+              </div>
+              <div>
+                <label style="display:block; font-weight:600; margin-bottom:6px;">Email</label>
+                <input name="email" type="email" required placeholder="you@email.com" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:10px;" />
+              </div>
+              <div>
+                <label style="display:block; font-weight:600; margin-bottom:6px;">Phone (optional)</label>
+                <input name="phone" placeholder="+63..." style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:10px;" />
+              </div>
+              <div>
+                <label style="display:block; font-weight:600; margin-bottom:6px;">Pax</label>
+                <input name="pax" type="number" min="1" value="1" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:10px;" />
+              </div>
+            </div>
+            <div style="margin-top:10px;">
+              <label style="display:block; font-weight:600; margin-bottom:6px;">Notes (optional)</label>
+              <input name="notes" placeholder="Any notes" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:10px;" />
+            </div>
+            <!-- Math challenge for human verification -->
+            <div style="margin-top:10px;">
+              <label style="display:block; font-weight:600; margin-bottom:6px;">Quick check: <span id="mathQuestion"></span> = ?</label>
+              <input id="mathAnswer" type="number" required placeholder="Your answer" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:10px;" />
+            </div>
+            <div id="siargaoEventRegisterStatus" style="margin-top: 10px; font-weight: 600;"></div>
+            <button id="siargaoEventRegisterSubmit" type="submit" data-default-label="Register" style="margin-top: 10px; padding: 10px 14px; border: 0; border-radius: 10px; background: #667eea; color: #fff; font-weight: 700; cursor: pointer;">Register</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="modal-image" id="eventImageContainer" style="display:none;">
+      <img id="eventDetailsImage" style="width: 100%; max-height: 400px; object-fit: cover;" />
+    </div>
+  </div>
+</div>
+
+<!-- Activity / Accommodation Details Modal -->
+<div class="place-item-modal" id="placeItemDetailsModal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="placeItemModalTitle">
+  <div class="place-item-modal__shell">
+    <div class="place-item-modal__media">
+      <button type="button" class="place-item-modal__close" id="placeItemClose" aria-label="Close">&times;</button>
+      <img id="placeItemModalImage" class="place-item-modal__image" alt="" />
+      <div id="placeItemModalEmpty" class="place-item-modal__empty">No image available</div>
+      <div class="place-item-modal__controls">
+        <button type="button" id="placeItemPrev" class="place-item-modal__nav" aria-label="Previous image">Previous</button>
+        <span id="placeItemModalCounter" class="place-item-modal__counter">0 / 0</span>
+        <button type="button" id="placeItemNext" class="place-item-modal__nav" aria-label="Next image">Next</button>
+      </div>
+    </div>
+    <div class="place-item-modal__details">
+      <p id="placeItemModalResort" class="place-item-modal__resort"></p>
+      <div id="placeItemModalRating" class="place-item-modal__rating" hidden></div>
+      <h2 id="placeItemModalTitle"></h2>
+      <p id="placeItemModalPrice" class="place-item-modal__price"></p>
+      <p id="placeItemModalDescription" class="place-item-modal__description"></p>
+      <a id="placeItemModalLink" class="button button--primary place-item-modal__link" target="_blank" rel="noopener">View Resort</a>
+      <div id="placeItemReviewPanel" class="place-item-reviews" hidden></div>
+    </div>
+  </div>
+</div>
+
+<!-- Community Bulletin Image Modal -->
+<div class="modal" id="bulletinImageModal" aria-hidden="true" aria-label="Community bulletin photo" role="dialog">
+  <div class="modal-content" style="max-width: 92vw; max-height: 88vh;">
+    <div class="modal-header">
+      <h2 style="font-size: 1.1rem;">Photo</h2>
+      <span class="close" onclick="closeBulletinImageModal()">&times;</span>
+    </div>
+    <div class="modal-body" style="padding: 0;">
+      <img id="bulletinModalImage" alt="Community bulletin photo" style="width: 100%; height: auto; max-height: 78vh; object-fit: contain; display: block;" />
+    </div>
+  </div>
+</div>
+
+<!-- Mobile Chat Modal -->
+<div id="mobileChatModal" class="modal">
+  <div class="modal-content" style="max-width: 90vw; max-height: 100vh;">
+    <div class="modal-header">
+      <h2>Discussions</h2>
+      <span class="close" onclick="closeMobileChatModal()">&times;</span>
+    </div>
+    <div class="modal-body" style="display: flex; flex-direction: column;">
+      <div class="chat-container" id="container-placeDiscussion">
+        <div class="chat-messages" id="allDiscussion"></div>
+        <div class="chat-input-area">
+          <textarea maxlength="200" class="chat-input" id="discuss-message" placeholder="Type your message..."></textarea>
+          <button id="modal-send-btn" class="chat-send-btn" type="button" onclick="discussionFetcher(`{{placeid}}`,'POST', this)">
+            <svg viewBox="0 0 16 16">
+              <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<header class="top-nav" aria-label="Page navigation">
+  <div class="top-nav__inner">
+    <a class="top-nav__brand" href="#top">
+      <span class="top-nav__brand-badge" aria-hidden="true">
+        <svg viewBox="0 0 16 16">
+          <path d="M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A31.493 31.493 0 0 1 8 14.58a31.481 31.481 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94zM8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10z"></path>
+          <path d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path>
+        </svg>
+      </span>
+      <span id="place-name">Loading</span>
+    </a>
+
+    <button class="top-nav__toggle" id="placeNavToggle" type="button" aria-controls="placeNavMenu" aria-expanded="false" aria-label="Toggle navigation">
+      <svg viewBox="0 0 16 16" aria-hidden="true">
+        <path d="M1 3.5A.5.5 0 0 1 1.5 3h13a.5.5 0 0 1 0 1h-13A.5.5 0 0 1 1 3.5zm0 4A.5.5 0 0 1 1.5 7h13a.5.5 0 0 1 0 1h-13A.5.5 0 0 1 1 7.5zm.5 3.5a.5.5 0 0 0 0 1h13a.5.5 0 0 0 0-1h-13z" />
+      </svg>
+    </button>
+  </div>
+
+  <nav class="top-nav__links" id="placeNavMenu">
+    <a href="#things-to-do">Activities and Services</a>
+    <a href="#events-schedule-heading">Events</a>
+    <a href="#community-bulletin">Community Bulletin</a>
+    <a href="#schedules">Schedules</a>
+    <a href="#blogs">Blogs</a>
+    <!-- <a href="#" id="placeNavOpenMap" aria-label="Open map" role="button">
+      <span>Check Spots</span>
+    </a> -->
+    <br><br><br>
+    
+    {% if request.user.is_authenticated %}
+    <a href="/est/resort/createnewresort">Add your Business Here</a>
+    {% endif %}
+  </nav>
+</header>
+<div class="page-container" id="top">
+
+  <div class="hero">
+    <!-- <div class="hero__info">
+      <div class="hero__icon">
+        <svg viewBox="0 0 16 16">
+          <path d="M12.166 8.94c-.524 1.062-1.234 2.12-1.96 3.07A31.493 31.493 0 0 1 8 14.58a31.481 31.481 0 0 1-2.206-2.57c-.726-.95-1.436-2.008-1.96-3.07C3.304 7.867 3 6.862 3 6a5 5 0 0 1 10 0c0 .862-.305 1.867-.834 2.94zM8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10z"></path>
+          <path d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path>
+        </svg>
+      </div>
+      <div class="hero__text">
+        <h1 class="hero__heading" >Loading...</h1>
+      </div>
+    </div> -->
+    <div class="hero__actions">
+      <div class="ask-box">
+        <input type="text" id="quick-ask-input" placeholder="Ask us" class="ask-input">
+        <button id="quick-ask-send" class="ask-send-btn">
+          <svg viewBox="0 0 16 16" width="16" height="16">
+            <path fill="white" d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z"></path>
+          </svg>
+        </button>
+      </div>
+      <button style="display: none;" id="openMapBtn" class="button button--ghost" type="button">
+        <svg viewBox="0 0 16 16">
+          <path fill-rule="evenodd" d="M15.817.113A.5.5 0 0 1 16 .5v14a.5.5 0 0 1-.402.49l-5 1a.502.502 0 0 1-.196 0L5.5 15.01l-4.902.98A.5.5 0 0 1 0 15.5v-14a.5.5 0 0 1 .402-.49l5-1a.5.5 0 0 1 .196 0L10.5.99l4.902-.98a.5.5 0 0 1 .415.103zM10 1.91l-4-.8v12.98l4 .8V1.91zm1 12.98 4-.8V1.11l-4 .8v12.98zm-6-.8V1.11l-4 .8v12.98l4-.8z"/>
+        </svg>
+        <span>Find Tourist Spot</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="primary-grid">
+    <section class="" aria-labelledby="calendar-heading">
+      <div class="panel__body">
+        <div id="calendar-container">
+          {{calendar|safe}}
+        </div>
+      </div>
+    </section>
+
+    <section class="panel panel--blogs" id="blogs" aria-labelledby="blog-heading">
+      <div class="section-header">
+      </div>
+      <div class="blog-grid" id="blog-grid"></div>
+      <div id="blog-pagination"></div>
+    </section>
+
+
+
+
+  </div>
+
+
+  <div class="page-stack">
+
+    <!-- Resort Activities Section -->
+    <section class="panel panel--resort-activities" id="things-to-do" aria-labelledby="resort-activities-heading">
+      <div class="section-header">
+        <h2 id="resort-activities-heading" >Activities and Services</h2>
+      </div>
+      <div id="resort-activities-list-js"></div>
+      <div id="resort-activities-load-more" class="load-more-wrap" hidden></div>
+      <script>
+        const resortActivitiesPagination = { offset: 0, loading: false };
+        async function fetchAndRenderResortActivities(placeId, append) {
+          const container = document.getElementById('resort-activities-list-js');
+          if (!container) return;
+          if (resortActivitiesPagination.loading) return;
+          if (window.ensurePlaceSubCardStyles) window.ensurePlaceSubCardStyles();
+          resortActivitiesPagination.loading = true;
+          if (!append) {
+            resortActivitiesPagination.offset = 0;
+            container.innerHTML = '<div class="loading-symbol"></div>';
+          }
+          window.placeSetLoadMoreButton('resort-activities-load-more', true, true, function () {});
+          try {
+            const params = new URLSearchParams({
+              flat: '1',
+              paginate: '1',
+              limit: String(window.placePageSize || 10),
+              offset: String(resortActivitiesPagination.offset),
+            });
+            const res = await fetch(`/apis/getPlaceActivities/${placeId}/?${params.toString()}`);
+            if (!res.ok) throw new Error('Failed to fetch activities');
+            const payload = await res.json();
+            const activities = window.placeGetPaginatedResults(payload, 'ActivitiesList');
+            if (!activities.length) {
+              if (!append) container.innerHTML = '<div class="empty-state">No activities found for this place.</div>';
+              window.placeSetLoadMoreButton('resort-activities-load-more', false, false, function () {});
+              return;
+            }
+            if (!append || !document.getElementById('resort-activities-grid')) {
+              container.innerHTML = '<div class="resort-activities-block" style="margin-bottom: 24px;"><div class="sub-card-grid" id="resort-activities-grid"></div></div>';
+            }
+            let html = '';
+            activities.forEach(activity => {
+              const groupTitle = activity.groupTitle || activity.PackageTitle || activity.package_title || activity.title || 'Activity';
+              if (activity.subPackagesList && activity.subPackagesList.length > 0) {
+                activity.subPackagesList.forEach(sub => {
+                  html += window.placeBuildItemCard(Object.assign({}, activity, sub, {
+                    PackageTitle: sub.title || activity.PackageTitle,
+                    resortLink: sub.resortLink || activity.resortLink,
+                    resortName: sub.resortName || activity.resortName,
+                    websiteURL: sub.websiteURL || sub.website || activity.websiteURL || activity.website || '',
+                  }), groupTitle);
+                });
+              } else {
+                html += window.placeBuildItemCard(activity, groupTitle);
+              }
+            });
+            const grid = document.getElementById('resort-activities-grid');
+            if (grid) grid.insertAdjacentHTML('beforeend', html);
+            resortActivitiesPagination.offset = payload && payload.next_offset !== null && payload.next_offset !== undefined
+              ? payload.next_offset
+              : resortActivitiesPagination.offset + activities.length;
+            window.placeSetLoadMoreButton('resort-activities-load-more', !!(payload && payload.has_next), false, function () {
+              fetchAndRenderResortActivities(placeId, true);
+            });
+          } catch (e) {
+            if (!append) container.innerHTML = '<div class="empty-state">Failed to load activities.</div>';
+            window.placeSetLoadMoreButton('resort-activities-load-more', !!append, false, function () {
+              fetchAndRenderResortActivities(placeId, true);
+            });
+          } finally {
+            resortActivitiesPagination.loading = false;
+          }
+        }
+        window.placePageReady(function() {
+          window.placeWhenVisible(document.getElementById('things-to-do'), function () {
+            fetchAndRenderResortActivities('{{ placeid }}', false);
+          });
+        });
+      </script>
+    </section>
+
+
+    <!-- Accommodations Section (duplicated from Activities, adapted) -->
+    <section class="panel panel--accommodations" id="accommodations" aria-labelledby="accommodations-heading">
+      <div class="section-header">
+        <h2 id="accommodations-heading">Accommodations</h2>
+      </div>
+      <div id="accommodations-list-js"></div>
+      <div id="accommodations-load-more" class="load-more-wrap" hidden></div>
+      <script>
+        const accommodationsPagination = { offset: 0, loading: false };
+        async function fetchAndRenderAccommodations(placeId, append) {
+          const container = document.getElementById('accommodations-list-js');
+          if (!container) return;
+          if (accommodationsPagination.loading) return;
+          if (window.ensurePlaceSubCardStyles) window.ensurePlaceSubCardStyles();
+          accommodationsPagination.loading = true;
+          if (!append) {
+            accommodationsPagination.offset = 0;
+            container.innerHTML = '<div class="loading-symbol"></div>';
+          }
+          window.placeSetLoadMoreButton('accommodations-load-more', true, true, function () {});
+          try {
+            const params = new URLSearchParams({
+              flat: '1',
+              paginate: '1',
+              limit: String(window.placePageSize || 10),
+              offset: String(accommodationsPagination.offset),
+            });
+            const res = await fetch(`/apis/getPlaceAccommodations/${placeId}/?${params.toString()}`);
+            if (!res.ok) throw new Error('Failed to fetch accommodations');
+            const payload = await res.json();
+            const accommodations = window.placeGetPaginatedResults(payload, 'AccommodationsList');
+            if (!accommodations.length) {
+              if (!append) container.innerHTML = '<div class="empty-state">No accommodations found for this place.</div>';
+              window.placeSetLoadMoreButton('accommodations-load-more', false, false, function () {});
+              return;
+            }
+            if (!append || !document.getElementById('accommodations-grid')) {
+              container.innerHTML = '<div class="resort-activities-block" style="margin-bottom: 24px;"><div class="sub-card-grid" id="accommodations-grid"></div></div>';
+            }
+            let html = '';
+            accommodations.forEach(acc => {
+              if (acc.subPackagesList && acc.subPackagesList.length > 0) {
+                acc.subPackagesList.forEach(pkg => {
+                  html += window.placeBuildItemCard(Object.assign({}, acc, pkg, {
+                    PackageTitle: pkg.title || acc.PackageTitle,
+                    resortLink: pkg.resortLink || acc.resortLink,
+                    resortName: pkg.resortName || acc.resortName,
+                    websiteURL: pkg.websiteURL || pkg.website || acc.websiteURL || acc.website || '',
+                  }), acc.PackageTitle || acc.title || 'Room');
+                });
+              } else {
+                html += window.placeBuildItemCard(acc, acc.PackageTitle || acc.title || 'Room');
+              }
+            });
+            const grid = document.getElementById('accommodations-grid');
+            if (grid) grid.insertAdjacentHTML('beforeend', html);
+            accommodationsPagination.offset = payload && payload.next_offset !== null && payload.next_offset !== undefined
+              ? payload.next_offset
+              : accommodationsPagination.offset + accommodations.length;
+            window.placeSetLoadMoreButton('accommodations-load-more', !!(payload && payload.has_next), false, function () {
+              fetchAndRenderAccommodations(placeId, true);
+            });
+          } catch (e) {
+            if (!append) container.innerHTML = '<div class="empty-state">Failed to load accommodations.</div>';
+            window.placeSetLoadMoreButton('accommodations-load-more', !!append, false, function () {
+              fetchAndRenderAccommodations(placeId, true);
+            });
+          } finally {
+            accommodationsPagination.loading = false;
+          }
+        }
+        window.placePageReady(function() {
+          window.placeWhenVisible(document.getElementById('accommodations'), function () {
+            fetchAndRenderAccommodations('{{ placeid }}', false);
+          });
+        });
+      </script>
+    </section>    
+    
+    <section class="panel panel--events" id="events" aria-labelledby="events-schedule-heading">
+
+
+      <!-- Community Bulletin -->
+      <div class="schedules-section" id="community-bulletin" style="margin-bottom: 18px;">
+        <div class="section-header">
+          <h2>Community Bulletin
+                    {% if user.is_authenticated %}
+          <button type="button" id="bulletinPostButton" class="button button--primary">Post</button>
+          <form id="bulletinPostForm" method="post" action="{% url 'home:community_bulletin_upload' placeid %}" enctype="multipart/form-data" style="display:none; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px;">
+            {% csrf_token %}
+            <input type="file" name="images" accept="image/*" multiple required />
+            <button type="submit" class="button button--primary">Upload</button>
+          </form>
+        {% endif %}
+          </h2>
+        </div>
+
+
+        {% if community_bulletins %}
+          <div class="calendar-grid" id="community-bulletin-grid" style="margin-top: 12px;">
+            {% for post in community_bulletins %}
+              <div class="calendar-item" style="overflow:hidden;">
+                {% with first_image=post.images.all.0 %}
+                  {% if first_image and first_image.image_url %}
+                    <div style="width:100%; height:160px; overflow:hidden;">
+                      <a href="{{ first_image.image_url }}" class="bulletin-image-link" data-image-url="{{ first_image.image_url }}" style="display:block; width:100%; height:160px;">
+                        <img src="{{ first_image.image_url }}" alt="{{ post.ai_title|default:'Bulletin image' }}" loading="lazy" decoding="async" style="width:100%; height:160px; object-fit:cover;" />
+                      </a>
+                    </div>
+                  {% endif %}
+                {% endwith %}
+                {% if user.is_superuser %}
+                <div style="padding: 12px;">
+                  {% if user.is_superuser %}
+                    <form method="post" action="{% url 'home:community_bulletin_delete' placeid post.id %}" style="display:flex; justify-content:flex-end; margin-bottom: 6px;">
+                      {% csrf_token %}
+                      <button type="submit" class="button button--ghost" style="border-color: #e2e8f0;">Delete</button>
+                    </form>
+                  {% endif %}
+                  <div style="font-weight: 800; margin-bottom: 6px;">{{ post.ai_title|default:"Community bulletin" }}</div>
+                  {% if post.ai_description %}
+                    <!-- <div style="opacity: 0.9;">{{ post.ai_description }}</div> -->
+                  {% endif %}
+
+                  {% if post.images.all|length > 1 %}
+                    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
+                      {% for img in post.images.all %}
+                        {% if img.image_url %}
+                          <a href="{{ img.image_url }}" class="bulletin-image-link" data-image-url="{{ img.image_url }}" style="display:inline-block;">
+                            <img src="{{ img.image_url }}" alt="Bulletin photo" loading="lazy" decoding="async" style="width:64px; height:64px; object-fit:cover;" />
+                          </a>
+                        {% endif %}
+                      {% endfor %}
+                    </div>
+                  {% endif %}
+                </div>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="empty-state" style="margin-top: 12px;">No bulletin posts yet.</div>
+        {% endif %}
+        <div id="community-bulletin-load-more" class="load-more-wrap" {% if community_bulletins|length < 10 %}hidden{% endif %}>
+          <button type="button" class="button button--ghost place-load-more-btn" onclick="loadMoreCommunityBulletins('{{ placeid }}')">Load more</button>
+        </div>
+      </div>
+
+      <!-- All Schedules Section -->
+      <div class="schedules-section" id="schedules">
+        <div class="section-header">
+          <h2>Schedules</h2>
+        </div>
+        <ul id="calendar-allsched-list" class="calendar-list schedules-list">
+          <!-- Schedule items will be dynamically inserted here -->
+        </ul>
+        <div id="schedules-load-more" class="load-more-wrap" hidden></div>
+      </div>
+
+      <div class="section-header">
+        <h2 id="events-schedule-heading">Events</h2>
+        <p>Join upcoming experiences and get a quick glance at schedules and plans.</p>
+      </div>
+      <div id="event-objects-list" class="calendar-grid"></div>
+      <div id="events-load-more" class="load-more-wrap" hidden></div>
+      <div id="calendar-objects-list" class="calendar-list">
+        <div class="loading-symbol"></div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<!-- Mobile Chat Button -->
+<div id="mobileChatBtn" style="position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: var(--accent); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 1;">
+  <svg viewBox="0 0 16 16" style="width: 24px; height: 24px; fill: white;">
+    <path d="M14 1a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4.414A2 2 0 0 0 3 11.586l-2 2V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12.793a.5.5 0 0 0 .854.353l2.853-2.853A1 1 0 0 1 4.414 12H14a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/>
+    <path d="M3 3.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zM3 6a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9A.5.5 0 0 1 3 6zm0 2.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5z"/>
+  </svg>
+</div>
+
+<script>
+
+
+const communityBulletinState = { offset: 10, loading: false, hasNext: true };
+
+function renderCommunityBulletinPost(post) {
+  const images = Array.isArray(post.images) ? post.images.filter(Boolean) : [];
+  const firstImage = images[0] || '';
+  const title = post.ai_title || 'Community bulletin';
+  const canDelete = "{{ user.is_superuser|yesno:'true,false' }}" === "true";
+  const imageBlock = firstImage ? `
+    <div style="width:100%; height:160px; overflow:hidden;">
+      <a href="${window.placeEscapeHtml(firstImage)}" class="bulletin-image-link" data-image-url="${window.placeEscapeHtml(firstImage)}" style="display:block; width:100%; height:160px;">
+        <img src="${window.placeEscapeHtml(firstImage)}" alt="${window.placeEscapeHtml(title)}" loading="lazy" decoding="async" style="width:100%; height:160px; object-fit:cover;" />
+      </a>
+    </div>
+  ` : '';
+  const thumbnails = images.length > 1 ? `
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
+      ${images.map(function (imageUrl) {
+        return `
+          <a href="${window.placeEscapeHtml(imageUrl)}" class="bulletin-image-link" data-image-url="${window.placeEscapeHtml(imageUrl)}" style="display:inline-block;">
+            <img src="${window.placeEscapeHtml(imageUrl)}" alt="Bulletin photo" loading="lazy" decoding="async" style="width:64px; height:64px; object-fit:cover;" />
+          </a>
+        `;
+      }).join('')}
+    </div>
+  ` : '';
+  const deleteUrl = "{% url 'home:community_bulletin_delete' placeid 0 %}".replace('/0/delete/', '/' + post.id + '/delete/');
+  const adminBlock = canDelete ? `
+    <div style="padding: 12px;">
+      <form method="post" action="${deleteUrl}" style="display:flex; justify-content:flex-end; margin-bottom: 6px;">
+        <input type="hidden" name="csrfmiddlewaretoken" value="${window.placeEscapeHtml(csrftoken || '')}" />
+        <button type="submit" class="button button--ghost" style="border-color: #e2e8f0;">Delete</button>
+      </form>
+      <div style="font-weight: 800; margin-bottom: 6px;">${window.placeEscapeHtml(title)}</div>
+      ${thumbnails}
+    </div>
+  ` : '';
+  return `<div class="calendar-item" style="overflow:hidden;">${imageBlock}${adminBlock}</div>`;
+}
+
+async function loadMoreCommunityBulletins() {
+  if (communityBulletinState.loading || !communityBulletinState.hasNext) return;
+  const grid = document.getElementById('community-bulletin-grid');
+  if (!grid) return;
+  communityBulletinState.loading = true;
+  window.placeSetLoadMoreButton('community-bulletin-load-more', true, true, function () {});
+  try {
+    const params = new URLSearchParams({
+      limit: String(window.placePageSize || 10),
+      offset: String(communityBulletinState.offset),
+    });
+    const response = await fetch(`{% url 'home:community_bulletin_list' placeid %}?${params.toString()}`, {
+      headers: { Accept: 'application/json' },
+    });
+    if (!response.ok) throw new Error('Failed to fetch bulletin posts');
+    const payload = await response.json();
+    const posts = Array.isArray(payload.posts) ? payload.posts : [];
+    if (posts.length) {
+      grid.insertAdjacentHTML('beforeend', posts.map(renderCommunityBulletinPost).join(''));
+    }
+    const pagination = payload.pagination || {};
+    communityBulletinState.offset = pagination.next_offset || communityBulletinState.offset + posts.length;
+    communityBulletinState.hasNext = !!pagination.has_next;
+    window.placeSetLoadMoreButton('community-bulletin-load-more', communityBulletinState.hasNext, false, loadMoreCommunityBulletins);
+  } catch (error) {
+    window.placeSetLoadMoreButton('community-bulletin-load-more', true, false, loadMoreCommunityBulletins);
+  } finally {
+    communityBulletinState.loading = false;
+  }
+}
+
+
+function openModalWithContent(event, url){
+  event.preventDefault();
+  const modal = document.getElementById("modal-for-blog-id");
+  const modalContentframe = document.getElementById("modalforblogContentframe");
+  if (!modal || !modalContentframe) return;
+  modalContentframe.src = url;
+  try {
+    // Fetch page
+    // let response = await fetch(url);
+    // let html = await response.text();
+
+    // Insert page content
+    // modalContent.innerHTML = html;
+
+    // Show modal
+    modal.classList.add("show");
+
+  } catch (error) {
+    console.error("Failed to load page:", error);
+  }
+}
+
+// Close button
+const closeBlogModalButton = document.getElementById("closemodalpageBtn");
+if (closeBlogModalButton) {
+  closeBlogModalButton.addEventListener("click", () => {
+    const modal = document.getElementById("modal-for-blog-id");
+    const modalContentframe = document.getElementById("modalforblogContentframe");
+    if (modal) modal.classList.remove("show");
+    if (modalContentframe) modalContentframe.src = '';
+  });
+}
+
+
+  function formatModelDate(datestr) {
+    let d = new Date(datestr)
+    return d.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    })
+  }
+
+  let currentPage = 1;
+  const blogsPerPage = 4;
+  let allBlogs = [];
+  let pendingBlogPlaceName = '';
+  let blogsLoadScheduled = false;
+
+  async function loadBlogs(placeName) {
+    if (!placeName) return;
+    const base = window.location.origin;
+    const res = await fetch(`${base}/apis/getPlaceBlogs/${placeName}/`);
+    if (!res.ok) return;
+
+    allBlogs = await res.json();
+    currentPage = 1;
+    renderBlogs();
+  }
+
+  function scheduleBlogsLoad(placeName) {
+    pendingBlogPlaceName = placeName;
+    if (blogsLoadScheduled) return;
+
+    blogsLoadScheduled = true;
+    const blogSection = document.getElementById("blogs");
+    if (window.placeWhenVisible) {
+      window.placeWhenVisible(blogSection, function () {
+        loadBlogs(pendingBlogPlaceName);
+      }, { rootMargin: '600px 0px' });
+    } else {
+      loadBlogs(pendingBlogPlaceName);
+    }
+  }
+
+  function renderBlogs() {
+    const container = document.getElementById("blog-grid");
+    const paginationContainer = document.getElementById("blog-pagination");
+
+    if (!allBlogs.length) {
+      container.innerHTML = '<div class="empty-state">No blog posts yet.</div>';
+      if (paginationContainer) paginationContainer.innerHTML = '';
+      return;
+    }
+
+    const totalPages = Math.ceil(allBlogs.length / blogsPerPage);
+    const startIndex = (currentPage - 1) * blogsPerPage;
+    const endIndex = startIndex + blogsPerPage;
+    const blogsToShow = allBlogs.slice(startIndex, endIndex);
+
+
+const cards = blogsToShow
+  .map(blog => {
+    const categoryClass = blog.category
+      .toLowerCase()
+      .replace(/\s+/g, '-');
+
+    return `
+      <div class="blog-post">
+        <h3 class="blog-title">          <span class="blog-category category-${categoryClass}">
+            ${blog.category}
+          </span> ${blog.title} </h3>
+
+
+
+        <p class="blog-excerpt">${blog.summarize}</p>
+
+        <div class="blog-meta">
+          <div class="blog-meta-left">
+            <span class="blog-meta-item">
+              📅 ${formatModelDate(blog.updated_at)} 
+            </span>
+
+            <span class="blog-meta-item">
+              ⏱️ ${blog.readtime} min read
+            </span>
+          </div>
+
+          <a href="${blog.localurlpath}/" class="blog-card" onclick="openModalWithContent(event, this.href)" >
+            <span>Read here →</span>
+          </a>
+        </div>
+      </div>
+    `;
+  })
+  .join("");
+
+container.innerHTML = cards;
+    // Render pagination controls
+    renderPagination(totalPages);
+  }
+
+  function renderPagination(totalPages) {
+    const paginationContainer = document.getElementById("blog-pagination");
+    if (!paginationContainer) return;
+
+    if (totalPages <= 1) {
+      paginationContainer.innerHTML = '';
+      return;
+    }
+
+    let paginationHTML = '<div class="pagination-controls">';
+
+    // Previous button
+    if (currentPage > 1) {
+      paginationHTML += `<button class="pagination-btn" onclick="changePage(${currentPage - 1})">← Previous</button>`;
+    }
+
+    // Page numbers
+    const startPage = Math.max(1, currentPage - 2);
+    const endPage = Math.min(totalPages, currentPage + 2);
+
+    if (startPage > 1) {
+      paginationHTML += `<button class="pagination-btn" onclick="changePage(1)">1</button>`;
+      if (startPage > 2) {
+        paginationHTML += '<span class="pagination-dots">...</span>';
+      }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      const activeClass = i === currentPage ? ' active' : '';
+      paginationHTML += `<button class="pagination-btn${activeClass}" onclick="changePage(${i})">${i}</button>`;
+    }
+
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        paginationHTML += '<span class="pagination-dots">...</span>';
+      }
+      paginationHTML += `<button class="pagination-btn" onclick="changePage(${totalPages})">${totalPages}</button>`;
+    }
+
+    // Next button
+    if (currentPage < totalPages) {
+      paginationHTML += `<button class="pagination-btn" onclick="changePage(${currentPage + 1})">Next →</button>`;
+    }
+
+    paginationHTML += '</div>';
+    paginationContainer.innerHTML = paginationHTML;
+  }
+
+  function changePage(page) {
+    currentPage = page;
+    renderBlogs();
+    // Scroll to top of blog section
+    const blogSection = document.getElementById("blogs");
+    if (blogSection) {
+      blogSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+</script>
+
+<script>
+  window.allDates = [];
+  const allTD = document.querySelectorAll(".wed,.mon,.tue,.thu,.fri,.sat,.sun");
+  allTD.forEach((element) => {
+    if (element.textContent.trim()) {
+      window.allDates.push(element);
+    }
+  });
+</script>
+
+<script>
+  const placePlanPagination = {
+    eventOffset: 0,
+    eventHasNext: false,
+    eventLoading: false,
+    scheduleOffset: 0,
+    scheduleHasNext: false,
+    scheduleLoading: false,
+  };
+
+  function buildPlacePlanUrl(params) {
+    const base = window.placePlanBaseUrl || '';
+    const joiner = base.indexOf('?') === -1 ? '?' : '&';
+    return base + joiner + new URLSearchParams(params).toString();
+  }
+
+  function loadMorePlaceEvents() {
+    if (placePlanPagination.eventLoading || !placePlanPagination.eventHasNext) return;
+    placePlanPagination.eventLoading = true;
+    window.placeSetLoadMoreButton('events-load-more', true, true, function () {});
+    getPlan(buildPlacePlanUrl({
+      include_resorts: '0',
+      track_view: '0',
+      event_limit: String(window.placePageSize || 10),
+      event_offset: String(placePlanPagination.eventOffset),
+      schedule_limit: '0',
+      schedule_offset: '0',
+    }), { appendEvents: true, renderSchedules: false, skipBlogs: true });
+  }
+
+  function loadMorePlaceSchedules() {
+    if (placePlanPagination.scheduleLoading || !placePlanPagination.scheduleHasNext) return;
+    placePlanPagination.scheduleLoading = true;
+    window.placeSetLoadMoreButton('schedules-load-more', true, true, function () {});
+    getPlan(buildPlacePlanUrl({
+      include_resorts: '0',
+      track_view: '0',
+      event_limit: '0',
+      event_offset: '0',
+      schedule_limit: String(window.placePageSize || 10),
+      schedule_offset: String(placePlanPagination.scheduleOffset),
+    }), { appendSchedules: true, renderEvents: false, skipBlogs: true });
+  }
+
+  function getPlan(whatPlan, options) {
+    options = options || {};
+
+    const todaysMonth = parseInt(`{{currentMonth}}`, 10);
+    fetch(whatPlan, {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        const placeName = data['placeName'];
+        const placeNameElement = document.getElementById("place-name");
+        const endPlaceElement = document.getElementById("endPlace");
+        if (placeNameElement) placeNameElement.innerText = placeName;
+        if (endPlaceElement) endPlaceElement.value = placeName;
+        // document.querySelector("#map-modal").src = c;
+        if (!options.skipBlogs) scheduleBlogsLoad(placeName);
+
+        const placeEventItems = data['placeEvents'] || [];
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Reset time to midnight for accurate date comparison
+
+        let scheduleCount = 0;
+        if (options.renderEvents !== false) {
+          const scheduleContainer = document.getElementById('calendar-objects-list');
+          if (scheduleContainer && !options.appendEvents) scheduleContainer.innerHTML = '';
+
+          for (const item of placeEventItems) {
+            if (item.fields.monthN == todaysMonth) {
+              const eventDate = new Date(item.fields.exactDate);
+              if (eventDate >= today) {
+                new dateObjects(item.fields).createObject(item.fields);
+                scheduleCount += 1;
+              }
+            }
+          }
+
+          const event_container = document.getElementById('event-objects-list');
+          if (event_container && !options.appendEvents) event_container.innerHTML = '';
+          let upcomingEvents = 0;
+
+          placeEventItems.forEach(event => {
+            const e = { ...event.fields, _pk: event.pk };
+            const eventDate = new Date(e.exactDate);
+
+            if (eventDate >= today && event_container) {
+              const card = document.createElement('div');
+              card.className = 'calendar-event-card';
+              card.style.backgroundColor = '#667eea';
+              if (e.backgroundURL && window.placeLazyBackground) {
+                window.placeLazyBackground(card, e.backgroundURL);
+              } else if (e.backgroundURL) {
+                card.style.backgroundImage = `url('${e.backgroundURL}')`;
+              }
+              card.onclick = () => showEventModal(e);
+              card.style.cursor = 'pointer';
+
+              const overlay = document.createElement('div');
+              overlay.className = 'card-overlay';
+              card.appendChild(overlay);
+
+              const content = document.createElement('div');
+              content.className = 'card-content';
+              content.innerHTML = `
+                <h4>${e.scheduleTitle}</h4>
+                <p>📅 ${e.exactDate}</p>
+              `;
+              card.appendChild(content);
+              event_container.appendChild(card);
+              upcomingEvents += 1;
+            }
+          });
+
+          if (!upcomingEvents && !options.appendEvents && event_container) {
+            event_container.innerHTML = '<div class="empty-state">No upcoming events yet.</div>';
+          }
+
+          if (data.eventPagination) {
+            placePlanPagination.eventOffset = data.eventPagination.next_offset || 0;
+            placePlanPagination.eventHasNext = !!data.eventPagination.has_next;
+            placePlanPagination.eventLoading = false;
+            window.placeSetLoadMoreButton('events-load-more', placePlanPagination.eventHasNext, false, loadMorePlaceEvents);
+          }
+        }
+
+        const placeScheduleItems = data['placeSchedule'] || [];
+
+        if (options.renderSchedules !== false) {
+          const allSchedContainer = document.querySelector("#calendar-allsched-list");
+          if (allSchedContainer && !options.appendSchedules) allSchedContainer.innerHTML = '';
+
+          if (placeScheduleItems.length > 0 && allSchedContainer) {
+          placeScheduleItems.forEach(schedItem => {
+            // Also add to calendar
+            new dateObjects(schedItem.fields).createObject(schedItem.fields);            
+
+            const sched = schedItem.fields;
+            // Create schedule card
+            const schedCard = document.createElement('li');
+            schedCard.className = 'schedule-card';
+            
+            // Get current user ID from request.user.id (server-side)
+            const currentUserID = `{{request.user.id|default:"null"}}`;
+            // Check if current user is the poster
+            const isPoster = currentUserID && String(sched.posterID) === String(currentUserID);
+            
+            schedCard.innerHTML = `
+              
+              <div class="schedule-card-body">
+                ${sched.otherDetails ? `<p class="schedule-description">${sched.otherDetails}</p>` : ''}
+                
+                
+                <div class="schedule-footer">
+                  <div class="poster-info">
+                    ${sched.posterImageURL ? `<img src="${sched.posterImageURL}" alt="${sched.posterName}" class="poster-avatar">` : '<div class="poster-avatar-placeholder">👤</div>'}
+                    <div class="poster-details">
+                      
+                      <div class="poster-name">${sched.posterName || 'Anonymous'} ${sched.posterVerified ? '✓' : ''}                        </div>
+                                            <span class="detail-value">${
+                        sched.MakerOrLooker === 'Look'
+                          ? 'Looking\ntransportation'
+                          : (sched.MakerOrLooker === 'Make'
+                            ? 'Created\nschedule'
+                            : (sched.MakerOrLooker || ''))
+                      }</span>
+                      ${sched.detailsContact ? `<div class="poster-contact">${sched.detailsContact}</div>` : ''}
+                      <div class="schedule-actions">
+                        ${sched.reviewCount ? `<span class="review-count">👁 ${sched.reviewCount} views</span>` : ''}
+                        ${isPoster ? `
+                          <button class="btn-view-joiners" onclick="viewJoiners(${schedItem.pk}, '${(sched.scheduleTitle || 'Schedule').replace(/'/g, "\\'")}')">View Joiners</button>
+                          <button class="btn-delete-schedule" onclick="deleteSchedule(${schedItem.pk}, '${(sched.scheduleTitle || 'Schedule').replace(/'/g, "\\'")}', this)">Delete</button>
+                        ` : `<button class="btn-join" onclick="joinSchedule(${schedItem.pk}, '${(sched.scheduleTitle || 'Schedule').replace(/'/g, "\\'")}')">Join</button>`}
+                      </div>
+                    </div>
+                  </div>                    
+                  <div class="schedule-details-grid">
+
+                    <div class="detail-item">
+                      <span class="detail-label">📍 </span>
+                      <span class="detail-value">${sched.meetPlace || 'TBA'}</span>
+                      to:
+                      ${sched.endPlace ? `<span class="detail-label">🏁 </span> <span class="detail-value">${sched.endPlace}</span> </div>` : ''}
+                    <span class="date-month">${sched.monthN ? new Date((sched.yearN || 2000), (sched.monthN - 1), 1).toLocaleString('en-US', { month: 'long' }) : ''} ${sched.dateN || ''} ${sched.yearN || ''}</span>
+  
+                    ${sched.meetTime ? `
+                    <div class="detail-item">
+                      <span class="detail-label">🕐 Time:</span>
+                      <span class="detail-value">${sched.meetTime}</span>
+                    </div>
+                    ` : ''}
+                    
+                    ${sched.scheduleCost ? `
+                    <div class="detail-item">
+                      <span class="detail-label">💰 Cost:</span>
+                      <span class="detail-value">${sched.scheduleCost}</span>
+                    </div>
+                    ` : ''}
+                    
+                    ${sched.scheduleTravelType ? `
+                    <div class="detail-item">
+                      <span class="detail-label">🚗 Transportation:</span>
+                      <span class="detail-value">${sched.scheduleTravelType}</span>
+
+                    </div>
+                    ` : ''}
+                  </div>
+
+                  
+                </div>
+              </div>
+            `;
+            
+            allSchedContainer.appendChild(schedCard);
+            
+
+          });
+          } else if (!options.appendSchedules && allSchedContainer) {
+            allSchedContainer.innerHTML = '<div class="empty-state">No schedules available for this location.</div>';
+          }
+
+          if (data.schedulePagination) {
+            placePlanPagination.scheduleOffset = data.schedulePagination.next_offset || 0;
+            placePlanPagination.scheduleHasNext = !!data.schedulePagination.has_next;
+            placePlanPagination.scheduleLoading = false;
+            window.placeSetLoadMoreButton('schedules-load-more', placePlanPagination.scheduleHasNext, false, loadMorePlaceSchedules);
+          }
+
+          if (!scheduleCount) {
+            // scheduleContainer.innerHTML = '<div class="empty-state">No upcoming highlights this month.</div>';
+          }
+        }
+      })
+      .then(() => {
+        setTimeout(() => {
+          // showObjectListDIv();
+        }, 500);
+      })
+      .catch(() => {
+        placePlanPagination.eventLoading = false;
+        placePlanPagination.scheduleLoading = false;
+        window.placeSetLoadMoreButton('events-load-more', placePlanPagination.eventHasNext, false, loadMorePlaceEvents);
+        window.placeSetLoadMoreButton('schedules-load-more', placePlanPagination.scheduleHasNext, false, loadMorePlaceSchedules);
+      });
+  }
+
+  function el(id) {
+    return document.getElementById(id);
+  }
+
+  function showEventModal(eventData) {
+    const modal = document.getElementById('eventDetailsModal');
+    document.getElementById('eventDetailsTitle').textContent = eventData.scheduleTitle || 'Event Details';
+    document.getElementById('eventDate').textContent = eventData.exactDate || 'N/A';
+    // Set the value of the hidden input to the innerHTML of #eventDate
+    var eventDateElem = document.getElementById('eventDate');
+    var eventDateInput = document.getElementById('siargaoEventDate');
+    if (eventDateElem && eventDateInput) {
+      eventDateInput.value = eventDateElem.innerHTML;
+    }
+
+    // Wire registration action to the selected event PK
+    const regForm = document.getElementById('siargaoEventRegisterForm');
+    if (regForm && regForm.dataset && regForm.dataset.actionTemplate && eventData && eventData._pk) {
+      regForm.action = regForm.dataset.actionTemplate.replace('/0/', '/' + eventData._pk + '/');
+    }
+    const regStatus = document.getElementById('siargaoEventRegisterStatus');
+    if (regStatus) regStatus.textContent = '';
+    const regSubmit = document.getElementById('siargaoEventRegisterSubmit');
+    if (regSubmit) {
+      regSubmit.disabled = false;
+      regSubmit.textContent = regSubmit.dataset.defaultLabel || 'Register';
+    }
+    
+    // Generate new math challenge when modal opens
+    generateMathChallenge();
+    const mathAnswerField = document.getElementById('mathAnswer');
+    if (mathAnswerField) mathAnswerField.value = '';
+
+    const locationElement = document.getElementById('eventLocation');
+    const locationLink = document.getElementById('eventLocationLink');
+    if (eventData.schedulePlace && eventData.schedulePlace.includes('https://')) {
+      locationElement.textContent = 'Find Directions';
+      locationLink.href = 'https://' + eventData.schedulePlace.split('https://')[1];
+    } else {
+      locationElement.textContent = eventData.schedulePlace || 'N/A';
+      locationLink.href = '';
+    }
+    // document.getElementById('eventHost').textContent = eventData.posterName || 'Anonymous';
+    
+    // Show Instagram if available
+    const instagramContainer = document.getElementById('eventInstagramContainer');
+    if (eventData.posterInstagram) {
+      const instagramLink = document.getElementById('eventInstagram');
+      instagramLink.href = `https://instagram.com/${eventData.posterInstagram.replace('@', '')}`;
+      instagramLink.textContent = eventData.posterInstagram;
+      instagramContainer.style.display = 'block';
+    } else {
+      instagramContainer.style.display = 'none';
+    }
+    
+    // Show website if available
+    const websiteContainer = document.getElementById('eventWebsiteContainer');
+    if (eventData.scheduleWebsite) {
+      document.getElementById('eventWebsite').href = eventData.scheduleWebsite;
+      websiteContainer.style.display = 'block';
+    } else {
+      websiteContainer.style.display = 'none';
+    }
+    
+    // Show description if available
+    const descriptionContainer = document.getElementById('eventDescriptionContainer');
+    if (eventData.description) {
+      document.getElementById('eventDescription').textContent = eventData.description;
+      descriptionContainer.style.display = 'block';
+    } else {
+      descriptionContainer.style.display = 'none';
+    }
+    
+    // Show additional details if available
+    const additionalDetailsContainer = document.getElementById('eventAdditionalDetailsContainer');
+    if (eventData.additionalDetails) {
+      document.getElementById('eventAdditionalDetails').textContent = eventData.additionalDetails;
+      additionalDetailsContainer.style.display = 'block';
+    } else {
+      additionalDetailsContainer.style.display = 'none';
+    }
+    
+    // Show other details if available
+    const detailsText = document.getElementById('eventDetailsText');
+    if (eventData.otherDetails) {
+      detailsText.textContent = eventData.otherDetails;
+      detailsText.style.display = 'block';
+    } else {
+      detailsText.style.display = 'none';
+    }
+    
+    // Show thumbnail/background image if available
+    const imageContainer = document.getElementById('eventImageContainer');
+    const imageElement = document.getElementById('eventDetailsImage');
+    if (eventData.thumbnailURL || eventData.backgroundURL) {
+      imageElement.src = eventData.thumbnailURL || eventData.backgroundURL;
+      imageContainer.style.display = 'block';
+    } else {
+      imageContainer.style.display = 'none';
+    }
+    
+    modal.style.display = 'block';
+  }
+
+  function closeEventModal() {
+    document.getElementById('eventDetailsModal').style.display = 'none';
+  }
+
+  function closeAddScheduleModal() {
+    const modal = document.getElementById('addScheduleModal');
+    const status = document.getElementById('addScheduleStatus');
+    const form = document.getElementById('addScheduleForm');
+    if (status) {
+      status.textContent = '';
+      status.style.color = 'var(--accent)';
+    }
+    if (form) form.reset();
+    if (modal) modal.style.display = 'none';
+  }
+
+  // Close modal when clicking outside of it
+  window.onclick = function(event) {
+    const eventModal = document.getElementById('eventDetailsModal');
+    if (event.target == eventModal) {
+      closeEventModal();
+    }
+    const bulletinImageModal = document.getElementById('bulletinImageModal');
+    if (event.target == bulletinImageModal) {
+      closeBulletinImageModal();
+    }
+    const chatModal = document.getElementById('mobileChatModal');
+    if (event.target == chatModal) {
+      closeMobileChatModal();
+    }
+    const addScheduleModal = document.getElementById('addScheduleModal');
+    if (event.target == addScheduleModal) {
+      closeAddScheduleModal();
+    }
+  }
+
+  document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+      closeBulletinImageModal();
+    }
+  });
+
+  function closeMobileChatModal() {
+    document.getElementById('mobileChatModal').style.display = 'none';
+  }
+
+  document.addEventListener("DOMContentLoaded", function() {
+    const putCalendarHeader = document.querySelector("#calendar-container")
+    if (!putCalendarHeader) return;
+    const navButtons = document.createElement("div");
+      const prevLink = "{% if place_slug %}{% url 'home:place_by_slug_with_date' place_slug=place_slug year=previousYear month=previousMonth %}{% else %}{% url 'home:place' id=placeid currentMonth=previousMonth currentYear=previousYear %}{% endif %}";
+      const nextLink = "{% if place_slug %}{% url 'home:place_by_slug_with_date' place_slug=place_slug year=nextYear month=nextMonth %}{% else %}{% url 'home:place' id=placeid currentMonth=nextMonth currentYear=nextYear %}{% endif %}";
+    navButtons.innerHTML = `
+      <div class="calendar-header">
+        <div class="calendar-header-left">
+          <h2 id="month-year">December 2025</h2>
+          {% if user.is_authenticated %}
+          <button class="add-schedule-btn" id="openAddScheduleBtn" type="button">+ Add Schedule</button>
+          {% endif %}
+        </div>
+        <div class="nav-buttons">
+            <a href="${prevLink}">
+            <button class="nav-btn">❮</button>
+          </a>
+            <a href="${nextLink}">
+            <button class="nav-btn">❯</button>
+          </a>
+        </div>
+      </div>
+    `
+    const getElementInsertBeforeit = putCalendarHeader.firstChild
+    putCalendarHeader.insertBefore(navButtons, getElementInsertBeforeit);
+    const makeItHeader = document.querySelector("#calendar-container > table > tbody > tr:nth-child(1) > th")
+    const currentHeader = document.querySelector("#month-year")
+    if (makeItHeader && currentHeader) {
+      currentHeader.innerHTML = makeItHeader.innerHTML
+      makeItHeader.remove()
+    }
+
+    const createScheduleUrl = "{% url 'home:create_schedule_for_place' placeid %}";
+    const addScheduleModal = document.getElementById('addScheduleModal');
+    const addScheduleForm = document.getElementById('addScheduleForm');
+    const addScheduleStatus = document.getElementById('addScheduleStatus');
+    const addScheduleSubmit = document.getElementById('addScheduleSubmit');
+    const openAddScheduleBtn = document.getElementById('openAddScheduleBtn');
+    const cancelAddSchedule = document.getElementById('cancelAddSchedule');
+    const addScheduleClose = document.getElementById('addScheduleClose');
+
+    const dayInput = document.getElementById('dateN');
+    const monthInput = document.getElementById('monthN');
+    const yearInput = document.getElementById('yearN');
+    const endPlaceInput = document.getElementById('endPlace');
+
+    function prefillScheduleFields() {
+      const now = new Date();
+      if (dayInput) dayInput.value = now.getDate();
+      if (monthInput) monthInput.value = now.getMonth() + 1;
+      if (yearInput) yearInput.value = now.getFullYear();
+      // if (endPlaceInput) endPlaceInput.value = now.getFullYear();
+    }
+
+    if (openAddScheduleBtn && addScheduleModal) {
+      openAddScheduleBtn.addEventListener('click', () => {
+        prefillScheduleFields(); 
+        if (addScheduleStatus) addScheduleStatus.textContent = '';
+        addScheduleModal.style.display = 'block';
+      });
+    }
+
+    [cancelAddSchedule, addScheduleClose].forEach(btn => {
+      if (btn) btn.addEventListener('click', closeAddScheduleModal);
+    });
+
+    if (addScheduleForm) {
+      addScheduleForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (addScheduleStatus) {
+          addScheduleStatus.style.color = 'var(--accent)';
+          addScheduleStatus.textContent = 'Saving...';
+        }
+        if (addScheduleSubmit) {
+          addScheduleSubmit.disabled = true;
+          addScheduleSubmit.textContent = 'Saving...';
+        }
+        const payload = {
+          scheduleTypeAndMode: addScheduleForm.scheduleTypeAndMode.value,
+          dateN: addScheduleForm.dateN.value,
+          monthN: addScheduleForm.monthN.value,
+          yearN: addScheduleForm.yearN.value,
+          meetPlace: addScheduleForm.meetPlace.value,
+          endPlace: addScheduleForm.endPlace.value,
+          meetTime: addScheduleForm.meetTime.value,
+          detailsContact: (addScheduleForm.detailsContact ? addScheduleForm.detailsContact.value : ''),
+          MakerOrLooker: (addScheduleForm.MakerOrLooker ? addScheduleForm.MakerOrLooker.value : 'Make'),
+        };
+        try {
+          const response = await fetch(createScheduleUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': csrftoken,
+            },
+            body: JSON.stringify(payload),
+          });
+          const data = await response.json();
+          if (!response.ok) {
+            throw new Error(data.error || 'Failed to create schedule');
+          }
+          if (addScheduleStatus) {
+            addScheduleStatus.textContent = data.message || 'Schedule created. Refreshing...';
+          }
+
+          // Reload the page to the month/year of the created schedule
+          setTimeout(() => {
+            const targetMonth = data.monthN || new Date().getMonth() + 1;
+            const targetYear = data.yearN || new Date().getFullYear();
+            window.location.href = `{% if place_slug %}/places/{{ place_slug }}/${targetYear}/${targetMonth}/{% else %}/place/{{ placeid }}/${targetMonth}/${targetYear}/{% endif %}`.replace('${targetMonth}', targetMonth).replace('${targetYear}', targetYear);
+          }, 600);
+        } catch (err) {
+          if (addScheduleStatus) {
+            addScheduleStatus.textContent = err.message || 'Failed to create schedule';
+            addScheduleStatus.style.color = '#e53e3e';
+          }
+        } finally {
+          if (addScheduleSubmit) {
+            addScheduleSubmit.disabled = false;
+            addScheduleSubmit.textContent = 'Create schedule';
+          }
+        }
+      });
+    }
+
+    // Handle user authentication for anonymous users
+    const currentPageUser = '{{request.user}}';
+    if (currentPageUser === "AnonymousUser") {
+      const storedUsername = localStorage.getItem('username');
+      const storedPasscode = localStorage.getItem('userID');
+      
+      if (storedUsername && storedPasscode) {
+        fetch('/userProfile/registerjson', {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrftoken
+          },
+          body: JSON.stringify({
+            username: storedUsername,
+            password: storedPasscode,
+            passwordConfirmation: storedPasscode,
+            email: 'na@gmail.com',
+            placeID: `{{placeid}}`
+          }),
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.error) {
+            console.error("User registration error:", data.error);
+          }
+        })
+        .catch(error => {
+          console.error("Failed to register user:", error);
+        });
+      }
+    }
+
+    window.placePlanBaseUrl = `{% url 'home:placeCalendarJSONMonth' placeid currentMonth currentYear %}?include_resorts=0`;
+    getPlan(buildPlacePlanUrl({
+      event_limit: String(window.placePageSize || 10),
+      event_offset: '0',
+      schedule_limit: String(window.placePageSize || 10),
+      schedule_offset: '0',
+    }));
+
+    const closeMapBtn = el('closeMapBtn');
+    if (closeMapBtn) closeMapBtn.addEventListener('click', () => {
+      el('mapModal').classList.remove('show');
+    });
+    
+    const modal = el('mapModal');
+    if (modal) modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.classList.remove('show');
+    });
+    
+    const openBtn = el('openMapBtn');
+    if (openBtn && modal) {
+      openBtn.addEventListener('click', () => {
+        modal.classList.add('show');
+      });
+    }
+
+    // Mobile chat functionality
+    const mobileChatBtn = document.getElementById('mobileChatBtn');
+    const mobileChatModal = document.getElementById('mobileChatModal');
+    const openMobileChat = () => {
+      if (mobileChatModal) mobileChatModal.style.display = 'block';
+      ensureDiscussionHistory();
+    };
+    if (mobileChatBtn) mobileChatBtn.addEventListener('click', openMobileChat);
+
+    // Quick ask functionality
+    const quickAskInput = document.getElementById('quick-ask-input');
+    const quickAskSend = document.getElementById('quick-ask-send');
+
+    const sendQuickAsk = () => {
+      if (!quickAskInput || !quickAskSend) return;
+      const message = quickAskInput.value.trim();
+      if (message) {
+        // Set the message in the modal's textarea
+        document.getElementById('discuss-message').value = message;
+        // Disable modal send button and show spinner
+        const modalSendBtn = document.getElementById('modal-send-btn');
+        const modalOriginalContent = modalSendBtn.innerHTML;
+        modalSendBtn.disabled = true;
+        modalSendBtn.innerHTML = '<div class="spinner"></div>';
+        // Send the message
+        discussionFetcher(`{{placeid}}`, 'POST', quickAskSend).then(() => {
+          // Re-enable modal send button and restore content
+          modalSendBtn.disabled = false;
+          modalSendBtn.innerHTML = modalOriginalContent;
+        }).catch(() => {
+          // Re-enable on error
+          modalSendBtn.disabled = false;
+          modalSendBtn.innerHTML = modalOriginalContent;
+        });
+        // Clear the input
+        quickAskInput.value = '';
+        // Open the modal
+        openMobileChat();
+      }
+    };
+
+    if (quickAskInput) {
+      quickAskInput.addEventListener('focus', ensureDiscussionHistory, { once: true });
+      quickAskInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          sendQuickAsk();
+        }
+      });
+    }
+    if (quickAskSend) quickAskSend.addEventListener('click', sendQuickAsk);
+
+
+
+    // Siargao event registration (AJAX)
+    const regForm = document.getElementById('siargaoEventRegisterForm');
+    const regStatus = document.getElementById('siargaoEventRegisterStatus');
+    const regSubmit = document.getElementById('siargaoEventRegisterSubmit');
+
+    if (regForm) {
+      regForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        if (!regForm.action) {
+          if (regStatus) regStatus.textContent = 'Please select an event first.';
+          return;
+        }
+
+        // Check honeypot field (should be empty)
+        const honeypot = document.getElementById('website_field');
+        if (honeypot && honeypot.value !== '') {
+          if (regStatus) regStatus.textContent = 'Spam detected.';
+          return;
+        }
+
+        // Validate math challenge
+        const mathAnswer = document.getElementById('mathAnswer');
+        if (mathAnswer && parseInt(mathAnswer.value) !== mathCorrectAnswer) {
+          if (regStatus) regStatus.textContent = 'Incorrect answer. Please try again.';
+          mathAnswer.value = '';
+          mathAnswer.focus();
+          return;
+        }
+
+        const defaultLabel = (regSubmit && regSubmit.dataset && regSubmit.dataset.defaultLabel) ? regSubmit.dataset.defaultLabel : 'Register';
+
+        if (regStatus) regStatus.textContent = 'Registering...';
+        if (regSubmit) {
+          regSubmit.disabled = true;
+          regSubmit.textContent = 'Registering...';
+        }
+
+        try {
+          const formData = new FormData(regForm);
+          const response = await fetch(regForm.action, {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': csrftoken,
+            },
+            body: formData,
+            credentials: 'same-origin',
+          });
+
+          // The Django view currently redirects back with query params.
+          // `fetch` follows redirects by default, so `response.url` should include those params.
+          let message = '';
+          try {
+            const finalUrl = new URL(response.url, window.location.origin);
+            const params = finalUrl.searchParams;
+            if (params.get('ev_reg_success') === '1') {
+              message = 'Registered! See you there.';
+              regForm.reset();
+            } else if (params.get('ev_reg_exists') === '1') {
+              message = 'You were already registered — we updated your details.';
+            } else if (params.get('ev_reg_error') === '1') {
+              message = 'Please add your full name and email.';
+            }
+          } catch (err) {
+            // Ignore URL parsing issues and fall back to generic message.
+          }
+
+          if (!message) {
+            if (response.ok) {
+              message = 'Registration submitted.';
+            } else {
+              message = 'Registration failed. Please try again.';
+            }
+          }
+
+          if (regStatus) regStatus.textContent = message;
+          
+          // Reset math challenge
+          generateMathChallenge();
+          const mathAnswerField = document.getElementById('mathAnswer');
+          if (mathAnswerField) mathAnswerField.value = '';
+        } catch (err) {
+          if (regStatus) regStatus.textContent = 'Network error. Please try again.';
+        } finally {
+          if (regSubmit) {
+            regSubmit.disabled = false;
+            regSubmit.textContent = defaultLabel;
+          }
+        }
+      });
+    }
+  });
+</script>
+
+{% endblock %}
+</body>
+</html>

@@ -399,7 +399,6 @@ body {{
     font-size: 17px;
     line-height: 1.7;
     color: var(--text);
-    background: linear-gradient(to bottom right, rgb(242, 242, 242), rgb(224, 224, 224) 52%, rgb(216, 216, 216));
 }}
 
 .white-color{{
@@ -421,13 +420,12 @@ h1 {{
   font-size: clamp(36px,5vw,72px);
   line-height: 1;
   letter-spacing: 0.02em;
-  max-width: 14ch;
 }}
 
 h2 {{
     font-size: clamp(1.45rem, 3vw, 1.9rem);
     font-weight: 700;
-    color: var(--accent-dark);
+    color: #d97a45;
     margin: 2.25rem 0 1rem;
     padding-bottom: 0.5rem;
     border-bottom: 1px solid var(--border);

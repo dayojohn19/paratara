@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.db.models import F
-from .models import resortItem, resortPackages, sideImagesURLs, Packages, EventRegistration
+from .models import resortItem, resortPackages, sideImagesURLs, Packages, PackageReview, EventRegistration
 from .forms import ResortForm, matterURLform
 # Create your views here.
 from django.http import HttpResponseRedirect, JsonResponse, HttpResponseForbidden, HttpResponse
@@ -71,6 +71,90 @@ def _should_count_resort_view(request, resort_id: int, window_seconds: int = 300
         return False
     cache.set(key, True, timeout=window_seconds)
     return True
+
+
+def _int_from_request(value, default: int, minimum: int, maximum: int) -> int:
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError):
+        parsed = default
+    return max(minimum, min(parsed, maximum))
+
+
+def package_reviews(request, package_id):
+    if request.method != 'GET':
+        return JsonResponse({'success': False, 'error': 'GET method required'}, status=405)
+
+    package = get_object_or_404(Packages, id=package_id)
+    limit = _int_from_request(request.GET.get('limit'), default=20, minimum=1, maximum=50)
+    offset = _int_from_request(request.GET.get('offset'), default=0, minimum=0, maximum=100000)
+
+    reviews = list(
+        package.reviews
+        .select_related('user')
+        .order_by('-created_at')[offset:offset + limit + 1]
+    )
+    has_more = len(reviews) > limit
+    reviews = reviews[:limit]
+
+    return JsonResponse({
+        'success': True,
+        'package_id': package.id,
+        'rating_average': float(package.rating_average),
+        'rating_count': package.rating_count,
+        'reviews': [review.serialize() for review in reviews],
+        'has_more': has_more,
+        'next_offset': offset + len(reviews) if has_more else None,
+    })
+
+
+@login_required
+def submit_package_review(request, package_id):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'POST method required'}, status=405)
+
+    package = get_object_or_404(Packages, id=package_id)
+
+    content_type = request.META.get('CONTENT_TYPE', '')
+    if content_type.startswith('application/json'):
+        try:
+            payload = json.loads(request.body.decode('utf-8') or '{}')
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
+    else:
+        payload = request.POST
+
+    try:
+        rating = int(payload.get('rating'))
+    except (TypeError, ValueError):
+        return JsonResponse({'success': False, 'error': 'Rating is required'}, status=400)
+
+    if rating < 1 or rating > 5:
+        return JsonResponse({'success': False, 'error': 'Rating must be between 1 and 5'}, status=400)
+
+    comment = payload.get('comment', '')
+    if comment is None:
+        comment = ''
+    comment = str(comment).strip()
+
+    review, created = PackageReview.objects.update_or_create(
+        package=package,
+        user=request.user,
+        defaults={
+            'rating': rating,
+            'comment': comment,
+        }
+    )
+    package.refresh_from_db(fields=['rating_average', 'rating_count'])
+
+    return JsonResponse({
+        'success': True,
+        'created': created,
+        'package_id': package.id,
+        'rating_average': float(package.rating_average),
+        'rating_count': package.rating_count,
+        'review': review.serialize(),
+    })
 
 
 @login_required

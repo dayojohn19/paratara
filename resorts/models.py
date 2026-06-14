@@ -1,5 +1,7 @@
 from django.apps import apps
+from django.conf import settings
 from django.db import models
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.urls import reverse
 # Create your models here.
 
@@ -337,6 +339,8 @@ class Packages(models.Model):
     description = models.TextField(blank=True)
     information = models.TextField(blank=True)
     price = models.IntegerField(default=0)
+    rating_average = models.DecimalField(max_digits=3, decimal_places=2, default=0)
+    rating_count = models.PositiveIntegerField(default=0)
     website = models.URLField(blank=True, null=True)
     is_available = models.BooleanField(default=True)
     # Optional expiration for Special Promotions or time-bound offers
@@ -365,6 +369,8 @@ class Packages(models.Model):
             'package_description': self.description,
             'package_information': self.information,
             'package_price': self.price,
+            'package_rating_average': float(self.rating_average),
+            'package_rating_count': self.rating_count,
             'package_website': self.website,
             'is_available': self.is_available,
             'updated_at': self.updated_at.isoformat() if getattr(self, 'updated_at', None) else None,
@@ -373,6 +379,67 @@ class Packages(models.Model):
             'expires_at': self.expires_at.isoformat() if self.expires_at else None
         }
     # models.ManyToManyField('home.allSchedules',blank=True,related_name='postLists')
+
+
+class PackageReview(models.Model):
+    package = models.ForeignKey(
+        'resorts.Packages',
+        on_delete=models.CASCADE,
+        related_name='reviews'
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='package_reviews'
+    )
+    rating = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)]
+    )
+    comment = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(rating__gte=1) & models.Q(rating__lte=5),
+                name='package_review_rating_1_to_5'
+            ),
+            models.UniqueConstraint(
+                fields=['package', 'user'],
+                name='unique_package_review_per_user'
+            ),
+        ]
+        indexes = [
+            models.Index(fields=['package', '-created_at'], name='pkg_review_pkg_created_idx'),
+        ]
+
+    def __str__(self):
+        return f"{self.package} - {self.rating}/5 by {self.user}"
+
+    @classmethod
+    def refresh_package_rating_summary(cls, package_id):
+        summary = cls.objects.filter(package_id=package_id).aggregate(
+            average=models.Avg('rating'),
+            count=models.Count('id')
+        )
+        Packages.objects.filter(pk=package_id).update(
+            rating_average=round(summary['average'] or 0, 2),
+            rating_count=summary['count']
+        )
+
+    def serialize(self):
+        return {
+            'review_id': self.id,
+            'package_id': self.package_id,
+            'rating': self.rating,
+            'comment': self.comment,
+            'user_id': self.user_id,
+            'user_name': getattr(self.user, 'username', ''),
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+        }
 
 
 class EventRegistration(models.Model):

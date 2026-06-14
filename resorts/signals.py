@@ -1,6 +1,6 @@
 from django.db.models.signals import m2m_changed, post_save, post_delete, pre_delete
 from django.dispatch import receiver
-from .models import resortItem, resortPackages, Packages
+from .models import resortItem, resortPackages, Packages, PackageReview
 from home.models import SiargaoEventSchedule
 from django.conf import settings
 from openai import OpenAI
@@ -19,6 +19,16 @@ def _get_openai_client():
     if _openai_client is None:
         _openai_client = OpenAI(api_key=settings.GROK_API_KEY, base_url='https://api.x.ai/v1')
     return _openai_client
+
+
+@receiver(post_save, sender=PackageReview)
+def refresh_package_rating_summary_on_review_save(sender, instance: PackageReview, **kwargs):
+    PackageReview.refresh_package_rating_summary(instance.package_id)
+
+
+@receiver(post_delete, sender=PackageReview)
+def refresh_package_rating_summary_on_review_delete(sender, instance: PackageReview, **kwargs):
+    PackageReview.refresh_package_rating_summary(instance.package_id)
 
 
 def extract_date_with_openai(title, description, location):

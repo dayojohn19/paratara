@@ -56,10 +56,13 @@ def _package_payload(package, resort, place):
     images = _package_images(package)
     website = getattr(package, 'website', '') or ''
     return {
+        'package_id': getattr(package, 'id', None),
         'title': getattr(package, 'title', ''),
         'description': getattr(package, 'description', ''),
         'information': getattr(package, 'information', ''),
         'price': getattr(package, 'price', None),
+        'package_rating_average': float(getattr(package, 'rating_average', 0) or 0),
+        'package_rating_count': getattr(package, 'rating_count', 0) or 0,
         'imageURL': images[0] if images else '',
         'images': images,
         'package_image': images,

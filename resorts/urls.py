@@ -2,6 +2,8 @@ from django.urls import path
 from . import views
 app_name = 'resorts'
 urlpatterns = [
+     path("package/<int:package_id>/reviews/", views.package_reviews, name="package_reviews"),
+     path("package/<int:package_id>/review/", views.submit_package_review, name="submit_package_review"),
      path("event/registrations/<int:package_id>/", views.view_package_registrations, name="view_package_registrations"),
      path("accommodation/guestlist/<int:resort_id>/", views.view_accommodation_guestlist, name="view_accommodation_guestlist"),
      path("update-amenity/<int:resort_id>/", views.update_amenity, name="update_amenity"),
@@ -54,5 +56,4 @@ urlpatterns = [
     path("reactivate-resort/", views.reactivate_resort_view, name="reactivate_resort"),
 
 ]
-
 
