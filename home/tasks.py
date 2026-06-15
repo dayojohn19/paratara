@@ -13,9 +13,7 @@ from singlepage2.blog_prompt import build_blog_prompt
 from singlepage2.htmlwriter import generate_blog_object
 
 
-from openai import OpenAI
-
-client = OpenAI(api_key=settings.GROK_API_KEY, base_url='https://api.x.ai/v1')
+client = settings.GROK_CLIENT
 
 
 BLOG_CATEGORIES = {"Guide", "Story", "Tip and Trick", "Explore", "Product"}
@@ -298,7 +296,7 @@ def process_creating_blog(request, for_place,blog__title=None,to_title=None,crea
             res = client.chat.completions.create(
                 model=settings.GROK_MODEL_NAME,
                 messages=[{"role": "user", "content": blog_prompt}],
-                max_tokens=12000
+                max_tokens=3000
             )
 
             full_response = res.choices[0].message.content.strip()

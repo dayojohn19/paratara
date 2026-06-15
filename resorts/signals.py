@@ -3,7 +3,6 @@ from django.dispatch import receiver
 from .models import resortItem, resortPackages, Packages, PackageReview
 from home.models import SiargaoEventSchedule
 from django.conf import settings
-from openai import OpenAI
 import json
 from datetime import datetime
 import cloudinary
@@ -11,14 +10,8 @@ import cloudinary.uploader
 
 from .date_patterns import expand_every_weekday_in_month
 
-_openai_client = None
-
-
 def _get_openai_client():
-    global _openai_client
-    if _openai_client is None:
-        _openai_client = OpenAI(api_key=settings.GROK_API_KEY, base_url='https://api.x.ai/v1')
-    return _openai_client
+    return settings.GROK_CLIENT
 
 
 @receiver(post_save, sender=PackageReview)

@@ -6,15 +6,14 @@ from django.utils.text import slugify
 from django.conf import settings
 import json
 from garden.models import Collection, CollectionGroup
-from openai import OpenAI
 import ast
 from home.models import Places_v2
 from apis.models import Blogs
 from singlepage2.pyhtmlopt import optimize_file
 import re
 from html import escape
-from bs4 import BeautifulSoup
-client = OpenAI(api_key=settings.GROK_API_KEY, base_url='https://api.x.ai/v1')
+from bs4 import BeautifulSoup, NavigableString
+client = settings.GROK_CLIENT
 BLOG_CATEGORY_VALUES = {choice[0] for choice in Blogs.category_choices}
 DEFAULT_SUMMARY_VALUES = {"", "No Summary Provided", "Discover more about this destination"}
 FAQ_QUESTIONS_BY_CATEGORY = {
@@ -69,9 +68,20 @@ def normalize_blog_category(category):
 
 def mark_editable_blog_body(body_html):
     soup = BeautifulSoup(body_html or "", "html.parser")
+    for container in soup.find_all(["section", "aside", "footer"]):
+        for child in list(container.contents):
+            if isinstance(child, NavigableString) and child.strip():
+                paragraph = soup.new_tag("p")
+                paragraph.string = re.sub(r"\s+", " ", str(child)).strip()
+                child.replace_with(paragraph)
+
     for idx, editable_block in enumerate(soup.find_all(["h2", "p"])):
         editable_block["data-blog-edit-index"] = str(idx)
         editable_block["data-blog-edit-tag"] = editable_block.name
+    for image in soup.find_all("img"):
+        image["loading"] = "lazy"
+        image["decoding"] = "async"
+        image["fetchpriority"] = "low"
     return str(soup)
 
 
@@ -85,7 +95,7 @@ def format_blog_datetime(value):
 
 def render_faq_section(faq_entries):
     rows = []
-    for entry in faq_entries or []:
+    for faq_index, entry in enumerate(faq_entries or []):
         if not isinstance(entry, dict):
             continue
 
@@ -101,8 +111,8 @@ def render_faq_section(faq_entries):
 
         rows.append(f"""
         <details class="faq-item">
-            <summary>{escape(question)}</summary>
-            <p>{escape(answer)}</p>
+            <summary data-blog-edit-index="{faq_index * 2 + 1}" data-blog-edit-scope="faq" data-blog-edit-tag="summary">{escape(question)}</summary>
+            <p data-blog-edit-index="{faq_index * 2 + 2}" data-blog-edit-scope="faq" data-blog-edit-tag="p">{escape(answer)}</p>
         </details>
         """)
 
@@ -111,7 +121,7 @@ def render_faq_section(faq_entries):
 
     return f"""
     <section class="faq-section" aria-labelledby="faq-heading">
-        <h2 id="faq-heading">Frequently Asked Questions</h2>
+        <h2 id="faq-heading" data-blog-edit-index="0" data-blog-edit-scope="faq" data-blog-edit-tag="h2">Frequently Asked Questions</h2>
         <div class="faq-list">
             {''.join(rows)}
         </div>
@@ -184,7 +194,7 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
             _blog_searchable = f"Things to do {title} in {place_name}: Complete travel guide with directions, top activities, entrance fees, insider tips, and best times to visit for an unforgettable experience."
         
         return _blog_searchable
-    
+
     # if cover_image_url is None:
     #     return _get_image_cover(place_name, title)
     if blog_searchable_keys_description is None:
@@ -324,9 +334,13 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
                                             <!-- Performance: DNS prefetch and preconnect -->
                                             <link rel="dns-prefetch" href="//www.googletagmanager.com">
                                             <link rel="dns-prefetch" href="//pagead2.googlesyndication.com">
+                                            <link rel="preconnect" href="https://fonts.googleapis.com">
+                                            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+                                            <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,700;1,9..144,300;1,9..144,400;1,9..144,500&amp;family=Roboto+Mono:wght@272&amp;display=swap">
                                             <!-- Google tag (gtag.js) -->
                                             <script> window.dataLayer = window.dataLayer || []; function gtag(){{dataLayer.push(arguments);}} gtag('js', new Date()); gtag('config', 'G-BR63L5YLJD'); </script>
                                             <meta name="google-site-verification" content="8jqO-yxHVkp0mIbnh_nvbfA0N21q0QcCR4aDkFbb8rc" />
+                                            <meta name="blog-image-layout-version" content="2">
                                             <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4843007524416588" crossorigin="anonymous"></script>
                                             <meta name="google-adsense-account" content="ca-pub-4843007524416588">
 
@@ -370,8 +384,6 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
                                                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,700;1,9..144,300;1,9..144,400;1,9..144,500&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@272&display=swap');
 :root {{
     --surface: #fffaf2;
     --surface-alt: #edf7f2;
@@ -464,6 +476,9 @@ img {{
     width: 100%;
     height: auto;
     margin: 1.4rem 0;
+    object-fit:cover;
+    object-position:center;
+
 }}
 
 #blog-editable-body img,
@@ -472,11 +487,61 @@ img {{
     width: min(100%, 860px);
     max-width: 100%;
     height: auto;
+    max-height: min(70vh, 720px);
+    object-fit: cover;
     margin: 1.35rem auto;
+}}
+
+#blog-editable-body img[data-blog-source-image="true"] {{
+    display: none;
 }}
 
 #blog-editable-body [data-editing="true"] img {{
     cursor: default;
+}}
+
+#blog-editable-body img:not([data-blog-source-image="true"]) {{
+    cursor: zoom-in;
+}}
+
+.blog-image-lightbox {{
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.92);
+    cursor: zoom-out;
+}}
+
+.blog-image-lightbox.open {{
+    display: flex;
+}}
+
+.blog-image-lightbox img {{
+    width: auto;
+    max-width: 96vw;
+    height: auto;
+    max-height: 94vh;
+    max-height: 94svh;
+    margin: 0;
+    object-fit: contain;
+}}
+
+.blog-image-lightbox button {{
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    width: 44px;
+    height: 44px;
+    color: #ffffff;
+    font-size: 2rem;
+    line-height: 1;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
 }}
 
 .navbar {{
@@ -637,8 +702,37 @@ img {{
     font-size: clamp(1.05rem, 2.5vw, 1.25rem);
 }}
 
-.content-section {{
+.content-section,
+.content-block {{
     margin-bottom: 2.5rem;
+}}
+
+@media (min-width: 769px) {{
+    #blog-editable-body section[data-blog-image-layout="true"] {{
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        column-gap: clamp(1.5rem, 4vw, 3rem);
+        align-items: start;
+    }}
+
+    #blog-editable-body section[data-blog-image-layout="true"] > img {{
+        grid-column: 1;
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        max-height: min(70vh, 720px);
+        margin: 0 0 1.25rem;
+        object-fit: cover;
+    }}
+
+    #blog-editable-body section[data-blog-image-layout="true"] > img:first-of-type {{
+        grid-row: 1 / span 50;
+    }}
+
+    #blog-editable-body section[data-blog-image-layout="true"] > :not(img) {{
+        grid-column: 2;
+        min-width: 0;
+    }}
 }}
 
 .highlight-box,
@@ -710,7 +804,6 @@ img {{
 }}
 
 .tour-guide-card {{
-    max-width: 920px;
     margin: 0 auto;
     text-align: left;
 }}
@@ -803,14 +896,16 @@ footer button {{
     cursor: pointer;
 }}
 
-#blog-editable-body [data-blog-edit-index] {{
+#blog-editable-body [data-blog-edit-index],
+section[aria-labelledby="faq-heading"] [data-blog-edit-index] {{
     position: relative;
     padding: 1rem;
     font-weight:300;
     word-spacing:0.1rem
 }}
 
-#blog-editable-body [data-editing="true"] {{
+#blog-editable-body [data-editing="true"],
+section[aria-labelledby="faq-heading"] [data-editing="true"] {{
     padding: 0.75rem 1rem;
     background: #f7f7f7;
     border: 1px solid #cbd5e1;
@@ -974,6 +1069,15 @@ footer button {{
 }}
 
 @media (max-width: 768px) {{
+    #blog-editable-body img,
+    #blog-editable-body .editable-blog-image {{
+        width: 100%;
+        max-width: 100%;
+        max-height: calc(100vh - 2rem);
+        max-height: calc(100svh - 2rem);
+        object-fit: contain;
+    }}
+
     .blog-save-button {{
     width: 100%;
 }}
@@ -1070,6 +1174,7 @@ var blogPlaceSlug = "{place_slug}";
 var blogTitleSlug = "{title_slug}";
 var blogParagraphSaveUrl = "{blog_edit_save_url}";
 var blogImageUploadUrl = "{upload_url}";
+var blogImagesRequested = false;
 
 // Fisher-Yates shuffle algorithm for proper randomization
 function shuffleArray(array) {{
@@ -1081,13 +1186,76 @@ function shuffleArray(array) {{
     return shuffled;
 }}
 
+function prepareNestedSectionImages(root = document) {{
+    root.querySelectorAll('img[data-blog-layout-image="true"]').forEach(image => image.remove());
+    root.querySelectorAll('#blog-editable-body section[data-blog-image-layout="true"]').forEach(section => {{
+        delete section.dataset.blogImageLayout;
+    }});
+    root.querySelectorAll('#blog-editable-body section > p > img').forEach(sourceImage => {{
+        const section = sourceImage.closest('section');
+        if (!section) return;
+
+        sourceImage.dataset.blogSourceImage = 'true';
+        const layoutImage = sourceImage.cloneNode(true);
+        delete layoutImage.dataset.blogSourceImage;
+        layoutImage.dataset.blogLayoutImage = 'true';
+        layoutImage.contentEditable = 'false';
+        section.insertBefore(layoutImage, section.firstChild);
+    }});
+    root.querySelectorAll('#blog-editable-body section').forEach(section => {{
+        if (Array.from(section.children).some(child => child.tagName === 'IMG')) {{
+            section.dataset.blogImageLayout = 'true';
+        }}
+    }});
+}}
+
+function setupImageLightbox() {{
+    const body = document.getElementById('blog-editable-body');
+    if (!body || document.getElementById('blog-image-lightbox')) return;
+
+    const lightbox = document.createElement('div');
+    lightbox.id = 'blog-image-lightbox';
+    lightbox.className = 'blog-image-lightbox';
+    lightbox.setAttribute('role', 'dialog');
+    lightbox.setAttribute('aria-modal', 'true');
+    lightbox.innerHTML = '<button type="button" aria-label="Close image">&times;</button><img alt="">';
+    document.body.appendChild(lightbox);
+
+    const preview = lightbox.querySelector('img');
+    const close = () => {{
+        lightbox.classList.remove('open');
+        document.body.style.overflow = '';
+        preview.removeAttribute('src');
+    }};
+
+    body.addEventListener('click', event => {{
+        const image = event.target.closest('img');
+        if (!image || image.dataset.blogSourceImage === 'true' || image.closest('[data-editing="true"]')) return;
+        preview.src = image.currentSrc || image.src;
+        preview.alt = image.alt || 'Full-size image';
+        lightbox.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }});
+    lightbox.addEventListener('click', close);
+    document.addEventListener('keydown', event => {{
+        if (event.key === 'Escape' && lightbox.classList.contains('open')) close();
+    }});
+}}
+
 async function fetchAndInsertImages() {{
+    if (blogImagesRequested) return;
+    blogImagesRequested = true;
+
     try {{
         // Fetch images from Django
         const response = await fetch(`/imageapp/images/${{placename}}/`);
+        if (!response.ok) throw new Error(`HTTP ${{response.status}}`);
         const data = await response.json();
 
-        const images = data.images.map(img => img.imbbURL); // array of URLs
+        const images = Array.isArray(data.images)
+            ? data.images.map(img => img.imbbURL).filter(Boolean)
+            : [];
+        if (!images.length) return;
 
         // Shuffle array to pick random images using Fisher-Yates
         const shuffled = shuffleArray(images);
@@ -1097,44 +1265,55 @@ async function fetchAndInsertImages() {{
         if (!bodyContents) return;
 
         // Get all content sections and other potential insertion points
-        const contentSections = Array.from(bodyContents.querySelectorAll('.content-section, .intro-section'));
+        const contentSections = Array.from(bodyContents.querySelectorAll('#blog-editable-body section'));
         
         // If no sections found, fall back to direct body-contents
         const insertionPoints = contentSections.length > 0 ? contentSections : [bodyContents];
         
-        let count = 0;
         const maxImages = 3;
+        const selectedSections = shuffleArray(insertionPoints).slice(0, Math.min(maxImages, shuffled.length));
 
-        shuffled.slice(0, maxImages).forEach((imgUrl, index) => {{
-            if (count >= maxImages) return;
-            count++;
-
+        selectedSections.forEach((section, index) => {{
+            const imgUrl = shuffled[index];
             const img = document.createElement("img");
             img.src = imgUrl;
             img.loading = "lazy";
+            img.decoding = "async";
+            img.fetchPriority = "low";
             img.alt = "Blog content image";
             img.className = "dynamic-blog-image";
-
-            // Pick a random section to insert into
-            const randomSection = insertionPoints[Math.floor(Math.random() * insertionPoints.length)];
-            
-            // Find all child elements within the section
-            const children = Array.from(randomSection.children);
-            
-            if (children.length > 0) {{
-                // Insert after a random child element
-                const randomIndex = Math.floor(Math.random() * children.length);
-                const targetElement = children[randomIndex];
-                targetElement.insertAdjacentElement('afterend', img);
-            }} else {{
-                // If no children, append to the section
-                randomSection.appendChild(img);
-            }}
+            section.appendChild(img);
+            section.dataset.blogImageLayout = 'true';
         }});
 
     }} catch (err) {{
         console.error("Error fetching images:", err);
     }}
+}}
+
+function scheduleBlogImages() {{
+    const body = document.getElementById('blog-editable-body');
+    if (!body) return;
+
+    const requestImages = () => {{
+        if ('requestIdleCallback' in window) {{
+            window.requestIdleCallback(fetchAndInsertImages, {{ timeout: 1500 }});
+        }} else {{
+            window.setTimeout(fetchAndInsertImages, 250);
+        }}
+    }};
+
+    if (!('IntersectionObserver' in window)) {{
+        requestImages();
+        return;
+    }}
+
+    const observer = new IntersectionObserver(entries => {{
+        if (!entries.some(entry => entry.isIntersecting)) return;
+        observer.disconnect();
+        requestImages();
+    }}, {{ rootMargin: '600px 0px' }});
+    observer.observe(body);
 }}
 
 
@@ -1216,6 +1395,8 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg, onEmpty) {{
                         img.src = col.collectionPicture;
                         img.alt = col.collectionName || 'Collection image';
                         img.loading = 'lazy';
+                        img.decoding = 'async';
+                        img.fetchPriority = 'low';
                         div.appendChild(img);
                     }}
                     
@@ -1338,6 +1519,7 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg, onEmpty) {{
 	            img.alt = getImageAltFromUrl(imageUrl) || 'Image';
 	            img.loading = 'lazy';
 	            img.decoding = 'async';
+	            img.fetchPriority = 'low';
 	            img.className = 'editable-blog-image';
 	            toadd = img;
 	        }} else {{
@@ -1617,7 +1799,11 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg, onEmpty) {{
         button.innerHTML = '&#9998;';
         button.title = 'Edit section';
         button.setAttribute('aria-label', 'Edit section');
-        button.addEventListener('click', () => startParagraphEdit(paragraph));
+        button.addEventListener('click', event => {{
+            event.preventDefault();
+            event.stopPropagation();
+            startParagraphEdit(paragraph);
+        }});
         paragraph.appendChild(button);
     }}
 
@@ -1628,6 +1814,16 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg, onEmpty) {{
         body.querySelectorAll('h2[data-blog-edit-index], p[data-blog-edit-index]').forEach(paragraph => {{
             attachParagraphEditButton(paragraph);
         }});
+
+        const faq = document.querySelector('section[aria-labelledby="faq-heading"]');
+        if (faq) {{
+            faq.querySelectorAll('h2, summary, p').forEach((block, index) => {{
+                block.dataset.blogEditIndex = String(index);
+                block.dataset.blogEditScope = 'faq';
+                block.dataset.blogEditTag = block.tagName.toLowerCase();
+                attachParagraphEditButton(block);
+            }});
+        }}
     }}
 
     function updateVisibleLastUpdated(data) {{
@@ -1665,6 +1861,7 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg, onEmpty) {{
 
         if (tools) tools.remove();
         attachParagraphEditButton(paragraph);
+        prepareNestedSectionImages(document);
     }}
 
     
@@ -2129,6 +2326,7 @@ async function saveParagraphEdit(paragraph, tools) {{
                 place_slug: blogPlaceSlug,
                 title_slug: blogTitleSlug,
                 page_url: window.location.pathname,
+                editable_scope: paragraph.dataset.blogEditScope || 'article',
                 paragraph_index: Number(paragraph.dataset.blogEditIndex),
                 editable_tag: paragraph.dataset.blogEditTag || paragraph.tagName.toLowerCase(),
                 edited_html: editedHTML
@@ -2193,7 +2391,9 @@ document.addEventListener("DOMContentLoaded", () => {{
     }}
 
     setupEditableParagraphs();
-    fetchAndInsertImages();
+    prepareNestedSectionImages(document);
+    setupImageLightbox();
+    scheduleBlogImages();
     getBlogLists();
     fetchCollections();
 

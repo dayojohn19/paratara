@@ -3,7 +3,6 @@ from django.shortcuts import render
 from django.http import HttpResponse, HttpRequest, JsonResponse
 from .forms import UserImageForm
 from django.conf import settings
-from openai import OpenAI
 from bs4 import BeautifulSoup
 from django.db.models import Q
 from django.utils import timezone
@@ -38,6 +37,193 @@ def kefir(request):
     return render(request, 'singlepage2/kefir.html')
 def _strip_html_tags(html: str) -> str:
     return re.sub('<[^<]+?>', '', html or '')
+
+
+BLOG_IMAGE_LAYOUT_COMPAT = r'''
+<style id="blog-image-layout-compat">
+#blog-editable-body img {
+    max-height: min(70vh, 720px);
+    object-fit: contain;
+}
+#blog-editable-body img[data-blog-source-image="true"] {
+    display: none !important;
+}
+section[aria-labelledby="faq-heading"] [data-blog-edit-index] {
+    position: relative;
+    padding: 1rem;
+}
+section[aria-labelledby="faq-heading"] [data-editing="true"] {
+    background: #f7f7f7;
+    outline: 2px solid rgba(37, 99, 235, 0.18);
+}
+#blog-editable-body img:not([data-blog-source-image="true"]) { cursor: zoom-in; }
+.blog-image-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.92);
+    cursor: zoom-out;
+}
+.blog-image-lightbox.open { display: flex; }
+.blog-image-lightbox img {
+    width: auto;
+    max-width: 96vw;
+    height: auto;
+    max-height: 94vh;
+    max-height: 94svh;
+    margin: 0;
+    object-fit: contain;
+}
+.blog-image-lightbox button {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    width: 44px;
+    height: 44px;
+    color: #fff;
+    font-size: 2rem;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+}
+@media (min-width: 769px) {
+    #blog-editable-body section[data-blog-image-layout="true"] {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        column-gap: clamp(1.5rem, 4vw, 3rem);
+        align-items: start;
+    }
+    #blog-editable-body section[data-blog-image-layout="true"] > img {
+        grid-column: 1;
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        max-height: min(70vh, 720px);
+        margin: 0 0 1.25rem;
+        object-fit: contain;
+    }
+    #blog-editable-body section[data-blog-image-layout="true"] > img:first-of-type {
+        grid-row: 1 / span 50;
+    }
+    #blog-editable-body section[data-blog-image-layout="true"] > :not(img) {
+        grid-column: 2;
+        min-width: 0;
+    }
+}
+@media (max-width: 768px) {
+    #blog-editable-body img {
+        width: 100%;
+        max-width: 100%;
+        max-height: calc(100vh - 2rem);
+        max-height: calc(100svh - 2rem);
+        object-fit: contain;
+    }
+}
+</style>
+<script id="blog-image-layout-compat-script">
+document.addEventListener('DOMContentLoaded', function () {
+    var body = document.getElementById('blog-editable-body');
+    if (!body) return;
+
+    var observer;
+    function syncBlogSectionImages() {
+        if (observer) observer.disconnect();
+
+        body.querySelectorAll('img[data-blog-layout-image="true"]').forEach(function (image) {
+            image.remove();
+        });
+        body.querySelectorAll('section[data-blog-image-layout="true"]').forEach(function (section) {
+            delete section.dataset.blogImageLayout;
+        });
+        body.querySelectorAll('section > p > img').forEach(function (sourceImage) {
+            var section = sourceImage.closest('section');
+            if (!section) return;
+
+            sourceImage.dataset.blogSourceImage = 'true';
+            var layoutImage = sourceImage.cloneNode(true);
+            delete layoutImage.dataset.blogSourceImage;
+            layoutImage.dataset.blogLayoutImage = 'true';
+            layoutImage.contentEditable = 'false';
+            section.insertBefore(layoutImage, section.firstChild);
+        });
+        body.querySelectorAll('section').forEach(function (section) {
+            var hasDirectImage = Array.prototype.some.call(section.children, function (child) {
+                return child.tagName === 'IMG';
+            });
+            if (hasDirectImage) section.dataset.blogImageLayout = 'true';
+        });
+
+        if (observer) observer.observe(body, {childList: true, subtree: true});
+    }
+
+    syncBlogSectionImages();
+    var lightbox = document.createElement('div');
+    lightbox.className = 'blog-image-lightbox';
+    lightbox.innerHTML = '<button type="button" aria-label="Close image">&times;</button><img alt="">';
+    document.body.appendChild(lightbox);
+    var preview = lightbox.querySelector('img');
+    function closeLightbox() {
+        lightbox.classList.remove('open');
+        document.body.style.overflow = '';
+        preview.removeAttribute('src');
+    }
+    body.addEventListener('click', function (event) {
+        var image = event.target.closest('img');
+        if (!image || image.dataset.blogSourceImage === 'true' || image.closest('[data-editing="true"]')) return;
+        preview.src = image.currentSrc || image.src;
+        preview.alt = image.alt || 'Full-size image';
+        lightbox.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    });
+    lightbox.addEventListener('click', closeLightbox);
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && lightbox.classList.contains('open')) closeLightbox();
+    });
+    var faq = document.querySelector('section[aria-labelledby="faq-heading"]');
+    if (faq && typeof attachParagraphEditButton === 'function') {
+        faq.querySelectorAll('h2, summary, p').forEach(function (block, index) {
+            block.dataset.blogEditIndex = String(10000 + index);
+            block.dataset.blogEditScope = 'faq';
+            block.dataset.blogEditTag = block.tagName.toLowerCase();
+            attachParagraphEditButton(block);
+        });
+    }
+    if ('MutationObserver' in window) {
+        var scheduled = false;
+        observer = new MutationObserver(function () {
+            if (scheduled) return;
+            scheduled = true;
+            window.requestAnimationFrame(function () {
+                scheduled = false;
+                syncBlogSectionImages();
+            });
+        });
+        observer.observe(body, {childList: true, subtree: true});
+    }
+});
+</script>
+'''
+
+
+def _render_blog_with_image_layout(request, template_name, context=None):
+    response = render(request, template_name, context or {})
+    if response.status_code != 200:
+        return response
+
+    html = response.content.decode(response.charset or "utf-8")
+    if 'name="blog-image-layout-version"' in html or 'id="blog-image-layout-compat"' in html:
+        return response
+
+    if "</head>" in html:
+        html = html.replace("</head>", f"{BLOG_IMAGE_LAYOUT_COMPAT}</head>", 1)
+    else:
+        html = f"{BLOG_IMAGE_LAYOUT_COMPAT}{html}"
+    response.content = html.encode(response.charset or "utf-8")
+    return response
 
 
 BLOG_EDIT_ALLOWED_TAGS = {
@@ -377,6 +563,39 @@ def _update_article_schema_modified_date(soup, updated_at):
             script.string = json.dumps(data, indent=2)
 
 
+def _update_faq_schema(soup):
+    faq_section = soup.find("section", attrs={"aria-labelledby": "faq-heading"})
+    if not faq_section:
+        return
+
+    canonical = soup.find("link", rel="canonical")
+    canonical_url = canonical.get("href", "") if canonical else ""
+    entries = []
+    for item in faq_section.find_all("details"):
+        question = item.find("summary")
+        answer = item.find("p")
+        question_text = question.get_text(" ", strip=True) if question else ""
+        answer_text = answer.get_text(" ", strip=True) if answer else ""
+        if not question_text or not answer_text:
+            continue
+        entries.append({
+            "@type": "Question",
+            "@id": f"{canonical_url}#{slugify(question_text)}",
+            "name": question_text,
+            "acceptedAnswer": {"@type": "Answer", "text": answer_text},
+        })
+
+    for script in soup.find_all("script", attrs={"type": "application/ld+json"}):
+        try:
+            data = json.loads(script.string or script.get_text() or "{}")
+        except json.JSONDecodeError:
+            continue
+        if isinstance(data, dict) and data.get("@type") == "FAQPage":
+            data["mainEntity"] = entries
+            script.string = json.dumps(data, indent=2)
+            return
+
+
 def _ensure_blog_template_write_permission(file_path):
     directory = os.path.dirname(file_path)
 
@@ -440,7 +659,7 @@ def _update_last_updated_marker(soup, updated_at):
         body_contents.insert(0, meta)
 
 
-def _patch_blog_template_file(paragraph_index, edited_html, editable_tag="", place_slug="", title_slug="", page_url="", updated_at=None):
+def _patch_blog_template_file(paragraph_index, edited_html, editable_tag="", editable_scope="article", place_slug="", title_slug="", page_url="", updated_at=None):
     file_path = _blog_template_file_path(place_slug, title_slug, page_url)
     if not file_path or not os.path.exists(file_path):
         return False, file_path, "Template file not found"
@@ -456,22 +675,35 @@ def _patch_blog_template_file(paragraph_index, edited_html, editable_tag="", pla
         return False, file_path, f"Could not read template file: {exc}"
 
     soup = BeautifulSoup(html, "html.parser")
-    editable_body = soup.find(id="blog-editable-body")
-    if not editable_body:
-        return False, file_path, "Editable blog body not found"
-
+    editable_scope = (editable_scope or "article").lower()
+    if editable_scope == "article" and paragraph_index >= 10000:
+        editable_scope = "faq"
+        paragraph_index -= 10000
     editable_tag = (editable_tag or "").lower()
-    allowed_editable_tags = {"h2", "p"}
+    allowed_editable_tags = {"h2", "p"} if editable_scope == "article" else {"h2", "summary", "p"}
+    if editable_scope not in {"article", "faq"}:
+        return False, file_path, "Unsupported editable scope"
     if editable_tag and editable_tag not in allowed_editable_tags:
         return False, file_path, "Unsupported editable section"
 
-    selector = f'{editable_tag}[data-blog-edit-index="{paragraph_index}"]' if editable_tag else f'[data-blog-edit-index="{paragraph_index}"]'
-    target = editable_body.select_one(selector)
-    if not target:
-        paragraphs = editable_body.find_all("p", attrs={"data-blog-edit-index": True})
-        if paragraph_index >= len(paragraphs):
-            return False, file_path, "Editable section not found"
-        target = paragraphs[paragraph_index]
+    if editable_scope == "faq":
+        container = soup.find("section", attrs={"aria-labelledby": "faq-heading"})
+        if not container:
+            return False, file_path, "FAQ section not found"
+        editable_blocks = container.find_all(["h2", "summary", "p"])
+        target = editable_blocks[paragraph_index] if paragraph_index < len(editable_blocks) else None
+    else:
+        container = soup.find(id="blog-editable-body")
+        if not container:
+            return False, file_path, "Editable blog body not found"
+        selector = f'{editable_tag}[data-blog-edit-index="{paragraph_index}"]' if editable_tag else f'[data-blog-edit-index="{paragraph_index}"]'
+        target = container.select_one(selector)
+        if not target:
+            editable_blocks = container.find_all(["h2", "p"], attrs={"data-blog-edit-index": True})
+            target = editable_blocks[paragraph_index] if paragraph_index < len(editable_blocks) else None
+
+    if target is None:
+        return False, file_path, "Editable section not found"
 
     if target.name not in allowed_editable_tags:
         return False, file_path, "Unsupported editable section"
@@ -483,6 +715,8 @@ def _patch_blog_template_file(paragraph_index, edited_html, editable_tag="", pla
     edited_at = updated_at or timezone.now()
     _update_last_updated_marker(soup, edited_at)
     _update_article_schema_modified_date(soup, edited_at)
+    if editable_scope == "faq":
+        _update_faq_schema(soup)
 
     try:
         with open(file_path, "w", encoding="utf-8") as template_file:
@@ -504,6 +738,7 @@ def save_blog_paragraph_file_edit(request):
     title_slug = (payload.get("title_slug") or "").strip()
     page_url = (payload.get("page_url") or "").strip()
     editable_tag = (payload.get("editable_tag") or "").strip().lower()
+    editable_scope = (payload.get("editable_scope") or "article").strip().lower()
     raw_edited_html = payload.get("edited_html")
     if raw_edited_html is None:
         raw_edited_html = payload.get("edited_text") or ""
@@ -530,6 +765,7 @@ def save_blog_paragraph_file_edit(request):
         paragraph_index,
         edited_html,
         editable_tag=editable_tag,
+        editable_scope=editable_scope,
         place_slug=place_slug,
         title_slug=title_slug,
         page_url=page_url,
@@ -558,6 +794,7 @@ def save_blog_paragraph_file_edit(request):
         "blog_id": blog.id if blog else None,
         "blog_updated": blog_updated,
         "paragraph_index": paragraph_index,
+        "editable_scope": editable_scope,
         "editable_tag": editable_tag,
         "edited_text": edited_text,
         "edited_html": edited_html,
@@ -657,7 +894,7 @@ def create_blog_from_user_request(request: HttpRequest,*,place,title: str,body_h
 # NOT USED
 def generate_blog_metadata(html_content):
     """Use OpenAI to generate title, summary, and estimated read time from HTML content"""
-    client = OpenAI(api_key=settings.GROK_API_KEY, base_url='https://api.x.ai/v1')
+    client = settings.GROK_CLIENT
     
     # Strip HTML tags for word count
     text_content = _strip_html_tags(html_content)
@@ -778,13 +1015,13 @@ def blog_html(request, slug,slugSec, slugName=None):
         spot = TouristSpot.objects.filter(slug=slugName).first()
         print('\n\n SPOT:', spot)
         if spot:
-            return render(request, f'blogs/{slug}/{slugSec}.html', {
+            return _render_blog_with_image_layout(request, f'blogs/{slug}/{slugSec}.html', {
                 'tourguide' : spot.tourguide.filter(is_active=True)
             })
 
     # path('bucasgrande/',TemplateView.as_view(template_name='blogs/siargao/bucasgrande.html',extra_context=siargao_links), name='bucasgrande'),
 
-    return render(request, f'blogs/{slug}/{slugSec}.html')
+    return _render_blog_with_image_layout(request, f'blogs/{slug}/{slugSec}.html')
 
 
 def blog_asset(request, slug, asset_name):

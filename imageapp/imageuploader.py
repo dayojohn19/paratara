@@ -3,7 +3,6 @@
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.utils.text import slugify
-from openai import OpenAI
 from PIL import Image
 from io import BytesIO
 from django.core.files.uploadedfile import InMemoryUploadedFile
@@ -272,7 +271,7 @@ def getTitlePhoto(request, title):
     prompt = ({title})
 
 
-    client = OpenAI(api_key=settings.GROK_API_KEY, base_url='https://api.x.ai/v1')
+    client = settings.GROK_CLIENT
 
 
     # Updated for xAI/Grok
@@ -621,4 +620,3 @@ def get_or_create_newfolder(credentialParentFolderID,user_folder_name):
 #     except HttpError as error:
 #         print(F'An error occurred: {error}')
 #         return None
-

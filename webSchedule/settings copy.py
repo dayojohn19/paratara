@@ -5,6 +5,7 @@ from urllib.parse import urlparse
 import dj_database_url
 from decouple import config
 from dotenv import load_dotenv
+from openai import OpenAI
 
 
 def _split_csv(value):
@@ -22,6 +23,7 @@ GROK_API_KEY = os.getenv('GROK_API_KEY')
 # GROK_MODEL_NAME = config("GROK_MODEL_NAME", default="grok-4")
 GROK_MODEL_NAME_EXPENSIVE = config("GROK_MODEL_NAME", default="grok-4")
 GROK_MODEL_NAME = config("GROK_MODEL_NAME", default="grok-4.3")
+GROK_CLIENT = OpenAI(api_key=GROK_API_KEY, base_url="https://api.x.ai/v1")
 XAI_IMAGE_MODEL = 'grok-imagine-image-quality' 
 # Replace the DATABASES section of your settings.py with this
 X_FRAME_OPTIONS = 'SAMEORIGIN'

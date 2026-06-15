@@ -88,16 +88,12 @@ def analyze_bulletin_post_from_images(image_bytes_list: Iterable[bytes]) -> Dict
     print(f"Total extracted text length: {len(extracted_text)}")  # Debug log
     # If OpenAI is available, use vision to extract text + generate + classify.
     try:
-        from openai import OpenAI
-
         # api_key = getattr(settings, "OPENAI_API_KEY", None)
         # if not api_key:
         #     raise RuntimeError("OPENAI_API_KEY not configured")
 
         # model = getattr(settings, "OPENAI_VISION_MODEL", "gpt-4o-mini")
-        # client = OpenAI(api_key=api_key)
-        from django.conf import settings
-        client = OpenAI(api_key=settings.GROK_API_KEY, base_url='https://api.x.ai/v1')
+        client = settings.GROK_CLIENT
         print("Using OpenAI vision for analysis...")  # Debug log
         content = [
             {

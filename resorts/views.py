@@ -15,7 +15,6 @@ from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.decorators.csrf import csrf_exempt
 import json
 import os
-from openai import OpenAI
 
 
 
@@ -577,7 +576,7 @@ def ocr_process_openai(request):
         if not openai_api_key:
             return JsonResponse({'error': 'GROK_API_KEY not set on server'}, status=500)
 
-        client = OpenAI(api_key=openai_api_key, base_url='https://api.x.ai/v1')
+        client = settings.GROK_CLIENT
     except Exception as e:
         import traceback
         error_details = traceback.format_exc()

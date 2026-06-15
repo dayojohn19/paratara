@@ -16,22 +16,13 @@
   <meta property="og:title" content="{% if page_title %}{{ page_title }}{% elif place.placename %}{{ place.placename }} Travel Guide | Paratara{% else %}Paratara{% endif %}">
   <meta property="og:description" content="{% if meta_description %}{{ meta_description }}{% elif place.placename %}Discover {{ place.placename }} travel guides, resort options, local events, tourist spots, and shared trip schedules with Paratara.{% else %}Plan trips with Paratara.{% endif %}">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="{% static 'home/place-page.css' %}">
 </head>
 <body>
 {% block body %}
 
-<script src="{% static 'home/place-calendar.js' %}" defer></script>
+{% include "home/placeJS.html" %}
 
 <script>
-  window.placePageConfig = {
-    canReview: {{ request.user.is_authenticated|yesno:"true,false" }},
-    loginUrl: "{% url 'userProfile:loginUser' %}",
-    placeId: "{{ placeid|escapejs }}",
-    currentMonth: "{{ currentMonth|escapejs }}",
-    csrfToken: "{{ csrf_token|escapejs }}",
-  };
-
   (function () {
     function runWhenReady(callback) {
       if (document.readyState === 'loading') {
@@ -89,9 +80,2924 @@
       });
     };
     window.placeLazyImageAttrs = ' loading="lazy" decoding="async"';
+    window.ensurePlaceSubCardStyles = function () {
+      if (document.getElementById('pcs')) return;
+
+      const style = document.createElement('style');
+      style.id = 'pcs';
+      style.textContent = `
+        .pcg {
+          display: flex;
+          flex-wrap: wrap;
+          gap:0.2rem;
+          margin: 1.2rem 0 0 0;
+        }
+        .pc {
+          background: #fff;
+          overflow: hidden;
+          width: 220px;
+          display: flex;
+          flex-direction: column;
+          align-items: stretch;
+        }
+        button.pc,
+        .pic {
+          border: 0;
+          padding: 0;
+          color: inherit;
+          cursor: pointer;
+          font: inherit;
+          text-align: left;
+        }
+        .pic:focus-visible {
+          outline: 2px solid #667eea;
+          outline-offset: 2px;
+        }
+        .ag {
+          margin-bottom: 1.35rem;
+        }
+        .agt {
+          color: #222;
+          font-size: 1.05rem;
+          font-weight: 700;
+          line-height: 1.35;
+          margin: 0;
+        }
+        .pci {
+          width: 100%;
+          height: 200px;
+          object-fit: cover;
+          display: block;
+        }
+        .pcb {
+          padding: 0.8rem 1rem 1.1rem 1rem;
+          flex: 1 1 auto;
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-start;
+          align-items: flex-start;
+        }
+        .pct {
+          font-size: 0.92rem;
+          font-weight: 650;
+          line-height: 1.35;
+          margin-bottom: 0.35rem;
+          color: #222;
+        }
+        .pcp {
+          font-size: 0.88rem;
+          line-height: 1.35;
+          color: var(--accent);
+          font-weight: 650;
+        }
+        .pcr {
+          margin-top: 0.35rem;
+          color: #64748b;
+          font-size: 0.78rem;
+          line-height: 1.3;
+          font-weight: 650;
+        }
+        .rs {
+          display: inline-flex;
+          align-items: center;
+          gap: 2px;
+          color: #cbd5e1;
+          line-height: 1;
+        }
+        .rss {
+          color: #cbd5e1;
+        }
+        .rss.ia {
+          color: #f59e0b;
+        }
+        .rsc {
+          color: #64748b;
+          font-size: 0.82rem;
+          line-height: 1;
+          margin-left: 4px;
+        }
+        .pima {
+          min-height: 1.35rem;
+        }
+        .pima .rs {
+          font-size: 1.1rem;
+        }
+        .prv {
+          border-top: 1px solid rgba(148, 163, 184, 0.35);
+          margin-top: 8px;
+          padding-top: 14px;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+        .prv[hidden] {
+          display: none;
+        }
+        .prvs {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          flex-wrap: wrap;
+          color: var(--text);
+          font-size: 0.95rem;
+          font-weight: 700;
+        }
+        .prvb {
+          border: 1px solid rgba(102, 126, 234, 0.28);
+          background: #fff;
+          color: var(--accent);
+          padding: 7px 10px;
+          font: inherit;
+          font-size: 0.88rem;
+          font-weight: 700;
+          cursor: pointer;
+        }
+        .prf {
+          display: grid;
+          gap: 8px;
+        }
+        .prfr {
+          display: grid;
+          grid-template-columns: minmax(90px, 120px) minmax(0, 1fr);
+          gap: 8px;
+        }
+        .prf input,
+        .prf select,
+        .prf textarea {
+          border: 1px solid rgba(148, 163, 184, 0.45);
+          padding: 8px 10px;
+          font: inherit;
+          color: var(--text);
+          background: #fff;
+        }
+        .prf textarea {
+          resize: vertical;
+          min-height: 64px;
+        }
+        .prf button {
+          justify-self: start;
+          border: 0;
+          background: var(--accent);
+          color: #fff;
+          padding: 8px 12px;
+          font: inherit;
+          font-weight: 750;
+          cursor: pointer;
+        }
+        .psr {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          flex-wrap: wrap;
+        }
+        .prf .psrs {
+          border: 0;
+          background: transparent;
+          color: #cbd5e1;
+          padding: 0 2px;
+          font-size: 1.85rem;
+          line-height: 1;
+          cursor: pointer;
+        }
+        .prf .psrs.ia {
+          color: #f59e0b;
+        }
+        .prf .psrs:focus-visible {
+          outline: 2px solid var(--accent);
+          outline-offset: 2px;
+        }
+        .psrl {
+          color: #64748b;
+          font-size: 0.88rem;
+          line-height: 1.35;
+          margin-left: 6px;
+        }
+        .prst {
+          min-height: 1.2em;
+          color: #64748b;
+          font-size: 0.88rem;
+          line-height: 1.35;
+        }
+        .prl {
+          display: grid;
+          gap: 8px;
+        }
+        .prw {
+          padding: 10px;
+        }
+        .prvm {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+          color: var(--text);
+          font-size: 0.88rem;
+          font-weight: 700;
+        }
+        .prvd {
+          color: #64748b;
+          font-size: 0.8rem;
+          line-height: 1.35;
+          margin-top: 4px;
+        }
+        .prvc {
+          margin: 6px 0 0;
+          color: var(--text-muted);
+          font-size: 0.9rem;
+          line-height: 1.45;
+          white-space: pre-line;
+        }
+        @media (max-width: 600px) {
+          .pc {
+            width: calc(50% - 0.1rem);
+          }
+          .pci {
+            height: 120px;
+          }
+          .prfr {
+            grid-template-columns: 1fr;
+          }
+        }
+      `;
+      document.head.appendChild(style);
+    };
+
+    const hEsc = {
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;',
+    };
+    const ims = {
+      images: [],
+      index: 0,
+      item: null,
+    };
+    const items = [];
+    const rev = {
+      packageId: '',
+      commentsLoaded: false,
+      loading: false,
+      nextOffset: 0,
+      hasMore: false,
+    };
+    let canReview = {{ request.user.is_authenticated|yesno:"true,false" }};
+    const loginUrl = "{% url 'userProfile:loginUser' %}";
+
+    function fv() {
+      for (let i = 0; i < arguments.length; i += 1) {
+        const value = arguments[i];
+        if (value !== undefined && value !== null && String(value).trim() !== '') {
+          return value;
+        }
+      }
+      return '';
+    }
+
+    function escapeHtml(value) {
+      return String(value || '').replace(/[&<>"']/g, function (char) {
+        return hEsc[char];
+      });
+    }
+
+    function normImgs(value) {
+      if (Array.isArray(value)) {
+        return value
+          .map(function (item) {
+            if (typeof item === 'string') return item;
+            return item && (item.urlField || item.url || item.imageURL || item.src || '');
+          })
+          .filter(function (url) { return Boolean(url); });
+      }
+      if (typeof value === 'string' && value.trim() !== '') return [value];
+      return [];
+    }
+
+    function numVal(value, fallback) {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : fallback;
+    }
+
+    function starsHtml(average, count) {
+      const ratingCount = numVal(count, 0);
+      if (!ratingCount) return '';
+      const ratingValue = Math.max(0, Math.min(5, Math.round(numVal(average, 0))));
+      let stars = '';
+      for (let i = 1; i <= 5; i += 1) {
+        stars += '<span class="rss' + (i <= ratingValue ? ' ia' : '') + '">&#9733;</span>';
+      }
+      return '<span class="rs" aria-label="' + numVal(average, 0).toFixed(1) + ' out of 5">' + stars + '<span class="rsc">(' + ratingCount + ')</span></span>';
+    }
+
+    function ratingStarsHtml(rating) {
+      const ratingValue = Math.max(0, Math.min(5, Math.round(numVal(rating, 0))));
+      let stars = '';
+      for (let i = 1; i <= 5; i += 1) {
+        stars += '<span class="rss' + (i <= ratingValue ? ' ia' : '') + '">&#9733;</span>';
+      }
+      return '<span class="rs" aria-label="' + ratingValue + ' out of 5">' + stars + '</span>';
+    }
+
+    function readableReviewTime(value) {
+      if (!value) return '';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return '';
+      return date.toLocaleString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+      });
+    }
+
+    function normItem(rawItem, fallbackTitle) {
+      const item = rawItem || {};
+      let images = normImgs(item.images);
+      if (!images.length) images = normImgs(item.package_image);
+      if (!images.length) images = normImgs(item.imageURL);
+      if (!images.length) images = normImgs(item.resort_Gallery);
+      const packageId = fv(item.package_id, item.packageId);
+      return Object.assign({}, item, {
+        packageId: packageId,
+        title: fv(
+          item.title,
+          item.package_title,
+          item.package_name,
+          item.PackageTitle,
+          item.name,
+          fallbackTitle,
+          'Item'
+        ),
+        description: fv(item.description, item.package_description),
+        information: fv(item.information, item.package_information),
+        price: fv(item.price, item.package_price),
+        images: images,
+        resortLink: fv(item.resortLink, item.resortURL, item.resort_websiteURL),
+        resortName: fv(item.resortName, item.resort_RealName, item.resort_name),
+        websiteURL: fv(item.websiteURL, item.website, item.package_website),
+        ratingAverage: numVal(fv(item.package_rating_average, item.rating_average, item.ratingAverage), 0),
+        ratingCount: numVal(fv(item.package_rating_count, item.rating_count, item.ratingCount), 0),
+      });
+    }
+
+    function priceText(value, emptyLabel) {
+      const label = emptyLabel === undefined ? 'Price not listed' : emptyLabel;
+      if (value === undefined || value === null || String(value).trim() === '' || String(value) === '0') {
+        return label;
+      }
+      const numVal = Number(value);
+      if (Number.isFinite(numVal)) {
+        return '₱' + numVal.toLocaleString();
+      }
+      const textValue = String(value).trim();
+      return textValue.indexOf('₱') === 0 ? textValue : '₱' + textValue;
+    }
+
+    function setTxt(id, value) {
+      const element = document.getElementById(id);
+      if (element) element.textContent = value || '';
+      return element;
+    }
+
+    function setModalImg(nextIndex) {
+      const image = document.getElementById('piI');
+      const empty = document.getElementById('piE');
+      const counter = document.getElementById('piC');
+      const prev = document.getElementById('piP');
+      const next = document.getElementById('piN');
+      const images = ims.images || [];
+      if (!image || !empty) return;
+
+      if (!images.length) {
+        image.removeAttribute('src');
+        image.style.display = 'none';
+        empty.style.display = 'flex';
+        if (counter) counter.textContent = '0 / 0';
+        if (prev) prev.hidden = true;
+        if (next) next.hidden = true;
+        return;
+      }
+
+      ims.index = (nextIndex + images.length) % images.length;
+      image.src = images[ims.index];
+      image.alt = ims.item ? ims.item.title : 'Item photo';
+      image.style.display = 'block';
+      empty.style.display = 'none';
+      if (counter) counter.textContent = (ims.index + 1) + ' / ' + images.length;
+      if (prev) prev.hidden = images.length <= 1;
+      if (next) next.hidden = images.length <= 1;
+    }
+
+    window.placeItemModalState = ims;
+    window.placeItemDetails = items;
+    window.placeEscapeHtml = escapeHtml;
+    window.placeNormalizeImages = normImgs;
+    window.placeFormatPrice = priceText;
+    window.placePageSize = 10;
+    window.placeGetPaginatedResults = function (payload, legacyNestedKey) {
+      if (payload && Array.isArray(payload.results)) return payload.results;
+      const rows = [];
+      (Array.isArray(payload) ? payload : []).forEach(function (item) {
+        if (item && legacyNestedKey && Array.isArray(item[legacyNestedKey])) {
+          rows.push.apply(rows, item[legacyNestedKey]);
+        } else if (item) {
+          rows.push(item);
+        }
+      });
+      return rows;
+    };
+    window.placeSetLoadMoreButton = function (containerId, hasNext, isLoading, onClick) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      if (!hasNext && !isLoading) {
+        container.innerHTML = '';
+        container.hidden = true;
+        return;
+      }
+      container.hidden = false;
+      container.innerHTML = '<button type="button" class="button button--ghost place-load-more-btn">' + (isLoading ? 'Loading...' : 'Load more') + '</button>';
+      const button = container.querySelector('button');
+      if (!button) return;
+      button.disabled = !!isLoading;
+      if (!isLoading) button.addEventListener('click', onClick);
+    };
+    window.registerPlaceItemDetail = function (rawItem, fallbackTitle) {
+      const item = normItem(rawItem, fallbackTitle);
+      items.push(item);
+      return items.length - 1;
+    };
+    window.placeBuildItemCard = function (rawItem, fallbackTitle) {
+      const item = normItem(rawItem, fallbackTitle);
+      const index = window.registerPlaceItemDetail(item, fallbackTitle);
+      const imageSrc = item.images[0] || '';
+      const ratingHtml = item.packageId ? starsHtml(item.ratingAverage, item.ratingCount) : '';
+      const imageTag = imageSrc
+        ? `<img src="${escapeHtml(imageSrc)}" alt="${escapeHtml(item.title)}" class="pci"${window.placeLazyImageAttrs || ''} />`
+        : '';
+      return `
+        <button type="button" class="pc pic jpic" data-pi="${index}" aria-label="View ${escapeHtml(item.title)}">
+          ${imageTag}
+          <span class="pcb">
+            <span class="pct">${escapeHtml(item.title)}</span>
+            <span class="pcp">${escapeHtml(priceText(item.price))}</span>
+            ${ratingHtml ? `<span class="pcr">${ratingHtml}</span>` : ''}
+          </span>
+        </button>
+      `;
+    };
+
+    function csrfToken() {
+      if (typeof getCookie === 'function') return getCookie('csrftoken') || '';
+      return '';
+    }
+
+    function setReviewStatus(message, isError) {
+      const status = document.getElementById('prS');
+      if (!status) return;
+      status.textContent = message || '';
+      status.style.color = isError ? '#b91c1c' : '#64748b';
+    }
+
+    function setReviewSummary(item, average, count) {
+      if (item) {
+        item.ratingAverage = numVal(average, 0);
+        item.ratingCount = numVal(count, 0);
+      }
+      const summary = document.getElementById('prY');
+      if (summary) {
+        summary.innerHTML = starsHtml(
+          item ? item.ratingAverage : average,
+          item ? item.ratingCount : count
+        ) || '';
+      }
+      const modalRating = document.getElementById('piA');
+      if (modalRating) {
+        const ratingHtml = starsHtml(
+          item ? item.ratingAverage : average,
+          item ? item.ratingCount : count
+        );
+        modalRating.innerHTML = ratingHtml;
+        modalRating.hidden = !ratingHtml;
+      }
+    }
+
+    function setStars(value) {
+      const rating = Math.max(1, Math.min(5, numVal(value, 0)));
+      const ratingField = document.getElementById('prV');
+      const label = document.getElementById('psL');
+      const stars = document.querySelectorAll('.psrs');
+
+      if (ratingField) ratingField.value = rating ? String(rating) : '';
+      if (label) label.textContent = rating ? rating + '/5 selected' : 'Choose rating';
+      stars.forEach(function (star) {
+        const starRating = numVal(star.getAttribute('data-rating'), 0);
+        const active = rating && starRating <= rating;
+        star.classList.toggle('ia', !!active);
+        star.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+    }
+
+    function renderReviewPanel(item) {
+      const panel = document.getElementById('prP');
+      if (!panel) return;
+      const packageId = item && item.packageId ? String(item.packageId) : '';
+      rev.packageId = packageId;
+      rev.commentsLoaded = false;
+      rev.loading = false;
+      rev.nextOffset = 0;
+      rev.hasMore = false;
+
+      if (!packageId) {
+        panel.hidden = true;
+        panel.innerHTML = '';
+        return;
+      }
+
+      const reviewForm = canReview
+        ? `
+          <form id="prF" class="prf">
+            <div class="prfr">
+              <div class="psr" role="radiogroup" aria-label="Rating">
+                <input type="hidden" name="rating" id="prV" required />
+                <button type="button" class="psrs" data-rating="1" aria-label="1 out of 5" aria-pressed="false">&#9733;</button>
+                <button type="button" class="psrs" data-rating="2" aria-label="2 out of 5" aria-pressed="false">&#9733;</button>
+                <button type="button" class="psrs" data-rating="3" aria-label="3 out of 5" aria-pressed="false">&#9733;</button>
+                <button type="button" class="psrs" data-rating="4" aria-label="4 out of 5" aria-pressed="false">&#9733;</button>
+                <button type="button" class="psrs" data-rating="5" aria-label="5 out of 5" aria-pressed="false">&#9733;</button>
+                <span id="psL" class="psrl">Choose rating</span>
+              </div>
+              <textarea name="comment" maxlength="800" placeholder="Comment optional"></textarea>
+            </div>
+            <button type="submit">Save rating</button>
+          </form>
+        `
+        : `
+          <button type="button" id="psT" class="prvb">Sign up to rate</button>
+          <form id="psF" class="prf" hidden>
+            <input name="contact" type="text" autocomplete="email" placeholder="Contact or email" required />
+            <input name="username" type="text" autocomplete="username" placeholder="Username" required />
+            <input name="password" type="password" autocomplete="new-password" placeholder="Password" minlength="6" required />
+            <button type="submit">Create account</button>
+            <p class="prst">Already have an account? <a href="${escapeHtml(loginUrl)}">Login</a>.</p>
+          </form>
+        `;
+
+      panel.hidden = false;
+      panel.innerHTML = `
+        <div class="prvs">
+          <span id="prY">${starsHtml(item.ratingAverage, item.ratingCount)}</span>
+          <button type="button" id="prB" class="prvb">Show comments</button>
+        </div>
+        ${reviewForm}
+        <div id="prS" class="prst" aria-live="polite"></div>
+        <div id="prL" class="prl" hidden></div>
+        <button type="button" id="prM" class="prvb" hidden>Load more comments</button>
+      `;
+    }
+
+    function reviewHtml(review) {
+      const comment = review.comment
+        ? `<p class="prvc">${escapeHtml(review.comment)}</p>`
+        : '';
+      const reviewTime = readableReviewTime(review.updated_at || review.created_at);
+      return `
+        <div class="prw">
+          <div class="prvm">
+            <span>${escapeHtml(review.user_name || 'User')}</span>
+            <span>${ratingStarsHtml(review.rating)}</span>
+          </div>
+          ${reviewTime ? `<div class="prvd">${escapeHtml(reviewTime)}</div>` : ''}
+          ${comment}
+        </div>
+      `;
+    }
+
+    async function loadReviews(append) {
+      const packageId = rev.packageId;
+      if (!packageId || rev.loading) return;
+      const list = document.getElementById('prL');
+      const loadButton = document.getElementById('prB');
+      const moreButton = document.getElementById('prM');
+      const offset = append ? rev.nextOffset : 0;
+
+      rev.loading = true;
+      if (list) {
+        list.hidden = false;
+        if (!append) list.innerHTML = '<div class="prst">Loading comments...</div>';
+      }
+      if (loadButton) {
+        loadButton.disabled = true;
+        loadButton.textContent = 'Loading...';
+      }
+      if (moreButton) moreButton.disabled = true;
+
+      try {
+        const response = await fetch(`/est/package/${encodeURIComponent(packageId)}/reviews/?limit=5&offset=${offset}`, {
+          headers: { 'Accept': 'application/json' },
+        });
+        if (!response.ok) throw new Error('Failed to load comments');
+        const payload = await response.json();
+        if (rev.packageId !== packageId) return;
+
+        setReviewSummary(ims.item, payload.rating_average, payload.rating_count);
+        const reviews = Array.isArray(payload.reviews) ? payload.reviews : [];
+        const html = reviews.map(reviewHtml).join('');
+        if (list) {
+          if (append) {
+            list.insertAdjacentHTML('beforeend', html);
+          } else {
+            list.innerHTML = html || '<div class="prst">No comments yet.</div>';
+          }
+        }
+        rev.commentsLoaded = true;
+        rev.hasMore = !!payload.has_more;
+        rev.nextOffset = payload.next_offset || 0;
+        if (moreButton) moreButton.hidden = !rev.hasMore;
+        setReviewStatus('', false);
+      } catch (error) {
+        setReviewStatus('Could not load comments right now.', true);
+      } finally {
+        rev.loading = false;
+        if (loadButton) {
+          loadButton.disabled = false;
+          loadButton.textContent = rev.commentsLoaded ? 'Refresh comments' : 'Show comments';
+        }
+        if (moreButton) moreButton.disabled = false;
+      }
+    }
+
+    async function submitReview(form) {
+      const packageId = rev.packageId;
+      if (!packageId || !form) return;
+      const submitButton = form.querySelector('button[type="submit"]');
+      const ratingField = form.elements.rating;
+      const commentField = form.elements.comment;
+      const rating = ratingField ? ratingField.value : '';
+      const comment = commentField ? commentField.value : '';
+
+      if (!rating) {
+        setReviewStatus('Choose a rating from 1 to 5.', true);
+        return;
+      }
+
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = 'Saving...';
+      }
+      setReviewStatus('', false);
+
+      try {
+        const response = await fetch(`/est/package/${encodeURIComponent(packageId)}/review/`, {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken(),
+          },
+          body: JSON.stringify({ rating: rating, comment: comment }),
+        });
+        const isJson = (response.headers.get('content-type') || '').indexOf('application/json') !== -1;
+        const payload = isJson ? await response.json() : null;
+        if (!response.ok || !payload || payload.success === false) {
+          throw new Error(payload && payload.error ? payload.error : 'Could not save rating');
+        }
+
+        setReviewSummary(ims.item, payload.rating_average, payload.rating_count);
+        setReviewStatus('Rating saved.', false);
+        if (rev.commentsLoaded) {
+          await loadReviews(false);
+        }
+      } catch (error) {
+        setReviewStatus(error.message || 'Could not save rating.', true);
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.textContent = 'Save rating';
+        }
+      }
+    }
+
+    async function submitSignup(form) {
+      if (!form) return;
+      const submitButton = form.querySelector('button[type="submit"]');
+      const contact = (form.elements.contact ? form.elements.contact.value : '').trim();
+      const username = (form.elements.username ? form.elements.username.value : '').trim();
+      const password = form.elements.password ? form.elements.password.value : '';
+
+      if (!contact || !username || !password) {
+        setReviewStatus('Fill in contact, username, and password.', true);
+        return;
+      }
+
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = 'Creating...';
+      }
+      setReviewStatus('', false);
+
+      try {
+        const response = await fetch('/userProfile/registerjson', {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken(),
+          },
+          body: JSON.stringify({
+            username: username,
+            contact: contact,
+            password: password,
+            passwordConfirmation: password,
+            placeID: '{{ placeid }}',
+          }),
+        });
+        const payload = await response.json().catch(function () { return null; });
+        if (!response.ok) {
+          const message = Array.isArray(payload) ? payload[0] : (payload && (payload.error || payload.detail));
+          throw new Error(message || 'Could not create account');
+        }
+
+        canReview = true;
+        renderReviewPanel(ims.item);
+        setReviewStatus('Account ready. You can now rate this package.', false);
+      } catch (error) {
+        setReviewStatus(error.message || 'Could not create account.', true);
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.textContent = 'Create account';
+        }
+      }
+    }
+
+    window.openPlaceItemModal = function (itemOrIndex) {
+      const modal = document.getElementById('piM');
+      if (!modal) return;
+      const item = typeof itemOrIndex === 'number'
+        ? items[itemOrIndex]
+        : normItem(itemOrIndex || {});
+      if (!item) return;
+
+      if (window.ensurePlaceSubCardStyles) window.ensurePlaceSubCardStyles();
+      ims.item = item;
+      ims.images = item.images || [];
+      ims.index = 0;
+
+      setTxt('piT', item.title);
+      setTxt('piR', item.resortName);
+      setTxt('piPrice', priceText(item.price));
+      setReviewSummary(item, item.ratingAverage, item.ratingCount);
+      const description = [item.description, item.information].filter(Boolean).join('\n\n');
+      const descriptionElement = setTxt('piD', description);
+      if (descriptionElement) {
+        descriptionElement.hidden = !description;
+      }
+
+      const link = document.getElementById('piL');
+      const linkUrl = item.resortLink || item.websiteURL || '';
+      if (link && linkUrl) {
+        link.href = linkUrl;
+        link.textContent = item.resortLink ? 'View Resort' : 'Open Link';
+        link.hidden = false;
+      } else if (link) {
+        link.hidden = true;
+        link.removeAttribute('href');
+      }
+
+      setModalImg(0);
+      renderReviewPanel(item);
+      modal.classList.add('is-open');
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    };
+    window.closePlaceItemModal = function () {
+      const modal = document.getElementById('piM');
+      const image = document.getElementById('piI');
+      if (image) image.removeAttribute('src');
+      if (modal) {
+        modal.classList.remove('is-open');
+        modal.setAttribute('aria-hidden', 'true');
+      }
+      document.body.style.overflow = '';
+    };
+    window.shiftPlaceItemModalImage = function (direction) {
+      setModalImg(ims.index + direction);
+    };
+
+    runWhenReady(function () {
+      const closeButton = document.getElementById('piX');
+      const prevButton = document.getElementById('piP');
+      const nextButton = document.getElementById('piN');
+      if (closeButton) closeButton.addEventListener('click', window.closePlaceItemModal);
+      if (prevButton) prevButton.addEventListener('click', function () { window.shiftPlaceItemModalImage(-1); });
+      if (nextButton) nextButton.addEventListener('click', function () { window.shiftPlaceItemModalImage(1); });
+
+      document.addEventListener('click', function (event) {
+        const card = event.target && event.target.closest ? event.target.closest('.jpic') : null;
+        if (!card) return;
+        const index = Number(card.getAttribute('data-pi'));
+        if (Number.isFinite(index)) window.openPlaceItemModal(index);
+      });
+
+      document.addEventListener('click', function (event) {
+        const loadButton = event.target && event.target.closest ? event.target.closest('#prB') : null;
+        if (loadButton) {
+          loadReviews(false);
+          return;
+        }
+        const signupButton = event.target && event.target.closest ? event.target.closest('#psT') : null;
+        if (signupButton) {
+          const signupForm = document.getElementById('psF');
+          if (signupForm) {
+            signupForm.hidden = !signupForm.hidden;
+            if (!signupForm.hidden) {
+              const firstField = signupForm.querySelector('input');
+              if (firstField) firstField.focus();
+            }
+          }
+          return;
+        }
+        const starButton = event.target && event.target.closest ? event.target.closest('.psrs') : null;
+        if (starButton) {
+          setStars(starButton.getAttribute('data-rating'));
+          return;
+        }
+        const moreButton = event.target && event.target.closest ? event.target.closest('#prM') : null;
+        if (moreButton) loadReviews(true);
+      });
+
+      document.addEventListener('submit', function (event) {
+        if (!event.target || (event.target.id !== 'prF' && event.target.id !== 'psF')) return;
+        event.preventDefault();
+        if (event.target.id === 'psF') {
+          submitSignup(event.target);
+        } else {
+          submitReview(event.target);
+        }
+      });
+
+      document.addEventListener('keydown', function (event) {
+        const modal = document.getElementById('piM');
+        if (!modal || !modal.classList.contains('is-open')) return;
+        if (event.key === 'Escape') window.closePlaceItemModal();
+        if (event.key === 'ArrowLeft') window.shiftPlaceItemModalImage(-1);
+        if (event.key === 'ArrowRight') window.shiftPlaceItemModalImage(1);
+      });
+    });
   }());
+
+  function openBulletinImageModal(imageUrl) {
+    const modal = document.getElementById('bulletinImageModal');
+    const imageElement = document.getElementById('bulletinModalImage');
+    if (!modal || !imageElement) return;
+    imageElement.src = imageUrl;
+    modal.style.display = 'block';
+    modal.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeBulletinImageModal() {
+    const modal = document.getElementById('bulletinImageModal');
+    const imageElement = document.getElementById('bulletinModalImage');
+    if (imageElement) imageElement.src = '';
+    if (modal) {
+
+      modal.style.display = 'none';
+      modal.setAttribute('aria-hidden', 'true');
+    }
+  }
+
+  document.addEventListener('click', function(event) {
+    const link = event.target && event.target.closest ? event.target.closest('a.bulletin-image-link') : null;
+    if (!link) return;
+    event.preventDefault();
+    const imageUrl = link.getAttribute('data-image-url') || link.getAttribute('href');
+    if (!imageUrl) return;
+    openBulletinImageModal(imageUrl);
+  });
+
+  window.placePageReady(function() {
+    const button = document.getElementById('bulletinPostButton');
+    const form = document.getElementById('bulletinPostForm');
+    if (!button || !form) return;
+
+    button.addEventListener('click', function() {
+      const isHidden = form.style.display === 'none' || form.style.display === '';
+      form.style.display = isHidden ? 'flex' : 'none';
+    });
+  });
+
+  window.placePageReady(function () {
+    const navToggle = document.getElementById('placeNavToggle');
+    const navMenu = document.getElementById('placeNavMenu');
+    if (!navToggle || !navMenu) return;
+
+    const navOpenMap = document.getElementById('placeNavOpenMap');
+
+    function closeMenu() {
+      navMenu.classList.remove('is-open');
+      navToggle.setAttribute('aria-expanded', 'false');
+    }
+
+    navToggle.addEventListener('click', function () {
+      const isOpen = navMenu.classList.toggle('is-open');
+      navToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    });
+
+    navMenu.addEventListener('click', function (event) {
+      const actionable = event.target && event.target.closest ? event.target.closest('a, button') : null;
+      if (!actionable) return;
+      closeMenu();
+    });
+
+    if (navOpenMap) {
+      navOpenMap.addEventListener('click', function (event) {
+        if (event && event.preventDefault) event.preventDefault();
+        const existing = document.getElementById('openMapBtn');
+        if (existing) existing.click();
+      });
+    }
+
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') closeMenu();
+    });
+  });
 </script>
-<script src="{% static 'home/place-page-core.js' %}" defer></script>
+
+<style>
+  :root {
+    /* Main Palette Inspired by Uploaded Theme */
+    --surface: #fdfbf5;
+    --surface-alt: #f4f0e4;
+    --page-bg: #eef1e4;
+
+    --accent: #556b2f;
+    --accent-dark: #38461f;
+    --accent-light: #8c6b4f;
+
+    --text: #3f3a2f;
+    --text-muted: #7a7468;
+
+    --border: #d8d2c3;
+
+    --shadow-sm: none;
+    --shadow-md: none;
+    --radius-lg: 0px;
+    --radius-md: 0px;
+    --radius-sm: 0px;
+    --transition: 0s linear;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Helvetica Neue", Arial, sans-serif;
+    --font-size-base: 16px;
+    --line-height-base: 1.58;
+  }
+
+
+  body {
+    font-family: var(--font-sans);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-base);
+    color: var(--text);
+    min-height: 100vh;
+    margin: 0;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    font: inherit;
+    line-height: 1.35;
+  }
+
+
+
+  .hero {
+    flex-wrap: wrap;
+    gap: 24px;
+    align-items: center;
+    justify-content: space-between;
+    
+  }
+
+  /* .hero__info {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex: 1 1 280px;
+    min-width: 0;
+  } */
+
+  .hero__icon {
+    width: 60px;
+    height: 60px;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .hero__icon svg {
+    width: 28px;
+    height: 28px;
+    fill: #ffffff;
+  }
+
+  .hero__text {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .hero__heading {
+    font-size: clamp(1.9rem, 4vw, 2.6rem);
+    font-weight: 750;
+    color: var(--accent);
+    line-height: 1.12;
+  }
+
+  .hero__subtitle {
+    color: var(--text-muted);
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  .hero__actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .ask-box {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .ask-input {
+    width: 100vw;
+    padding: 0.6rem 0.8rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    font-size: 1rem;
+    max-width: 700px;
+    transition: border-color var(--transition), box-shadow var(--transition);
+  }
+
+  .ask-input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  .ask-send-btn {
+    padding: 0.6rem;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: var(--accent);
+    color: #ffffff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform var(--transition), box-shadow var(--transition);
+  }
+
+
+
+  .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0.7rem 1.3rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    font-weight: 650;
+    font-size: 0.98rem;
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    transition: transform var(--transition), box-shadow var(--transition), background var(--transition), color var(--transition), border-color var(--transition);
+  }
+
+  .button svg {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+  }
+
+  .button--primary {
+    background: var(--accent);
+    color: #ffffff;
+  }
+
+
+
+  .button--ghost {
+    
+    border-color: var(--border);
+    color: var(--accent);
+  }
+
+  .primary-grid {
+    display: grid;
+    gap: 24px;
+    margin-top: 16px;
+  }
+
+  @media (min-width: 992px) {
+    .primary-grid {
+      grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+    }
+  }
+
+  .panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 1em;
+  }
+
+  .panel__body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .page-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    margin-top: 28px;
+  }
+
+  .section-header {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .section-header h2 {
+    font-size: clamp(1.45rem, 3vw, 1.9rem);
+    font-weight: 700;
+    line-height: 1.25;
+    color: rgba(167, 163, 100, 0.84);
+  }
+
+  .section-header p {
+    color: var(--text-muted);
+    font-size: 1rem;
+    line-height: 1.55;
+  }
+
+  #calendar-container {
+    overflow: hidden;
+  }
+
+  #calendar-container table {
+    width: 100%;
+    border-collapse: collapse;
+    
+  }
+
+  #calendar-container th,
+  #calendar-container td {
+    padding: 14px;
+    text-align: center;
+    font-size: 0.95rem;
+    line-height: 1.35;
+  }
+
+  #calendar-container th {
+    background: #eef2ff;
+    color: var(--accent);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  #calendar-container td {
+    border: 1px solid var(--border);
+    font-weight: 500;
+    color: #4a5568;
+    cursor: pointer;
+    transition: background var(--transition), color var(--transition), transform var(--transition);
+  }
+
+  .calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 18px 20px;
+    background: var(--surface-alt);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .calendar-header h2 {
+    font-size: 1.35rem;
+    color: var(--text);
+    font-weight: 650;
+    letter-spacing: 0;
+    line-height: 1.25;
+  }
+
+  .nav-buttons {
+    display: flex;
+    gap: 10px;
+  }
+
+  .calendar-header-left {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .nav-buttons a {
+    text-decoration: none;
+  }
+
+  .nav-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: #eef2ff;
+    color: var(--accent);
+    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background var(--transition), color var(--transition), transform var(--transition);
+  }
+
+  .add-schedule-btn {
+    padding: 0.55rem 0.9rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--accent);
+    background: #ffffff;
+    color: var(--accent);
+    font-weight: 700;
+    cursor: pointer;
+    transition: background var(--transition), color var(--transition), box-shadow var(--transition), transform var(--transition);
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 6px;
+    background: var(--accent);
+    color: #ffffff;
+    font-size: 0.82rem;
+    font-weight: 600;
+    transition: transform var(--transition), background var(--transition);
+    position: absolute;
+    top: 6px;
+    cursor: pointer;
+  }
+
+  td.has-badge {
+    position: relative;
+  }
+
+  .chat-container {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    height: 100%;
+  }
+
+  .chat-messages {
+    flex: 1;
+    min-height: 320px;
+    max-height: 560px;
+    overflow-y: auto;
+    padding: 5px;
+    flex-direction: column-reverse;
+    gap: 14px;
+
+  }
+
+  .chat-messages::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .chat-messages::-webkit-scrollbar-track {
+    background: #edf2f7;
+  }
+
+  .chat-messages::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+  }
+
+  .message-bubble {
+    background: #ffffff;
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    line-height: 1.65;
+    word-break: break-word;
+  }
+
+  .message-bubble span {
+    font-weight: 700;
+    color: var(--accent);
+    margin-right: 6px;
+  }
+
+  .message-time {
+    margin-top: 8px;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+
+  .chat-input-area {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+    padding: 15px;
+  }
+
+  .chat-input {
+    flex: 1;
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    border: 2px solid var(--border);
+    font-size: 1rem;
+    resize: none;
+    min-height: 56px;
+    transition: border-color var(--transition), box-shadow var(--transition);
+    font-family: inherit;
+  }
+
+  .chat-input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  .chat-send-btn {
+    width: 54px;
+    height: 54px;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: var(--accent);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: transform var(--transition), box-shadow var(--transition), opacity var(--transition);
+  }
+
+  .chat-send-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .chat-send-btn svg {
+    width: 20px;
+    height: 20px;
+    fill: #ffffff;
+  }
+
+  .chat-send-btn .spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  .calendar-grid {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  }
+
+  .calendar-event-card {
+    position: relative;
+    min-height: 220px;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background-size: cover;
+    background-position: center;
+    transition: transform var(--transition), box-shadow var(--transition);
+    cursor: pointer;
+  }
+
+  .card-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(14, 23, 53, 0.58);
+  }
+
+  .card-content {
+    position: absolute;
+    inset: auto 0 0 0;
+    padding: 20px;
+    color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    z-index: 1;
+  }
+
+  .card-content h4 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .card-content p {
+    font-size: 0.95rem;
+    line-height: 1.45;
+    opacity: 0.9;
+  }
+
+  .calendar-list {
+    display: flex;
+    align-items: center;
+    border-top: 1px solid #e9ecef;
+    gap: 1rem;
+    flex-wrap: wrap;
+    overflow: scroll;
+  }
+
+  .calendar-list > * {
+    flex-shrink: 0;
+    min-width: max-content;
+  }
+
+  .loading-symbol {
+    width: 54px;
+    height: 54px;
+    border: 4px solid rgba(103, 120, 219, 0.25);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 32px auto;
+  }
+
+  .blog-grid {
+    display: grid;
+    gap: 24px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+
+.blog-category {
+  display: inline-block;
+  padding: 5px 12px;
+
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+
+  color: #fff;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+/* Category Colors */
+.category-guide {
+  background: #bd7b1c;
+}
+
+.category-story {
+  background: #7f3aed;
+}
+
+.category-tip-and-trick {
+  background: #499605;
+}
+
+.category-explore {
+  background: #ea0ce3;
+}
+
+.category-product {
+  background: #dc2626;
+}
+  .blog-title {
+    font-size: 1.22rem;
+    color: var(--text);
+    margin-bottom: 12px;
+    font-weight: 650;
+    line-height: 1.35;
+  }
+
+  .blog-excerpt {
+    color: var(--text-muted);
+    font-size: 1rem;
+    line-height: 1.65;
+    margin-bottom: 18px;
+  }
+
+  .blog-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .blog-meta-left {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    line-height: 1.4;
+  }
+
+  .blog-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .blog-card {
+    color: var(--accent);
+    font-weight: 650;
+    text-decoration: none;
+    font-size: 0.98rem;
+    transition: color var(--transition);
+  }
+
+
+  .empty-state {
+    text-align: center;
+    font-size: 1rem;
+    line-height: 1.55;
+    color: var(--text-muted);
+    padding: 24px;
+    background: var(--surface-alt);
+    border-radius: var(--radius-md);
+    border: 1px dashed #cbd5f5;
+  }
+
+  /* Pagination Styles */
+  .pagination-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+  }
+
+  .pagination-btn {
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--accent);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all var(--transition);
+    min-width: 40px;
+    text-align: center;
+  }
+
+  .pagination-btn.active {
+    background: var(--accent);
+    color: #ffffff;
+    border-color: var(--accent);
+    font-weight: 600;
+  }
+
+  .pagination-dots {
+    padding: 8px 4px;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    user-select: none;
+  }
+
+  .load-more-wrap {
+    display: flex;
+    justify-content: center;
+    margin-top: 16px;
+  }
+
+  .load-more-wrap[hidden] {
+    display: none;
+  }
+
+  .place-load-more-btn:disabled {
+    opacity: 0.65;
+    cursor: default;
+  }
+
+  @media (max-width: 480px) {
+    .pagination-controls {
+      gap: 4px;
+    }
+
+    .pagination-btn {
+      padding: 6px 8px;
+      font-size: 0.8rem;
+      min-width: 32px;
+    }
+  }
+
+  #mapModal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(13, 27, 62, 0.45);
+    align-items: center;
+    justify-content: center;
+    z-index: 1500;
+  }
+
+  #mapModal.show {
+    display: flex;
+  }
+
+  #mapModal > div {
+    /* width: min(95vw, 100%);
+    height: min(95vh, 860px); */
+    width: 100%;
+    height: 100%;
+    
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    position: relative;
+    box-shadow: var(--shadow-md);
+  }
+
+  #closeMapBtn {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.9);
+    font-size: 26px;
+    cursor: pointer;
+    color: var(--text);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background var(--transition), transform var(--transition);
+    z-index: 2;
+  }
+
+  .modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(13, 27, 62, 0.65);
+    z-index: 2000;
+    padding-top: 24px;
+    overflow-y: auto;
+  }
+
+  .modal-content {
+    
+    border-radius: var(--radius-lg);
+    max-width: 700px;
+    overflow: hidden;
+    box-shadow: none;
+    margin: 0 auto;
+  }
+
+  .modal-header {
+    background: var(--accent);
+    color: #ffffff;
+    padding: 13px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .modal-header h2 {
+    margin: 0;
+    font-size: 1.35rem;
+    line-height: 1.25;
+    font-weight: 700;
+  }
+
+  .close {
+    font-size: 32px;
+    font-weight: 400;
+    cursor: pointer;
+    transition: transform var(--transition), opacity var(--transition);
+    line-height: 1.1;
+  }
+
+  .modal-body {
+    padding: 0;
+    color: var(--text);
+    line-height: 1.65;
+    background-color: white;
+  }
+
+  .modal-image img {
+    width: 100%;
+    display: block;
+  }
+
+  .modal-footer {
+    padding: 20px 24px;
+    background: var(--surface-alt);
+  }
+
+  /* Add Schedule modal form styling */
+  #addScheduleModal .modal-content {
+    max-width: 720px;
+  }
+
+  #addScheduleForm {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .add-schedule-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+  }
+
+  #addScheduleForm label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  #addScheduleForm input,
+  #addScheduleForm select {
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 1rem;
+    
+    transition: border var(--transition), box-shadow var(--transition);
+  }
+
+  #addScheduleForm input:focus,
+  #addScheduleForm select:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  #addScheduleStatus {
+    min-height: 20px;
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  .add-schedule-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 6px;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @media (max-width: 680px) {
+    .hero {
+      padding: 22px;
+    }
+/* 
+    .hero__info {
+      flex-direction: row;
+      align-items: center;
+    } */
+
+    .hero__icon {
+      width: 52px;
+      height: 52px;
+    }
+
+    .hero__actions {
+      width: 100%;
+      justify-content: flex-start;
+    }
+
+    .ask-box {
+      width: 100%;
+      margin-bottom: 12px;
+    }
+
+    .ask-input {
+      width: 100%;
+      min-width: auto;
+    }
+
+    .chat-messages {
+      max-height: 480px;
+    }
+
+    .chat-input-area {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .chat-send-btn {
+      width: 100%;
+      height: 48px;
+    }
+
+    .calendar-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .nav-buttons {
+      width: 100%;
+      justify-content: flex-start;
+    }
+  }
+
+  @media (max-width: 480px) {
+
+
+    .panel {
+      padding: 20px;
+    }
+
+    #calendar-container th,
+    #calendar-container td {
+      padding: 10px 8px;
+      font-size: 0.8rem;
+    }
+
+    .calendar-event-card {
+      min-height: 200px;
+    }
+
+    .card-content h4 {
+      font-size: 1.05rem;
+    }
+
+    .chat-messages {
+      padding: 16px;
+    }
+
+    .chat-input {
+      font-size: 0.9rem;
+    }
+
+    #allDiscussion {
+      max-height: 35vh !important;
+    }
+
+    #mobileChatModal .modal-content {
+      max-height: 90vh;
+    }
+  }
+
+  #mobileChatBtn {
+    position: fixed;
+    right: 20px;
+    bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+    width: 56px;
+    height: 56px;
+    border-radius: 0;
+    border: 0;
+    background: var(--accent);
+    box-shadow: none;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    transition: none;
+  }
+
+  #mobileChatBtn svg {
+    width: 24px;
+    height: 24px;
+    fill: #ffffff;
+  }
+
+  #mobileChatModal {
+    padding: 18px;
+    overflow: hidden;
+    background: rgba(31, 35, 24, 0.62);
+  }
+
+  #mobileChatModal .modal-content {
+    width: min(520px, calc(100vw - 36px));
+    max-width: 520px !important;
+    max-height: min(760px, calc(100dvh - 36px)) !important;
+    margin: clamp(12px, 5vh, 42px) auto 0;
+    background: var(--surface);
+    border: 0;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    box-shadow: none;
+  }
+
+  #mobileChatModal .modal-header {
+    padding: 14px 16px;
+    min-height: 58px;
+    background: #fffdf8;
+    border-bottom: 0;
+  }
+
+  #mobileChatModal .modal-header h2 {
+    font-size: 1.12rem;
+    font-weight: 700;
+    letter-spacing: 0;
+  }
+
+  #mobileChatModal .close {
+    width: 36px;
+    height: 36px;
+    border-radius: 0;
+    background: var(--surface-alt);
+    color: var(--text-muted);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    line-height: 1.1;
+  }
+
+  #mobileChatModal .modal-body {
+    flex: 1;
+    min-height: 0;
+    background: #f2efe4;
+  }
+
+  #mobileChatModal .chat-container {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    height: 100%;
+    text-align: left !important;
+  }
+
+  #mobileChatModal .chat-messages {
+    flex: 1;
+    min-height: 0;
+    max-height: none !important;
+    overflow-y: auto;
+    padding: 16px;
+    scroll-padding-bottom: 96px;
+  }
+
+  #mobileChatModal .other-message + .other-message {
+    margin-top: 12px;
+  }
+
+  #mobileChatModal .message-bubble {
+    width: fit-content;
+    max-width: 100%;
+    padding: 12px 14px;
+    border: 0;
+    border-radius: 0;
+    background: #ffffff;
+    box-shadow: none;
+  }
+
+  #mobileChatModal .message-bubble span {
+    display: block;
+    margin: 0 0 4px;
+    color: var(--accent-dark);
+    font-size: 0.9rem;
+    line-height: 1.35;
+  }
+
+  #mobileChatModal .message-time {
+    margin-top: 8px;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    line-height: 1.35;
+  }
+
+  #mobileChatModal .chat-input-area {
+    flex-shrink: 0;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    background: rgba(255, 253, 248, 0.96);
+    border-top: 0;
+    box-shadow: none;
+  }
+
+  #mobileChatModal .chat-input {
+    min-height: 48px;
+    max-height: 120px;
+    padding: 12px 14px;
+    border: 0;
+    border-radius: 0;
+    background: #ffffff;
+    color: var(--text);
+    font-size: 1rem;
+    line-height: 1.45;
+  }
+
+  #mobileChatModal .chat-input:focus {
+    outline: 1px solid var(--accent);
+    box-shadow: none;
+  }
+
+  #mobileChatModal .chat-send-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  @media (max-width: 680px) {
+    .panel--chat {
+      display: none;
+    }
+
+    #mobileChatBtn {
+      display: flex;
+    }
+
+    #mobileChatModal {
+      padding: 0;
+    }
+
+    #mobileChatModal .modal-content {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      max-width: none !important;
+      height: min(82dvh, 720px);
+      max-height: calc(100dvh - 10px - env(safe-area-inset-top, 0px)) !important;
+      margin: 0;
+      border-right: 0;
+      border-bottom: 0;
+      border-left: 0;
+      border-radius: 0;
+    }
+
+    #mobileChatModal .modal-header {
+      padding-top: calc(12px + env(safe-area-inset-top, 0px));
+    }
+
+    #mobileChatModal .chat-input-area {
+      padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+      flex-direction: row;
+    }
+
+    #mobileChatModal .chat-send-btn {
+      width: 48px;
+      height: 48px;
+    }
+  }
+  #eventDetailsBody{
+  padding: 1em;
+  }
+
+   /* Schedule Card Styles */
+    .schedule-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 1.5rem;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .schedule-card {
+      margin-top: 1.5em;
+    }
+
+
+
+
+
+    .date-month {
+      font-size: 0.95rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #667eea;
+      line-height: 1.35;
+    }
+
+
+
+
+    .schedule-type-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.9rem;
+      font-weight: 650;
+      background: rgba(255, 255, 255, 0.2);
+      width: fit-content;
+      line-height: 1.35;
+    }
+
+
+
+    .schedule-description {
+      margin: 0 0 1.5rem 0;
+      color: #555;
+      font-size: 1rem;
+      line-height: 1.65;
+    }
+
+    .schedule-details-grid {
+      display: grid;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+
+
+    .detail-label {
+      font-weight: 700;
+      color: #333;
+      min-width: 120px;
+      font-size: 0.95rem;
+      line-height: 1.4;
+    }
+
+    .detail-value {
+      color: #666;
+      font-size: 1rem;
+      line-height: 1.45;
+    }
+
+    .schedule-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .poster-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .poster-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #667eea;
+    }
+
+    .poster-avatar-placeholder {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #e9ecef;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      /* font-size: 1.5rem; */
+    }
+
+    .poster-details {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .poster-name {
+      font-weight: 700;
+      color: #333;
+      font-size: 1rem;
+      line-height: 1.35;
+    }
+
+    .poster-contact {
+      font-size: 0.95rem;
+      color: #666;
+      line-height: 1.4;
+    }
+
+    .schedule-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .review-count {
+      font-size: 0.9rem;
+      color: #666;
+      line-height: 1.35;
+    }
+
+    .btn-join {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 0.625rem 1.5rem;
+      font-size: 0.98rem;
+      font-weight: 650;
+      line-height: 1.35;
+      cursor: pointer;
+      transition: none;
+    }
+
+    .btn-join:active {
+      background: #4558b8;
+    }
+
+    .btn-view-joiners {
+      background: #0078d4;
+      color: white;
+      border: none;
+      padding: 0.625rem 1.5rem;
+      font-size: 0.98rem;
+      font-weight: 650;
+      line-height: 1.35;
+      cursor: pointer;
+      transition: none;
+    }
+
+    .btn-view-joiners:active {
+      background: #005ca3;
+    }
+
+    .btn-delete-schedule {
+      background: #cf1322;
+      color: white;
+      border: none;
+      padding: 0.625rem 1.5rem;
+      font-size: 0.98rem;
+      font-weight: 650;
+      line-height: 1.35;
+      cursor: pointer;
+      transition: none;
+    }
+
+    .btn-delete-schedule:active {
+      background: #99101a;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    .top-nav {
+      /* position: sticky; */
+      top: 0;
+      z-index: 1200;
+      background: rgba(255, 255, 255, 0.9);
+      margin-bottom: 18px;
+    }
+
+    .top-nav__inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 12px 14px;
+    }
+
+    .top-nav__brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .top-nav__brand-badge {
+      width: 36px;
+      height: 36px;
+      border-radius: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .top-nav__brand-badge svg {
+      width: 18px;
+      height: 18px;
+      fill: var(--accent);
+    }
+
+    .top-nav__toggle {
+    background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  cursor: pointer;
+  outline: inherit;
+    }
+
+    .top-nav__toggle svg {
+      width: 32px;
+      height: 32px;
+      fill: var(--text);
+    }
+
+    .top-nav__links {
+      display: none;
+      flex-direction: column;
+      
+    }
+
+    .top-nav__links.is-open {
+      display: flex;
+    }
+
+.top-nav__links {
+  display: none;
+  flex-direction: column;
+}
+
+.top-nav__links.is-open {
+  display: flex;
+}
+
+.top-nav__links a {
+  position: relative; /* IMPORTANT */
+  
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0.7rem 1rem;
+  text-decoration: none;
+  color: var(--accent-dark);
+  font-weight: 700;
+}
+
+/* border ONLY between links */
+.top-nav__links a:not(:last-child)::after {
+  content: "";
+  position: absolute;
+
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+
+  width: 80%;
+  height: 2px;
+
+  background: var(--accent-dark);
+
+  /* pointed edges */
+  clip-path: polygon(
+    0% 50%,
+    3% 0%,
+    97% 0%,
+    100% 50%,
+    97% 100%,
+    3% 100%
+  );
+}
+
+
+    #events,
+    #community-bulletin,
+    #schedules,
+    #blogs {
+      scroll-margin-top: 92px;
+    }
+
+    @media (min-width: 768px) {
+      .top-nav__toggle {
+        display: none;
+      }
+
+      .top-nav__inner {
+        padding: 12px 18px;
+      }
+
+      .top-nav__links {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-end;
+        padding: 0 18px 12px;
+        flex-wrap: wrap;
+      }
+    }
+
+    /* Resort Activities List Styles */
+
+/* Loading Spinner */
+.loading-symbol {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 40px auto;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 32px 16px;
+  color: #6b7280;
+  font-size: 1rem;
+  line-height: 1.55;
+  background-color: #f9fafb;
+  border-radius: 0;
+  border: 0;
+}
+
+/* Resort Activities Block */
+.resort-activities-block {
+  background-color: #ffffff;
+  transition: none;
+}
+
+.resort-activities-block li {
+  margin-bottom: 1.4em;
+  list-style: none;
+}
+
+.resort-activities-block h4 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: #111827;
+  margin: 0 0 12px 0;
+}
+
+/* Visit Website Button */
+.btn-join {
+  display: inline-block;
+  padding: 8px 16px;
+  background-color: #3b82f6;
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 0.98rem;
+  font-weight: 650;
+  line-height: 1.35;
+  transition: none;
+}
+
+.btn-join:active {
+  background-color: #1d4ed8;
+}
+
+/* Activities List */
+.activities-list {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 0 0;
+}
+
+
+
+/* Sub-packages List (nested) */
+.activities-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0 0;
+
+}
+
+.activities-list ul li {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  margin-bottom: 8px;
+  background-color: #ffffff;
+
+  font-size: 0.98rem;
+  line-height: 1.45;
+  color: #374151;
+  transition: none;
+}
+
+.activities-list ul li:last-child {
+  margin-bottom: 0;
+}
+
+/* Sub-package Images */
+.activities-list ul li img {
+  flex-shrink: 0;
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  margin-right: 12px;
+  border: 0;
+}
+
+/* Price Styling */
+.activities-list ul li::after {
+  margin-left: auto;
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .resort-activities-block h4 {
+    font-size: 1.08rem;
+  }
+
+
+  .activities-list ul li {
+    font-size: 0.95rem;
+  }
+
+  .activities-list ul li img {
+    width: 50px;
+    height: 50px;
+    margin-right: 10px;
+  }
+}
+
+/* Container Spacing */
+#resort-activities-list-js {
+  max-width: 100%;
+  margin: 0 auto;
+    display: flex;
+  flex-direction: row;
+  gap: 1.1rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  position: relative;
+}
+
+/* Temporary: hide all major sections except the calendar and Accommodations */
+/* Keeps .primary-grid (calendar) visible and only the #accommodations section inside .page-stack */
+/* .page-container > *:not(.primary-grid):not(.page-stack) {
+  display: none !important;
+}
+
+.page-stack > section:not(#accommodations) {
+  display: none !important;
+}
+
+.page-container .primary-grid {
+  display: block !important;
+}
+.page-container #accommodations {
+  display: block !important;
+} */
+/* END HIDING  */
+
+.modal-for-blog {
+  position: fixed;
+  top: 0;
+  right: -100%;
+  width: 100%;
+  height: 100%;
+  background: white;
+  z-index: 1000;
+  overflow-y: auto;
+}
+/* Active state */
+.modal-for-blog.show {
+  right: 0;
+}
+
+/* Close button */
+.close-modal-for-blog {
+  position: absolute;
+  z-index: 1;
+  top: 10px;
+  right: 20px;
+  cursor: pointer;
+  font-size: 32px;
+}
+#modalforblogContentframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/*  */
+.ask-box {
+  position: relative;
+}
+
+.ask-input {
+  width: 100%;
+  padding: 12px 48px 12px 12px; /* extra right padding for button */
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+.ask-send-btn {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+
+  width: 36px;
+  height: 36px;
+  border: none;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+}
+
+.pim {
+  position: fixed;
+  inset: 0;
+  z-index: 12000;
+  display: none;
+  background: #ffffff;
+  color: var(--text);
+  overflow-y: auto;
+}
+
+.pim.is-open {
+  display: block;
+}
+
+.pims {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.75fr);
+}
+
+.pimm {
+  position: relative;
+  min-height: 100vh;
+  background: #111827;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pimi {
+  display: block;
+  max-width: 100%;
+  max-height: 100vh;
+  object-fit: contain;
+}
+
+.pime {
+  display: none;
+  min-height: 280px;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 1rem;
+}
+
+.pimx {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 2;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  background: #ffffff;
+  color: #111827;
+  font-size: 1.8rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.pimc {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.pimn,
+.pimq {
+  border: 0;
+  background: #ffffff;
+  color: #111827;
+  padding: 10px 14px;
+  font-size: 0.95rem;
+  font-weight: 650;
+  line-height: 1.2;
+}
+
+.pimn {
+  cursor: pointer;
+}
+
+.pimd {
+  padding: clamp(24px, 5vw, 56px);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  justify-content: center;
+}
+
+.pimr {
+  min-height: 1.2em;
+  color: var(--text-muted);
+  font-size: 0.98rem;
+  font-weight: 650;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.pimd h2 {
+  color: var(--text);
+  font-size: clamp(1.55rem, 3vw, 2.35rem);
+  font-weight: 750;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.pimp {
+  color: var(--accent);
+  font-size: 1.15rem;
+  font-weight: 750;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.pimdsc {
+  color: var(--text-muted);
+  font-size: 1rem;
+  line-height: 1.65;
+  margin: 0;
+  white-space: pre-line;
+}
+
+.piml {
+  align-self: flex-start;
+  margin-top: 8px;
+  text-decoration: none;
+}
+
+@media (max-width: 760px) {
+  .pims {
+    display: block;
+  }
+
+  .pimm {
+    min-height: 52vh;
+  }
+
+  .pimi {
+    max-height: 52vh;
+  }
+
+  .pimd {
+    padding: 22px 18px 32px;
+    justify-content: flex-start;
+  }
+}
+
+/* Low-cost render pass: flatten decorative paint work while keeping layout intact. */
+.hero__icon,
+.ask-send-btn,
+.button--primary,
+.chat-send-btn,
+.modal-header,
+#mobileChatBtn,
+.btn-join,
+.btn-view-joiners,
+.btn-delete-schedule {
+  background: var(--accent) !important;
+}
+
+.button,
+.ask-input,
+.ask-send-btn,
+.chat-input,
+.chat-send-btn,
+.nav-btn,
+.add-schedule-btn,
+.badge,
+.message-bubble,
+.calendar-event-card,
+.blog-category,
+.empty-state,
+.pagination-btn,
+#mapModal > div,
+#closeMapBtn,
+.modal-content,
+#addScheduleForm input,
+#addScheduleForm select,
+#mobileChatBtn,
+#mobileChatModal .modal-content,
+#mobileChatModal .close,
+#mobileChatModal .message-bubble,
+#mobileChatModal .chat-input,
+#mobileChatModal .chat-send-btn,
+.schedule-type-badge,
+.btn-join,
+.btn-view-joiners,
+.btn-delete-schedule,
+.activities-list ul li,
+.activities-list ul li img,
+.pc {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  filter: none !important;
+  transition: none !important;
+}
+
+.button,
+.button--ghost,
+.add-schedule-btn,
+#calendar-container td,
+.calendar-header,
+.calendar-list,
+.blog-category,
+.empty-state,
+.pagination-btn,
+#closeMapBtn,
+#addScheduleForm input,
+#addScheduleForm select,
+#mobileChatModal .modal-content,
+#mobileChatModal .modal-header,
+#mobileChatModal .message-bubble,
+#mobileChatModal .chat-input-area,
+#mobileChatModal .chat-input,
+.activities-list ul li img {
+  border: 0 !important;
+}
+
+.modal,
+.top-nav,
+.schedule-type-badge {
+  backdrop-filter: none !important;
+}
+
+/* Readability pass: consistent system typography without extra font downloads. */
+.section-header h2,
+.blog-title,
+.modal-header h2,
+#mobileChatModal .modal-header h2,
+.poster-name,
+.detail-label,
+.pct {
+  font-weight: 700;
+}
+
+.message-bubble,
+.blog-excerpt,
+.schedule-description,
+.detail-value,
+.modal-body,
+.resort-activities-block,
+.activities-list ul li {
+  line-height: 1.6;
+}
+
+.button,
+.add-schedule-btn,
+.pagination-btn,
+.btn-join,
+.btn-view-joiners,
+.btn-delete-schedule,
+.blog-card,
+.top-nav__links a {
+  font-size: 0.98rem;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.blog-meta-left,
+.message-time,
+#mobileChatModal .message-time,
+.poster-contact,
+.review-count {
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+</style>
 
 <script>
     // Generate math challenge
@@ -1157,15 +4063,9 @@
         {% else %}
           <div class="empty-state" style="margin-top: 12px;">No bulletin posts yet.</div>
         {% endif %}
-        {% if community_bulletins_has_more %}
-        <div id="community-bulletin-load-more" class="load-more-wrap">
+        <div id="community-bulletin-load-more" class="load-more-wrap" {% if community_bulletins|length < 10 %}hidden{% endif %}>
           <button type="button" class="button button--ghost place-load-more-btn" onclick="loadMoreCommunityBulletins('{{ placeid }}')">Load more</button>
         </div>
-        {% else %}
-        <div id="community-bulletin-load-more" class="load-more-wrap" hidden>
-          <button type="button" class="button button--ghost place-load-more-btn" onclick="loadMoreCommunityBulletins('{{ placeid }}')">Load more</button>
-        </div>
-        {% endif %}
       </div>
 
       <!-- All Schedules Section -->
@@ -1643,7 +4543,7 @@ container.innerHTML = cards;
                 
                 <div class="schedule-footer">
                   <div class="poster-info">
-                    ${sched.posterImageURL ? `<img src="${sched.posterImageURL}" alt="${sched.posterName}" class="poster-avatar" width="48" height="48" loading="lazy" decoding="async">` : '<div class="poster-avatar-placeholder">👤</div>'}
+                    ${sched.posterImageURL ? `<img src="${sched.posterImageURL}" alt="${sched.posterName}" class="poster-avatar">` : '<div class="poster-avatar-placeholder">👤</div>'}
                     <div class="poster-details">
                       
                       <div class="poster-name">${sched.posterName || 'Anonymous'} ${sched.posterVerified ? '✓' : ''}                        </div>
@@ -2167,38 +5067,34 @@ container.innerHTML = cards;
       const storedPasscode = localStorage.getItem('userID');
       
       if (storedUsername && storedPasscode) {
-        const registerStoredUser = () => {
-          fetch('/userProfile/registerjson', {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-CSRFToken": csrftoken
-            },
-            body: JSON.stringify({
-              username: storedUsername,
-              password: storedPasscode,
-              passwordConfirmation: storedPasscode,
-              email: 'na@gmail.com',
-              placeID: `{{placeid}}`
-            }),
-          })
-          .then(response => {
-            if (!response.ok) {
-              throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-          })
-          .then(data => {
-            if (data.error) {
-              console.error("User registration error:", data.error);
-            }
-          })
-          .catch(error => {
-            console.error("Failed to register user:", error);
-          });
-        };
-        if (window.placeIdle) window.placeIdle(registerStoredUser);
-        else window.setTimeout(registerStoredUser, 150);
+        fetch('/userProfile/registerjson', {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrftoken
+          },
+          body: JSON.stringify({
+            username: storedUsername,
+            password: storedPasscode,
+            passwordConfirmation: storedPasscode,
+            email: 'na@gmail.com',
+            placeID: `{{placeid}}`
+          }),
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.error) {
+            console.error("User registration error:", data.error);
+          }
+        })
+        .catch(error => {
+          console.error("Failed to register user:", error);
+        });
       }
     }
 

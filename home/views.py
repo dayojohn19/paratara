@@ -28,31 +28,15 @@ from .models import PlaceDiscussion, TouristSpot, Visit
 from django import forms
 import threading
 
-_EXTERNAL_AI_CLIENT = None
 _DISCUSSION_ANSWER_SERVICE = None
 _PLACE_PHOTO_FETCHER = None
 
 
-def _get_openai_client_class():
-    try:
-        from openai import OpenAI
-    except ImportError as exc:
-        raise RuntimeError("openai package is not installed") from exc
-    return OpenAI
-
-
 def _get_external_ai_client():
-    """Lazy client for legacy non-discussion features that still use Grok."""
-    global _EXTERNAL_AI_CLIENT
-    if _EXTERNAL_AI_CLIENT is not None:
-        return _EXTERNAL_AI_CLIENT
+    """Return the shared client for legacy features that still use Grok."""
     if not getattr(settings, "GROK_API_KEY", ""):
         raise RuntimeError("GROK_API_KEY is not configured")
-    _EXTERNAL_AI_CLIENT = _get_openai_client_class()(
-        api_key=settings.GROK_API_KEY,
-        base_url="https://api.x.ai/v1",
-    )
-    return _EXTERNAL_AI_CLIENT
+    return settings.GROK_CLIENT
 
 
 class _LazyExternalAIClient:
@@ -2024,8 +2008,10 @@ def place_v2(request, placenameURL=None ,id=None, currentMonth=1, currentYear=1)
         else:
             community_bulletins = []
         context['community_bulletins'] = community_bulletins
+        context['community_bulletins_has_more'] = len(community_bulletins) >= 10
     except Exception:
         context['community_bulletins'] = []
+        context['community_bulletins_has_more'] = False
 
     return render(request, 'home/place.html', context)
     # did not made the new schedule form ,, Make it from a new functino
