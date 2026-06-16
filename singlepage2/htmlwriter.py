@@ -581,7 +581,7 @@ img {{
     width: 100%;
     height: 3px;
     margin-top: 4px;
-    border-radius: 3px;
+    
     background: cadetblue;
 }}
 
@@ -767,7 +767,7 @@ img {{
     padding: 1rem;
     background: #ffffff;
     border: 1px solid var(--border);
-    border-radius: 10px;
+    
 }}
 
 .collection-item img,
@@ -791,7 +791,7 @@ img {{
     text-decoration: none;
     font-weight: 650;
     background: var(--accent);
-    border-radius: 8px;
+    
 }}
 
 .directions-link {{
@@ -815,7 +815,7 @@ img {{
     color: #ffffff;
     font: inherit;
     border: 1px solid rgba(255, 255, 255, 0.35);
-    border-radius: 8px;
+    
     background: rgba(255, 255, 255, 0.12);
 }}
 
@@ -854,7 +854,7 @@ footer a {{
     gap: 0.75rem;
     background: rgba(255, 255, 255, 0.10);
     border: 1px solid rgba(255, 255, 255, 0.22);
-    border-radius: 12px;
+    
 }}
 
 #imageform {{
@@ -871,7 +871,7 @@ footer a {{
     color: var(--text);
     font: inherit;
     border: 1px solid #d9dfdc;
-    border-radius: 8px;
+    
     background: #ffffff;
 }}
 
@@ -891,7 +891,7 @@ footer button {{
     font: inherit;
     font-weight: 700;
     border: 0;
-    border-radius: 8px;
+    
     background: var(--accent-light);
     cursor: pointer;
 }}
@@ -909,7 +909,7 @@ section[aria-labelledby="faq-heading"] [data-editing="true"] {{
     padding: 0.75rem 1rem;
     background: #f7f7f7;
     border: 1px solid #cbd5e1;
-    border-radius: 8px;
+    
 
     outline: none;
 
@@ -961,7 +961,7 @@ section[aria-labelledby="faq-heading"] [data-editing="true"] {{
     padding: 0.45rem 0.85rem;
     font: inherit;
     font-weight: 700;
-    border-radius: 8px;
+    
     cursor: pointer;
 }}
 
@@ -997,7 +997,7 @@ section[aria-labelledby="faq-heading"] [data-editing="true"] {{
     color: var(--text);
     font: inherit;
     border: 1px solid var(--border);
-    border-radius: 8px;
+    
     background: #ffffff;
 }}
 
@@ -1015,7 +1015,7 @@ section[aria-labelledby="faq-heading"] [data-editing="true"] {{
     color: var(--text);
     font: inherit;
     border: 1px solid var(--border);
-    border-radius: 8px;
+    
     background: #ffffff;
 }}
 
@@ -1082,7 +1082,7 @@ section[aria-labelledby="faq-heading"] [data-editing="true"] {{
     width: 100%;
 }}
 .blog-paragraph-tools button {{
-border-radius: 0;
+
 }}
     body {{
         font-size: 15.5px;
@@ -2446,7 +2446,9 @@ document.addEventListener('click', (ev) => {{
         {{% for tg in tourguide %}}
         <input type="text" value="{{{{ tg.mobile_number }}}}" readonly aria-label="Tour guide mobile number">
         {{% endfor %}}
-
+        <div style="margin-top: 1.5rem;">
+            <a href="/userProfile/tour-guide/register/" class="collection-link" style="display: inline-block;">Register as Tour Guide</a>
+        </div>
     </section>
   <footer>
   <form method="post" action="{subscribe_url}" id="subscribeForm">

@@ -1,114 +1,290 @@
-
 {% load static %}
-
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,300&family=JetBrains+Mono:wght@400;500&display=swap">
-<link rel="preload" as="image" href="{% static 'home/images/wholeearth2.webp' %}" fetchpriority="high">
-<link rel="stylesheet" href="{% static 'home/index.css' %}" />
-<script src="{% static 'home/index.js' %}" defer></script>
-
-
-<section class="home-page" data-home-page>
-  <header class="home-search-panel">
-    <!-- <div class="earth"></div> -->
-    
-    <div class="home-search-copy">
-
-
-      <!-- <p class="home-eyebrow">Paratara</p> -->
-      <!-- <h1>Where are you headed?</h1> -->
-      <div>
-          <!-- <div>{% include "home/navBar.html" %}</div> -->
-      </div>      
-      <!-- <p class="home-lede">Destination guides, schedules, local collections, and travel notes in one place.</p> -->
-    </div>
-
-    <div class="search-container" id="placeSearchContainer" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-owns="place_id_for_drop_down_filter">
-      <svg class="search-icon" viewBox="-3 -3 24 24" aria-hidden="true">
-        <path d="M13.347 11.85l4.343 4.342a1.059 1.059 0 11-1.498 1.498l-4.342-4.343a7.377 7.377 0 01-4.438 1.476A7.415 7.415 0 010 7.412 7.415 7.415 0 017.412 0a7.415 7.415 0 017.411 7.412c0 1.664-.549 3.2-1.476 4.438zM7.412 2.118a5.297 5.297 0 00-5.294 5.294 5.297 5.297 0 005.294 5.294 5.297 5.297 0 005.294-5.294 5.297 5.297 0 00-5.294-5.294z"></path>
-      </svg>
-
-      <input
-        class="where-to-go"
-        type="search"
-        placeholder="Search places"
-        id="place_input_id_for_filter"
-        aria-label="Search places"
-        autocomplete="off"
-        enterkeyhint="search"
-      />
-
-      <!-- <button class="create-schedule-button" type="button" data-create-schedule aria-label="Create schedule">
-        <svg viewBox="-1 -1 18 18" aria-hidden="true">
-          <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"></path>
-          <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"></path>
-        </svg>
-      </button> -->
-
-      <div id="place_id_for_drop_down_filter" class="dropdown-menu" role="listbox"></div>
-      <div id="dropdown-backdrop" class="dropdown-backdrop"></div>
-    </div>
-  </header>
-
-  {% if message %}
-    <button type="button" class="schedule-prompt" data-create-schedule>
-      <span>Create schedule to {{ message }}</span>
-      <svg viewBox="-1 -1 18 18" aria-hidden="true">
-        <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"></path>
-        <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"></path>
-      </svg>
-    </button>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f7f6ef">
+  <meta name="description" content="{{ meta_description|default:'Plan trips with Paratara: destination guides, resort options, local events, travel notes, and shared carpool schedules.' }}">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Paratara">
+  <meta property="og:title" content="            Find where to go, what to do, where to stay, and who is already planning a trip.
+            Paratara connects place guides with carpool schedules, local events, tourist spots,
+            and resort options so a destination is easier to understand before you open it.">
+  <meta property="og:description" content="{{ meta_description|default:'Find destination guides, resort stays, local events, travel notes, and shared carpool schedules with Paratara.' }}">
+  <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'home/images/landing-globe-small.webp' %}">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{ page_title|default:'Paratara | Travel Guides, Carpool Schedules & Resorts' }}">
+  <meta name="twitter:description" content="{{ meta_description|default:'Find destination guides, resort stays, local events, travel notes, and shared carpool schedules with Paratara.' }}">
+  <title>{{ page_title|default:'Paratara | Travel Guides, Carpool Schedules & Resorts' }}</title>
+  {% if canonical_url %}
+    <link rel="canonical" href="{{ canonical_url }}">
+  {% else %}
+    <link rel="canonical" href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}">
   {% endif %}
+  <link rel="icon" type="image/png" sizes="16x16" href="{% static 'home/images/favicon-16x16.png' %}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{% static 'home/images/favicon-32x32.png' %}">
+  <link rel="apple-touch-icon" href="{% static 'home/images/favicon.png' %}">
+  <link rel="preload" as="image" href="{% static 'home/images/landing-globe-small.webp' %}" fetchpriority="high">
+  <link rel="stylesheet" href="{% static 'home/index.css' %}">
+  <style>
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+      align-items: center;
+    }
+    .hero-grid .hero-actions {
+      align-self: center;
+    }
+    @media (min-width: 900px) {
+      .hero-grid {
+        grid-template-columns: 1fr 360px;
+        align-items: start;
+      }
+      .hero-grid .hero-actions {
+        align-self: start;
+      }
+    }
+  </style>
+  <script src="{% static 'home/index.js' %}" defer></script>
+</head>
 
-  <main class="container-center">
-    <section class="container-list" id="placesList" aria-live="polite">
-      <div id="landing-message" class="landing-message">
-        <p class="home-eyebrow">Loading Destinations</p>
-        <h2>Finding places worth opening first.</h2>
-        <p>Fresh guides and schedules are loading from Paratara.</p>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+
+  <div class="home-page" data-home-page>
+    <header class="site-header" aria-label="Site header">
+      <a class="brand-link" href="/" aria-label="Paratara home">
+        <span class="brand-mark" aria-hidden="true">P</span>
+        <span>Paratara</span>
+      </a>
+
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="#features">Features</a>
+        <a href="#popular">Places</a>
+        <a href="{% url 'home:viaje' %}">Share a schedule</a>
+        {% if user.is_authenticated %}
+          <a href="{% url 'userProfile:logoutUserJSON' %}">Log out</a>
+        {% else %}
+          <a href="{% url 'userProfile:registerUser' %}">Login</a>
+        {% endif %}
+      </nav>
+    </header>
+
+    <main id="main-content">
+      <section class="hero-section" aria-labelledby="home-title">
+        <div class="hero-copy">
+          <p class="home-eyebrow">Destination guides, shared rides, and resort planning</p>
+          <h1 id="home-title">Paratara</h1>
+<figcaption><h5>Para means “Stop!” and Tara means “Let’s go.”</h5></figcaption>
+          <div class="">
+            <figure class="hero-visual">
+              <div class="globe-stage">
+                <div class="globe-sphere" role="img" aria-label="Rotating globe view for travel planning">
+                  <span class="globe-map" aria-hidden="true"></span>
+                  <span class="globe-grid" aria-hidden="true"></span>
+                </div>
+              </div>
+              
+            </figure>
+
+          </div>
+
+
+        </div>
+            <div class="hero-actions" aria-label="Homepage actions">
+              
+              <a class="button button-primary" href="#popular">Explore places</a>
+              <a class="button button-secondary" href="{% url 'home:viaje' %}">Share a schedule</a>
+              <div class="search-container" id="placeSearchContainer" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-owns="place_id_for_drop_down_filter">
+                <svg class="search-icon" viewBox="-3 -3 24 24" aria-hidden="true">
+                  <path d="M13.347 11.85l4.343 4.342a1.059 1.059 0 11-1.498 1.498l-4.342-4.343a7.377 7.377 0 01-4.438 1.476A7.415 7.415 0 010 7.412 7.415 7.415 0 017.412 0a7.415 7.415 0 017.411 7.412c0 1.664-.549 3.2-1.476 4.438zM7.412 2.118a5.297 5.297 0 00-5.294 5.294 5.297 5.297 0 005.294 5.294 5.297 5.297 0 005.294-5.294 5.297 5.297 0 00-5.294-5.294z"></path>
+                </svg>
+
+                <input
+                  class="where-to-go"
+                  type="search"
+                  placeholder="Search places"
+                  id="place_input_id_for_filter"
+                  aria-label="Search places"
+                  autocomplete="off"
+                  enterkeyhint="search"
+                >
+
+                <div id="place_id_for_drop_down_filter" class="dropdown-menu" role="listbox"></div>
+                <div id="dropdown-backdrop" class="dropdown-backdrop"></div>
+              </div>              
+                    <section class="random-blog-band" aria-labelledby="random-blogs-title">
+        <div class="random-blog-shell">
+          <div class="random-blog-frame">
+            <div
+              class="random-blog-list"
+              id="homeRandomBlogs"
+              data-blogs-endpoint="{% url 'home:random_home_blogs' %}"
+              aria-live="polite"
+              aria-busy="true"
+            >
+              <div class="random-blog-skeleton" aria-hidden="true"></div>
+              <div class="random-blog-skeleton" aria-hidden="true"></div>
+              <div class="random-blog-skeleton" aria-hidden="true"></div>
+              <div class="random-blog-skeleton" aria-hidden="true"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+            </div>
+
+      </section>
+
+      {% if message %}
+        <a class="schedule-prompt" href="{% url 'home:viaje' %}">
+          <span>Create schedule to {{ message }}</span>
+          <svg viewBox="-1 -1 18 18" aria-hidden="true">
+            <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"></path>
+            <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"></path>
+          </svg>
+        </a>
+      {% endif %}
+
+
+
+      <section class="feature-band" id="features" aria-labelledby="features-title">
+        <div class="section-heading">
+          <p class="home-eyebrow">What Paratara brings together</p>
+          <h2 id="features-title">Useful trip context in one place.</h2>
+          <p>
+            A destination page is more than a name on a map. It can include visitor notes,
+            nearby tourist spots, event schedules, resort information, and shared travel plans.
+          </p>
+        </div>
+
+        <div class="feature-grid">
+          <article class="feature-card">
+            <span class="feature-icon" aria-hidden="true">01</span>
+            <h3>Place Guides</h3>
+            <p>Open destinations with practical notes, local attractions, photos, and community updates.</p>
+          </article>
+
+          <article class="feature-card">
+            <span class="feature-icon" aria-hidden="true">02</span>
+            <h3>Shared Schedules</h3>
+            <p>Find or post travel schedules for carpools, tours, dives, hikes, and other planned trips.</p>
+          </article>
+
+          <article class="feature-card">
+            <span class="feature-icon" aria-hidden="true">03</span>
+            <h3>Resort Options</h3>
+            <p>Compare resort links connected to destinations so stays can be planned with the trip.</p>
+          </article>
+
+          <article class="feature-card">
+            <span class="feature-icon" aria-hidden="true">04</span>
+            <h3>Local Events</h3>
+            <p>See event schedules and travel activity around places before choosing dates.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="steps-band" aria-labelledby="steps-title">
+        <div class="section-heading compact">
+          <p class="home-eyebrow">How people use it</p>
+          <h2 id="steps-title">From curiosity to a real trip.</h2>
+        </div>
+
+        <div class="step-list">
+          <article>
+            <span>Search</span>
+            <p>Start with a destination name and open the place page.</p>
+          </article>
+          <article>
+            <span>Compare</span>
+            <p>Review tourist spots, events, resorts, and community notes.</p>
+          </article>
+          <article>
+            <span>Coordinate</span>
+            <p>Use shared schedules to find or create a trip with other travelers.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="popular-band" id="popular" aria-labelledby="popular-title">
+        <div class="section-heading">
+          <p class="home-eyebrow">Popular places</p>
+          <h2 id="popular-title">Open a destination to start planning.</h2>
+          <p>A few frequently opened places are ready here, with more destinations available from search.</p>
+        </div>
+
+        <div class="featured-grid">
+          {% for place in featured_places %}
+            <a class="featured-card" href="{% url 'home:checkPlaceSlug' place.slug|default:place.placename|slugify %}">
+              {% if place.placePhoto %}
+                <img src="{{ place.placePhoto }}" alt="{{ place.placename }} destination preview" loading="lazy" decoding="async">
+              {% else %}
+                <span class="featured-placeholder" aria-hidden="true"></span>
+              {% endif %}
+              <span class="featured-card-body">
+                <strong>{{ place.placename }}</strong>
+                <small>{{ place.reviewCount|default:0 }} reviews</small>
+              </span>
+            </a>
+          {% empty %}
+            <div class="home-state">
+              <h3>Destinations will appear here soon.</h3>
+              <p>New place guides are shown when they are published.</p>
+            </div>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="destination-browser" aria-labelledby="browser-title">
+        <div class="browser-heading">
+          <div>
+            <p class="home-eyebrow">Browse more</p>
+            <h2 id="browser-title">More destinations.</h2>
+          </div>
+          <button class="button button-secondary" type="button" id="loadDestinations" data-load-destinations>
+            Browse destination cards
+          </button>
+        </div>
+
+        <section class="container-list" id="placesList" aria-live="polite" hidden>
+          <div id="landing-message" class="landing-message" hidden>
+            <p class="home-eyebrow">Loading destinations</p>
+            <h2>Finding places worth opening first.</h2>
+            <p>Destination cards are loading from Paratara.</p>
+          </div>
+
+          <div class="places-sentinel" id="placesSentinel" aria-hidden="true"></div>
+        </section>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div>
+        <h2>Paratara</h2>
+        <p>Destination guides, carpool schedules, local events, and resort planning for travelers.</p>
       </div>
 
-      <div class="places-sentinel" id="placesSentinel" aria-hidden="true"></div>
-    </section>
-  </main>
-</section>
-   <footer class="bg-light py-5 mt-5">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-4">
-                    <h5>Paratara</h5>
-                    <p>Your go-to platform for carpooling and resort bookings. Discover places, connect with travelers, and plan your adventures.</p>
-                </div>
-                <div class="col-md-4">
-                    <h5>Quick Links</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="/" class="text-muted">Home</a></li>
-                        <li><a href="{% url 'home:privacy_policy' %}" class="text-muted">Privacy Policy</a></li>
-                        <li><a href="{% url 'userProfile:termsandconditions' %}" class="text-muted">Terms and Conditions</a></li>
-                        <li><a href="{% url 'userProfile:aboutUs' %}" class="text-muted">About Us</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-4">
-                    <h5>Account & Tools</h5>
-                    {% if user.is_authenticated %}
-                        <p><a href="{% url 'userProfile:logoutUserJSON' %}" class="text-muted">Log Out</a></p>
-                    {% else %}
-                        <p><a href="{% url 'userProfile:registerUser' %}" class="text-muted">Login or Register</a></p>
-                    {% endif %}
-                    <button id="get-loc" class="btn btn-outline-secondary btn-sm">Get Location</button>
-                    <p id="status" class="mt-2"></p>
-                    <small class="text-muted">{% now 'h:i a F j' %}</small>
-                </div>
-            </div>
+      <nav aria-label="Footer navigation">
+        <a href="/">Home</a>
+        <a href="{% url 'home:privacy_policy' %}">Privacy Policy</a>
+        <a href="{% url 'userProfile:termsandconditions' %}">Terms and Conditions</a>
+        <a href="{% url 'userProfile:aboutUs' %}">About Us</a>
+      </nav>
 
-            <hr class="my-4">
+      <div class="footer-tools">
+        {% if user.is_authenticated %}
+          <a href="{% url 'userProfile:logoutUserJSON' %}">Log out</a>
+        {% else %}
+          <a href="{% url 'userProfile:registerUser' %}">Login or Register</a>
+        {% endif %}
+        <button id="get-loc" type="button">Get Location</button>
+        <p id="status" aria-live="polite"></p>
+      </div>
 
-            <div class="row">
-                <div class="col-12 text-center">
-                    <p class="mb-0">&copy; {% now 'Y' %} Paratara. All rights reserved.</p>
-                </div>
-            </div>
-        </div>
+      <p class="copyright">&copy; {% now 'Y' %} Paratara. All rights reserved.</p>
     </footer>
+  </div>
+</body>
+</html>

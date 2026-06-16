@@ -1634,72 +1634,165 @@ container.innerHTML = cards;
             const currentUserID = `{{request.user.id|default:"null"}}`;
             // Check if current user is the poster
             const isPoster = currentUserID && String(sched.posterID) === String(currentUserID);
+            const scheduleTitle = sched.scheduleTitle || 'Schedule';
+            const scheduleDate = `${sched.monthN ? new Date((sched.yearN || 2000), (sched.monthN - 1), 1).toLocaleString('en-US', { month: 'long' }) : ''} ${sched.dateN || ''} ${sched.yearN || ''}`.trim();
+            const scheduleRole = sched.MakerOrLooker === 'Look'
+              ? 'Looking for transportation'
+              : (sched.MakerOrLooker === 'Make'
+                ? 'Created schedule'
+                : (sched.MakerOrLooker || 'Schedule'));
+            const scheduleDetailsId = `schedule-more-${schedItem.pk}`;
+            const scheduleSummaryId = `schedule-summary-${schedItem.pk}`;
+            const placeNameFallback = '{{ place.placename|escapejs }}';
+            const meetupLabel = sched.meetPlace || sched.scheduleTitle || 'Meetup';
+            const meetupPlaceLabel = sched.meetPlace || 'TBA';
+            const destinationLabel = sched.endPlace || placeNameFallback || 'TBA';
+            const timeLabel = sched.meetTime || 'Time TBA';
+            const dateTimeLabel = scheduleDate && sched.meetTime
+              ? `${scheduleDate} at ${sched.meetTime}`
+              : (scheduleDate || sched.meetTime || 'Date and time TBA');
+            const transportLabel = sched.scheduleTravelType || (sched.MakerOrLooker === 'Look' ? 'Looking for a ride' : 'Carpool');
+            const summaryActionMarkup = isPoster ? `
+              <button class="btn-view-joiners" type="button" data-schedule-action="joiners">View Joiners</button>
+            ` : `
+              <button class="btn-join" type="button" data-schedule-action="join">Join</button>
+            `;
+            const expandedActionMarkup = isPoster ? `
+              <div class="schedule-owner-actions">
+                <button class="btn-view-joiners" type="button" data-schedule-action="joiners">View Joiners</button>
+                <button class="btn-delete-schedule" type="button" data-schedule-action="delete">Delete</button>
+              </div>
+            ` : `
+              <button class="btn-join btn-join-expanded" type="button" data-schedule-action="join">Join meetup</button>
+            `;
             
             schedCard.innerHTML = `
-              
               <div class="schedule-card-body">
-                ${sched.otherDetails ? `<p class="schedule-description">${sched.otherDetails}</p>` : ''}
-                
-                
-                <div class="schedule-footer">
-                  <div class="poster-info">
-                    ${sched.posterImageURL ? `<img src="${sched.posterImageURL}" alt="${sched.posterName}" class="poster-avatar" width="48" height="48" loading="lazy" decoding="async">` : '<div class="poster-avatar-placeholder">👤</div>'}
-                    <div class="poster-details">
-                      
-                      <div class="poster-name">${sched.posterName || 'Anonymous'} ${sched.posterVerified ? '✓' : ''}                        </div>
-                                            <span class="detail-value">${
-                        sched.MakerOrLooker === 'Look'
-                          ? 'Looking\ntransportation'
-                          : (sched.MakerOrLooker === 'Make'
-                            ? 'Created\nschedule'
-                            : (sched.MakerOrLooker || ''))
-                      }</span>
-                      ${sched.detailsContact ? `<div class="poster-contact">${sched.detailsContact}</div>` : ''}
-                      <div class="schedule-actions">
-                        ${sched.reviewCount ? `<span class="review-count">👁 ${sched.reviewCount} views</span>` : ''}
-                        ${isPoster ? `
-                          <button class="btn-view-joiners" onclick="viewJoiners(${schedItem.pk}, '${(sched.scheduleTitle || 'Schedule').replace(/'/g, "\\'")}')">View Joiners</button>
-                          <button class="btn-delete-schedule" onclick="deleteSchedule(${schedItem.pk}, '${(sched.scheduleTitle || 'Schedule').replace(/'/g, "\\'")}', this)">Delete</button>
-                        ` : `<button class="btn-join" onclick="joinSchedule(${schedItem.pk}, '${(sched.scheduleTitle || 'Schedule').replace(/'/g, "\\'")}')">Join</button>`}
-                      </div>
-                    </div>
-                  </div>                    
-                  <div class="schedule-details-grid">
+                <div class="schedule-card-heading">
+                  <h3 class="schedule-card-title">${escapeHtml(meetupLabel)}</h3>
+                  <div class="schedule-heading-actions">
+                    <span class="schedule-status">Upcoming</span>
+                    <button class="schedule-collapse-toggle" type="button" data-schedule-toggle aria-label="View details" aria-expanded="false" aria-controls="${scheduleDetailsId}">
+                      &#9650;
+                    </button>
+                  </div>
+                </div>
 
-                    <div class="detail-item">
-                      <span class="detail-label">📍 </span>
-                      <span class="detail-value">${sched.meetPlace || 'TBA'}</span>
-                      to:
-                      ${sched.endPlace ? `<span class="detail-label">🏁 </span> <span class="detail-value">${sched.endPlace}</span> </div>` : ''}
-                    <span class="date-month">${sched.monthN ? new Date((sched.yearN || 2000), (sched.monthN - 1), 1).toLocaleString('en-US', { month: 'long' }) : ''} ${sched.dateN || ''} ${sched.yearN || ''}</span>
-  
-                    ${sched.meetTime ? `
-                    <div class="detail-item">
-                      <span class="detail-label">🕐 Time:</span>
-                      <span class="detail-value">${sched.meetTime}</span>
+                <div class="schedule-summary" id="${scheduleSummaryId}">
+                  <div class="schedule-summary-lines">
+                    <div class="schedule-line">
+                      <span class="schedule-line-icon" aria-hidden="true">📍</span>
+                      <span class="schedule-line-value">Meetup: ${escapeHtml(meetupPlaceLabel)}</span>
                     </div>
-                    ` : ''}
-                    
-                    ${sched.scheduleCost ? `
-                    <div class="detail-item">
-                      <span class="detail-label">💰 Cost:</span>
-                      <span class="detail-value">${sched.scheduleCost}</span>
+                    <div class="schedule-line">
+                      <span class="schedule-line-icon" aria-hidden="true">🏁</span>
+                      <span class="schedule-line-value">Destination: ${escapeHtml(destinationLabel)}</span>
                     </div>
-                    ` : ''}
-                    
-                    ${sched.scheduleTravelType ? `
-                    <div class="detail-item">
-                      <span class="detail-label">🚗 Transportation:</span>
-                      <span class="detail-value">${sched.scheduleTravelType}</span>
-
+                    <div class="schedule-line">
+                      <span class="schedule-line-icon" aria-hidden="true">📅</span>
+                      <span class="schedule-line-value">${escapeHtml(scheduleDate || 'Date TBA')}</span>
                     </div>
-                    ` : ''}
+                    <div class="schedule-line">
+                      <span class="schedule-line-icon" aria-hidden="true">🕚</span>
+                      <span class="schedule-line-value">${escapeHtml(timeLabel)}</span>
+                    </div>
+                    <div class="schedule-line">
+                      <span class="schedule-line-icon" aria-hidden="true">🚗</span>
+                      <span class="schedule-line-value">${escapeHtml(transportLabel)}</span>
+                    </div>
                   </div>
 
-                  
+                  <div class="schedule-summary-actions">
+                    <button class="schedule-more-toggle" type="button" data-schedule-toggle aria-expanded="false" aria-controls="${scheduleDetailsId}">
+                      View details
+                    </button>
+                    ${summaryActionMarkup}
+                  </div>
+                </div>
+
+                <div class="schedule-more" id="${scheduleDetailsId}" hidden>
+                  <div class="schedule-detail-stack">
+                    <div class="schedule-detail-block">
+                      <span class="detail-label">Meetup place</span>
+                      <span class="detail-value">${escapeHtml(meetupPlaceLabel)}</span>
+                    </div>
+                    <div class="schedule-detail-block">
+                      <span class="detail-label">Destination</span>
+                      <span class="detail-value">${escapeHtml(destinationLabel)}</span>
+                    </div>
+                    <div class="schedule-detail-block">
+                      <span class="detail-label">Date and time</span>
+                      <span class="detail-value">${escapeHtml(dateTimeLabel)}</span>
+                    </div>
+                    <div class="schedule-detail-block">
+                      <span class="detail-label">Transportation</span>
+                      <span class="detail-value">${escapeHtml(transportLabel)}</span>
+                    </div>
+                    ${sched.scheduleCost ? `
+                    <div class="schedule-detail-block">
+                      <span class="detail-label">Cost</span>
+                      <span class="detail-value">${escapeHtml(sched.scheduleCost)}</span>
+                    </div>
+                    ` : ''}
+                    <div class="schedule-detail-block">
+                      <span class="detail-label">Hosted by</span>
+                      <div class="poster-info">
+                        ${sched.posterImageURL ? `<img src="${escapeHtml(sched.posterImageURL)}" alt="${escapeHtml(sched.posterName || 'Schedule poster')}" class="poster-avatar" width="48" height="48" loading="lazy" decoding="async">` : '<div class="poster-avatar-placeholder">👤</div>'}
+                        <div class="poster-details">
+                          <div class="poster-name">${escapeHtml(sched.posterName || 'Anonymous')} ${sched.posterVerified ? '✓' : ''}</div>
+                          <span class="poster-role">${escapeHtml(scheduleRole)}</span>
+                          ${sched.detailsContact ? `<div class="poster-contact">${escapeHtml(sched.detailsContact)}</div>` : ''}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  ${sched.otherDetails ? `<p class="schedule-description">${escapeHtml(sched.otherDetails)}</p>` : ''}
+
+                  <div class="schedule-expanded-actions">
+                    ${sched.reviewCount ? `<span class="review-count">👁 ${escapeHtml(sched.reviewCount)} views</span>` : ''}
+                    ${expandedActionMarkup}
+                  </div>
                 </div>
               </div>
             `;
+
+            const toggleButtons = schedCard.querySelectorAll('[data-schedule-toggle]');
+            const scheduleSummary = schedCard.querySelector(`#${scheduleSummaryId}`);
+            const moreDetails = schedCard.querySelector(`#${scheduleDetailsId}`);
+            if (toggleButtons.length && moreDetails) {
+              const setScheduleExpanded = (expanded) => {
+                schedCard.classList.toggle('is-expanded', expanded);
+                moreDetails.hidden = !expanded;
+                if (scheduleSummary) scheduleSummary.hidden = expanded;
+                toggleButtons.forEach((button) => {
+                  button.setAttribute('aria-expanded', String(expanded));
+                  if (button.classList.contains('schedule-collapse-toggle')) {
+                    button.setAttribute('aria-label', expanded ? 'Hide details' : 'View details');
+                  }
+                });
+              };
+
+              toggleButtons.forEach((button) => {
+                button.addEventListener('click', () => {
+                  const isExpanded = button.getAttribute('aria-expanded') === 'true';
+                  setScheduleExpanded(!isExpanded);
+                });
+              });
+            }
+
+            schedCard.querySelectorAll('[data-schedule-action]').forEach((button) => {
+              button.addEventListener('click', () => {
+                const action = button.dataset.scheduleAction;
+                if (action === 'join') {
+                  joinSchedule(schedItem.pk, scheduleTitle);
+                } else if (action === 'joiners') {
+                  viewJoiners(schedItem.pk, scheduleTitle);
+                } else if (action === 'delete') {
+                  deleteSchedule(schedItem.pk, scheduleTitle, button);
+                }
+              });
+            });
             
             allSchedContainer.appendChild(schedCard);
             

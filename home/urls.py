@@ -32,6 +32,7 @@ urlpatterns = [
      path("home/event/register/<int:event_id>/", views.register_siargao_event, name="register_siargao_event"),
     path('home/autopopulate/', views.autopopulate, name="autopopulate"),
     path('home/getcarpooljson/', views.carpoolJOSN, name="carpooljson"),
+    path('home/random-blogs/', views.random_home_blogs, name="random_home_blogs"),
     path("home/carpool/", views.carpool, name="carpool"),
     path("home/rooms/", views.rooms, name="rooms"),
     path("home/newViaje/", views.viaje_v2, name="viaje"),

@@ -1151,188 +1151,299 @@
   padding: 1em;
   }
 
-   /* Schedule Card Styles */
-    .schedule-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      display: grid;
-      gap: 1.5rem;
-      max-width: 800px;
-      margin: 0 auto;
-    }
+   /* Lightweight schedule list */
 
-    .schedule-card {
-      margin-top: 1.5em;
-    }
+.calendar-list.schedules-list {
+  width: 100%;
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 0 16px;
+  list-style: none;
+  display: block;
+  overflow: visible;
+}
 
+.schedule-card,
+.schedule-card * {
+  box-sizing: border-box;
+}
 
+.schedule-card {
+  margin: 0;
+  padding: 20px 0;
+  list-style: none;
+  border-bottom: 1px solid #d1d5db;
+}
 
+.schedule-card:first-child {
+  border-top: 1px solid #d1d5db;
+}
 
+.schedule-card-body {
+  padding: 0;
+}
 
-    .date-month {
-      font-size: 0.95rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      color: #667eea;
-      line-height: 1.35;
-    }
+/* Heading */
 
+.schedule-card-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
 
+.schedule-card-title {
+  min-width: 0;
+  margin: 0;
+  color: #222;
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
 
+.schedule-heading-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
-    .schedule-type-badge {
-      display: inline-block;
-      padding: 0.25rem 0.75rem;
-      font-size: 0.9rem;
-      font-weight: 650;
-      background: rgba(255, 255, 255, 0.2);
-      width: fit-content;
-      line-height: 1.35;
-    }
+.schedule-status {
+  color: #536d2c;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
 
+.schedule-card.is-expanded .schedule-status {
+  display: none;
+}
 
+.schedule-collapse-toggle {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  color: #333;
+  background: none;
+  border: 1px solid #999;
+  border-radius: 0;
+  font: inherit;
+  cursor: pointer;
+}
 
-    .schedule-description {
-      margin: 0 0 1.5rem 0;
-      color: #555;
-      font-size: 1rem;
-      line-height: 1.65;
-    }
+.schedule-card:not(.is-expanded) .schedule-collapse-toggle {
+  transform: rotate(180deg);
+}
 
-    .schedule-details-grid {
-      display: grid;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
+/* Summary information */
 
+.schedule-summary {
+  display: grid;
+  gap: 18px;
+}
 
+.schedule-summary-lines {
+  display: grid;
+  gap: 12px;
+}
 
-    .detail-label {
-      font-weight: 700;
-      color: #333;
-      min-width: 120px;
-      font-size: 0.95rem;
-      line-height: 1.4;
-    }
+.schedule-line {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
 
-    .detail-value {
-      color: #666;
-      font-size: 1rem;
-      line-height: 1.45;
-    }
+.schedule-line-icon {
+  text-align: center;
+  font-size: 1rem;
+}
 
-    .schedule-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 1rem;
-      flex-wrap: wrap;
-    }
+.schedule-line-value {
+  min-width: 0;
+  color: #333;
+  font-size: 1rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
 
-    .poster-info {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
+/* Actions */
 
-    .poster-avatar {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 2px solid #667eea;
-    }
+.schedule-summary-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
 
-    .poster-avatar-placeholder {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      background: #e9ecef;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      /* font-size: 1.5rem; */
-    }
+.schedule-more-toggle,
+.schedule-card .btn-join,
+.schedule-card .btn-view-joiners,
+.schedule-card .btn-delete-schedule {
+  width: 100%;
+  min-height: 46px;
+  padding: 10px 14px;
+  background: none !important;
+  border: 1px solid #777;
+  border-radius: 0;
+  color: #222;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
 
-    .poster-details {
-      display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
-    }
+.schedule-card .btn-join {
+  color: #536d2c;
+  border-color: #536d2c;
+}
 
-    .poster-name {
-      font-weight: 700;
-      color: #333;
-      font-size: 1rem;
-      line-height: 1.35;
-    }
+.schedule-card .btn-delete-schedule {
+  color: #b42318;
+  border-color: #b42318;
+}
 
-    .poster-contact {
-      font-size: 0.95rem;
-      color: #666;
-      line-height: 1.4;
-    }
+.schedule-more-toggle:focus-visible,
+.schedule-card .btn-join:focus-visible,
+.schedule-card .btn-view-joiners:focus-visible,
+.schedule-card .btn-delete-schedule:focus-visible,
+.schedule-collapse-toggle:focus-visible {
+  outline: 2px solid #536d2c;
+  outline-offset: 2px;
+}
 
-    .schedule-actions {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
+/* Expanded information */
 
-    .review-count {
-      font-size: 0.9rem;
-      color: #666;
-      line-height: 1.35;
-    }
+.schedule-more {
+  display: grid;
+  gap: 20px;
+}
 
-    .btn-join {
-      background: #667eea;
-      color: white;
-      border: none;
-      padding: 0.625rem 1.5rem;
-      font-size: 0.98rem;
-      font-weight: 650;
-      line-height: 1.35;
-      cursor: pointer;
-      transition: none;
-    }
+.schedule-detail-stack {
+  display: grid;
+}
 
-    .btn-join:active {
-      background: #4558b8;
-    }
+.schedule-detail-block {
+  display: grid;
+  gap: 5px;
+  padding: 14px 0;
+  border-bottom: 1px solid #ddd;
+}
 
-    .btn-view-joiners {
-      background: #0078d4;
-      color: white;
-      border: none;
-      padding: 0.625rem 1.5rem;
-      font-size: 0.98rem;
-      font-weight: 650;
-      line-height: 1.35;
-      cursor: pointer;
-      transition: none;
-    }
+.schedule-detail-block:first-child {
+  border-top: 1px solid #ddd;
+}
 
-    .btn-view-joiners:active {
-      background: #005ca3;
-    }
+.detail-label {
+  color: #666;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
 
-    .btn-delete-schedule {
-      background: #cf1322;
-      color: white;
-      border: none;
-      padding: 0.625rem 1.5rem;
-      font-size: 0.98rem;
-      font-weight: 650;
-      line-height: 1.35;
-      cursor: pointer;
-      transition: none;
-    }
+.detail-value {
+  color: #222;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
 
-    .btn-delete-schedule:active {
-      background: #99101a;
-    }
+.schedule-description {
+  margin: 0;
+  color: #333;
+  font-size: 1rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+/* Host information */
+
+.poster-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+.poster-avatar,
+.poster-avatar-placeholder {
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+}
+
+.poster-avatar {
+  object-fit: cover;
+}
+
+.poster-avatar-placeholder {
+  text-align: center;
+  font-size: 1.2rem;
+}
+
+.poster-details {
+  min-width: 0;
+}
+
+.poster-name {
+  color: #222;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.poster-role,
+.poster-contact {
+  display: block;
+  margin-top: 2px;
+  color: #666;
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+
+.schedule-expanded-actions {
+  display: grid;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.schedule-owner-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.review-count {
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.btn-join-expanded {
+  width: 100%;
+}
+
+/* Make hidden sections stay hidden */
+
+.schedule-summary[hidden],
+.schedule-more[hidden] {
+  display: none !important;
+}
+
+/* Small phones */
+
+@media (max-width: 380px) {
+  .calendar-list.schedules-list {
+    padding: 0 12px;
+  }
+
+  .schedule-status {
+    display: none;
+  }
+
+  .schedule-summary-actions,
+  .schedule-owner-actions {
+    grid-template-columns: 1fr;
+  }
+}
 
     html {
       scroll-behavior: smooth;

@@ -1234,28 +1234,126 @@ def carpool(request, message=False):
 
 
 def carpoolJOSN(request):
-    # objectRecords = schedule.comments.values()
-    placeJSONED = Places_v2.objects.order_by('-reviewCount', 'placename').values(
+    query = request.GET.get('q', '').strip()
+    lite_response = request.GET.get('lite') == '1'
+    limit_param = request.GET.get('limit')
+    fields = [
         'id',
         'placeID',
         'placename',
-        'placePhoto',
         'reviewCount',
         'slug',
+    ]
+
+    if not lite_response:
+        fields.append('placePhoto')
+
+    places_query = Places_v2.objects.order_by('-reviewCount', 'placename')
+    if query:
+        places_query = places_query.filter(placename__icontains=query)
+
+    if limit_param is not None:
+        try:
+            limit = max(1, min(int(limit_param), 120))
+        except (TypeError, ValueError):
+            limit = 24 if lite_response else 48
+        places_query = places_query[:limit]
+    elif lite_response or query:
+        places_query = places_query[:24]
+
+    response = JsonResponse({"PlacesList": list(places_query.values(*fields))})
+    response["Cache-Control"] = "public, max-age=300"
+    return response
+
+
+def random_home_blogs(request):
+    try:
+        limit = int(request.GET.get('limit', 4))
+    except (TypeError, ValueError):
+        limit = 4
+    limit = max(1, min(limit, 4))
+
+    from apis.models import Blogs
+    from django.db.models import Q
+    from django.utils.text import slugify
+    import random
+
+    base_qs = Blogs.objects.exclude(title="").filter(
+        Q(localurlpath__gt="") | Q(blogplace__isnull=False)
     )
-    return JsonResponse({"PlacesList": list(placeJSONED)})
+    candidate_ids = list(
+        base_qs.order_by('-updated_at', '-created_at', '-id').values_list('id', flat=True)[:80]
+    )
+    selected_ids = random.sample(candidate_ids, min(limit, len(candidate_ids))) if candidate_ids else []
+    selected_order = {blog_id: index for index, blog_id in enumerate(selected_ids)}
+    blogs = list(
+        Blogs.objects.filter(id__in=selected_ids)
+        .select_related('blogplace')
+        .only(
+            'id',
+            'title',
+            'summarize',
+            'category',
+            'readtime',
+            'localurlpath',
+            'blogplace__placename',
+            'blogplace__slug',
+        )
+    )
+    blogs.sort(key=lambda blog: selected_order.get(blog.id, 0))
+
+    def compact_text(value, fallback="", max_length=140):
+        text = re.sub(r'\s+', ' ', str(value or fallback).strip())
+        if len(text) <= max_length:
+            return text
+        return text[:max_length - 3].rstrip() + "..."
+
+    payload = []
+    for blog in blogs:
+        url = str(blog.localurlpath or "").strip()
+        place_name = ""
+        if blog.blogplace:
+            place_name = str(blog.blogplace.placename or "").strip()
+            if not url:
+                place_slug = blog.blogplace.slug or slugify(blog.blogplace.placename)
+                blog_slug = slugify(blog.title)
+                if place_slug and blog_slug:
+                    url = f"/pages/blog/{place_slug}/{blog_slug}/"
+
+        payload.append({
+            "title": compact_text(blog.title, "Travel guide", 96),
+            "summary": compact_text(blog.summarize, "Read a quick destination guide from Paratara.", 132),
+            "category": blog.category or "Guide",
+            "readtime": blog.readtime or 1,
+            "place": place_name,
+            "url": url,
+        })
+
+    response = JsonResponse({"blogs": payload})
+    response["Cache-Control"] = "public, max-age=180, stale-while-revalidate=120"
+    return response
+
 
 @xframe_options_exempt
 def home(request, message=False):
     # return redirect('home:checkPlaceSlug', slug='bohol-island')
     request.session.setdefault('how_many_visits', 0)
     request.session['how_many_visits'] += 1
+    featured_places = Places_v2.objects.order_by('-reviewCount', 'placename').values(
+        'id',
+        'placeID',
+        'placename',
+        'placePhoto',
+        'reviewCount',
+        'slug',
+    )[:6]
     buttons = {
         'message': message,
         'include_schedule_modal': True,
         'page_title': 'Paratara | Travel Guides, Carpool Schedules & Resorts',
         'meta_description': 'Find destination guides, resort stays, local events, travel notes, and shared carpool schedules with Paratara.',
         'canonical_url': request.build_absolute_uri(reverse('home:home')),
+        'featured_places': featured_places,
     }
     return render(request, 'home/index.html', buttons)    
 
