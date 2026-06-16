@@ -1901,7 +1901,7 @@
 }
 
 .pimd {
-  padding: clamp(24px, 5vw, 56px);
+  padding: clamp(4px,5vw,6px);
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -1945,6 +1945,30 @@
   align-self: flex-start;
   margin-top: 8px;
   text-decoration: none;
+}
+
+@media (min-width: 761px) {
+  .pim {
+    overflow: hidden;
+  }
+
+  .pims {
+    height: 100vh;
+    min-height: 0;
+  }
+
+  .pimm {
+    height: 100vh;
+    min-height: 0;
+  }
+
+  .pimd {
+    height: 100vh;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    justify-content: flex-start;
+  }
 }
 
 @media (max-width: 760px) {

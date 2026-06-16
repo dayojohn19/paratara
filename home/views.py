@@ -1268,10 +1268,10 @@ def carpoolJOSN(request):
 
 def random_home_blogs(request):
     try:
-        limit = int(request.GET.get('limit', 4))
+        limit = int(request.GET.get('limit', 7))
     except (TypeError, ValueError):
-        limit = 4
-    limit = max(1, min(limit, 4))
+        limit = 8
+    limit = max(1, min(limit, 7))
 
     from apis.models import Blogs
     from django.db.models import Q

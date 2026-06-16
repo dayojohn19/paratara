@@ -166,6 +166,20 @@
           font-weight: 750;
           cursor: pointer;
         }
+        .prf .prlb {
+          border: 0;
+          background: transparent;
+          color: var(--accent);
+          padding: 0;
+          font: inherit;
+          font-weight: 700;
+          text-decoration: underline;
+          cursor: pointer;
+        }
+        .prf .prlb:focus-visible {
+          outline: 2px solid var(--accent);
+          outline-offset: 2px;
+        }
         .psr {
           display: flex;
           align-items: center;
@@ -265,7 +279,7 @@
       hasMore: false,
     };
     let canReview = !!config.canReview;
-    const loginUrl = config.loginUrl || '/userProfile/login/';
+    const loginJsonUrl = config.loginJsonUrl || '/userProfile/loginjson';
 
     function fv() {
       for (let i = 0; i < arguments.length; i += 1) {
@@ -521,6 +535,22 @@
       });
     }
 
+    function showAuthForm(mode) {
+      const signupForm = document.getElementById('psF');
+      const loginForm = document.getElementById('plF');
+      const signupButton = document.getElementById('psT');
+      const showLogin = mode === 'login';
+
+      if (signupForm) signupForm.hidden = showLogin;
+      if (loginForm) loginForm.hidden = !showLogin;
+      if (signupButton) signupButton.hidden = showLogin;
+
+      const activeForm = showLogin ? loginForm : signupForm;
+      const firstField = activeForm ? activeForm.querySelector('input') : null;
+      if (firstField) firstField.focus();
+      setReviewStatus('', false);
+    }
+
     function renderReviewPanel(item) {
       const panel = document.getElementById('prP');
       if (!panel) return;
@@ -562,7 +592,13 @@
             <input name="username" type="text" autocomplete="username" placeholder="Username" required />
             <input name="password" type="password" autocomplete="new-password" placeholder="Password" minlength="6" required />
             <button type="submit">Create account</button>
-            <p class="prst">Already have an account? <a href="${escapeHtml(loginUrl)}">Login</a>.</p>
+            <p class="prst">Already have an account? <button type="button" id="plT" class="prlb">Login</button>.</p>
+          </form>
+          <form id="plF" class="prf" hidden>
+            <input name="username" type="text" autocomplete="username" placeholder="Username" required />
+            <input name="password" type="password" autocomplete="current-password" placeholder="Password" required />
+            <button type="submit">Login</button>
+            <p class="prst">Need an account? <button type="button" id="psBackT" class="prlb">Sign up</button>.</p>
           </form>
         `;
 
@@ -754,6 +790,59 @@
       }
     }
 
+    async function submitLogin(form) {
+      if (!form) return;
+      const submitButton = form.querySelector('button[type="submit"]');
+      const username = (form.elements.username ? form.elements.username.value : '').trim();
+      const password = form.elements.password ? form.elements.password.value : '';
+
+      if (!username || !password) {
+        setReviewStatus('Enter username and password.', true);
+        return;
+      }
+
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = 'Logging in...';
+      }
+      setReviewStatus('', false);
+
+      try {
+        const response = await fetch(loginJsonUrl, {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken(),
+          },
+          body: JSON.stringify({
+            usernameJSON: username,
+            passwordJSON: password,
+          }),
+        });
+        const payload = await response.json().catch(function () { return null; });
+        const loggedIn = Array.isArray(payload) && payload[0] === 'Successfully Log In';
+        if (!response.ok || !loggedIn) {
+          const message = typeof payload === 'string'
+            ? payload
+            : (payload && (payload.error || payload.detail));
+          throw new Error(message || (response.ok ? 'Wrong username or password' : 'Could not log in'));
+        }
+
+        canReview = true;
+        renderReviewPanel(ims.item);
+        setReviewStatus('Logged in. You can now rate this package.', false);
+      } catch (error) {
+        setReviewStatus(error.message || 'Could not log in.', true);
+      } finally {
+        if (submitButton && submitButton.isConnected) {
+          submitButton.disabled = false;
+          submitButton.textContent = 'Login';
+        }
+      }
+    }
+
     window.openPlaceItemModal = function (itemOrIndex) {
       const modal = document.getElementById('piM');
       if (!modal) return;
@@ -831,14 +920,17 @@
         }
         const signupButton = event.target && event.target.closest ? event.target.closest('#psT') : null;
         if (signupButton) {
-          const signupForm = document.getElementById('psF');
-          if (signupForm) {
-            signupForm.hidden = !signupForm.hidden;
-            if (!signupForm.hidden) {
-              const firstField = signupForm.querySelector('input');
-              if (firstField) firstField.focus();
-            }
-          }
+          showAuthForm('signup');
+          return;
+        }
+        const loginButton = event.target && event.target.closest ? event.target.closest('#plT') : null;
+        if (loginButton) {
+          showAuthForm('login');
+          return;
+        }
+        const signupBackButton = event.target && event.target.closest ? event.target.closest('#psBackT') : null;
+        if (signupBackButton) {
+          showAuthForm('signup');
           return;
         }
         const starButton = event.target && event.target.closest ? event.target.closest('.psrs') : null;
@@ -851,10 +943,12 @@
       });
 
       document.addEventListener('submit', function (event) {
-        if (!event.target || (event.target.id !== 'prF' && event.target.id !== 'psF')) return;
+        if (!event.target || (event.target.id !== 'prF' && event.target.id !== 'psF' && event.target.id !== 'plF')) return;
         event.preventDefault();
         if (event.target.id === 'psF') {
           submitSignup(event.target);
+        } else if (event.target.id === 'plF') {
+          submitLogin(event.target);
         } else {
           submitReview(event.target);
         }

@@ -1132,21 +1132,21 @@ section[aria-labelledby="faq-heading"] [data-editing="true"] {{
     </div>
 </nav>                                                                
 <script>
-function toggleMenu() {{
-    const navLinks = document.getElementById('navLinks');
-    const hamburger = document.getElementById('hamburgerBtn');
-    navLinks.classList.toggle('open');
-    if (hamburger) {{
-        hamburger.classList.toggle('open');
+    function toggleMenu() {{
+        const navLinks = document.getElementById('navLinks');
+        const hamburger = document.getElementById('hamburgerBtn');
+        navLinks.classList.toggle('open');
+        if (hamburger) {{
+            hamburger.classList.toggle('open');
+        }}
     }}
-}}
 
-function toggleDropdown(e) {{
-    e.preventDefault();
-    const dropdown = e.target.closest('#dropdowntoogle');
-    if (!dropdown) return;
-    dropdown.classList.toggle('open');
-}}
+    function toggleDropdown(e) {{
+        e.preventDefault();
+        const dropdown = e.target.closest('#dropdowntoogle');
+        if (!dropdown) return;
+        dropdown.classList.toggle('open');
+    }}
 </script>
 
 
