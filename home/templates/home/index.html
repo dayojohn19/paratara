@@ -28,6 +28,9 @@
   <link rel="preload" as="image" href="{% static 'home/images/landing-globe-small.webp' %}" fetchpriority="high">
   <link rel="stylesheet" href="{% static 'home/index.css' %}">
   <style>
+    h5 {
+      color: rgb(159, 159, 159);
+    }
     .hero-grid {
       display: grid;
       grid-template-columns: 1fr;
@@ -63,11 +66,10 @@
       <nav class="site-nav" aria-label="Primary navigation">
         <a href="#features">Features</a>
         <a href="#popular">Places</a>
-        <a href="{% url 'home:viaje' %}">Share a schedule</a>
         {% if user.is_authenticated %}
           <a href="{% url 'userProfile:logoutUserJSON' %}">Log out</a>
         {% else %}
-          <a href="{% url 'userProfile:registerUser' %}">Login</a>
+          <a href="{% url 'userProfile:registerUser' %}" data-auth-open="login">Login</a>
         {% endif %}
       </nav>
     </header>
@@ -97,42 +99,44 @@
               
               <a class="button button-primary" href="#popular">Explore places</a>
               <a class="button button-secondary" href="{% url 'home:viaje' %}">Share a schedule</a>
-              <div class="search-container" id="placeSearchContainer" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-owns="place_id_for_drop_down_filter">
-                <svg class="search-icon" viewBox="-3 -3 24 24" aria-hidden="true">
-                  <path d="M13.347 11.85l4.343 4.342a1.059 1.059 0 11-1.498 1.498l-4.342-4.343a7.377 7.377 0 01-4.438 1.476A7.415 7.415 0 010 7.412 7.415 7.415 0 017.412 0a7.415 7.415 0 017.411 7.412c0 1.664-.549 3.2-1.476 4.438zM7.412 2.118a5.297 5.297 0 00-5.294 5.294 5.297 5.297 0 005.294 5.294 5.297 5.297 0 005.294-5.294 5.297 5.297 0 00-5.294-5.294z"></path>
-                </svg>
+              <div style="margin: 0 auto;">
+                <div class="search-container" id="placeSearchContainer" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-owns="place_id_for_drop_down_filter">
+                  <svg class="search-icon" viewBox="-3 -3 24 24" aria-hidden="true">
+                    <path d="M13.347 11.85l4.343 4.342a1.059 1.059 0 11-1.498 1.498l-4.342-4.343a7.377 7.377 0 01-4.438 1.476A7.415 7.415 0 010 7.412 7.415 7.415 0 017.412 0a7.415 7.415 0 017.411 7.412c0 1.664-.549 3.2-1.476 4.438zM7.412 2.118a5.297 5.297 0 00-5.294 5.294 5.297 5.297 0 005.294 5.294 5.297 5.297 0 005.294-5.294 5.297 5.297 0 00-5.294-5.294z"></path>
+                  </svg>
 
-                <input
-                  class="where-to-go"
-                  type="search"
-                  placeholder="Search places"
-                  id="place_input_id_for_filter"
-                  aria-label="Search places"
-                  autocomplete="off"
-                  enterkeyhint="search"
-                >
+                  <input
+                    class="where-to-go"
+                    type="search"
+                    placeholder="Search places"
+                    id="place_input_id_for_filter"
+                    aria-label="Search places"
+                    autocomplete="off"
+                    enterkeyhint="search"
+                  >
 
-                <div id="place_id_for_drop_down_filter" class="dropdown-menu" role="listbox"></div>
-                <div id="dropdown-backdrop" class="dropdown-backdrop"></div>
-              </div>              
-                    <section class="random-blog-band" aria-labelledby="random-blogs-title">
-        <div class="random-blog-shell">
-          <div class="random-blog-frame">
-            <div
-              class="random-blog-list"
-              id="homeRandomBlogs"
-              data-blogs-endpoint="{% url 'home:random_home_blogs' %}"
-              aria-live="polite"
-              aria-busy="true"
-            >
-              <div class="random-blog-skeleton" aria-hidden="true"></div>
-              <div class="random-blog-skeleton" aria-hidden="true"></div>
-              <div class="random-blog-skeleton" aria-hidden="true"></div>
-              <div class="random-blog-skeleton" aria-hidden="true"></div>
-            </div>
+                  <div id="place_id_for_drop_down_filter" class="dropdown-menu" role="listbox"></div>
+                  <div id="dropdown-backdrop" class="dropdown-backdrop"></div>
+                </div>              
+                <section class="random-blog-band" aria-labelledby="random-blogs-title">
+      <div class="random-blog-shell">
+        <div class="random-blog-frame">
+          <div
+            class="random-blog-list"
+            id="homeRandomBlogs"
+            data-blogs-endpoint="{% url 'home:random_home_blogs' %}"
+            aria-live="polite"
+            aria-busy="true"
+          >
+            <div class="random-blog-skeleton" aria-hidden="true"></div>
+            <div class="random-blog-skeleton" aria-hidden="true"></div>
+            <div class="random-blog-skeleton" aria-hidden="true"></div>
+            <div class="random-blog-skeleton" aria-hidden="true"></div>
           </div>
         </div>
-      </section>
+      </div>
+                </section>
+              </div>
             </div>
 
       </section>
@@ -277,7 +281,7 @@
         {% if user.is_authenticated %}
           <a href="{% url 'userProfile:logoutUserJSON' %}">Log out</a>
         {% else %}
-          <a href="{% url 'userProfile:registerUser' %}">Login or Register</a>
+          <a href="{% url 'userProfile:registerUser' %}" data-auth-open="login">Login or Register</a>
         {% endif %}
         <button id="get-loc" type="button">Get Location</button>
         <p id="status" aria-live="polite"></p>
@@ -285,6 +289,112 @@
 
       <p class="copyright">&copy; {% now 'Y' %} Paratara. All rights reserved.</p>
     </footer>
+
+    {% if not user.is_authenticated %}
+      <div
+        class="auth-modal"
+        id="homeAuthModal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="authModalTitle"
+        hidden
+      >
+        <div class="auth-modal-panel">
+          <header class="auth-modal-header">
+            <a class="brand-link" href="/" aria-label="Paratara home">
+              <span class="brand-mark" aria-hidden="true">P</span>
+              <span>Paratara</span>
+            </a>
+            <button class="auth-modal-close" type="button" data-auth-close aria-label="Close login">
+              &times;
+            </button>
+          </header>
+
+          <div class="auth-modal-main">
+            <div class="auth-modal-content">
+              <p class="home-eyebrow">Your Paratara account</p>
+              <h2 id="authModalTitle">Continue planning your trip.</h2>
+
+              <div class="auth-mode-tabs" role="tablist" aria-label="Account action">
+                <button
+                  class="auth-mode-tab is-active"
+                  type="button"
+                  role="tab"
+                  aria-selected="true"
+                  aria-controls="authLoginPanel"
+                  data-auth-tab="login"
+                >
+                  Log in
+                </button>
+                <button
+                  class="auth-mode-tab"
+                  type="button"
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="authRegisterPanel"
+                  data-auth-tab="register"
+                >
+                  Register
+                </button>
+              </div>
+
+              <section class="auth-form-panel" id="authLoginPanel" role="tabpanel" data-auth-panel="login">
+                <form
+                  class="auth-form"
+                  method="post"
+                  action="{% url 'userProfile:loginUser' %}"
+                  data-auth-form="login"
+                  data-json-endpoint="{% url 'userProfile:loginUserJSON' %}"
+                >
+                  {% csrf_token %}
+                  <label for="homeLoginUsername">Username</label>
+                  <input id="homeLoginUsername" name="userName" type="text" autocomplete="username" required>
+
+                  <label for="homeLoginPassword">Password</label>
+                  <input id="homeLoginPassword" name="userPassword" type="password" autocomplete="current-password" required>
+
+                  <p class="auth-form-status" data-auth-status aria-live="polite"></p>
+                  <button class="auth-submit" type="submit">Log in</button>
+                  <a class="auth-help-link" href="{% url 'userProfile:forgotPassword' %}">Forgot password?</a>
+                </form>
+              </section>
+
+              <section class="auth-form-panel" id="authRegisterPanel" role="tabpanel" data-auth-panel="register" hidden>
+                <form
+                  class="auth-form"
+                  method="post"
+                  action="{% url 'userProfile:registerUser' %}"
+                  data-auth-form="register"
+                  data-json-endpoint="{% url 'userProfile:registerUserJSON' %}"
+                >
+                  {% csrf_token %}
+                  <label for="homeRegisterUsername">Username</label>
+                  <input id="homeRegisterUsername" name="userName" type="text" autocomplete="username" required>
+
+                  <label for="homeRegisterEmail">Email</label>
+                  <input id="homeRegisterEmail" name="userEmail" type="email" autocomplete="email" required>
+
+                  <label for="homeRegisterPassword">Password</label>
+                  <input id="homeRegisterPassword" name="userPassword" type="password" autocomplete="new-password" minlength="6" required>
+
+                  <label for="homeRegisterConfirm">Confirm password</label>
+                  <input id="homeRegisterConfirm" name="userPasswordConfirmation" type="password" autocomplete="new-password" minlength="6" required>
+
+                  <p class="auth-form-status" data-auth-status aria-live="polite"></p>
+                  <button class="auth-submit" type="submit">Create account</button>
+                  <p class="auth-terms">
+                    By registering, you agree to the
+                    <a href="{% url 'userProfile:termsandconditions' %}">terms</a>
+                    and
+                    <a href="{% url 'home:privacy_policy' %}">privacy policy</a>.
+                  </p>
+                </form>
+              </section>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
   </div>
 </body>
 </html>

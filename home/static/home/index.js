@@ -37,8 +37,11 @@ const elements = {
   loadDestinations: null,
   status: null,
   locationButton: null,
-  randomBlogs: null
+  randomBlogs: null,
+  authModal: null
 };
+
+let authPreviousFocus = null;
 
 const backgroundObserver = window.IntersectionObserver
   ? new IntersectionObserver((entries) => {
@@ -64,6 +67,7 @@ function cacheElements() {
   elements.status = document.getElementById("status");
   elements.locationButton = document.getElementById("get-loc");
   elements.randomBlogs = document.getElementById("homeRandomBlogs");
+  elements.authModal = document.getElementById("homeAuthModal");
 }
 
 function getReviewCount(place) {
@@ -598,6 +602,181 @@ function bindScheduleButtons() {
   });
 }
 
+function bindAuthModal() {
+  if (!elements.authModal) return;
+
+  document.querySelectorAll("[data-auth-open]").forEach((trigger) => {
+    trigger.addEventListener("click", (event) => {
+      event.preventDefault();
+      openAuthModal(trigger.dataset.authOpen || "login", trigger);
+    });
+  });
+
+  elements.authModal.querySelectorAll("[data-auth-close]").forEach((button) => {
+    button.addEventListener("click", closeAuthModal);
+  });
+
+  elements.authModal.querySelectorAll("[data-auth-tab]").forEach((button) => {
+    button.addEventListener("click", () => setAuthMode(button.dataset.authTab));
+  });
+
+  elements.authModal.querySelectorAll("[data-auth-form]").forEach((form) => {
+    form.addEventListener("submit", submitAuthForm);
+  });
+
+  document.addEventListener("keydown", handleAuthModalKeydown);
+}
+
+function openAuthModal(mode, trigger) {
+  if (!elements.authModal) return;
+
+  authPreviousFocus = trigger || document.activeElement;
+  setAuthMode(mode);
+  elements.authModal.hidden = false;
+  document.body.classList.add("auth-modal-open");
+
+  window.requestAnimationFrame(() => {
+    const activePanel = elements.authModal.querySelector(`[data-auth-panel="${mode}"]`);
+    const firstInput = activePanel && activePanel.querySelector("input");
+    const closeButton = elements.authModal.querySelector("[data-auth-close]");
+    (firstInput || closeButton)?.focus();
+  });
+}
+
+function closeAuthModal() {
+  if (!elements.authModal || elements.authModal.hidden) return;
+
+  elements.authModal.hidden = true;
+  document.body.classList.remove("auth-modal-open");
+  clearAuthStatuses();
+
+  if (authPreviousFocus && typeof authPreviousFocus.focus === "function") {
+    authPreviousFocus.focus();
+  }
+}
+
+function setAuthMode(mode) {
+  if (!elements.authModal) return;
+  const selectedMode = mode === "register" ? "register" : "login";
+
+  elements.authModal.querySelectorAll("[data-auth-tab]").forEach((button) => {
+    const selected = button.dataset.authTab === selectedMode;
+    button.classList.toggle("is-active", selected);
+    button.setAttribute("aria-selected", String(selected));
+    button.tabIndex = selected ? 0 : -1;
+  });
+
+  elements.authModal.querySelectorAll("[data-auth-panel]").forEach((panel) => {
+    panel.hidden = panel.dataset.authPanel !== selectedMode;
+  });
+
+  clearAuthStatuses();
+}
+
+function clearAuthStatuses() {
+  if (!elements.authModal) return;
+  elements.authModal.querySelectorAll("[data-auth-status]").forEach((status) => {
+    status.textContent = "";
+    status.classList.remove("is-success");
+  });
+}
+
+function handleAuthModalKeydown(event) {
+  if (!elements.authModal || elements.authModal.hidden) return;
+
+  if (event.key === "Escape") {
+    event.preventDefault();
+    closeAuthModal();
+    return;
+  }
+
+  if (event.key !== "Tab") return;
+
+  const focusable = Array.from(
+    elements.authModal.querySelectorAll(
+      'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    )
+  ).filter((item) => !item.closest("[hidden]"));
+
+  if (!focusable.length) return;
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault();
+    first.focus();
+  }
+}
+
+async function submitAuthForm(event) {
+  event.preventDefault();
+
+  const form = event.currentTarget;
+  const mode = form.dataset.authForm;
+  const status = form.querySelector("[data-auth-status]");
+  const submitButton = form.querySelector('button[type="submit"]');
+  const formData = new FormData(form);
+
+  if (mode === "register" && formData.get("userPassword") !== formData.get("userPasswordConfirmation")) {
+    setAuthStatus(status, "Passwords must match.");
+    return;
+  }
+
+  const payload = mode === "register"
+    ? {
+        username: String(formData.get("userName") || "").trim(),
+        contact: String(formData.get("userEmail") || "").trim(),
+        password: String(formData.get("userPassword") || ""),
+        passwordConfirmation: String(formData.get("userPasswordConfirmation") || ""),
+        putname: String(formData.get("userName") || "").trim()
+      }
+    : {
+        usernameJSON: String(formData.get("userName") || "").trim(),
+        passwordJSON: String(formData.get("userPassword") || "")
+      };
+
+  submitButton.disabled = true;
+  submitButton.textContent = mode === "register" ? "Creating account..." : "Logging in...";
+  setAuthStatus(status, "");
+
+  try {
+    const response = await fetch(form.dataset.jsonEndpoint, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "X-CSRFToken": formData.get("csrfmiddlewaretoken") || ""
+      },
+      body: JSON.stringify(payload)
+    });
+    const data = await response.json();
+    const message = Array.isArray(data) ? data[0] : data;
+    const loginFailed = mode === "login" && !Array.isArray(data);
+
+    if (!response.ok || loginFailed) {
+      throw new Error(message || "Authentication failed.");
+    }
+
+    setAuthStatus(status, mode === "register" ? "Account created. Opening Paratara..." : "Logged in. Opening Paratara...", true);
+    window.setTimeout(() => window.location.reload(), 450);
+  } catch (error) {
+    setAuthStatus(status, error.message || "Please try again.");
+  } finally {
+    submitButton.disabled = false;
+    submitButton.textContent = mode === "register" ? "Create account" : "Log in";
+  }
+}
+
+function setAuthStatus(status, message, success = false) {
+  if (!status) return;
+  status.textContent = message;
+  status.classList.toggle("is-success", success);
+}
+
 function bindFooterLocation() {
   if (!elements.locationButton || !elements.status) return;
 
@@ -632,6 +811,7 @@ document.addEventListener("DOMContentLoaded", () => {
   bindDestinationLoader();
   bindScheduleButtons();
   bindFooterLocation();
+  bindAuthModal();
   window.setTimeout(loadRandomBlogs, 0);
   toggleLandingMessage();
 });

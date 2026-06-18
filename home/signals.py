@@ -20,6 +20,18 @@ def wire_event_to_package(sender, instance, **kwargs):
         return
 
 
+@receiver(post_save, sender='home.Places_v2')
+def sync_place_directory_after_place_save(sender, instance, **kwargs):
+    try:
+        from home.place_directory import sync_place_directory
+
+        sync_place_directory(instance)
+    except Exception:
+        # The explicit rebuild command is the source of truth for bulk repairs.
+        # Keep model saves working during migrations or partially applied deploys.
+        return
+
+
 @receiver(post_save, sender='home.SiargaoEventRegistrant')
 def mirror_siargao_registration_to_package(sender, instance, created, **kwargs):
     event_obj = getattr(instance, 'event', None)

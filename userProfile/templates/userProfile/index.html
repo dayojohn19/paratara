@@ -1136,19 +1136,39 @@
           <button
             type="button"
             class="btn btn-outline-secondary"
-            style="margin: 0.5rem auto 0; width: 100%;"
+            style="margin: 0.5rem auto 0; width: 100%;{% if forgot_password_open %} display: none;{% endif %}"
             onclick="document.querySelector('#forgotPasswordFormWrap').style.display='block'; this.style.display='none';"
           >
             Forgot Password
           </button>
-          <div id="forgotPasswordFormWrap" style="display: none; margin-top: 1rem;">
-            <form method="post" action="{% url 'userProfile:forgotPassword' %}">
+          <div id="forgotPasswordFormWrap" style="display: {% if forgot_password_open %}block{% else %}none{% endif %}; margin-top: 1rem;">
+            <form id="forgotPasswordForm" method="post" action="{% url 'userProfile:forgotPassword' %}">
               {% csrf_token %}
               <div class="form-floating mb-3">
-                <input id="forgotPasswordEmailInput" required class="form-control" type="email" name="email" placeholder="Email Address" />
+                <input id="forgotPasswordEmailInput" required class="form-control" type="email" name="email" value="{{ forgot_password_email|default:'' }}" placeholder="Email Address" />
                 <label for="forgotPasswordEmailInput">Enter your email address</label>
               </div>
-              <button style="margin: 0 auto; width: 100%;" class="btn btn-outline-secondary" type="submit">Send Reset Link</button>
+              <div class="form-floating mb-3">
+                <input
+                  id="forgotPasswordHumanInput"
+                  required
+                  class="form-control"
+                  type="number"
+                  name="human_answer"
+                  inputmode="numeric"
+                  autocomplete="off"
+                  data-first-number="{{ forgot_password_human_first }}"
+                  data-second-number="{{ forgot_password_human_second }}"
+                  placeholder="Verification answer"
+                />
+                <label for="forgotPasswordHumanInput">
+                  Human check: {{ forgot_password_human_first }} + {{ forgot_password_human_second }} = ?
+                </label>
+              </div>
+              <small id="forgotPasswordHumanHelp" class="d-block mb-3 text-muted">
+                Solve the question to enable the reset button.
+              </small>
+              <button id="forgotPasswordSubmitButton" disabled style="margin: 0 auto; width: 100%;" class="btn btn-outline-secondary" type="submit">Send Reset Link</button>
             </form>
           </div>
           <!-- <small>put a button loging with facebook</small> -->
@@ -1208,6 +1228,35 @@
     bankFormBtn.addEventListener("click", () => {
       bankFormBtn.style.display = "none";
       bankForm.style.display = "block";
+    });
+  }
+
+  const forgotPasswordHumanInput = document.getElementById("forgotPasswordHumanInput");
+  const forgotPasswordSubmitButton = document.getElementById("forgotPasswordSubmitButton");
+  const forgotPasswordHumanHelp = document.getElementById("forgotPasswordHumanHelp");
+
+  if (forgotPasswordHumanInput && forgotPasswordSubmitButton) {
+    const expectedAnswer =
+      Number(forgotPasswordHumanInput.dataset.firstNumber) +
+      Number(forgotPasswordHumanInput.dataset.secondNumber);
+
+    forgotPasswordHumanInput.addEventListener("input", () => {
+      const answerIsCorrect =
+        forgotPasswordHumanInput.value !== "" &&
+        Number(forgotPasswordHumanInput.value) === expectedAnswer;
+
+      forgotPasswordSubmitButton.disabled = !answerIsCorrect;
+      forgotPasswordHumanInput.setCustomValidity(
+        answerIsCorrect || forgotPasswordHumanInput.value === ""
+          ? ""
+          : "Please enter the correct answer."
+      );
+
+      if (forgotPasswordHumanHelp) {
+        forgotPasswordHumanHelp.textContent = answerIsCorrect
+          ? "Verification complete."
+          : "Solve the question to enable the reset button.";
+      }
     });
   }
 </script>

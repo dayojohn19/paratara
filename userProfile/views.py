@@ -16,6 +16,7 @@ from django.core.exceptions import ValidationError
 from django.template.loader import render_to_string
 #
 import os
+import secrets
 from .models import UserCredentialsBackUP, userPoster
 import json
 from .forms import ImageForm
@@ -41,10 +42,33 @@ def render_template(request, template_name, context=None):
     # f"Your IP is {user_ip}"
     if context is None:
         context = {}
+    context = _add_forgot_password_human_challenge(request, template_name, context)
     return render(request, template_name, context)
 
 
 PROFILE_MESSAGE_SESSION_KEY = "user_profile_message"
+FORGOT_PASSWORD_HUMAN_ANSWER_SESSION_KEY = "forgot_password_human_answer"
+
+
+def _set_forgot_password_human_challenge(request):
+    first_number = secrets.randbelow(8) + 2
+    second_number = secrets.randbelow(8) + 2
+    request.session[FORGOT_PASSWORD_HUMAN_ANSWER_SESSION_KEY] = first_number + second_number
+    return first_number, second_number
+
+
+def _add_forgot_password_human_challenge(request, template_name, context):
+    if template_name != "userProfile/index.html":
+        return context
+
+    first_number = context.get("forgot_password_human_first")
+    second_number = context.get("forgot_password_human_second")
+    if first_number is None or second_number is None:
+        first_number, second_number = _set_forgot_password_human_challenge(request)
+
+    context["forgot_password_human_first"] = first_number
+    context["forgot_password_human_second"] = second_number
+    return context
 
 
 def _set_profile_message(request, message):
@@ -439,13 +463,37 @@ def forgotPassword(request):
         return HttpResponseRedirect(reverse("userProfile:profile"))
 
     email = (request.POST.get('email') or '').strip()
+    submitted_human_answer = (request.POST.get("human_answer") or "").strip()
+    expected_human_answer = request.session.pop(
+        FORGOT_PASSWORD_HUMAN_ANSWER_SESSION_KEY,
+        None,
+    )
     print(f"[forgot-password] submitted email: {email}")
     print(f"[forgot-password] submitted email repr: {repr(email)} len={len(email)}")
+
+    try:
+        human_answer_is_valid = (
+            expected_human_answer is not None
+            and int(submitted_human_answer) == expected_human_answer
+        )
+    except (TypeError, ValueError):
+        human_answer_is_valid = False
+
+    if not human_answer_is_valid:
+        first_number, second_number = _set_forgot_password_human_challenge(request)
+        return render_template(request, 'userProfile/index.html', {
+            "message": "Please complete the human verification.",
+            "forgot_password_open": True,
+            "forgot_password_email": email,
+            "forgot_password_human_first": first_number,
+            "forgot_password_human_second": second_number,
+        })
 
     if not email:
         print("[forgot-password] no email submitted")
         return render_template(request, 'userProfile/index.html', {
-            "message": "Please enter your email address."
+            "message": "Please enter your email address.",
+            "forgot_password_open": True,
         })
 
     UserModel = get_user_model()
@@ -656,14 +704,16 @@ def registerUserJSON(request):
     userPasswordConfirmation = dataJSON.get('passwordConfirmation') or ''
     currentplaceID = dataJSON.get('placeID')
 
-    if not userName or not userPassword or not currentplaceID:
+    if not userName or not userPassword:
         return JsonResponse(['Missing required fields'], safe=False, status=400)
 
     if userPassword != userPasswordConfirmation:
         return JsonResponse(['Password taken and Must Match'], safe=False, status=400)
 
-    currentPlace = Places_v2.objects.filter(id=currentplaceID).first()
-    if currentPlace is None:
+    currentPlace = None
+    if currentplaceID:
+        currentPlace = Places_v2.objects.filter(id=currentplaceID).first()
+    if currentplaceID and currentPlace is None:
         return JsonResponse(['Invalid placeID'], safe=False, status=400)
 
     print('\n\n')
@@ -684,10 +734,11 @@ def registerUserJSON(request):
         print('logging In')
         login(request, user, backend='django.contrib.auth.backends.ModelBackend')
 
-        try:
-            user.visitedPlace.add(currentPlace)
-        except Exception as e:
-            print(e)
+        if currentPlace is not None:
+            try:
+                user.visitedPlace.add(currentPlace)
+            except Exception as e:
+                print(e)
 
         ensure_user_profile(
             user,
@@ -717,10 +768,11 @@ def registerUserJSON(request):
         print(e)
         return JsonResponse(['Data Server Failed to Register'], safe=False, status=500)
 
-    try:
-        newUser.visitedPlace.add(currentPlace)
-    except Exception as e:
-        print(e)
+    if currentPlace is not None:
+        try:
+            newUser.visitedPlace.add(currentPlace)
+        except Exception as e:
+            print(e)
 
     login(request, newUser, backend='django.contrib.auth.backends.ModelBackend')
     print('Created New User and Credentials')

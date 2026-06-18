@@ -1153,12 +1153,11 @@
 
    /* Lightweight schedule list */
 
-.calendar-list.schedules-list {
+.schedules-list {
   width: 100%;
   max-width: 680px;
   margin: 0 auto;
-  padding: 0 16px;
-  list-style: none;
+  padding: 0;
   display: block;
   overflow: visible;
 }
@@ -1170,125 +1169,72 @@
 
 .schedule-card {
   margin: 0;
-  padding: 20px 0;
-  list-style: none;
-  border-bottom: 1px solid #d1d5db;
-}
-
-.schedule-card:first-child {
-  border-top: 1px solid #d1d5db;
-}
-
-.schedule-card-body {
-  padding: 0;
-}
-
-/* Heading */
-
-.schedule-card-heading {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 16px;
+  padding: 14px 0;
 }
 
 .schedule-card-title {
   min-width: 0;
-  margin: 0;
+  margin-bottom: 6px;
   color: #222;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 700;
   line-height: 1.3;
   overflow-wrap: anywhere;
 }
 
-.schedule-heading-actions {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.schedule-status {
-  color: #536d2c;
-  font-size: 0.78rem;
-  font-weight: 700;
-}
-
-.schedule-card.is-expanded .schedule-status {
-  display: none;
-}
-
-.schedule-collapse-toggle {
-  width: 44px;
-  height: 44px;
-  padding: 0;
-  color: #333;
-  background: none;
-  border: 1px solid #999;
-  border-radius: 0;
-  font: inherit;
-  cursor: pointer;
-}
-
-.schedule-card:not(.is-expanded) .schedule-collapse-toggle {
-  transform: rotate(180deg);
-}
-
 /* Summary information */
 
 .schedule-summary {
-  display: grid;
-  gap: 18px;
-}
-
-.schedule-summary-lines {
-  display: grid;
-  gap: 12px;
-}
-
-.schedule-line {
-  display: grid;
-  grid-template-columns: 26px minmax(0, 1fr);
+  display: flex;
   align-items: center;
-  gap: 8px;
-}
-
-.schedule-line-icon {
-  text-align: center;
-  font-size: 1rem;
-}
-
-.schedule-line-value {
+  flex-wrap: nowrap;
+  gap: 6px;
   min-width: 0;
-  color: #333;
-  font-size: 1rem;
-  line-height: 1.4;
-  overflow-wrap: anywhere;
 }
 
-/* Actions */
+.schedule-route.schedule-when {
+  display: flex;
+  flex: 1 1 100%;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  color: #555;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
 
-.schedule-summary-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+.schedule-route-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.schedule-route-text span {
+  margin-right: 4px;
+}
+
+.schedule-separator {
+  color: #777;
 }
 
 .schedule-more-toggle,
 .schedule-card .btn-join,
 .schedule-card .btn-view-joiners,
 .schedule-card .btn-delete-schedule {
-  width: 100%;
-  min-height: 46px;
-  padding: 10px 14px;
+  flex: 0 0 auto;
+  min-height: 36px;
+  padding: 6px 9px;
   background: none !important;
   border: 1px solid #777;
   border-radius: 0;
   color: #222;
   font: inherit;
+  font-size: 0.82rem;
   font-weight: 700;
+  white-space: nowrap;
   cursor: pointer;
 }
 
@@ -1305,8 +1251,7 @@
 .schedule-more-toggle:focus-visible,
 .schedule-card .btn-join:focus-visible,
 .schedule-card .btn-view-joiners:focus-visible,
-.schedule-card .btn-delete-schedule:focus-visible,
-.schedule-collapse-toggle:focus-visible {
+.schedule-card .btn-delete-schedule:focus-visible {
   outline: 2px solid #536d2c;
   outline-offset: 2px;
 }
@@ -1315,7 +1260,9 @@
 
 .schedule-more {
   display: grid;
-  gap: 20px;
+  gap: 14px;
+  margin-top: 12px;
+  padding-top: 12px;
 }
 
 .schedule-detail-stack {
@@ -1326,15 +1273,10 @@
   display: grid;
   gap: 5px;
   padding: 14px 0;
-  border-bottom: 1px solid #ddd;
-}
-
-.schedule-detail-block:first-child {
-  border-top: 1px solid #ddd;
 }
 
 .detail-label {
-  color: #666;
+  color: #9ca3af;
   font-size: 0.78rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -1406,42 +1348,24 @@
   margin-top: 4px;
 }
 
-.schedule-owner-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
 .review-count {
   color: #666;
   font-size: 0.85rem;
 }
 
-.btn-join-expanded {
-  width: 100%;
-}
-
 /* Make hidden sections stay hidden */
 
-.schedule-summary[hidden],
 .schedule-more[hidden] {
   display: none !important;
 }
 
-/* Small phones */
-
-@media (max-width: 380px) {
-  .calendar-list.schedules-list {
-    padding: 0 12px;
+@media (max-width: 480px) {
+  .schedule-card {
+    padding: 12px 0;
   }
 
-  .schedule-status {
-    display: none;
-  }
-
-  .schedule-summary-actions,
-  .schedule-owner-actions {
-    grid-template-columns: 1fr;
+  .schedule-card-title {
+    font-size: 1rem;
   }
 }
 

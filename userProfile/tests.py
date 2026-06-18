@@ -1,9 +1,11 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from unittest.mock import patch
 
 from .models import UserCredentialsBackUP, userPoster
 from .services import create_user_with_profile, ensure_user_profile, get_user_profile_by_id
+from .views import FORGOT_PASSWORD_HUMAN_ANSWER_SESSION_KEY
 
 
 @override_settings(SECURE_SSL_REDIRECT=False)
@@ -91,3 +93,46 @@ class UserProfileServiceTests(TestCase):
 
         self.assertContains(response, "Create Password")
         self.assertNotContains(response, "Old password")
+
+    def test_forgot_password_rejects_incorrect_human_verification(self):
+        self.client.get(reverse("userProfile:profile"))
+
+        with patch("userProfile.views.send_password_reset_email") as send_email:
+            response = self.client.post(
+                reverse("userProfile:forgotPassword"),
+                {
+                    "email": "person@example.com",
+                    "human_answer": "-1",
+                },
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Please complete the human verification.")
+        self.assertContains(response, 'id="forgotPasswordFormWrap" style="display: block;')
+        send_email.assert_not_called()
+
+    def test_forgot_password_accepts_correct_human_verification(self):
+        User = get_user_model()
+        User.objects.create_user(
+            username="reset-user",
+            email="reset@example.com",
+            password="secret-pass",
+        )
+        self.client.get(reverse("userProfile:profile"))
+        human_answer = self.client.session[FORGOT_PASSWORD_HUMAN_ANSWER_SESSION_KEY]
+
+        with patch("userProfile.views.send_password_reset_email", return_value=True) as send_email:
+            response = self.client.post(
+                reverse("userProfile:forgotPassword"),
+                {
+                    "email": "reset@example.com",
+                    "human_answer": str(human_answer),
+                },
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "If your email is registered, a password reset link has been sent.",
+        )
+        send_email.assert_called_once()

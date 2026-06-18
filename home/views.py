@@ -16,6 +16,7 @@ from django.contrib.staticfiles import finders
 from django.http import JsonResponse 
 from django.urls import reverse
 from .models import allSchedules, Places_v2, RequestPageSummary, FacebookPage
+from .place_directory import build_place_directory_queryset, fetch_places_for_directory_rows
 from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime
 import json
@@ -1237,31 +1238,34 @@ def carpoolJOSN(request):
     query = request.GET.get('q', '').strip()
     lite_response = request.GET.get('lite') == '1'
     limit_param = request.GET.get('limit')
-    fields = [
-        'id',
-        'placeID',
-        'placename',
-        'reviewCount',
-        'slug',
-    ]
 
-    if not lite_response:
-        fields.append('placePhoto')
+    try:
+        limit = max(1, min(int(limit_param), 120))
+    except (TypeError, ValueError):
+        limit = 24 if lite_response or query else 48
 
-    places_query = Places_v2.objects.order_by('-reviewCount', 'placename')
-    if query:
-        places_query = places_query.filter(placename__icontains=query)
+    try:
+        offset = max(0, int(request.GET.get('offset', 0)))
+    except (TypeError, ValueError):
+        offset = 0
 
-    if limit_param is not None:
-        try:
-            limit = max(1, min(int(limit_param), 120))
-        except (TypeError, ValueError):
-            limit = 24 if lite_response else 48
-        places_query = places_query[:limit]
-    elif lite_response or query:
-        places_query = places_query[:24]
+    directory_queryset = build_place_directory_queryset(request.GET)
+    directory_page = list(directory_queryset[offset:offset + limit + 1])
+    has_next = len(directory_page) > limit
+    directory_page = directory_page[:limit]
 
-    response = JsonResponse({"PlacesList": list(places_query.values(*fields))})
+    places = fetch_places_for_directory_rows(
+        directory_page,
+        include_photo=not lite_response,
+    )
+
+    response = JsonResponse({
+        "PlacesList": places,
+        "limit": limit,
+        "offset": offset,
+        "next_offset": offset + limit if has_next else None,
+        "has_next": has_next,
+    })
     response["Cache-Control"] = "public, max-age=300"
     return response
 

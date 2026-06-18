@@ -146,6 +146,8 @@
         .prf input,
         .prf select,
         .prf textarea {
+          box-sizing: border-box;
+          width: 100%;
           border: 1px solid rgba(148, 163, 184, 0.45);
           padding: 8px 10px;
           font: inherit;
@@ -179,6 +181,10 @@
         .prf .prlb:focus-visible {
           outline: 2px solid var(--accent);
           outline-offset: 2px;
+        }
+        .prat {
+          color: var(--text);
+          font-size: 1rem;
         }
         .psr {
           display: flex;
@@ -243,6 +249,33 @@
           line-height: 1.45;
           white-space: pre-line;
         }
+        .pam {
+          position: fixed;
+          inset: 0;
+          z-index: 13000;
+          display: grid;
+          place-items: center;
+          padding: 16px;
+          background: rgba(15, 23, 42, 0.55);
+        }
+        .pamc {
+          position: relative;
+          width: min(360px, 100%);
+          padding: 20px;
+          background: #fff;
+        }
+        .pamx {
+          position: absolute;
+          top: 6px;
+          right: 6px;
+          width: 36px;
+          height: 36px;
+          border: 0;
+          background: transparent;
+          color: #475569;
+          font-size: 1.5rem;
+          cursor: pointer;
+        }
         @media (max-width: 600px) {
           .pc {
             width: calc(50% - 0.1rem);
@@ -252,6 +285,23 @@
           }
           .prfr {
             grid-template-columns: 1fr;
+          }
+          .prf input,
+          .prf select,
+          .prf textarea {
+            min-height: 44px;
+            font-size: 16px;
+          }
+          .prf > button[type="submit"] {
+            width: 100%;
+            min-height: 44px;
+          }
+          .prf .prlb,
+          .prvb {
+            min-height: 44px;
+          }
+          .prf .prlb {
+            padding: 8px 4px;
           }
         }
       `;
@@ -535,20 +585,52 @@
       });
     }
 
-    function showAuthForm(mode) {
-      const signupForm = document.getElementById('psF');
-      const loginForm = document.getElementById('plF');
-      const signupButton = document.getElementById('psT');
-      const showLogin = mode === 'login';
+    function authFormHtml(title) {
+      return `
+        <form class="prf paF" data-mode="login">
+          <strong class="prat paTitle">${escapeHtml(title || 'Log in to rate')}</strong>
+          <input name="contact" type="text" autocomplete="email" placeholder="Contact or email" hidden />
+          <input name="username" type="text" autocomplete="username" placeholder="Username" required />
+          <input name="password" type="password" autocomplete="current-password" placeholder="Password" required />
+          <button type="submit" class="paSubmit">Log in</button>
+          <p class="prst"><span class="paHint">New here?</span> <button type="button" class="prlb paSwitch" data-auth-mode="signup">Create account</button>.</p>
+          <div class="prst paStatus" aria-live="polite"></div>
+        </form>
+      `;
+    }
 
-      if (signupForm) signupForm.hidden = showLogin;
-      if (loginForm) loginForm.hidden = !showLogin;
-      if (signupButton) signupButton.hidden = showLogin;
+    function setAuthStatus(form, message, isError) {
+      const status = form && form.querySelector('.paStatus');
+      if (!status) return;
+      status.textContent = message || '';
+      status.style.color = isError ? '#b91c1c' : '#64748b';
+    }
 
-      const activeForm = showLogin ? loginForm : signupForm;
-      const firstField = activeForm ? activeForm.querySelector('input') : null;
-      if (firstField) firstField.focus();
-      setReviewStatus('', false);
+    function setAuthMode(mode, form) {
+      if (!form) return;
+      const signup = mode === 'signup';
+      const contact = form.elements.contact;
+      const password = form.elements.password;
+      const switchButton = form.querySelector('.paSwitch');
+
+      form.dataset.mode = signup ? 'signup' : 'login';
+      contact.hidden = !signup;
+      contact.required = signup;
+      password.autocomplete = signup ? 'new-password' : 'current-password';
+      if (signup) {
+        password.setAttribute('minlength', '6');
+      } else {
+        password.removeAttribute('minlength');
+      }
+
+      form.querySelector('.paTitle').textContent = signup ? 'Create an account' : (form.dataset.loginTitle || 'Log in to rate');
+      form.querySelector('.paSubmit').textContent = signup ? 'Create account' : 'Log in';
+      form.querySelector('.paHint').textContent = signup ? 'Already registered?' : 'New here?';
+      switchButton.textContent = signup ? 'Log in' : 'Create account';
+      switchButton.dataset.authMode = signup ? 'login' : 'signup';
+
+      setAuthStatus(form, '', false);
+      (signup ? contact : form.elements.username).focus();
     }
 
     function renderReviewPanel(item) {
@@ -585,22 +667,7 @@
             <button type="submit">Save rating</button>
           </form>
         `
-        : `
-          <button type="button" id="psT" class="prvb">Sign up to rate</button>
-          <form id="psF" class="prf" hidden>
-            <input name="contact" type="text" autocomplete="email" placeholder="Contact or email" required />
-            <input name="username" type="text" autocomplete="username" placeholder="Username" required />
-            <input name="password" type="password" autocomplete="new-password" placeholder="Password" minlength="6" required />
-            <button type="submit">Create account</button>
-            <p class="prst">Already have an account? <button type="button" id="plT" class="prlb">Login</button>.</p>
-          </form>
-          <form id="plF" class="prf" hidden>
-            <input name="username" type="text" autocomplete="username" placeholder="Username" required />
-            <input name="password" type="password" autocomplete="current-password" placeholder="Password" required />
-            <button type="submit">Login</button>
-            <p class="prst">Need an account? <button type="button" id="psBackT" class="prlb">Sign up</button>.</p>
-          </form>
-        `;
+        : authFormHtml('Log in to rate');
 
       panel.hidden = false;
       panel.innerHTML = `
@@ -737,78 +804,43 @@
       }
     }
 
-    async function submitSignup(form) {
+    async function submitAuth(form) {
       if (!form) return;
+      const signup = form.dataset.mode === 'signup';
       const submitButton = form.querySelector('button[type="submit"]');
       const contact = (form.elements.contact ? form.elements.contact.value : '').trim();
       const username = (form.elements.username ? form.elements.username.value : '').trim();
       const password = form.elements.password ? form.elements.password.value : '';
 
-      if (!contact || !username || !password) {
-        setReviewStatus('Fill in contact, username, and password.', true);
+      if (!username || !password || (signup && !contact)) {
+        const message = signup
+          ? 'Enter contact, username, and password.'
+          : 'Enter username and password.';
+        setAuthStatus(form, message, true);
         return;
       }
 
       if (submitButton) {
         submitButton.disabled = true;
-        submitButton.textContent = 'Creating...';
+        submitButton.textContent = signup ? 'Creating...' : 'Logging in...';
       }
-      setReviewStatus('', false);
+      setAuthStatus(form, '', false);
 
       try {
-        const response = await fetch('/userProfile/registerjson', {
-          method: 'POST',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrfToken(),
-          },
-          body: JSON.stringify({
-            username: username,
-            contact: contact,
-            password: password,
-            passwordConfirmation: password,
-            placeID: config.placeId,
-          }),
-        });
-        const payload = await response.json().catch(function () { return null; });
-        if (!response.ok) {
-          const message = Array.isArray(payload) ? payload[0] : (payload && (payload.error || payload.detail));
-          throw new Error(message || 'Could not create account');
-        }
-
-        canReview = true;
-        renderReviewPanel(ims.item);
-        setReviewStatus('Account ready. You can now rate this package.', false);
-      } catch (error) {
-        setReviewStatus(error.message || 'Could not create account.', true);
-      } finally {
-        if (submitButton) {
-          submitButton.disabled = false;
-          submitButton.textContent = 'Create account';
-        }
-      }
-    }
-
-    async function submitLogin(form) {
-      if (!form) return;
-      const submitButton = form.querySelector('button[type="submit"]');
-      const username = (form.elements.username ? form.elements.username.value : '').trim();
-      const password = form.elements.password ? form.elements.password.value : '';
-
-      if (!username || !password) {
-        setReviewStatus('Enter username and password.', true);
-        return;
-      }
-
-      if (submitButton) {
-        submitButton.disabled = true;
-        submitButton.textContent = 'Logging in...';
-      }
-      setReviewStatus('', false);
-
-      try {
-        const response = await fetch(loginJsonUrl, {
+        const endpoint = signup ? '/userProfile/registerjson' : loginJsonUrl;
+        const requestData = signup
+          ? {
+              username: username,
+              contact: contact,
+              password: password,
+              passwordConfirmation: password,
+              placeID: config.placeId,
+            }
+          : {
+              usernameJSON: username,
+              passwordJSON: password,
+            };
+        const response = await fetch(endpoint, {
           method: 'POST',
           credentials: 'same-origin',
           headers: {
@@ -816,32 +848,60 @@
             'Content-Type': 'application/json',
             'X-CSRFToken': csrfToken(),
           },
-          body: JSON.stringify({
-            usernameJSON: username,
-            passwordJSON: password,
-          }),
+          body: JSON.stringify(requestData),
         });
         const payload = await response.json().catch(function () { return null; });
         const loggedIn = Array.isArray(payload) && payload[0] === 'Successfully Log In';
-        if (!response.ok || !loggedIn) {
-          const message = typeof payload === 'string'
-            ? payload
-            : (payload && (payload.error || payload.detail));
-          throw new Error(message || (response.ok ? 'Wrong username or password' : 'Could not log in'));
+        if (!response.ok || (!signup && !loggedIn)) {
+          const message = Array.isArray(payload)
+            ? payload[0]
+            : (typeof payload === 'string' ? payload : payload && (payload.error || payload.detail));
+          throw new Error(message || (signup ? 'Could not create account' : 'Wrong username or password'));
         }
 
         canReview = true;
-        renderReviewPanel(ims.item);
-        setReviewStatus('Logged in. You can now rate this package.', false);
+        const authModal = form.closest('.pam');
+        if (authModal) {
+          const onSuccess = authModal._onSuccess;
+          authModal.remove();
+          if (typeof onSuccess === 'function') onSuccess();
+        } else {
+          renderReviewPanel(ims.item);
+          setReviewStatus(signup ? 'Account created. You can now rate this package.' : 'Logged in. You can now rate this package.', false);
+        }
       } catch (error) {
-        setReviewStatus(error.message || 'Could not log in.', true);
+        setAuthStatus(form, error.message || (signup ? 'Could not create account.' : 'Could not log in.'), true);
       } finally {
         if (submitButton && submitButton.isConnected) {
           submitButton.disabled = false;
-          submitButton.textContent = 'Login';
+          submitButton.textContent = signup ? 'Create account' : 'Log in';
         }
       }
     }
+
+    window.placeIsAuthenticated = function () {
+      return canReview;
+    };
+    window.openPlaceAuth = function (onSuccess) {
+      if (canReview) {
+        if (typeof onSuccess === 'function') onSuccess();
+        return;
+      }
+      if (window.ensurePlaceSubCardStyles) window.ensurePlaceSubCardStyles();
+      const oldModal = document.querySelector('.pam');
+      if (oldModal) oldModal.remove();
+      const modal = document.createElement('div');
+      modal.className = 'pam';
+      modal.setAttribute('role', 'dialog');
+      modal.setAttribute('aria-modal', 'true');
+      modal.setAttribute('aria-label', 'Log in or create account');
+      modal._onSuccess = onSuccess;
+      modal.innerHTML = `<div class="pamc"><button type="button" class="pamx" aria-label="Close">&times;</button>${authFormHtml('Log in to continue')}</div>`;
+      document.body.appendChild(modal);
+      const form = modal.querySelector('.paF');
+      form.dataset.loginTitle = 'Log in to continue';
+      form.elements.username.focus();
+    };
 
     window.openPlaceItemModal = function (itemOrIndex) {
       const modal = document.getElementById('piM');
@@ -918,19 +978,18 @@
           loadReviews(false);
           return;
         }
-        const signupButton = event.target && event.target.closest ? event.target.closest('#psT') : null;
-        if (signupButton) {
-          showAuthForm('signup');
+        const authSwitch = event.target && event.target.closest ? event.target.closest('.paSwitch') : null;
+        if (authSwitch) {
+          setAuthMode(authSwitch.dataset.authMode, authSwitch.closest('.paF'));
           return;
         }
-        const loginButton = event.target && event.target.closest ? event.target.closest('#plT') : null;
-        if (loginButton) {
-          showAuthForm('login');
+        const authClose = event.target && event.target.closest ? event.target.closest('.pamx') : null;
+        if (authClose) {
+          authClose.closest('.pam').remove();
           return;
         }
-        const signupBackButton = event.target && event.target.closest ? event.target.closest('#psBackT') : null;
-        if (signupBackButton) {
-          showAuthForm('signup');
+        if (event.target && event.target.classList && event.target.classList.contains('pam')) {
+          event.target.remove();
           return;
         }
         const starButton = event.target && event.target.closest ? event.target.closest('.psrs') : null;
@@ -943,18 +1002,21 @@
       });
 
       document.addEventListener('submit', function (event) {
-        if (!event.target || (event.target.id !== 'prF' && event.target.id !== 'psF' && event.target.id !== 'plF')) return;
+        if (!event.target || (event.target.id !== 'prF' && !event.target.classList.contains('paF'))) return;
         event.preventDefault();
-        if (event.target.id === 'psF') {
-          submitSignup(event.target);
-        } else if (event.target.id === 'plF') {
-          submitLogin(event.target);
+        if (event.target.classList.contains('paF')) {
+          submitAuth(event.target);
         } else {
           submitReview(event.target);
         }
       });
 
       document.addEventListener('keydown', function (event) {
+        const authModal = document.querySelector('.pam');
+        if (event.key === 'Escape' && authModal) {
+          authModal.remove();
+          return;
+        }
         const modal = document.getElementById('piM');
         if (!modal || !modal.classList.contains('is-open')) return;
         if (event.key === 'Escape') window.closePlaceItemModal();

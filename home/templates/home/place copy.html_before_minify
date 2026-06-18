@@ -1030,7 +1030,7 @@
   :root {
     /* Main Palette Inspired by Uploaded Theme */
     --surface: #fdfbf5;
-    --surface-alt: #f4f0e4;
+    --surface-alt: #f6f6f6;
     --page-bg: #eef1e4;
 
     --accent: #556b2f;

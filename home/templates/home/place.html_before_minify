@@ -16,7 +16,7 @@
   <meta property="og:title" content="{% if page_title %}{{ page_title }}{% elif place.placename %}{{ place.placename }} Travel Guide | Paratara{% else %}Paratara{% endif %}">
   <meta property="og:description" content="{% if meta_description %}{{ meta_description }}{% elif place.placename %}Discover {{ place.placename }} travel guides, resort options, local events, tourist spots, and shared trip schedules with Paratara.{% else %}Plan trips with Paratara.{% endif %}">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="{% static 'home/place-page.css' %}">
+  <link rel="stylesheet" href="{% static 'home/place-page.css' %}?v=20260618-3">
 </head>
 <body>
 {% block body %}
@@ -91,7 +91,7 @@
     window.placeLazyImageAttrs = ' loading="lazy" decoding="async"';
   }());
 </script>
-<script src="{% static 'home/place-page-core.js' %}" defer></script>
+<script src="{% static 'home/place-page-core.js' %}?v=20260618-1" defer></script>
 
 <script>
     // Generate math challenge
@@ -155,18 +155,22 @@
 
   // Handle schedule join with confirmation and geolocation
   async function joinSchedule(scheduleId, scheduleTitle) {
+    const authenticated = window.placeIsAuthenticated
+      ? window.placeIsAuthenticated()
+      : {{ request.user.is_authenticated|yesno:"true,false" }};
+    if (!authenticated) {
+      if (window.openPlaceAuth) {
+        window.openPlaceAuth(() => joinSchedule(scheduleId, scheduleTitle));
+      } else {
+        alert('Login is temporarily unavailable. Please try again.');
+      }
+      return;
+    }
+
     // Show confirmation dialog
     const isConfirmed = confirm(`Are you sure you want to join "${scheduleTitle}"?`);
     
     if (!isConfirmed) {
-      return;
-    }
-
-    // Check if user is logged in first
-    const currentPageUser = '{{request.user}}';
-    if (currentPageUser === "AnonymousUser") {
-      alert('You must be logged in to join a schedule. Please log in first.');
-      window.location.href = '/userProfile/login/';
       return;
     }
 
@@ -218,30 +222,31 @@
     }
 
     // Send request to join
-    fetch(`/schedule/${scheduleId}/join/`, {
-      method: 'POST',
-      headers: {
-        'X-CSRFToken': csrftoken,
-      },
-      body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
+    try {
+      const response = await fetch(`/schedule/${scheduleId}/join/`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrftoken,
+        },
+        body: formData
+      });
+      const data = await response.json().catch(() => ({}));
+
       if (data.success || data.already_joined) {
         alert(data.message || 'Successfully joined the schedule!');
-        // Optionally refresh the page or update UI
-        // window.location.reload();
       } else if (response.status === 401) {
-        alert('Please log in to join this schedule');
-        window.location.href = '/userProfile/login/';
+        if (window.openPlaceAuth) {
+          window.openPlaceAuth(() => joinSchedule(scheduleId, scheduleTitle));
+        } else {
+          alert('Login is temporarily unavailable. Please try again.');
+        }
       } else {
         alert(data.error || 'Failed to join schedule');
       }
-    })
-    .catch(error => {
+    } catch (error) {
       console.error('Error joining schedule:', error);
       alert('An error occurred while joining. Please try again.');
-    });
+    }
   }
 
   async function viewJoiners(scheduleId, scheduleTitle) {
@@ -1173,9 +1178,7 @@
         <div class="section-header">
           <h2>Schedules</h2>
         </div>
-        <ul id="calendar-allsched-list" class="calendar-list schedules-list">
-          <!-- Schedule items will be dynamically inserted here -->
-        </ul>
+        <div id="calendar-allsched-list" class="schedules-list" aria-label="Available schedules" aria-live="polite"></div>
         <div id="schedules-load-more" class="load-more-wrap" hidden></div>
       </div>
 
@@ -1615,6 +1618,12 @@ container.innerHTML = cards;
         }
 
         const placeScheduleItems = data['placeSchedule'] || [];
+        const formatTime12 = (value) => {
+          const match = String(value || '').trim().match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+          if (!match) return value || '';
+          const hour = Number(match[1]);
+          return `${hour % 12 || 12}:${match[2]} ${hour < 12 ? 'AM' : 'PM'}`;
+        };
 
         if (options.renderSchedules !== false) {
           const allSchedContainer = document.querySelector("#calendar-allsched-list");
@@ -1627,30 +1636,32 @@ container.innerHTML = cards;
 
             const sched = schedItem.fields;
             // Create schedule card
-            const schedCard = document.createElement('li');
+            const schedCard = document.createElement('div');
             schedCard.className = 'schedule-card';
             
             // Get current user ID from request.user.id (server-side)
             const currentUserID = `{{request.user.id|default:"null"}}`;
             // Check if current user is the poster
             const isPoster = currentUserID && String(sched.posterID) === String(currentUserID);
-            const scheduleTitle = sched.scheduleTitle || 'Schedule';
+            const scheduleTitle = sched.scheduleTitle || 'Trip';
             const scheduleDate = `${sched.monthN ? new Date((sched.yearN || 2000), (sched.monthN - 1), 1).toLocaleString('en-US', { month: 'long' }) : ''} ${sched.dateN || ''} ${sched.yearN || ''}`.trim();
             const scheduleRole = sched.MakerOrLooker === 'Look'
               ? 'Looking for transportation'
               : (sched.MakerOrLooker === 'Make'
-                ? 'Created schedule'
-                : (sched.MakerOrLooker || 'Schedule'));
+                ? 'Trip organizer'
+                : (sched.MakerOrLooker || 'Trip organizer'));
             const scheduleDetailsId = `schedule-more-${schedItem.pk}`;
-            const scheduleSummaryId = `schedule-summary-${schedItem.pk}`;
             const placeNameFallback = '{{ place.placename|escapejs }}';
-            const meetupLabel = sched.meetPlace || sched.scheduleTitle || 'Meetup';
             const meetupPlaceLabel = sched.meetPlace || 'TBA';
             const destinationLabel = sched.endPlace || placeNameFallback || 'TBA';
-            const timeLabel = sched.meetTime || 'Time TBA';
-            const dateTimeLabel = scheduleDate && sched.meetTime
-              ? `${scheduleDate} at ${sched.meetTime}`
-              : (scheduleDate || sched.meetTime || 'Date and time TBA');
+            const meetupTimeLabel = formatTime12(sched.meetTime);
+            const displayTitle = scheduleTitle
+              .replace(/\bschedule\b/gi, '')
+              .replace(/\s+/g, ' ')
+              .trim() || `${meetupPlaceLabel} to ${destinationLabel}`;
+            const dateTimeLabel = scheduleDate && meetupTimeLabel
+              ? `${scheduleDate} at ${meetupTimeLabel}`
+              : (scheduleDate || meetupTimeLabel || 'Date and time TBA');
             const transportLabel = sched.scheduleTravelType || (sched.MakerOrLooker === 'Look' ? 'Looking for a ride' : 'Carpool');
             const summaryActionMarkup = isPoster ? `
               <button class="btn-view-joiners" type="button" data-schedule-action="joiners">View Joiners</button>
@@ -1658,126 +1669,84 @@ container.innerHTML = cards;
               <button class="btn-join" type="button" data-schedule-action="join">Join</button>
             `;
             const expandedActionMarkup = isPoster ? `
-              <div class="schedule-owner-actions">
-                <button class="btn-view-joiners" type="button" data-schedule-action="joiners">View Joiners</button>
-                <button class="btn-delete-schedule" type="button" data-schedule-action="delete">Delete</button>
-              </div>
-            ` : `
-              <button class="btn-join btn-join-expanded" type="button" data-schedule-action="join">Join meetup</button>
-            `;
+              <button class="btn-delete-schedule" type="button" data-schedule-action="delete">Delete</button>
+            ` : '';
             
             schedCard.innerHTML = `
-              <div class="schedule-card-body">
-                <div class="schedule-card-heading">
-                  <h3 class="schedule-card-title">${escapeHtml(meetupLabel)}</h3>
-                  <div class="schedule-heading-actions">
-                    <span class="schedule-status">Upcoming</span>
-                    <button class="schedule-collapse-toggle" type="button" data-schedule-toggle aria-label="View details" aria-expanded="false" aria-controls="${scheduleDetailsId}">
-                      &#9650;
-                    </button>
-                  </div>
+              <div class="schedule-card-title">${escapeHtml(displayTitle)}</div>
+
+              <div class="schedule-summary">
+                <div class="schedule-route schedule-when">
+                  <span class="schedule-route-text">
+                    <span>${escapeHtml(dateTimeLabel)}</span>
+                    <span class="schedule-separator" aria-hidden="true">-</span>
+                    <span>${escapeHtml(meetupPlaceLabel)}</span>
+                    <span class="schedule-separator">to</span>
+                    <span>${escapeHtml(destinationLabel)}</span>
+                  </span>
+                  <button class="schedule-more-toggle" type="button" data-schedule-toggle aria-expanded="false" aria-controls="${scheduleDetailsId}">Details</button>
+                  ${summaryActionMarkup}
                 </div>
+              </div>
 
-                <div class="schedule-summary" id="${scheduleSummaryId}">
-                  <div class="schedule-summary-lines">
-                    <div class="schedule-line">
-                      <span class="schedule-line-icon" aria-hidden="true">📍</span>
-                      <span class="schedule-line-value">Meetup: ${escapeHtml(meetupPlaceLabel)}</span>
-                    </div>
-                    <div class="schedule-line">
-                      <span class="schedule-line-icon" aria-hidden="true">🏁</span>
-                      <span class="schedule-line-value">Destination: ${escapeHtml(destinationLabel)}</span>
-                    </div>
-                    <div class="schedule-line">
-                      <span class="schedule-line-icon" aria-hidden="true">📅</span>
-                      <span class="schedule-line-value">${escapeHtml(scheduleDate || 'Date TBA')}</span>
-                    </div>
-                    <div class="schedule-line">
-                      <span class="schedule-line-icon" aria-hidden="true">🕚</span>
-                      <span class="schedule-line-value">${escapeHtml(timeLabel)}</span>
-                    </div>
-                    <div class="schedule-line">
-                      <span class="schedule-line-icon" aria-hidden="true">🚗</span>
-                      <span class="schedule-line-value">${escapeHtml(transportLabel)}</span>
-                    </div>
+              <div class="schedule-more" id="${scheduleDetailsId}" hidden>
+                <div class="schedule-detail-stack">
+                  <div class="schedule-detail-block">
+                    <span class="detail-label">Meetup place</span>
+                    <span class="detail-value">${escapeHtml(meetupPlaceLabel)}</span>
                   </div>
-
-                  <div class="schedule-summary-actions">
-                    <button class="schedule-more-toggle" type="button" data-schedule-toggle aria-expanded="false" aria-controls="${scheduleDetailsId}">
-                      View details
-                    </button>
-                    ${summaryActionMarkup}
+                  <div class="schedule-detail-block">
+                    <span class="detail-label">Destination</span>
+                    <span class="detail-value">${escapeHtml(destinationLabel)}</span>
                   </div>
-                </div>
-
-                <div class="schedule-more" id="${scheduleDetailsId}" hidden>
-                  <div class="schedule-detail-stack">
-                    <div class="schedule-detail-block">
-                      <span class="detail-label">Meetup place</span>
-                      <span class="detail-value">${escapeHtml(meetupPlaceLabel)}</span>
-                    </div>
-                    <div class="schedule-detail-block">
-                      <span class="detail-label">Destination</span>
-                      <span class="detail-value">${escapeHtml(destinationLabel)}</span>
-                    </div>
-                    <div class="schedule-detail-block">
-                      <span class="detail-label">Date and time</span>
-                      <span class="detail-value">${escapeHtml(dateTimeLabel)}</span>
-                    </div>
-                    <div class="schedule-detail-block">
-                      <span class="detail-label">Transportation</span>
-                      <span class="detail-value">${escapeHtml(transportLabel)}</span>
-                    </div>
-                    ${sched.scheduleCost ? `
-                    <div class="schedule-detail-block">
-                      <span class="detail-label">Cost</span>
-                      <span class="detail-value">${escapeHtml(sched.scheduleCost)}</span>
-                    </div>
-                    ` : ''}
-                    <div class="schedule-detail-block">
-                      <span class="detail-label">Hosted by</span>
-                      <div class="poster-info">
-                        ${sched.posterImageURL ? `<img src="${escapeHtml(sched.posterImageURL)}" alt="${escapeHtml(sched.posterName || 'Schedule poster')}" class="poster-avatar" width="48" height="48" loading="lazy" decoding="async">` : '<div class="poster-avatar-placeholder">👤</div>'}
-                        <div class="poster-details">
-                          <div class="poster-name">${escapeHtml(sched.posterName || 'Anonymous')} ${sched.posterVerified ? '✓' : ''}</div>
-                          <span class="poster-role">${escapeHtml(scheduleRole)}</span>
-                          ${sched.detailsContact ? `<div class="poster-contact">${escapeHtml(sched.detailsContact)}</div>` : ''}
-                        </div>
+                  <div class="schedule-detail-block">
+                    <span class="detail-label">Date and time</span>
+                    <span class="detail-value">${escapeHtml(dateTimeLabel)}</span>
+                  </div>
+                  <div class="schedule-detail-block">
+                    <span class="detail-label">Transportation</span>
+                    <span class="detail-value">${escapeHtml(transportLabel)}</span>
+                  </div>
+                  ${sched.scheduleCost ? `
+                  <div class="schedule-detail-block">
+                    <span class="detail-label">Cost</span>
+                    <span class="detail-value">${escapeHtml(sched.scheduleCost)}</span>
+                  </div>
+                  ` : ''}
+                  <div class="schedule-detail-block">
+                    <span class="detail-label">Hosted by</span>
+                    <div class="poster-info">
+                      ${sched.posterImageURL ? `<img src="${escapeHtml(sched.posterImageURL)}" alt="${escapeHtml(sched.posterName || 'Schedule poster')}" class="poster-avatar" width="48" height="48" loading="lazy" decoding="async">` : '<div class="poster-avatar-placeholder">👤</div>'}
+                      <div class="poster-details">
+                        <div class="poster-name">${escapeHtml(sched.posterName || 'Anonymous')} ${sched.posterVerified ? '✓' : ''}</div>
+                        <span class="poster-role">${escapeHtml(scheduleRole)}</span>
+                        ${sched.detailsContact ? `<div class="poster-contact">${escapeHtml(sched.detailsContact)}</div>` : ''}
                       </div>
                     </div>
                   </div>
-
-                  ${sched.otherDetails ? `<p class="schedule-description">${escapeHtml(sched.otherDetails)}</p>` : ''}
-
-                  <div class="schedule-expanded-actions">
-                    ${sched.reviewCount ? `<span class="review-count">👁 ${escapeHtml(sched.reviewCount)} views</span>` : ''}
-                    ${expandedActionMarkup}
-                  </div>
                 </div>
+
+                ${sched.otherDetails ? `<div class="schedule-description">${escapeHtml(sched.otherDetails)}</div>` : ''}
+
+                ${sched.reviewCount || expandedActionMarkup ? `<div class="schedule-expanded-actions">
+                  ${sched.reviewCount ? `<span class="review-count">👁 ${escapeHtml(sched.reviewCount)} views</span>` : ''}
+                  ${expandedActionMarkup}
+                </div>` : ''}
               </div>
             `;
 
-            const toggleButtons = schedCard.querySelectorAll('[data-schedule-toggle]');
-            const scheduleSummary = schedCard.querySelector(`#${scheduleSummaryId}`);
+            const toggleButton = schedCard.querySelector('[data-schedule-toggle]');
             const moreDetails = schedCard.querySelector(`#${scheduleDetailsId}`);
-            if (toggleButtons.length && moreDetails) {
+            if (toggleButton && moreDetails) {
               const setScheduleExpanded = (expanded) => {
                 schedCard.classList.toggle('is-expanded', expanded);
                 moreDetails.hidden = !expanded;
-                if (scheduleSummary) scheduleSummary.hidden = expanded;
-                toggleButtons.forEach((button) => {
-                  button.setAttribute('aria-expanded', String(expanded));
-                  if (button.classList.contains('schedule-collapse-toggle')) {
-                    button.setAttribute('aria-label', expanded ? 'Hide details' : 'View details');
-                  }
-                });
+                toggleButton.setAttribute('aria-expanded', String(expanded));
+                toggleButton.textContent = expanded ? 'Hide' : 'Details';
               };
 
-              toggleButtons.forEach((button) => {
-                button.addEventListener('click', () => {
-                  const isExpanded = button.getAttribute('aria-expanded') === 'true';
-                  setScheduleExpanded(!isExpanded);
-                });
+              toggleButton.addEventListener('click', () => {
+                setScheduleExpanded(toggleButton.getAttribute('aria-expanded') !== 'true');
               });
             }
 

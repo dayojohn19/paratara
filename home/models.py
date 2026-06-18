@@ -1,4 +1,6 @@
+from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import Q
 from django.urls import reverse
 # Create your models here.
 from datetime import datetime
@@ -6,6 +8,62 @@ import ast
 import json
 from django.utils.text import slugify
 from django.utils import timezone
+
+
+PLACE_TYPE_UNSPECIFIED = 0
+PLACE_TYPE_DESTINATION = 1
+PLACE_TYPE_BEACH = 2
+PLACE_TYPE_ISLAND = 3
+PLACE_TYPE_CITY = 4
+PLACE_TYPE_MOUNTAIN = 5
+PLACE_TYPE_ATTRACTION = 6
+PLACE_TYPE_RESORT_AREA = 7
+
+PLACE_TYPE_CHOICES = (
+    (PLACE_TYPE_UNSPECIFIED, "Unspecified"),
+    (PLACE_TYPE_DESTINATION, "Destination"),
+    (PLACE_TYPE_BEACH, "Beach"),
+    (PLACE_TYPE_ISLAND, "Island"),
+    (PLACE_TYPE_CITY, "City"),
+    (PLACE_TYPE_MOUNTAIN, "Mountain"),
+    (PLACE_TYPE_ATTRACTION, "Attraction"),
+    (PLACE_TYPE_RESORT_AREA, "Resort area"),
+)
+
+PLACE_TYPE_ALIASES = {
+    "unspecified": PLACE_TYPE_UNSPECIFIED,
+    "unknown": PLACE_TYPE_UNSPECIFIED,
+    "destination": PLACE_TYPE_DESTINATION,
+    "place": PLACE_TYPE_DESTINATION,
+    "beach": PLACE_TYPE_BEACH,
+    "island": PLACE_TYPE_ISLAND,
+    "city": PLACE_TYPE_CITY,
+    "mountain": PLACE_TYPE_MOUNTAIN,
+    "attraction": PLACE_TYPE_ATTRACTION,
+    "tourist-spot": PLACE_TYPE_ATTRACTION,
+    "tourist_spot": PLACE_TYPE_ATTRACTION,
+    "resort-area": PLACE_TYPE_RESORT_AREA,
+    "resort_area": PLACE_TYPE_RESORT_AREA,
+    "resort": PLACE_TYPE_RESORT_AREA,
+}
+
+
+def normalize_place_type(value):
+    if value is None or value == "":
+        return None
+    if isinstance(value, int):
+        valid_values = {choice_value for choice_value, _label in PLACE_TYPE_CHOICES}
+        return value if value in valid_values else None
+    text = str(value).strip()
+    if text.isdigit():
+        return normalize_place_type(int(text))
+    key = slugify(text)
+    return PLACE_TYPE_ALIASES.get(key)
+
+
+def _default_geo_code(name, max_length):
+    code = slugify(name or "")[:max_length].strip("-")
+    return code or "unknown"
 
 class BlockedIP(models.Model):
     """Track blocked IPs and their expiration time"""
@@ -469,6 +527,111 @@ class FacebookPage(models.Model):
         return f"FB Page: {self.name} ({self.page_id})"
 
 
+class Continent(models.Model):
+    code = models.CharField(max_length=32, unique=True, blank=True)
+    name = models.CharField(max_length=96)
+
+    class Meta:
+        ordering = ["name"]
+
+    def save(self, *args, **kwargs):
+        if not self.code:
+            self.code = _default_geo_code(self.name, 32)
+        else:
+            self.code = slugify(self.code)[:32]
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
+
+
+class Region(models.Model):
+    continent = models.ForeignKey(
+        "home.Continent",
+        on_delete=models.PROTECT,
+        related_name="regions",
+        null=True,
+        blank=True,
+    )
+    code = models.CharField(max_length=64, unique=True, blank=True)
+    name = models.CharField(max_length=128)
+
+    class Meta:
+        ordering = ["name"]
+
+    def save(self, *args, **kwargs):
+        if not self.code:
+            self.code = _default_geo_code(self.name, 64)
+        else:
+            self.code = slugify(self.code)[:64]
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
+
+
+class Country(models.Model):
+    region = models.ForeignKey(
+        "home.Region",
+        on_delete=models.PROTECT,
+        related_name="countries",
+        null=True,
+        blank=True,
+    )
+    code = models.CharField(max_length=8, unique=True)
+    name = models.CharField(max_length=128)
+
+    class Meta:
+        ordering = ["name"]
+
+    def save(self, *args, **kwargs):
+        self.code = str(self.code or _default_geo_code(self.name, 8)).strip().upper()[:8]
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.name} ({self.code})"
+
+
+class PlaceDirectoryQuerySet(models.QuerySet):
+    def published(self):
+        return self.filter(is_published=True)
+
+    def in_continent(self, value):
+        return self._filter_reference("continent", Continent, value)
+
+    def in_region(self, value):
+        return self._filter_reference("region", Region, value)
+
+    def in_country(self, value):
+        return self._filter_reference("country", Country, value)
+
+    def of_type(self, value):
+        place_type = normalize_place_type(value)
+        if place_type is None:
+            return self.none()
+        return self.filter(place_type=place_type)
+
+    def popular_first(self):
+        return self.order_by("-popularity_score", "place_id")
+
+    def _filter_reference(self, field_name, model_class, value):
+        if value is None or value == "":
+            return self
+        if hasattr(value, "pk"):
+            return self.filter(**{f"{field_name}_id": value.pk})
+        text = str(value).strip()
+        if text.isdigit():
+            return self.filter(**{f"{field_name}_id": int(text)})
+        match = (
+            model_class.objects.filter(Q(code__iexact=text) | Q(name__iexact=text))
+            .only("id")
+            .first()
+        )
+        if match is None:
+            return self.none()
+        return self.filter(**{f"{field_name}_id": match.id})
+
+
 class Places_v2(models.Model):
     slug = models.SlugField(blank=True,unique=True)
     blog = models.ManyToManyField('apis.Blogs', blank=True, related_name="bloglists")
@@ -543,6 +706,83 @@ class Places_v2(models.Model):
         ordering = ["-id"]
 
  
+class PlaceDirectory(models.Model):
+    place = models.OneToOneField(
+        Places_v2,
+        on_delete=models.CASCADE,
+        primary_key=True,
+        related_name="directory",
+    )
+
+    continent = models.ForeignKey(
+        "home.Continent",
+        on_delete=models.PROTECT,
+        related_name="+",
+        null=True,
+        blank=True,
+    )
+    region = models.ForeignKey(
+        "home.Region",
+        on_delete=models.PROTECT,
+        related_name="+",
+        null=True,
+        blank=True,
+    )
+    country = models.ForeignKey(
+        "home.Country",
+        on_delete=models.PROTECT,
+        related_name="+",
+        null=True,
+        blank=True,
+    )
+
+    place_type = models.PositiveSmallIntegerField(
+        choices=PLACE_TYPE_CHOICES,
+        default=PLACE_TYPE_UNSPECIFIED,
+    )
+    is_published = models.BooleanField(default=True)
+    popularity_score = models.PositiveIntegerField(default=0)
+
+    objects = PlaceDirectoryQuerySet.as_manager()
+
+    class Meta:
+        ordering = ["-popularity_score", "place_id"]
+        indexes = [
+            models.Index(
+                fields=["is_published", "-popularity_score", "place"],
+                name="pd_pub_pop_idx",
+            ),
+            models.Index(
+                fields=["country", "is_published", "-popularity_score", "place"],
+                name="pd_country_pub_pop_idx",
+            ),
+            models.Index(
+                fields=["region", "is_published", "-popularity_score", "place"],
+                name="pd_region_pub_pop_idx",
+            ),
+            models.Index(
+                fields=["continent", "place_type", "is_published", "-popularity_score", "place"],
+                name="pd_cont_type_pub_idx",
+            ),
+        ]
+
+    def clean(self):
+        errors = {}
+        if self.country_id and self.region_id:
+            country_region_id = getattr(self.country, "region_id", None)
+            if country_region_id and country_region_id != self.region_id:
+                errors["country"] = "Country does not belong to the selected region."
+        if self.region_id and self.continent_id:
+            region_continent_id = getattr(self.region, "continent_id", None)
+            if region_continent_id and region_continent_id != self.continent_id:
+                errors["region"] = "Region does not belong to the selected continent."
+        if errors:
+            raise ValidationError(errors)
+
+    def __str__(self):
+        return f"Directory: {self.place_id} {self.place}"
+
+
 class Visit(models.Model):
     tourist_spot = models.ForeignKey('home.TouristSpot', on_delete=models.CASCADE)
     tourist = models.ForeignKey('userProfile.UserCredentials', on_delete=models.CASCADE)
