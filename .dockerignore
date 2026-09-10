@@ -1,0 +1,70 @@
+# Git and local metadata
+.git/
+.git-rewrite/
+.gitattributes
+.gitignore
+
+# Environments
+.env
+.env.*
+!.env.example
+cleanenv/
+cleanenv2/
+cleanenv3/
+env/
+env2/
+env3/
+venv/
+venv11/
+speechenv/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Media & generated
+staticfiles/
+
+media/generated_title_images/
+media/imageuploaded/
+media/qr_codes/
+imageuploads/
+storyvideo/
+image_bank_uploaded/
+storyimages/
+image_cards/
+output/
+box_downloads/
+*.mp3
+*.mp4
+*.mov
+*.avi
+*.zip
+*.dump
+
+# macOS
+.DS_Store
+__MACOSX/
+
+# Editor
+.vscode/
+
+# Local databases
+*.sqlite3
+*.sqlite3-journal
+*.db
+*.db-journal
+
+# Local secrets and credentials
+ID_Credentials/
+*_Credentials/
+*.pem
+client_s_API.json
+thermal-list-*.json
+token_drive*.pickle
+OLDPickle.pickle

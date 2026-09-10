@@ -1,0 +1,337 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'home/base.css' %}">
+    <link rel="stylesheet" href="{% static 'home/layout.css' %}">
+    <title>VIAJE</title>
+</head>
+<!-- TODO MAKE A CAUTION SIGN ON THE VIAJE LAYOUT LOWER RIGHT TO CAUTION PEOPLE "ALL RIGHTS RESERVED" "BEWARE OF FAKE ACCOUNTS" -->
+<!-- ############################################################ -->
+<!-- ############### BELOW FORM FOR CREATE SCHEDULE #############-->
+<!-- ############################################################ -->
+
+
+<form action="{% url 'home:viaje'%}" method="POST">
+    {% csrf_token %}
+    <div>
+        <div class="modal-container-main">
+            <div class="modal-container-sub">
+                <!-- <span id="newScheduleButton" onclick="closeThisModal(id)" class="close">&times;</span> -->
+
+                <span class="button-close" onclick="closeViaje()" class="close">&times;</span>
+
+                <div class="modal-item-head">
+                    {% if user.is_authenticated %}
+                    {% else %}
+                    <span class="authenticate-button" id="button-login"
+                        style="background-color: rgb(219, 215, 215); border: 8px; padding: 4px;"
+                        onclick="loginUserJSONForm()">LOGIN or Register</span>
+                    {% endif %}
+                    <div class="flexBox-for-SVG" style="margin-top: 50px;        background-color: rgb(255, 247, 237);">
+
+                        <!-- TODO REMOVE ITINERARY INPUT WHEN SELECT Find -->
+                        <span>
+                            <div class="flexBox-option1">
+                                <input onchange="MakeOrFindSchedule('find')" required value="Find" type="radio"
+                                    name="MakerOrLooker" id="imFind"><label for="imFind">Find</label>
+                            </div>
+                            <div class="flexBox-option1">
+                                <input onchange="MakeOrFindSchedule('make')" required value="Make" type="radio"
+                                    name="MakerOrLooker" id="imMake"><label for="imMake">Make</label>
+                            </div>
+                        </span>
+                        <span class="flexBox-for-Title">Schedule</span>
+                    </div>
+                </div>
+
+                <div class="modal-item-body">
+                    <div class="custom-field-container">
+                        <div class="custom-field-item">
+                            <input maxlength="32" name="place" required class="custom-field" placeholder="Destination"
+                                list="destinationSearch" value="{{place.placename}}">
+                        </div>
+                        <div class="custom-field-item">
+                            <input name="meetPlace" required class="custom-field" placeholder="Meet where?">
+                        </div>
+                        <div class="custom-field-item container-meetDate">
+                            <div style="display:flex; align-items: center; text-align: center; Justify-content: center">
+                                <svg viewBox="0 0 24 24" class="user-svg-top">
+                                    <path
+                                        d="M21.5 3h-2.75a.25.25 0 01-.25-.25V1a1 1 0 00-2 0v4.75a.75.75 0 01-.75.75.75.75 0 01-.75-.75V3.5a.5.5 0 00-.5-.5H8.25A.25.25 0 018 2.751V1a1 1 0 10-2 0v4.75a.75.75 0 01-.75.75.75.75 0 01-.75-.75V3.5A.5.5 0 004 3H2.5a2 2 0 00-2 2v17a2 2 0 002 2h19a2 2 0 002-2V5a2 2 0 00-2-2zM21 22H3a.5.5 0 01-.5-.5v-12A.5.5 0 013 9h18a.5.5 0 01.5.5v12a.5.5 0 01-.5.5z">
+                                    </path>
+                                </svg>
+
+                                <input name="meetDate" required type="date">
+                                <button class="button-single button-add" onclick="addMoreDates()">+
+                                </button>
+                            </div>
+                        </div>
+                        <div class="custom-field-item">
+                            <input required type="text" name="detailsContact" class="custom-field"
+                                placeholder="Contact Details" value="{{request.user.email}}">
+                        </div>
+
+                        <div class="custom-field-item">
+                            <input name="scheduleCost" class="custom-field" placeholder="Cost in Php: (optional)"
+                                style="max-width: 90%;">
+                        </div>
+                        <!-- DONT CHANGE THE name = scheduleTravelType -->
+                        <!-- <select onchange="console.log(value);" onfocus="this.selectedIndex = -1;"></select> -->
+                        <div class="custom-field-item" style="text-align: center;">
+                            <select class="select-custom" name="scheduleTravelType"
+                                onchange="schedule_Additional_Input(value)">
+                                <option selected="selected">Select...</option>
+                                <option onselect="console.log(value)" value="RIDE">RIDE</option>
+                                <optgroup label="Tour Types">
+                                    <option onclick="console.log(value)">BIKE
+
+
+                                    </option>
+                                    <option onclick="console.log(value)">HIKE</option>
+                                    <option onclick="console.log(value)">DIVE</option>
+                                    <option onclick="console.log(value)">CAMP</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div class="custom-field-item">
+                            <textarea class="textarea-otherDetails" name="theDetails" required
+                                placeholder="Details Here"></textarea>
+                        </div>
+                    </div>
+                    <div class="additionalInputContainer"></div>
+                    <div class="additionalItineraryContainer"></div>
+                    <div>
+
+                        <div style="text-align: center; padding-top: 15px;">
+                            <button class="button-custom1" type="submit">Submit</button>
+                        </div>
+                        <div style="padding-bottom: 50px; padding-top: 15px;">
+                            <div style="text-align: center; padding-left: 50px;padding-right: 50px;">
+
+                                <div style="padding: 14px;" class="flexBox-for-SVG">
+                                    <svg viewBox="0 0 16 16" id="globe" style="padding-right: 8px;">
+                                        <path
+                                            d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm7.5-6.923c-.67.204-1.335.82-1.887 1.855A7.97 7.97 0 0 0 5.145 4H7.5V1.077zM4.09 4a9.267 9.267 0 0 1 .64-1.539 6.7 6.7 0 0 1 .597-.933A7.025 7.025 0 0 0 2.255 4H4.09zm-.582 3.5c.03-.877.138-1.718.312-2.5H1.674a6.958 6.958 0 0 0-.656 2.5h2.49zM4.847 5a12.5 12.5 0 0 0-.338 2.5H7.5V5H4.847zM8.5 5v2.5h2.99a12.495 12.495 0 0 0-.337-2.5H8.5zM4.51 8.5a12.5 12.5 0 0 0 .337 2.5H7.5V8.5H4.51zm3.99 0V11h2.653c.187-.765.306-1.608.338-2.5H8.5zM5.145 12c.138.386.295.744.468 1.068.552 1.035 1.218 1.65 1.887 1.855V12H5.145zm.182 2.472a6.696 6.696 0 0 1-.597-.933A9.268 9.268 0 0 1 4.09 12H2.255a7.024 7.024 0 0 0 3.072 2.472zM3.82 11a13.652 13.652 0 0 1-.312-2.5h-2.49c.062.89.291 1.733.656 2.5H3.82zm6.853 3.472A7.024 7.024 0 0 0 13.745 12H11.91a9.27 9.27 0 0 1-.64 1.539 6.688 6.688 0 0 1-.597.933zM8.5 12v2.923c.67-.204 1.335-.82 1.887-1.855.173-.324.33-.682.468-1.068H8.5zm3.68-1h2.146c.365-.767.594-1.61.656-2.5h-2.49a13.65 13.65 0 0 1-.312 2.5zm2.802-3.5a6.959 6.959 0 0 0-.656-2.5H12.18c.174.782.282 1.623.312 2.5h2.49zM11.27 2.461c.247.464.462.98.64 1.539h1.835a7.024 7.024 0 0 0-3.072-2.472c.218.284.418.598.597.933zM10.855 4a7.966 7.966 0 0 0-.468-1.068C9.835 1.897 9.17 1.282 8.5 1.077V4h2.355z">
+                                        </path>
+                                    </svg>
+                                    <input style="width: 100%; text-align: center; max-width: 300px;"
+                                        name="scheduleWebsite" type="link" placeholder="https://yourwebsite.com">
+                                </div>
+                                <small class="small-item1">
+                                    No Website? <button
+                                        onclick="alert('text us +640 231 231 or visit https.website.com')">Contact</button>
+                                    Us for
+                                    a Website!
+                                </small>
+                            </div>
+                            <div style="padding: 20px;">
+                                <div class="div-instagramContainer">
+                                    <input type="text" placeholder=" Instagram Username" name="instagramUsername">
+                                    <svg class="u-svg-content" viewBox="0 0 112 112" x="0" y="0" id="svg-42cf">
+                                        <circle fill="rgb(182	25	147	)" cx="56.1" cy="56.1" r="55"></circle>
+                                        <path fill="#FFFFFF"
+                                            d="M55.9,38.2c-9.9,0-17.9,8-17.9,17.9C38,66,46,74,55.9,74c9.9,0,17.9-8,17.9-17.9C73.8,46.2,65.8,38.2,55.9,38.2
+                                                            z M55.9,66.4c-5.7,0-10.3-4.6-10.3-10.3c-0.1-5.7,4.6-10.3,10.3-10.3c5.7,0,10.3,4.6,10.3,10.3C66.2,61.8,61.6,66.4,55.9,66.4z">
+                                        </path>
+                                        <path fill="#FFFFFF"
+                                            d="M74.3,33.5c-2.3,0-4.2,1.9-4.2,4.2s1.9,4.2,4.2,4.2s4.2-1.9,4.2-4.2S76.6,33.5,74.3,33.5z">
+                                        </path>
+                                        <path fill="#FFFFFF" d="M73.1,21.3H38.6c-9.7,0-17.5,7.9-17.5,17.5v34.5c0,9.7,7.9,17.6,17.5,17.6h34.5c9.7,0,17.5-7.9,17.5-17.5V38.8
+                                                            C90.6,29.1,82.7,21.3,73.1,21.3z M83,73.3c0,5.5-4.5,9.9-9.9,9.9H38.6c-5.5,0-9.9-4.5-9.9-9.9V38.8c0-5.5,4.5-9.9,9.9-9.9h34.5
+                                                            c5.5,0,9.9,4.5,9.9,9.9V73.3z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<!-- ############################################################ -->
+<!-- ############### ABOVE FORM FOR CREATE SCHEDULE #############-->
+<!-- ############################################################ -->
+
+<!-- ############################################################ -->
+<!-- ############### BELOW FORM FOR LOG IN  #################-->
+<!-- ############################################################ -->
+
+
+<div>
+    <div class="container-login modal-container-main">
+        <div class="modal-container-sub">
+            <span onclick="loginUserJSONForm()" class="close" style="margin-right: 20px;">&times;</span>
+            <div style="margin-top: 20px;">
+                <input autocomplete=1 autocomplete="username" class="input-login" type="text" id="usernameJSON"
+                    placeholder="username">
+            </div>
+            <div>
+                <input class="input-login" type="" id="passwordJSON" placeholder="password">
+            </div>
+
+            <div style="text-align: center;font-size: calc(2vh + 1vw);">
+                <button onclick="loginUserJSON()" style="font-size: calc(2vh + 0.5vw);">Log In</button>
+            </div>
+            <div style="text-align: center;">
+                <hr>
+                OR
+            </div>
+            <div>
+                <input class="input-login" placeholder="Confirm Password" id="passwordConfirmation">
+            </div>
+            <div>
+                <input class="input-login" placeholder="Contact" id="ContactJSON">
+            </div>
+            <div style="text-align: center;">
+                <button onclick="registerUserJSON()" style="font-size: calc(2vh + 0.5vw);">Register</button>
+                <hr>
+                <!-- <a href="{% url 'userProfile:profile' %}"><button
+                        style="font-size: calc(2vh + 0.5vw);">Register</button></a> -->
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ############################################################ -->
+<!-- ############### ABOVE FORM FOR LOG IN  #################-->
+<!-- ############################################################ -->
+
+<body>
+
+
+
+
+
+
+
+
+
+    <script>
+
+        function goHome() {
+            x = prompt('Leave?')
+            if (x == null) {
+                console.log('Canceled')
+            } else {
+                window.open('{% url "home:home" %}', '_blank')
+                console.log('X: ', x)
+            }
+
+        }
+        // **************************************************
+        // ************** for REGISTER JS FETCH ***************
+        // **************************************************
+        function registerUserJSON() {
+            // TODO HERE PUT FORM FOR REGISTER
+            document.querySelector(".container-login").style.display = 'none';
+            fetch("{% url 'userProfile:registerUserJSON' %}", {
+                method: 'POST',
+                body: JSON.stringify({
+                    username: document.querySelector("#usernameJSON").value,
+                    contact: document.querySelector("#ContactJSON").value,
+                    password: document.querySelector("#passwordJSON").value,
+                    passwordConfirmation: document.querySelector("#passwordConfirmation").value,
+                })
+            }).then(response => response.json()).then((post) => {
+                setTimeout(() => {
+                    if (typeof (post) == 'object') {
+                        alert(post[0])
+                        document.querySelector("#button-login").style.display = 'none';
+                        document.querySelector(".authenticate-button").style.display = 'none'
+                    } else {
+                        document.querySelector(".container-login").style.display = 'block';
+                        alert(post)
+                        // container-login modal-container-main
+                    }
+                }, 2000);
+            })
+        }
+        // **************************************************
+        // ************** for LOG IN JS FETCH ***************
+        // **************************************************
+        function loginUserJSON() {
+            userName = document.querySelector("#usernameJSON").value;
+            passWord = document.querySelector("#passwordJSON").value;
+            document.querySelector(".container-login").style.display = 'none';
+            fetch("{% url 'userProfile:loginUserJSON' %}", {
+                method: 'POST',
+                body: JSON.stringify({
+                    usernameJSON: userName,
+                    passwordJSON: passWord
+                })
+            }).then(response => response.json()).then((post) => {
+                setTimeout(() => {
+                    if (typeof (post) == 'object') {
+                        alert(post[0])
+                        document.querySelector(".authenticate-button").style.display = 'none'
+                    } else {
+                        document.querySelector(".container-login").style.display = 'block';
+                        alert(post)
+                    }
+                }, 1000);
+            })
+        }
+        // **************************************************
+        // ************** endfor LOG IN JS FETCH ***************
+        // **************************************************
+
+
+    </script>
+    <div class="layout-header">
+        <div class="layout-sub-header" onclick="goHome()">
+            <strong style="font-weight: 100;">Viaje</strong>
+            <!-- LINES -->
+            <canvas id="canvas"></canvas>
+            <!-- LINES -->
+        </div>
+    </div>
+    <script src="https://smtpjs.com/v3/smtp.js"></script>
+    <script src="{% static 'home/layout.js' %}"></script>
+
+    <div class="center-body">
+        {% block body %}
+
+        {% endblock %}
+    </div>
+
+
+
+</body>
+<div style="padding: 10px;background-color: rgb(242, 242, 242); position: relative;">
+    <div class="layout-sub-header-login">
+        <div>
+            <small>
+                {% now " h:i a F j" %}
+            </small>
+            <button onclick="sendEmail()">FEED BACK</button>
+            {% if user.is_authenticated %}
+            <a href="{% url 'userProfile:logoutUserJSON' %}" style="padding: 15px;"><button>Log Out</button></a>
+            {% else %}
+            <button id="button-login" onclick="loginUserJSONForm()">Please LOGIN</button>
+            {% endif %}
+        </div>
+    </div>
+    <div class="container-footer">
+        <article class="container-sub-footer" class="warning">
+            <details>
+                <summary
+                    style="background-color: white; padding: 4px; margin: 20px; border: none;border-radius: 4px; width: fit-content; box-shadow: 0 0 5px grey;">
+                    Contact Us
+                </summary>
+                <address>+639 5685 43802</address>
+                <address>repapaka20@gmail.com</address>
+                <address>Bagtikan Street Makati City Manila</address>
+                <address>Viaje Enterprise</address>
+                <address><a href="{% url 'home:news' %}">News</a></address>
+            </details>
+        </article>
+
+    </div>
+</div>
+
+</html>
