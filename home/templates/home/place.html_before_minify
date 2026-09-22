@@ -16,7 +16,7 @@
   <meta property="og:title" content="{% if page_title %}{{ page_title }}{% elif place.placename %}{{ place.placename }} Travel Guide | Paratara{% else %}Paratara{% endif %}">
   <meta property="og:description" content="{% if meta_description %}{{ meta_description }}{% elif place.placename %}Discover {{ place.placename }} travel guides, resort options, local events, tourist spots, and shared trip schedules with Paratara.{% else %}Plan trips with Paratara.{% endif %}">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="stylesheet" href="{% static 'home/place-page.css' %}?v=20260618-3">
+  <link rel="stylesheet" href="{% static 'home/place-page.css' %}?v=20260618-5">
 </head>
 <body>
 {% block body %}
@@ -1488,6 +1488,7 @@ container.innerHTML = cards;
     scheduleHasNext: false,
     scheduleLoading: false,
   };
+  let placePlanLoaded = false;
 
   function buildPlacePlanUrl(params) {
     const base = window.placePlanBaseUrl || '';
@@ -1720,7 +1721,6 @@ container.innerHTML = cards;
                       <div class="poster-details">
                         <div class="poster-name">${escapeHtml(sched.posterName || 'Anonymous')} ${sched.posterVerified ? '✓' : ''}</div>
                         <span class="poster-role">${escapeHtml(scheduleRole)}</span>
-                        ${sched.detailsContact ? `<div class="poster-contact">${escapeHtml(sched.detailsContact)}</div>` : ''}
                       </div>
                     </div>
                   </div>
@@ -2061,6 +2061,7 @@ container.innerHTML = cards;
             resetCalendarObjects();
           },
         });
+        placePlanLoaded = true;
         currentCalendarMonth = month;
         currentCalendarYear = year;
         putCalendarHeader.dataset.month = String(month);
@@ -2265,12 +2266,21 @@ container.innerHTML = cards;
     }
 
     window.placePlanBaseUrl = `{% url 'home:placeCalendarJSONMonth' placeid currentMonth currentYear %}?include_resorts=0`;
-    getPlan(buildPlacePlanUrl({
-      event_limit: String(window.placePageSize || 10),
-      event_offset: '0',
-      schedule_limit: String(window.placePageSize || 10),
-      schedule_offset: '0',
-    }));
+    const loadInitialPlacePlan = () => {
+      if (placePlanLoaded) return;
+      placePlanLoaded = true;
+      getPlan(buildPlacePlanUrl({
+        event_limit: String(window.placePageSize || 10),
+        event_offset: '0',
+        schedule_limit: String(window.placePageSize || 10),
+        schedule_offset: '0',
+      }));
+    };
+    window.placeWhenVisible(
+      document.getElementById('schedules'),
+      loadInitialPlacePlan,
+      { rootMargin: '500px 0px' }
+    );
 
     const closeMapBtn = el('closeMapBtn');
     if (closeMapBtn) closeMapBtn.addEventListener('click', () => {

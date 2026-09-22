@@ -1,3 +1,4 @@
+import math
 import os
 import random
 from dataclasses import dataclass
@@ -41,8 +42,8 @@ class QRImageConfig:
     qr_border: int = 2
     qr_size_ratio: float = 2.75
     qr_size_multiplier: float = 0.90
-    title_max_width_ratio: float = 0.85
-    title_max_height_ratio: float = 0.22
+    title_max_width_ratio: float = 0.80
+    title_max_height_ratio: float = 0.20
     title_font_height_ratio: float = 0.11
     title_min_font_size: int = 18
     title_spacing: int = 8
@@ -201,6 +202,38 @@ def fit_wordart_title(title_image, max_width, max_height):
     return title_image.resize(size, Image.Resampling.LANCZOS)
 
 
+def star_points(cx, cy, outer_radius, inner_radius, rotation_deg=90):
+    points = []
+    for index in range(10):
+        radius = outer_radius if index % 2 == 0 else inner_radius
+        angle = math.radians(rotation_deg + index * 36)
+        x = cx + radius * math.cos(angle)
+        y = cy + radius * math.sin(angle)
+        points.append((x, y))
+    return points
+
+
+def build_three_star_logo(size=28, fill="#F7D35B", stroke="#FFFFFF", stroke_width=2):
+    logo = Image.new("RGBA", (size * 5, size * 4), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(logo)
+
+    gap = size * 1.35
+    base_x = logo.width * 0.34
+    center_y = logo.height * 0.5
+
+    star_positions = [
+        (base_x, center_y - gap),
+        (base_x + gap * 1.45, center_y),
+        (base_x, center_y + gap),
+    ]
+
+    for cx, cy in star_positions:
+        poly = star_points(cx, cy, size, size * 0.62, rotation_deg=-90)
+        draw.polygon(poly, fill=(0, 0, 0, 0), outline=stroke, width=stroke_width)
+
+    return logo
+
+
 def draw_title(image, collection_obj, custom_title="", config=QRImageConfig()):
     title_text = title_text_for_collection(collection_obj, custom_title).replace("\n", " ")
     max_width = int(image.width * config.title_max_width_ratio)
@@ -212,8 +245,24 @@ def draw_title(image, collection_obj, custom_title="", config=QRImageConfig()):
     )
     title_art = fit_wordart_title(title_art, max_width, max_height)
 
-    position = (int(image.width * 0.025), int(image.height * 0.025))
+    vertical_offset = int(image.height * 0.035)
+    position = (
+        max(0, (image.width - title_art.width) // 2),
+        min(
+            max(10, int(image.height * 0.025)) + vertical_offset,
+            max(10, image.height - title_art.height - 10),
+        ),
+    )
     image.alpha_composite(title_art, dest=position)
+
+    logo_scale = max(0.7, min(image.width, image.height) / 1200.0)
+    logo = build_three_star_logo(size=max(10, int(15 * logo_scale)))
+    logo_position = (
+        image.width - logo.width - max(16, int(image.width * 0.035)),
+        max(12, int(image.height * 0.03)),
+    )
+    # removed the 3 star position
+    # image.alpha_composite(logo, dest=logo_position)
 
     return theme_color_for_image(collection_obj, image)
 

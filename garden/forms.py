@@ -20,7 +20,7 @@ class CollectionForm(ModelForm):
     include_qr_code = forms.BooleanField(
         required=False,
         label="Include QR Code",
-        initial=True
+        initial=False
     )
 
     def __init__(self, *args, **kwargs):

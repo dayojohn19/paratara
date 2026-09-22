@@ -229,7 +229,7 @@ SECRET_KEY = config(
 ALLOWED_HOSTS = _split_csv(
     config(
         "ALLOWED_HOSTS",
-        default="localhost,127.0.0.1,paratara.com,www.paratara.com,digitallife11.pythonanywhere.com,,www.ourblueearth.online,ourblueearth.online",
+        default="172.16.0.108,localhost,127.0.0.1,paratara.com,www.paratara.com,digitallife11.pythonanywhere.com,www.ourblueearth.online,ourblueearth.online",
     )
 )
 if PYTHONANYWHERE_DOMAIN and PYTHONANYWHERE_DOMAIN not in ALLOWED_HOSTS:

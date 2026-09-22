@@ -659,6 +659,64 @@ def _update_last_updated_marker(soup, updated_at):
         body_contents.insert(0, meta)
 
 
+def _reindex_article_editable_blocks(container):
+    if not container:
+        return
+
+    for index, block in enumerate(container.find_all(["h2", "p"])):
+        block["data-blog-edit-index"] = str(index)
+        block["data-blog-edit-tag"] = block.name
+
+
+def _insert_blog_template_section(section_title, section_body_html, *, place_slug="", title_slug="", page_url="", updated_at=None):
+    file_path = _blog_template_file_path(place_slug, title_slug, page_url)
+    if not file_path or not os.path.exists(file_path):
+        return False, file_path, "Template file not found", ""
+
+    can_write, permission_error = _ensure_blog_template_write_permission(file_path)
+    if not can_write:
+        return False, file_path, permission_error, ""
+
+    try:
+        with open(file_path, "r", encoding="utf-8") as template_file:
+            html = template_file.read()
+    except OSError as exc:
+        return False, file_path, f"Could not read template file: {exc}", ""
+
+    soup = BeautifulSoup(html, "html.parser")
+    container = soup.find(id="blog-editable-body")
+    if not container:
+        return False, file_path, "Editable blog body not found", ""
+
+    section_tag = soup.new_tag("section")
+    heading_tag = soup.new_tag("h2")
+    heading_tag.append(_strip_html_tags(section_title).strip())
+    paragraph_tag = soup.new_tag("p")
+
+    fragment = BeautifulSoup(section_body_html, "html.parser")
+    for child in list(fragment.contents):
+        paragraph_tag.append(child)
+
+    section_tag.append(heading_tag)
+    section_tag.append(paragraph_tag)
+    container.append(section_tag)
+    _reindex_article_editable_blocks(container)
+
+    edited_at = updated_at or timezone.now()
+    _update_last_updated_marker(soup, edited_at)
+    _update_article_schema_modified_date(soup, edited_at)
+
+    inserted_html = str(section_tag)
+
+    try:
+        with open(file_path, "w", encoding="utf-8") as template_file:
+            template_file.write(str(soup))
+    except OSError as exc:
+        return False, file_path, f"Could not write template file: {exc}", ""
+
+    return True, file_path, "", inserted_html
+
+
 def _patch_blog_template_file(paragraph_index, edited_html, editable_tag="", editable_scope="article", place_slug="", title_slug="", page_url="", updated_at=None):
     file_path = _blog_template_file_path(place_slug, title_slug, page_url)
     if not file_path or not os.path.exists(file_path):
@@ -696,10 +754,11 @@ def _patch_blog_template_file(paragraph_index, edited_html, editable_tag="", edi
         container = soup.find(id="blog-editable-body")
         if not container:
             return False, file_path, "Editable blog body not found"
+        _reindex_article_editable_blocks(container)
         selector = f'{editable_tag}[data-blog-edit-index="{paragraph_index}"]' if editable_tag else f'[data-blog-edit-index="{paragraph_index}"]'
         target = container.select_one(selector)
         if not target:
-            editable_blocks = container.find_all(["h2", "p"], attrs={"data-blog-edit-index": True})
+            editable_blocks = container.find_all(["h2", "p"])
             target = editable_blocks[paragraph_index] if paragraph_index < len(editable_blocks) else None
 
     if target is None:
@@ -712,6 +771,8 @@ def _patch_blog_template_file(paragraph_index, edited_html, editable_tag="", edi
     fragment = BeautifulSoup(edited_html, "html.parser")
     for child in list(fragment.contents):
         target.append(child)
+    if editable_scope == "article":
+        _reindex_article_editable_blocks(container)
     edited_at = updated_at or timezone.now()
     _update_last_updated_marker(soup, edited_at)
     _update_article_schema_modified_date(soup, edited_at)
@@ -729,6 +790,9 @@ def _patch_blog_template_file(paragraph_index, edited_html, editable_tag="", edi
 
 @require_POST
 def save_blog_paragraph_file_edit(request):
+    if not getattr(request, "user", None) or not request.user.is_authenticated:
+        return JsonResponse({"ok": False, "error": "Authentication required"}, status=403)
+
     try:
         payload = json.loads(request.body.decode("utf-8") or "{}")
     except json.JSONDecodeError:
@@ -739,6 +803,72 @@ def save_blog_paragraph_file_edit(request):
     page_url = (payload.get("page_url") or "").strip()
     editable_tag = (payload.get("editable_tag") or "").strip().lower()
     editable_scope = (payload.get("editable_scope") or "article").strip().lower()
+    operation = (payload.get("operation") or "update_section").strip().lower()
+
+    if operation == "insert_section":
+        section_title = _strip_html_tags(payload.get("section_title") or "").strip()
+        raw_section_body_html = payload.get("section_body_html")
+        if raw_section_body_html is None:
+            raw_section_body_html = payload.get("edited_html") or ""
+        section_body_html = _sanitize_blog_edit_html(raw_section_body_html).strip()
+        section_text = _strip_html_tags(section_body_html).strip()
+
+        if not section_title:
+            return JsonResponse({"ok": False, "error": "Section title is required"}, status=400)
+        if not _blog_edit_html_has_visible_content(section_body_html):
+            return JsonResponse({"ok": False, "error": "Section paragraph is required"}, status=400)
+        if len(section_title) > 180:
+            return JsonResponse({"ok": False, "error": "Section title is too long"}, status=400)
+        if len(section_body_html) > 12000:
+            return JsonResponse({"ok": False, "error": "Section is too long"}, status=400)
+
+        edited_at = timezone.now()
+        edited_ip = _get_request_ip(request)
+        blog = _find_blog_for_edit(place_slug, title_slug, page_url)
+
+        file_updated, file_path, file_error, inserted_html = _insert_blog_template_section(
+            section_title,
+            section_body_html,
+            place_slug=place_slug,
+            title_slug=title_slug,
+            page_url=page_url,
+            updated_at=edited_at,
+        )
+        if not file_updated:
+            error_status = 500 if "permission" in (file_error or "").lower() or "write" in (file_error or "").lower() else 404
+            return JsonResponse({
+                "ok": False,
+                "error": file_error or "Could not update template file",
+                "file_path": file_path or "",
+            }, status=error_status)
+
+        blog_updated = False
+        if blog:
+            type(blog).objects.filter(pk=blog.pk).update(
+                updated_at=edited_at,
+                last_updated_ip=edited_ip,
+            )
+            blog_updated = True
+
+        cache_cleared = _clear_blog_page_cache_after_edit()
+        updated_at_iso, updated_at_display = _format_blog_datetime(edited_at)
+        return JsonResponse({
+            "ok": True,
+            "operation": operation,
+            "blog_id": blog.id if blog else None,
+            "blog_updated": blog_updated,
+            "editable_scope": "article",
+            "editable_tag": "section",
+            "edited_text": section_text,
+            "inserted_html": inserted_html,
+            "updated_at": updated_at_iso,
+            "updated_at_display": updated_at_display,
+            "last_updated_ip": edited_ip,
+            "file_updated": file_updated,
+            "file_path": file_path or "",
+            "cache_cleared": cache_cleared,
+        })
+
     raw_edited_html = payload.get("edited_html")
     if raw_edited_html is None:
         raw_edited_html = payload.get("edited_text") or ""
@@ -1006,6 +1136,91 @@ def blogFunc(request):
     }
     return render(request, 'apis/blog.html',context)
 
+
+def generate_manual_blog_page(request):
+    """Generate a blog HTML page fully offline using the htmlwriter contract."""
+    from apis.models import Blogs
+    from apis.forms import BlogsForm
+
+    if request.method != "POST":
+        return render(request, 'apis/blog.html', {'blogform': BlogsForm()})
+
+    place_name = (request.POST.get('manual_place_name') or '').strip()
+    title = (request.POST.get('manual_title') or '').strip()
+    category = (request.POST.get('manual_category') or 'Guide').strip()
+    body_html = request.POST.get('manual_body_html', '')
+    cover_image_url = (request.POST.get('manual_cover_image_url') or '').strip()
+    meta_description = (request.POST.get('manual_meta_description') or '').strip()
+    faq_entries_raw = request.POST.get('manual_faq_entries', '').strip()
+
+    if not place_name or not title or not body_html:
+        return render(request, 'apis/blog.html', {
+            'blogform': BlogsForm(),
+            'message': 'Please provide a place name, title, and blog body before generating the page.'
+        })
+
+    faq_entries = []
+    if faq_entries_raw:
+        try:
+            faq_entries = json.loads(faq_entries_raw)
+        except json.JSONDecodeError:
+            faq_entries = []
+    from .htmlwriter import generate_blog_page
+    html_page = generate_blog_page(
+        request,
+        place_name=place_name,
+        title=title,
+        body_text=body_html,
+        cover_image_url=cover_image_url or None,
+        faq_entries=faq_entries or None,
+        blog_searchable_keys_description=meta_description or None,
+        category=category,
+    )
+
+    place_slug = slugify(place_name)
+    title_slug = slugify(title)
+    folder_path = os.path.join(settings.BASE_DIR, 'singlepage2', 'templates', 'blogs', place_slug)
+    os.makedirs(folder_path, exist_ok=True)
+    file_path = os.path.join(folder_path, f'{title_slug}.html')
+
+    with open(file_path, 'w', encoding='utf-8') as output_file:
+        output_file.write(html_page)
+    from home.models import Places_v2
+    place = Places_v2.objects.filter(placename__iexact=place_name).first()
+    blog_obj = None
+    if place:
+        blog_obj, _ = Blogs.objects.get_or_create(
+            blogplace=place,
+            title=title,
+            defaults={
+                'category': category,
+                'textContent': _strip_html_tags(body_html),
+                'summarize': meta_description[:400] if meta_description else 'Discover more about this destination',
+                'readtime': max(1, len(_strip_html_tags(body_html).split()) // 185) if _strip_html_tags(body_html) else 5,
+                'meta_description': meta_description,
+                'cover_image_url': cover_image_url,
+                'faq_entries': faq_entries,
+                'searchable_keywords': meta_description,
+                'localurlpath': f'/pages/blog/{place_slug}/{title_slug}/',
+            }
+        )
+        blog_obj.category = category
+        blog_obj.textContent = _strip_html_tags(body_html)
+        blog_obj.summarize = meta_description[:400] if meta_description else blog_obj.summarize
+        blog_obj.meta_description = meta_description
+        blog_obj.cover_image_url = cover_image_url
+        blog_obj.faq_entries = faq_entries
+        blog_obj.searchable_keywords = meta_description
+        blog_obj.localurlpath = f'/pages/blog/{place_slug}/{title_slug}/'
+        blog_obj.readtime = max(1, len(blog_obj.textContent.split()) // 185) if blog_obj.textContent else blog_obj.readtime
+        blog_obj.save(update_fields=['category', 'textContent', 'summarize', 'meta_description', 'cover_image_url', 'faq_entries', 'searchable_keywords', 'localurlpath', 'readtime'])
+        place.blog.add(blog_obj)
+
+    return render(request, 'apis/blog.html', {
+        'message': f'✅ Offline blog HTML generated successfully for "{title}".',
+        'blogform': BlogsForm(),
+        'last_blog': blog_obj,
+    })
 
 
 @never_cache

@@ -98,7 +98,15 @@
             <div class="hero-actions" aria-label="Homepage actions">
               
               <a class="button button-primary" href="#popular">Explore places</a>
-              <a class="button button-secondary" href="{% url 'home:viaje' %}">Share a schedule</a>
+              {% if user.is_superuser %}
+                <a class="schedule-prompt" href="{% url 'home:viaje' %}">
+                  <span>Create schedule to {{ message }}</span>
+                  <svg viewBox="-1 -1 18 18" aria-hidden="true">
+                    <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"></path>
+                    <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"></path>
+                  </svg>
+                </a>
+              {% endif %}
               <div style="margin: 0 auto;">
                 <div class="search-container" id="placeSearchContainer" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-owns="place_id_for_drop_down_filter">
                   <svg class="search-icon" viewBox="-3 -3 24 24" aria-hidden="true">
@@ -141,15 +149,7 @@
 
       </section>
 
-      {% if message %}
-        <a class="schedule-prompt" href="{% url 'home:viaje' %}">
-          <span>Create schedule to {{ message }}</span>
-          <svg viewBox="-1 -1 18 18" aria-hidden="true">
-            <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"></path>
-            <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z"></path>
-          </svg>
-        </a>
-      {% endif %}
+
 
 
 
@@ -247,14 +247,14 @@
             <p class="home-eyebrow">Browse more</p>
             <h2 id="browser-title">More destinations.</h2>
           </div>
-          <button class="button button-secondary" type="button" id="loadDestinations" data-load-destinations>
-            Browse destination cards
-          </button>
+          
         </div>
 
         <section class="container-list" id="placesList" aria-live="polite" hidden>
           <div id="landing-message" class="landing-message" hidden>
-            <p class="home-eyebrow">Loading destinations</p>
+            <p class="home-eyebrow">          <button class="button button-secondary" type="button" id="loadDestinations" data-load-destinations>
+            Browse destination cards
+          </button></p>
             <h2>Finding places worth opening first.</h2>
             <p>Destination cards are loading from Paratara.</p>
           </div>

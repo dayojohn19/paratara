@@ -53,7 +53,7 @@ Minimum values:
 ```env
 DEBUG=False
 SECRET_KEY=replace-with-a-long-random-secret
-ALLOWED_HOSTS=localhost,127.0.0.1,digitallife11.pythonanywhere.com
+ALLOWED_HOSTS=localhost,127.0.0.1,digitallife11.pythonanywhere.com,172.16.0.108
 PYTHONANYWHERE_DOMAIN=digitallife11.pythonanywhere.com
 CSRF_TRUSTED_ORIGINS=https://digitallife11.pythonanywhere.com
 OPENAI_API_KEY=

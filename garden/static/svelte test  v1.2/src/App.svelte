@@ -2,7 +2,7 @@
 import GardenHeadLogo from '$lib/assets/gardenhead.png';
 import GardenBodyLogo from '$lib/assets/gardenbody.png';
 import GardenBorderLogo from '$lib/assets/gardenborder.png';
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import { session, setSession, initializeGuestSession } from './stores/session.js';
   import markdownConfig from '../JAVASCRIPT_FUNCTIONS_AND_APIS.md?raw';
 
@@ -51,6 +51,7 @@ import GardenBorderLogo from '$lib/assets/gardenborder.png';
     'UPLOAD_API_URL',
     'http://127.0.0.1:8000/apis/upload_to_imbb/'
   );
+  const VISITOR_API_URL = getMarkdownValue('VISITOR_API_URL', '/garden/visitor/');
   const UPLOAD_IMAGE_FIELD = getMarkdownValue('UPLOAD_IMAGE_FIELD', '');
   const API_USERNAME = getMarkdownValue('API_USERNAME', '');
   const API_USER_ID = getMarkdownValue('API_USER_ID', '');
@@ -83,6 +84,20 @@ const ACCEPT_HEADER = 'application/json';
   const LOCAL_STORAGE_LANGUAGE_KEY = getMarkdownValue('LOCAL_STORAGE_LANGUAGE_KEY', 'postcard_language');
   const POSTCARD_DETAILS_API_BASE_URL = normalizeLookApiBaseUrl(API_BASE_URL);
   const DEFAULT_COLLECTION_STR = extractDefaultCollectionStr(API_BASE_URL, '11111');
+  let activePostcardTarget = DEFAULT_COLLECTION_STR;
+
+  if (typeof window !== 'undefined') {
+    const pathSegments = window.location.pathname
+      .split('/')
+      .map((segment) => segment.trim())
+      .filter(Boolean);
+
+    const lastPathSegment = pathSegments[pathSegments.length - 1];
+    if (lastPathSegment && lastPathSegment !== 'garden-memories') {
+      activePostcardTarget = lastPathSegment;
+    }
+  }
+
   const LOADING_DELAY_MS = Number(getMarkdownValue('LOADING_DELAY_MS', '1500')) || 1500;
   const MAIN_IMAGE_URL = getMarkdownValue('MAIN_IMAGE_URL', 'https://placehold.co/960x540/png');
   const POSTCARD_MEMORY_IMAGE_URLS = [
@@ -398,6 +413,7 @@ const ACCEPT_HEADER = 'application/json';
   let tourBookingDate = '';
   let isSendingTourBooking = false;
   let tourBookingError = '';
+  let showMapModal = false;
   let tourBookingStatus = '';
   let imageFieldPlaceholder = MEMORY_PROMPTS_BY_LANGUAGE.en[0];
   let inputUsername = '';
@@ -658,26 +674,51 @@ const ACCEPT_HEADER = 'application/json';
 
     return [data];
   }
-
+// Get collectionStr from the loaded postcard details instead of URL
   function getCollectionStrFromUrl() {
+    // Preserve the original postcard target so registration reloads stay on the same collection.
+    if (activePostcardTarget && activePostcardTarget !== 'garden-memories') {
+      return activePostcardTarget;
+    }
+
+    // First priority: use the collection ID from loaded postcard details
+    if (scannedPostcardDetails?.collectionUniqueID) {
+      activePostcardTarget = scannedPostcardDetails.collectionUniqueID;
+      return activePostcardTarget;
+    }
+
+    if (scannedPostcardDetails?.id) {
+      activePostcardTarget = scannedPostcardDetails.id;
+      return activePostcardTarget;
+    }
+
+    // Fallback: try URL parameters (for initial page load)
     if (typeof window === 'undefined') {
       return DEFAULT_COLLECTION_STR;
     }
-      // First, try to get collectionStr from URL query parameters
-      const urlParams = new URLSearchParams(window.location.search);
-      const collectionStrParam = urlParams.get('collectionStr');
-    
-      if (collectionStrParam) {
-        return collectionStrParam;
-      }
 
-      // Fallback to extracting from pathname
+    const urlParams = new URLSearchParams(window.location.search);
+    const collectionStrParam = urlParams.get('collectionStr');
+
+    if (collectionStrParam) {
+      activePostcardTarget = collectionStrParam;
+      return activePostcardTarget;
+    }
+
+    // Last resort: extract from pathname
     const pathSegments = window.location.pathname
       .split('/')
       .map((segment) => segment.trim())
       .filter(Boolean);
 
-    return pathSegments[pathSegments.length - 1] || DEFAULT_COLLECTION_STR;
+    const lastPathSegment = pathSegments[pathSegments.length - 1];
+    if (lastPathSegment && lastPathSegment !== 'garden-memories') {
+      activePostcardTarget = lastPathSegment;
+    } else {
+      activePostcardTarget = DEFAULT_COLLECTION_STR;
+    }
+
+    return activePostcardTarget;
   }
 
   function getPostcardDetailsApiUrl() {
@@ -757,6 +798,8 @@ async function fetchLookPlaceData() {
   }
 
   async function loadPostcardData() {
+    // TODO
+    // Before loading postcardData
     isLoadingPostcard = true;
     credentialsError = '';
 
@@ -779,7 +822,17 @@ async function fetchLookPlaceData() {
       showCredentialsForm = true;
     } finally {
       isLoadingPostcard = false;
+
       history.replaceState({}, "", "/garden-memories/");
+      // 
+      //       const targetCollection = activePostcardTarget || getCollectionStrFromUrl();
+      // const postcardPath = `/garden/look/${targetCollection}/`;
+      // const currentPath = window.location.pathname;
+
+      // if (currentPath !== postcardPath) {
+      //   history.replaceState({}, '', postcardPath);
+      // }
+      // 
     }
   }
 
@@ -832,6 +885,16 @@ async function fetchLookPlaceData() {
     inputUsername = '';
     inputUserId = '';
     showCredentialsForm = true;
+    
+    // Scroll to the credentials form after DOM update
+    // its on garden/visitor
+    // views.py/ func visitorModel
+    tick().then(() => {
+      const credentialsBox = document.getElementById('credentials-box');
+      if (credentialsBox) {
+        credentialsBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    });
   }
 
   function getRotatingMemoryPrompt() {
@@ -1042,6 +1105,14 @@ async function fetchLookPlaceData() {
     tourBookingError = '';
   }
 
+  function openMapModal() {
+    showMapModal = true;
+  }
+
+  function closeMapModal() {
+    showMapModal = false;
+  }
+
   async function submitTourBooking() {
     const normalizedName = tourBookingName.trim();
     const normalizedContact = tourBookingContact.trim();
@@ -1113,6 +1184,7 @@ async function fetchLookPlaceData() {
     }
   }
 
+
   async function submitCredentials() {
     const normalizedUsername = inputUsername.trim();
     const normalizedUserId = inputUserId.trim();
@@ -1124,11 +1196,35 @@ async function fetchLookPlaceData() {
 
     activeUsername = normalizedUsername;
     activeUserId = normalizedUserId;
-    safeSetLocalStorageValue(LOCAL_STORAGE_USERNAME_KEY, normalizedUsername);
-    safeSetLocalStorageValue(LOCAL_STORAGE_USER_ID_KEY, normalizedUserId);
-    persistSession(normalizedUsername, normalizedUserId, null);
-    showCredentialsForm = false;
 
+    try {
+      const response = await fetch(VISITOR_API_URL, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json'
+        },
+        body: JSON.stringify({
+          username: normalizedUsername,
+          userID: normalizedUserId
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Visitor registration failed:', response.status, errorText);
+      }
+      else {
+          safeSetLocalStorageValue(LOCAL_STORAGE_USERNAME_KEY, normalizedUsername);
+          safeSetLocalStorageValue(LOCAL_STORAGE_USER_ID_KEY, normalizedUserId);
+          persistSession(normalizedUsername, normalizedUserId, null);
+
+      }
+    } catch (error) {
+      console.error('Visitor registration request failed:', error);
+    }
+
+    showCredentialsForm = false;
     await loadPostcardData();
   }
 
@@ -1351,32 +1447,12 @@ async function fetchLookPlaceData() {
 
   </header>
 
-  <div class="gardenhead">
-    <div class="postcard-head-title">
-      <img style="width:inherit; " src="{GardenHeadLogo}" alt="Memory Garden Home Logo" class="logo" />
-      <div class="sub-brand">Memory Garden Home Smart Postcard</div>
-    </div>
-    {#if $session.isGuest}
-      <div class="postcard-frame logo-frame">
-        <img style="width:inherit;" src="{GardenBodyLogo}" alt="Memory Garden Home Logo" class="logo" />
-      </div>
-    {/if}
-    <div class="postcard-frame logo-frame">
-      <img style="width:inherit;" src="{GardenBorderLogo}" alt="Memory Garden Home Logo" class="logo" />
-    </div>
-  </div>
-    
+
 
   <section class="hero">
-    <div class="hero-copy">
-      <p class="eyebrow">{t('eyebrow')}</p>
-      <h1>{t('brandTitle')}</h1>
-      <p class="subtext">
-        {t('subtext')}
-      </p>
-    </div>
+
     {#if showCredentialsForm}
-      <div class="credentials-box" aria-live="polite">
+      <div id="credentials-box" class="credentials-box" aria-live="polite">
         <h3>{t('enterAccount')}</h3>
         <form class="credentials-form" on:submit|preventDefault={submitCredentials}>
           <label>
@@ -1408,7 +1484,13 @@ async function fetchLookPlaceData() {
               <p>{scannedPostcardDetails.location}</p>
               <p>{formatCollectedDate(scannedPostcardDetails.collected)}</p>
               <p>{scannedPostcardDetails.collector}</p>
-               <a href={`/places/${scannedPostcardDetails.collectionPlaceDirect}/${currentYear}/${currentMonth}/`} class=""><p> Learn More </p></a>
+              <button class="meta-button" type="button" on:click={openMapModal} aria-label="Open map">
+                <svg viewBox="0 0 16 16" width="16" height="16">
+                  <path d="M15.817.113A.5.5 0 0 1 16 .5v14a.5.5 0 0 1-.402.49l-5 1a.502.502 0 0 1-.196 0L5.5 15.01l-4.902.98A.5.5 0 0 1 0 15.5v-14a.5.5 0 0 1 .402-.49l5-1a.5.5 0 0 1 .196 0L10.5.99l4.902-.98a.5.5 0 0 1 .415.103zM10 1.91l-4-.8v12.98l4 .8V1.91zm1 12.98 4-.8V1.11l-4 .8v12.98zm-6-.8V1.11l-4 .8v12.98l4-.8z" fill-rule="evenodd"/>
+                </svg>
+                <span>Map</span>
+              </button>
+              <a href={`/places/${scannedPostcardDetails.collectionPlaceDirect}/${currentYear}/${currentMonth}/`} class=""><p>Learn More</p></a>
             </div>  
             
             
@@ -1489,7 +1571,28 @@ async function fetchLookPlaceData() {
       </div>
     {/if}
   </section>
-
+  <div class="gardenhead">
+    <div class="postcard-head-title">
+      <img style="width:inherit; " src="{GardenHeadLogo}" alt="Memory Garden Home Logo" class="logo" />
+      <!-- <div class="sub-brand">Memory Garden Home Smart Postcard</div> -->
+    </div>
+    {#if $session.isGuest}
+      <div class="postcard-frame logo-frame">
+        <img style="width:inherit;" src="{GardenBodyLogo}" alt="Memory Garden Home Logo" class="logo" />
+      </div>
+    <div class="postcard-frame logo-frame">
+      <img style="width:inherit;" src="{GardenBorderLogo}" alt="Memory Garden Home Logo" class="logo" />
+    </div>
+    <div class="hero-copy">
+      <p class="eyebrow">{t('eyebrow')}</p>
+      <h1>{t('brandTitle')}</h1>
+      <p class="subtext">
+        {t('subtext')}
+      </p>
+    </div>    
+    {/if}
+  </div>
+    
   <section class="support-grid" aria-label="Postcard supporting memories">
     <div class="support-card collection-memory">
       <div class="support-card-header">
@@ -1536,7 +1639,6 @@ async function fetchLookPlaceData() {
         </div>
         <div>
           <h2>{t('gridTitle')}</h2>
-          <p>Browse the postcard collection and open a larger preview.</p>
         </div>
       </div>
       {#if postcardMemories.length}
@@ -1601,6 +1703,36 @@ async function fetchLookPlaceData() {
     </div>
   {/if}
 
+  {#if showMapModal}
+    <div class="map-modal-backdrop" role="presentation" on:click={closeMapModal}>
+      <div
+        class="map-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="map-modal-title"
+        tabindex="-1"
+        on:click|stopPropagation
+      >
+        <button class="map-modal-close" type="button" on:click={closeMapModal} aria-label="Close map">
+          ×
+        </button>
+        <h3 id="map-modal-title">{scannedPostcardDetails.location}</h3>
+        <div class="map-container">
+          <iframe
+            id="map-modal-iframe"
+            title="Map of {scannedPostcardDetails.location}"
+            width="100%"
+            height="100%"
+            style="border:0"
+            src="/garden/map/{scannedPostcardDetails.collectionPlaceDirect}/"
+            allowFullScreen=""
+            loading="lazy"
+          ></iframe>
+        </div>
+      </div>
+    </div>
+  {/if}
+
   {#if lightboxImageSrc}
     <button class="image-lightbox" type="button" on:click={closeImagePreview}>
       <div class="lightbox-content">
@@ -1622,11 +1754,11 @@ async function fetchLookPlaceData() {
 </div>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,700;1,9..144,300;1,9..144,400;1,9..144,500&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@272&display=swap');
   :global(body) {
     margin: 0;
-    font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    font-family: 'Nunito', 'Arial Rounded MT Bold', 'Segoe UI', sans-serif;
     background: #0e1117;
     color: #f4f6fb;
   }
@@ -1649,37 +1781,30 @@ async function fetchLookPlaceData() {
   }
 
   .brand {
-    font-family: "Fraunces",Georgia,serif;
-    padding:1em;
-    font-weight: 800;
-    color: rgb(18,	29,	3	);
-    letter-spacing: 0;
+    font-family: 'Nunito', 'Arial Rounded MT Bold', 'Segoe UI', sans-serif;
+    padding: 1em;
+    font-weight: 900;
+    color: rgb(18, 29, 3);
+    letter-spacing: -0.05em;
     display: inline-block;
-    text-align:center;
+    text-align: center;
     padding-bottom: 0;
-
-    letter-spacing: .02em;
-  margin-bottom: 1rem;
-  font-family: Fraunces,Georgia,serif;
-  font-size: clamp(36px,5vw,72px);
-  font-style: italic;
-  font-weight: 300;
-  line-height: 1;
-
+    margin-bottom: 1rem;
+    font-size: clamp(36px, 5vw, 72px);
+    font-style: normal;
+    line-height: 1;
   }
+
   .sub-brand {
-    font-family: 'Roboto', sans-serif;
-    padding:0;
-
+    font-family: 'Nunito', 'Arial Rounded MT Bold', 'Segoe UI', sans-serif;
+    padding: 0;
     font-size: 0.98rem !important;
-    font-weight: 600;
-
+    font-weight: 800;
     color: #A3502A;
     margin: 0 auto;
-    letter-spacing: 0;
+    letter-spacing: 0.02em;
     display: inline-block;
-    text-align:center;
-
+    text-align: center;
   }
 
     .account-chip-above {
@@ -1887,6 +2012,34 @@ async function fetchLookPlaceData() {
 
   :global(body[data-theme='light'] .modal-card h3) {
     color: #1f2937;
+  }
+
+  :global(body[data-theme='light'] .map-modal) {
+    background: #ffffff;
+    border-color: #d3deef;
+  }
+
+  :global(body[data-theme='light'] .map-modal h3) {
+    color: #1f2937;
+  }
+
+  :global(body[data-theme='light'] .map-modal-close) {
+    border-color: #ccc;
+    color: #1f2937;
+  }
+
+  :global(body[data-theme='light'] .map-modal-close:hover) {
+    background: #e8e8e8;
+    border-color: #999;
+  }
+
+  :global(body[data-theme='light'] .meta-button) {
+    color: #1f2937;
+    background: #eff5e7;
+  }
+
+  :global(body[data-theme='light'] .meta-button:hover) {
+    background: #e0ecd5;
   }
 
   :global(body[data-theme='light'] .image-field-input) {
@@ -2246,7 +2399,7 @@ async function fetchLookPlaceData() {
 
   .postcard-frame {
 
-    width: min(100%, 840px);
+    width: min(100%, 440px);
     min-height: 130px;
     margin: 0 auto;
     overflow: hidden;
@@ -2326,7 +2479,7 @@ justify-content: flex-end;
 
   .meta-grid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 0.55rem;
     margin-top: 0.75rem;
   }
@@ -2364,18 +2517,30 @@ justify-content: flex-end;
     content: "Collector";
   }
 
-  .meta-grid a {
+  .meta-grid button::before {
+    display: block;
+    margin-bottom: 0.18rem;
+    color: #7a895f;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    line-height: 1.2;
+    text-transform: uppercase;
+    content: "Map";
+  }
+
+  .meta-grid a:nth-child(5) {
     text-decoration: none;
   }
 
-  .meta-grid a p {
+  .meta-grid a:nth-child(5) p {
     color: #3f5b2c;
     font-weight: 700;
     background: #eff5e7;
     border-color: rgba(110, 132, 77, 0.45);
   }
 
-  .meta-grid a p::before {
+  .meta-grid a:nth-child(5) p::before {
     content: "Details";
   }
 
@@ -2386,6 +2551,113 @@ justify-content: flex-end;
     font-size: 0.74rem;
     letter-spacing: 0.05em;
     text-transform: uppercase;
+  }
+
+  .meta-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.4rem;
+    padding: 0.7rem 0.75rem;
+    margin: 0;
+    color: #3f5b2c;
+    background: #eff5e7;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-height: 100%;
+    box-sizing: border-box;
+  }
+
+  .meta-button:hover {
+    background: #e0ecd5;
+    transform: translateY(-2px);
+  }
+
+  .meta-button:active {
+    transform: translateY(0);
+  }
+
+  .meta-button svg {
+    fill: currentColor;
+    flex-shrink: 0;
+  }
+
+  .map-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(13, 27, 62, 0.45);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1500;
+  }
+
+  .map-modal {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 90%;
+    max-width: 800px;
+    height: 80vh;
+    background: #121825;
+    border: 1px solid #252f44;
+    border-radius: 8px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+    padding: 1.5rem;
+    overflow: hidden;
+  }
+
+  .map-modal h3 {
+    margin: 0 0 1rem 0;
+    color: #f4f6fb;
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+
+  .map-modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    background: transparent;
+    border: 1px solid #252f44;
+    border-radius: 4px;
+    font-size: 26px;
+    cursor: pointer;
+    color: #f4f6fb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    z-index: 1501;
+  }
+
+  .map-modal-close:hover {
+    background: #1e2637;
+    border-color: #3d4a5f;
+  }
+
+  .map-container {
+    flex: 1;
+    width: 100%;
+    overflow: hidden;
+    border-radius: 4px;
+  }
+
+  .map-container iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
   }
 
   @keyframes spin {
@@ -2472,8 +2744,9 @@ justify-content: flex-end;
 
   .support-card h2 {
     margin: 0;
-    color: #27351f;
-    font-family: Fraunces, Georgia, serif;
+    color: #27351f7e;
+    /* font-family: Fraunces, Georgia, serif; */
+    font-family: Arial Rounded MT Bold;
     font-size: 1.22rem;
     font-weight: 500;
     line-height: 1.15;
@@ -2700,7 +2973,7 @@ justify-content: flex-end;
     .lang-btn {
       min-height: 2.15rem;
       padding: 0.3rem 0.55rem;
-      font-size: 0.5rem;
+      /* font-size: 0.5rem; */
     }
 
     .postcard-frame {

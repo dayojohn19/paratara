@@ -144,10 +144,14 @@ class Blogs(models.Model):
 
     blogplace = models.ForeignKey('home.Places_v2', on_delete=models.CASCADE, null=True, blank=True, related_name='blogplaceitem')
     title = models.CharField(max_length=6400, blank=True)
+    seo_title = models.CharField(max_length=255, blank=True, default='')
     textContent = models.TextField(blank=True, null=True)
     summarize = models.CharField(max_length=400, default='Discover more about this destination')
+    meta_description = models.TextField(blank=True, default='')
     readtime = models.IntegerField(default=5)
-
+    cover_image_url = models.URLField(max_length=1500, blank=True, default='')
+    faq_entries = models.JSONField(default=list, blank=True)
+    searchable_keywords = models.TextField(blank=True, default='')
 
     longitude = models.CharField(blank=True, max_length=64)
     latitude = models.CharField(blank=True, max_length=64)
@@ -160,7 +164,7 @@ class Blogs(models.Model):
 
     localurlpath = models.CharField(max_length=2555, blank=True)
     class Meta:
-        ordering = ['-updated_at', '-created_at']
+        ordering = ['updated_at', '-created_at']
     def __str__(self):
         return f"{self.blogplace} {self.title} long: {self.latitude} lat: {self.longitude} "
     

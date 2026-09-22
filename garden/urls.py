@@ -31,8 +31,10 @@ urlpatterns = [
     path('upload_images/', views.upload_images, name='upload_images'),
     path('qrcode', views.CreateQRCode),
     path('collections',views.viewCollection),
+    path('collections-debug/', views.collection_debug_api, name='collection_debug_api'),
     path('generate_a4_collage/', views.generate_a4_collage, name='generate_a4_collage'),
     path('list_a4_collages/', views.list_a4_collages, name='list_a4_collages'),
+    path('delete_collection/<str:collection_id>/', views.delete_collection, name='delete_collection'),
     # path('qrimages', views.seeAllImages),
     
 ]

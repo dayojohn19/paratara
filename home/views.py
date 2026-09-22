@@ -1978,6 +1978,7 @@ def checkPlace_v2(request, placename=None, slug=None):
         place = get_object_or_404(Places_v2, slug=slug)
     elif placename:
         place = get_object_or_404(Places_v2, placename=placename)    
+    print('Place = ',slug, 'Placename = ',placename, ' place = ',place)
 # def checkPlace_v2(request, placename):
     import calendar
     from datetime import date
@@ -2334,7 +2335,16 @@ def Comment(request, postID):
 
 
 def _discussion_records(place, limit=5):
-    return list(place.discussions.order_by("-id").values()[:limit])
+    records = list(
+        place.discussion.order_by("-timestamp", "-id").values(
+            "id",
+            "discuss",
+            "discusserName",
+            "timestamp",
+        )[:limit]
+    )
+    records.reverse()
+    return records
 
 
 def _discussion_client_ip(request):
@@ -2569,7 +2579,14 @@ def _discussion_local_view(request, placeID):
         assistant_message = "I don't have enough local information about that yet."
 
     if assistant_message:
-        _save_place_discussion(place, assistant_message, "Assistant")
+        recent_assistant_duplicate = PlaceDiscussion.objects.filter(
+            place=place,
+            discusserName__iexact="Assistant",
+            discuss__iexact=str(assistant_message).strip(),
+            timestamp__gte=now - timedelta(minutes=2),
+        ).exists()
+        if not recent_assistant_duplicate:
+            _save_place_discussion(place, assistant_message, "Assistant")
 
     return JsonResponse({"response": _discussion_records(place, limit=2)})
 

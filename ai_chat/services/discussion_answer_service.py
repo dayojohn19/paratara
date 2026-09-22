@@ -227,11 +227,20 @@ def _format_match_html(match):
 
 
 def _preferred_matches(message, matches):
+    def kind_of(match):
+        metadata = match.get("metadata", {})
+        return str(metadata.get("kind") or match.get("source_type") or "").strip().lower()
+
+    def prioritize_non_discussion(items):
+        non_discussion = [item for item in items if kind_of(item) != "discussion"]
+        discussion_only = [item for item in items if kind_of(item) == "discussion"]
+        return non_discussion + discussion_only
+
     preferred = intent_kinds(message)
     if not preferred:
-        return matches
+        return prioritize_non_discussion(matches)
     filtered = [match for match in matches if match.get("metadata", {}).get("kind") in preferred]
-    return filtered or matches
+    return prioritize_non_discussion(filtered or matches)
 
 
 def _word_count_html(value):
@@ -240,17 +249,39 @@ def _word_count_html(value):
 
 
 def generate_template_answer(message, place, matches):
+    def kind_of(match):
+        metadata = match.get("metadata", {})
+        return str(metadata.get("kind") or match.get("source_type") or "").strip().lower()
+
     matches = _preferred_matches(message, matches)
     if not matches:
         return NOT_ENOUGH_INFORMATION
 
+    # Do not answer by repeating previous user discussion entries.
+    answer_matches = [match for match in matches if kind_of(match) != "discussion"]
+    if not answer_matches:
+        return NOT_ENOUGH_INFORMATION
+
     place_name = html.escape(clean_text(getattr(place, "placename", "") or "this place"), quote=True)
-    rendered = [_format_match_html(match) for match in matches[:2]]
+    rendered = [_format_match_html(match) for match in answer_matches[:3]]
     rendered = [item for item in rendered if item]
     if not rendered:
         return NOT_ENOUGH_INFORMATION
 
-    answer = f"..._ " + " ".join(rendered)
+    # Keep unique snippets only; duplicated rows make the reply noisy.
+    unique_rendered = []
+    seen = set()
+    for item in rendered:
+        key = re.sub(r"\s+", " ", item).strip().lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        unique_rendered.append(item)
+    rendered = unique_rendered[:2]
+    if not rendered:
+        return NOT_ENOUGH_INFORMATION
+
+    answer = f"For <strong>{place_name}</strong>, here are useful options: " + " ".join(rendered)
     if _word_count_html(answer) > 80 and len(rendered) > 1:
         answer = f"For <strong>{place_name}</strong>, try this: {rendered[0]}"
     return sanitize_html_fragment(answer)

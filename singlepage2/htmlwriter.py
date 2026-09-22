@@ -75,6 +75,16 @@ def mark_editable_blog_body(body_html):
                 paragraph.string = re.sub(r"\s+", " ", str(child)).strip()
                 child.replace_with(paragraph)
 
+        direct_paragraphs = container.find_all("p", recursive=False)
+        if len(direct_paragraphs) > 1:
+            primary_paragraph = direct_paragraphs[0]
+            for extra_paragraph in direct_paragraphs[1:]:
+                if primary_paragraph.contents and extra_paragraph.contents:
+                    primary_paragraph.append(" ")
+                for node in list(extra_paragraph.contents):
+                    primary_paragraph.append(node.extract())
+                extra_paragraph.decompose()
+
     for idx, editable_block in enumerate(soup.find_all(["h2", "p"])):
         editable_block["data-blog-edit-index"] = str(idx)
         editable_block["data-blog-edit-tag"] = editable_block.name
@@ -130,9 +140,12 @@ def render_faq_section(faq_entries):
 
 # USES call htmlwriter then calls generate_blog_object to save the blog in the database, then generates the html page with SEO optimizations, FAQ schema, and article schema for better search engine visibility. The generated HTML is saved in the appropriate folder structure for serving as a static page on the site.
 def generate_blog_object(request, place_name, title, category='Guide', summary='No Summary Provided', text_content=''):
-    place = Places_v2.objects.filter(placename__iexact=place_name).first()    
+    place = Places_v2.objects.filter(placename__iexact=place_name).first()
     category = normalize_blog_category(category)
-    summary = clean_blog_metadata(summary)[:400] or 'No Summary Provided'
+    candidate_summary = clean_blog_metadata(summary)[:400].strip()
+    if candidate_summary in DEFAULT_SUMMARY_VALUES:
+        candidate_summary = ''
+    persisted_summary = candidate_summary or 'No Summary Provided'
     title_slug = slugify(title)
     plain_text_content = re.sub('<[^<]+?>', '', text_content or '')
     readtime = max(1, len(plain_text_content.split()) // 185) if plain_text_content else 5
@@ -147,21 +160,21 @@ def generate_blog_object(request, place_name, title, category='Guide', summary='
                 update_fields.append('category')
 
             existing_summary = clean_blog_metadata(getattr(b, 'summarize', '') or '')
-            if summary not in DEFAULT_SUMMARY_VALUES and summary != existing_summary:
-                b.summarize = summary
+            if candidate_summary and candidate_summary != existing_summary:
+                b.summarize = candidate_summary
                 update_fields.append('summarize')
 
             if update_fields:
                 b.save(update_fields=update_fields)
 
-            return b    
-    title = re.sub(r'<a\b[^>]*>(.*?)</a>',r'\1',title,flags=re.IGNORECASE | re.DOTALL)            
+            return b
+    title = re.sub(r'<a\b[^>]*>(.*?)</a>',r'\1',title,flags=re.IGNORECASE | re.DOTALL)
     blog_item = Blogs.objects.create(
         category=category,
         blogplace=place,
         title=title,
         textContent=plain_text_content,
-        summarize=summary,
+        summarize=persisted_summary,
         readtime=readtime,
     )
     generate_blog_page(request, place_name, title, text_content, category=category)
@@ -171,7 +184,7 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
     category = normalize_blog_category(category)
     def _get_image_cover(place_name, title):
         from imageapp.imageuploader import getTitlePhoto
-        togen = f"{title} {place_name} travel guide cover photo, vibrant and eye-catching, showcasing the essence of the destination with iconic landmarks or scenic views, optimized for web display."
+        togen = f"Travel guide cover photo for {title} in {place_name}. Show the destination clearly with natural colors and simple composition."
         image_url = getTitlePhoto(request, togen)
         return image_url
         
@@ -180,9 +193,11 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
         return re.sub('<[^<]+?>', '', html or '')
     def create_blog_searchable_keys_description(title, place_name, category):
         try:
-            meta_prompt = f'''Create an SEO-friendly meta description for a {category} blog titled "{title}" in "{place_name}". 
-                            with like these keywords: {title}, {place_name}, {category}, things to do, entrance fee, tips, festivals and best time to visit.
-                            Keep it under 160 characters and make it enticing for travelers searching online.'''
+            meta_prompt = f'''Write one direct meta description for a {category} blog titled "{title}" in "{place_name}".
+                            Keep it under 150 characters.
+                            Use plain, factual wording.
+                            Include these terms naturally when possible: {title}, {place_name}, things to do, entrance fee, tips, best time to visit.
+                            Avoid hype, superlatives, and clickbait language.'''
             meta_res = client.chat.completions.create(
                 model=settings.GROK_MODEL_NAME,
                 messages=[{"role": "user", "content": meta_prompt}],
@@ -191,14 +206,14 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
             _blog_searchable = meta_res.choices[0].message.content.strip().strip('"')
             return _blog_searchable
         except Exception:
-            _blog_searchable = f"Things to do {title} in {place_name}: Complete travel guide with directions, top activities, entrance fees, insider tips, and best times to visit for an unforgettable experience."
+            _blog_searchable = f"{title} in {place_name}: directions, entrance fee, practical tips, and best time to visit."
         
         return _blog_searchable
 
     # if cover_image_url is None:
     #     return _get_image_cover(place_name, title)
     if blog_searchable_keys_description is None:
-        create_blog_searchable_keys_description = create_blog_searchable_keys_description(title, place_name, category)
+        blog_searchable_keys_description = create_blog_searchable_keys_description(title, place_name, category)
     title = (title or '').strip() or f"{category} to {place_name}"
     text_content = _strip_html_tags(body_text)
 
@@ -238,6 +253,10 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
 
     # The canonical full URL on your live site
     canonical_url = f"https://www.paratara.com/pages/blog/{place_slug}/{title_slug}/"
+    try:
+        place_page_url = reverse("home:place_by_slug", kwargs={"place_slug": place_slug})
+    except Exception:
+        place_page_url = f"/places/{place_slug}/"
     editable_body_text = mark_editable_blog_body(body_text)
     generated_at = timezone.now()
     published_iso, published_display = format_blog_datetime(generated_at)
@@ -258,7 +277,7 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
         faq_entries = []
         faq_questions = FAQ_QUESTIONS_BY_CATEGORY.get(category, FAQ_QUESTIONS_BY_CATEGORY["Guide"])
 
-        faq_prompt = f'''Generate 5 most searched words and FAQs about "{title}" in "{place_name}".
+        faq_prompt = f'''Generate 5 direct FAQs about "{title}" in "{place_name}".
         
                         Return ONLY a valid JSON array with no markdown formatting. Format:
                         [
@@ -267,7 +286,8 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
                         ]
                         Use the page URL "{canonical_url}" in all "@id" fields (question name1, question name2, question name3, etc.)
                         Questions should cover: {faq_questions}
-                        Keep answers concise (1-2 sentences).'''
+                Keep answers concise (1-2 short sentences), clear, and factual.
+                Avoid promotional tone, exaggerated claims, and misleading wording.'''
         res = client.chat.completions.create(
             model=settings.GROK_MODEL_NAME,
             messages=[{"role": "user", "content": faq_prompt}],
@@ -369,7 +389,7 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
 
                                                 <!-- Open Graph -->
                                                 <meta property="og:title" content="{title} — {place_name}">
-                                                <meta property="og:description" content="{blog_searchable_keys_description if blog_searchable_keys_description else f'Things to {title} in {place_name}: Complete travel guide with directions, top activities, entrance fees, insider tips, and best times to visit for an unforgettable experience.'}">
+                                                <meta property="og:description" content="{blog_searchable_keys_description if blog_searchable_keys_description else f'{title} in {place_name}: directions, entrance fee, practical tips, and best time to visit.'}">
                                                 <meta property="og:type" content="article">
                                                 <meta property="og:url" content="{canonical_url}">
                                                 <meta property="og:image" content="{cover_image_url}">
@@ -396,6 +416,8 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
     --text-muted: #65736d;
     --border: #d8ded7;
     --white: #ffffff;
+    --radius-lg: 18px;
+    --shadow-soft: 0 12px 34px rgba(23, 88, 75, 0.13);
 }}
 
 * {{
@@ -406,11 +428,19 @@ def generate_blog_page(request, place_name, title, body_text, cover_image_url=No
 
 body {{
     min-height: 100vh;
-
+    background:
+        radial-gradient(1200px 440px at 14% -5%, rgba(47, 111, 179, 0.14), transparent 60%),
+        radial-gradient(760px 300px at 90% 0%, rgba(47, 125, 104, 0.18), transparent 65%),
+        linear-gradient(to bottom right, #f6f7f4, #ecefe9 52%, #e5eae4);
     font-family: "Source Sans 3", Arial, sans-serif;
     font-size: 17px;
     line-height: 1.7;
     color: var(--text);
+}}
+
+.blog-shell {{
+    width: min(1120px, 100% - 2rem);
+    margin: 1.2rem auto 2.4rem;
 }}
 
 .white-color{{
@@ -456,6 +486,7 @@ h3 {{
 }}
 
 p {{
+    padding:0;
     margin-bottom: 1.1rem;
     font-size: clamp(1.05rem, 2.5vw, 1.25rem);
 }}
@@ -552,7 +583,8 @@ img {{
     align-items: center;
     justify-content: space-between;
     padding: 0.9rem 1.25rem;
-    background: #ffffff;
+    backdrop-filter: blur(8px);
+    background: rgba(255, 255, 255, 0.95);
     border-bottom: 1px solid var(--border);
 }}
 
@@ -563,9 +595,36 @@ img {{
 }}
 
 .logo {{
+    display: inline-flex;
+    align-items: center;
     font-size: 1.2rem;
     font-weight: 800;
     color: var(--accent-dark);
+    text-decoration: none;
+}}
+
+.place-page-link {{
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.7rem;
+    padding: 0.58rem 0.95rem;
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 700;
+    border-radius: 999px;
+    background: linear-gradient(120deg, var(--accent-dark), var(--accent-blue));
+    box-shadow: 0 7px 18px rgba(23, 88, 75, 0.28);
+}}
+
+.place-page-link:hover {{
+    filter: brightness(1.03);
+}}
+
+.place-page-link.place-page-link-nav {{
+    margin-top: 0;
+    padding: 0.42rem 0.75rem;
+    font-size: 0.85rem;
 }}
 
 .hamburger {{
@@ -630,7 +689,6 @@ img {{
 
 #blog-list {{
     width: 100%;
-    max-width: 920px;
     max-height: 70vh;
     margin: 0 auto;
     overflow-y: auto;
@@ -656,19 +714,40 @@ img {{
 }}
 
 #body-contents {{
-    margin: 1.5rem auto 0;
+    margin:  0;
+    padding: clamp(1.1rem, 2.8vw, 2rem);
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid rgba(216, 222, 215, 0.85);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-soft);
     border-bottom: 0;
+}}
+
+.blog-hero {{
+    margin-bottom: 1.4rem;
+    padding: clamp(1rem, 3vw, 1.5rem);
+    border: 1px solid #dbe6df;
+    border-radius: calc(var(--radius-lg) - 4px);
+    background: linear-gradient(120deg, #f6fbf8, #eef6fb 62%, #f8f4ef);
+}}
+
+.blog-kicker {{
+    margin-bottom: 0.45rem;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 0.78rem;
+    font-weight: 700;
 }}
 
 .blog-date-meta {{
     display: flex;
-    flex-wrap: wrap;
+    margin:0;
+    padding-right: 0.9rem;
     gap: 0.5rem 1rem;
-    margin: 0 0 1.5rem;
-    padding-bottom: 0.9rem;
     color: var(--text-muted);
     font-size: 0.92rem;
-    border-bottom: 1px solid var(--border);
+    flex-direction: row-reverse;
 }}
 
 .blog-date-meta time {{
@@ -710,13 +789,21 @@ img {{
 @media (min-width: 769px) {{
     #blog-editable-body section[data-blog-image-layout="true"] {{
         display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-columns: minmax(260px, 0.95fr) minmax(0, 1.05fr);
         column-gap: clamp(1.5rem, 4vw, 3rem);
+        row-gap: 0.75rem;
         align-items: start;
+    }}
+
+    #blog-editable-body section[data-blog-image-layout="true"] > h2 {{
+        grid-column: 1 / -1;
+        grid-row: 1;
+        margin-bottom: 0.35rem;
     }}
 
     #blog-editable-body section[data-blog-image-layout="true"] > img {{
         grid-column: 1;
+        grid-row: 2;
         width: 100%;
         max-width: 100%;
         height: auto;
@@ -726,12 +813,18 @@ img {{
     }}
 
     #blog-editable-body section[data-blog-image-layout="true"] > img:first-of-type {{
-        grid-row: 1 / span 50;
+        grid-row: 2;
     }}
 
-    #blog-editable-body section[data-blog-image-layout="true"] > :not(img) {{
+    #blog-editable-body section[data-blog-image-layout="true"] > p {{
         grid-column: 2;
+        grid-row: 2;
         min-width: 0;
+        margin-top: 0;
+    }}
+
+    #blog-editable-body section[data-blog-image-layout="true"] > :not(h2):not(img):not(p) {{
+        grid-column: 1 / -1;
     }}
 }}
 
@@ -956,6 +1049,83 @@ section[aria-labelledby="faq-heading"] [data-editing="true"] {{
     margin: -0.55rem 0 1.1rem;
 }}
 
+.blog-section-actions {{
+    display: flex;
+    justify-content: flex-end;
+    margin: 1rem 0 1.2rem;
+}}
+
+.blog-add-section-button {{
+    min-height: 42px;
+    padding: 0.7rem 1rem;
+    color: #ffffff;
+    font: inherit;
+    font-weight: 700;
+    border: 0;
+    border-radius: 999px;
+    background: linear-gradient(120deg, var(--accent), var(--accent-blue));
+    cursor: pointer;
+}}
+
+.blog-add-section-form {{
+    display: grid;
+    gap: 0.75rem;
+    margin: 0 0 1.5rem;
+    padding: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: #f8fbf9;
+}}
+
+.blog-add-section-form[hidden] {{
+    display: none;
+}}
+
+.blog-add-section-form input,
+.blog-add-section-form textarea {{
+    width: 100%;
+    padding: 0.8rem 0.9rem;
+    color: var(--text);
+    font: inherit;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: #ffffff;
+}}
+
+.blog-add-section-form textarea {{
+    min-height: 140px;
+    resize: vertical;
+}}
+
+.blog-add-section-form-actions {{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    align-items: center;
+}}
+
+.blog-add-section-save,
+.blog-add-section-cancel {{
+    min-height: 40px;
+    padding: 0.65rem 1rem;
+    font: inherit;
+    font-weight: 700;
+    border-radius: 999px;
+    cursor: pointer;
+}}
+
+.blog-add-section-save {{
+    color: #ffffff;
+    border: 0;
+    background: var(--accent-dark);
+}}
+
+.blog-add-section-cancel {{
+    color: var(--text);
+    border: 1px solid var(--border);
+    background: #ffffff;
+}}
+
 .blog-paragraph-tools button {{
     min-height: 36px;
     padding: 0.45rem 0.85rem;
@@ -1088,6 +1258,11 @@ section[aria-labelledby="faq-heading"] [data-editing="true"] {{
         font-size: 15.5px;
     }}
 
+    .blog-shell {{
+        width: min(1120px, 100% - 0.9rem);
+        margin-top: 0.65rem;
+    }}
+
     #body-contents {{
         margin-top: 0;
 
@@ -1097,6 +1272,10 @@ section[aria-labelledby="faq-heading"] [data-editing="true"] {{
 
     .navbar {{
         padding: 0.8rem 1rem;
+    }}
+
+    .place-page-link.place-page-link-nav {{
+        display: none;
     }}
 
     #subscribeForm button,
@@ -1123,8 +1302,9 @@ section[aria-labelledby="faq-heading"] [data-editing="true"] {{
             <span></span>
             <span></span>
         </div>
-        <div class="logo">ParaTara</div>
+        <a class="logo" href="/">ParaTara</a>
     </div>
+
 
     <div class="nav-links" id="navLinks">
         <ul class="" id="blog-list">
@@ -1149,8 +1329,13 @@ section[aria-labelledby="faq-heading"] [data-editing="true"] {{
     }}
 </script>
 
-
-  <article id="body-contents">
+<main class="blog-shell">
+    <article id="body-contents">
+        <header class="blog-hero">
+                <p class="blog-kicker">{category} guide in {place_name}</p>
+                <h1>{title}</h1>
+                <a class="place-page-link" href="{place_page_url}">Explore {place_name}</a>
+        </header>
     {collections_html}
     <p class="blog-date-meta">
         <span>Published <time id="blog-published-at" datetime="{published_iso}">{published_display}</time></span>
@@ -1161,6 +1346,22 @@ section[aria-labelledby="faq-heading"] [data-editing="true"] {{
     </div>
     {faq_html}
   </article>
+    {{% if user.is_authenticated %}}
+    <div class="blog-section-actions">
+        <button type="button" class="blog-add-section-button" id="addBlogSectionButton">Add section</button>
+    </div>
+    <form class="blog-add-section-form" id="blogAddSectionForm" action="{blog_edit_save_url}" method="post" onsubmit="return false;" hidden>
+        <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
+        <input type="text" id="blogAddSectionTitle" maxlength="180" placeholder="Section title">
+        <textarea id="blogAddSectionParagraph" placeholder="One paragraph for this section"></textarea>
+        <div class="blog-add-section-form-actions">
+            <button type="button" class="blog-add-section-save">Save section</button>
+            <button type="button" class="blog-add-section-cancel" id="cancelBlogSectionButton">Cancel</button>
+            <span class="blog-edit-status" id="blogAddSectionStatus"></span>
+        </div>
+    </form>
+    {{% endif %}}
+ </main>
   
 
 
@@ -1175,6 +1376,13 @@ var blogTitleSlug = "{title_slug}";
 var blogParagraphSaveUrl = "{blog_edit_save_url}";
 var blogImageUploadUrl = "{upload_url}";
 var blogImagesRequested = false;
+var blogCanEdit = false;
+
+try {{
+    blogCanEdit = {{{{ user.is_authenticated|yesno:'true,false' }}}};
+}} catch (err) {{
+    blogCanEdit = false;
+}}
 
 // Fisher-Yates shuffle algorithm for proper randomization
 function shuffleArray(array) {{
@@ -1811,6 +2019,12 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg, onEmpty) {{
         const body = document.getElementById('blog-editable-body');
         if (!body) return;
 
+        body.querySelectorAll('h2, p').forEach((paragraph, index) => {{
+            paragraph.dataset.blogEditIndex = String(index);
+            paragraph.dataset.blogEditScope = 'article';
+            paragraph.dataset.blogEditTag = paragraph.tagName.toLowerCase();
+        }});
+
         body.querySelectorAll('h2[data-blog-edit-index], p[data-blog-edit-index]').forEach(paragraph => {{
             attachParagraphEditButton(paragraph);
         }});
@@ -1824,6 +2038,124 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg, onEmpty) {{
                 attachParagraphEditButton(block);
             }});
         }}
+    }}
+
+    function toggleAddSectionForm(show) {{
+        const form = document.getElementById('blogAddSectionForm');
+        const button = document.getElementById('addBlogSectionButton');
+        const titleInput = document.getElementById('blogAddSectionTitle');
+        const paragraphInput = document.getElementById('blogAddSectionParagraph');
+        const status = document.getElementById('blogAddSectionStatus');
+        if (!form || !button) return;
+
+        form.hidden = !show;
+        button.hidden = show;
+        if (!show) {{
+            form.reset();
+            if (status) {{
+                status.textContent = '';
+                status.classList.remove('error');
+            }}
+            return;
+        }}
+
+        if (titleInput) {{
+            titleInput.focus();
+        }} else if (paragraphInput) {{
+            paragraphInput.focus();
+        }}
+    }}
+
+    async function saveNewBlogSection() {{
+        const form = document.getElementById('blogAddSectionForm');
+        const titleInput = document.getElementById('blogAddSectionTitle');
+        const paragraphInput = document.getElementById('blogAddSectionParagraph');
+        const status = document.getElementById('blogAddSectionStatus');
+        const saveButton = form ? form.querySelector('.blog-add-section-save') : null;
+        const body = document.getElementById('blog-editable-body');
+        if (!form || !titleInput || !paragraphInput || !status || !saveButton || !body) return;
+
+        const title = titleInput.value.trim();
+        const paragraphText = paragraphInput.value.replace(/\\s*\\n\\s*/g, ' ').trim();
+        const paragraphWrapper = document.createElement('p');
+        paragraphWrapper.textContent = paragraphText;
+
+        if (!title) {{
+            status.textContent = 'Section title is required.';
+            status.classList.add('error');
+            titleInput.focus();
+            return;
+        }}
+
+        if (!paragraphText) {{
+            status.textContent = 'Section paragraph is required.';
+            status.classList.add('error');
+            paragraphInput.focus();
+            return;
+        }}
+
+        saveButton.disabled = true;
+        status.textContent = 'Saving section...';
+        status.classList.remove('error');
+
+        try {{
+            const response = await fetch(blogParagraphSaveUrl, {{
+                method: 'POST',
+                headers: {{
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                }},
+                body: JSON.stringify({{
+                    operation: 'insert_section',
+                    place_slug: blogPlaceSlug,
+                    title_slug: blogTitleSlug,
+                    page_url: window.location.pathname,
+                    section_title: title,
+                    section_body_html: paragraphWrapper.innerHTML,
+                }})
+            }});
+
+            const data = await response.json();
+            if (!response.ok || !data.ok || !data.inserted_html) {{
+                throw new Error(data.error || `HTTP ${{response.status}}`);
+            }}
+
+            const temp = document.createElement('div');
+            temp.innerHTML = data.inserted_html;
+            const section = temp.firstElementChild;
+            if (!section) {{
+                throw new Error('Saved section did not return valid HTML.');
+            }}
+
+            body.appendChild(section);
+            setupEditableParagraphs();
+            prepareNestedSectionImages(document);
+            updateVisibleLastUpdated(data);
+            toggleAddSectionForm(false);
+        }} catch (err) {{
+            console.error('Error adding section:', err);
+            status.textContent = `Add section failed: ${{err.message || 'Please try again.'}}`;
+            status.classList.add('error');
+        }} finally {{
+            saveButton.disabled = false;
+        }}
+    }}
+
+    function setupAddSectionForm() {{
+        const form = document.getElementById('blogAddSectionForm');
+        const openButton = document.getElementById('addBlogSectionButton');
+        const cancelButton = document.getElementById('cancelBlogSectionButton');
+        const saveButton = form ? form.querySelector('.blog-add-section-save') : null;
+        if (!form || !openButton || !cancelButton || !saveButton) return;
+
+        openButton.addEventListener('click', () => toggleAddSectionForm(true));
+        cancelButton.addEventListener('click', () => toggleAddSectionForm(false));
+        saveButton.addEventListener('click', () => saveNewBlogSection());
+        form.addEventListener('submit', event => {{
+            event.preventDefault();
+            saveNewBlogSection();
+        }});
     }}
 
     function updateVisibleLastUpdated(data) {{
@@ -1912,6 +2244,11 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg, onEmpty) {{
         addUrlButton.type = 'button';
         addUrlButton.className = 'blog-url-button';
         addUrlButton.textContent = 'Add URL';
+
+        let putLocationButton = document.createElement('button');
+        putLocationButton.type = 'button';
+        putLocationButton.className = 'blog-url-button';
+        putLocationButton.textContent = 'Put location';
 
         let linkTextInput = document.createElement('input');
         linkTextInput.type = 'text';
@@ -2246,6 +2583,53 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg, onEmpty) {{
                 urlInput.focus();
             }}
         }});
+
+        putLocationButton.addEventListener('click', () => {{
+            if (!navigator.geolocation) {{
+                status.textContent = 'Geolocation is not supported in this browser.';
+                status.classList.add('error');
+                return;
+            }}
+
+            status.textContent = 'Getting your location...';
+            status.classList.remove('error');
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {{
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+                    const mapUrl = `https://www.google.com/maps?q=${{latitude}},${{longitude}}&z=15`;
+                    const selectedText = getParagraphSelection(paragraph);
+                    const selectedRange = selectedText ? selectedText.range : null;
+                    const linkText = (selectedText && selectedText.text.trim()) || 'My location';
+
+                    if (insertLinkIntoSection(paragraph, mapUrl, linkText, selectedRange)) {{
+                        status.textContent = 'Location link inserted. Click Save to keep it.';
+                        status.classList.remove('error');
+                    }} else {{
+                        status.textContent = 'Could not add the location link.';
+                        status.classList.add('error');
+                    }}
+                }},
+                (error) => {{
+                    let message = 'Unable to get your location.';
+                    if (error.code === error.PERMISSION_DENIED) {{
+                        message = 'Location access was denied.';
+                    }} else if (error.code === error.POSITION_UNAVAILABLE) {{
+                        message = 'Location is unavailable right now.';
+                    }} else if (error.code === error.TIMEOUT) {{
+                        message = 'Location request timed out.';
+                    }}
+                    status.textContent = message;
+                    status.classList.add('error');
+                }},
+                {{
+                    enableHighAccuracy: true,
+                    timeout: 15000,
+                    maximumAge: 0
+                }}
+            );
+        }});
         const handleUrlInputKeydown = (event) => {{
             if (event.key === 'Enter') {{
                 event.preventDefault();
@@ -2284,6 +2668,7 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg, onEmpty) {{
         tools.appendChild(urlInput);
         tools.appendChild(linkTextInput);
         tools.appendChild(addUrlButton);
+        tools.appendChild(putLocationButton);
         
         
         paragraph.insertAdjacentElement('afterend', tools);
@@ -2390,7 +2775,10 @@ document.addEventListener("DOMContentLoaded", () => {{
         }});
     }}
 
-    setupEditableParagraphs();
+    if (blogCanEdit) {{
+        setupEditableParagraphs();
+        setupAddSectionForm();
+    }}
     prepareNestedSectionImages(document);
     setupImageLightbox();
     scheduleBlogImages();
@@ -2506,3 +2894,39 @@ document.addEventListener('click', (ev) => {{
 
 
     return html_content
+
+
+# .hamburger.open span:nth-child(2) {
+#     opacity: 0;
+#     transform: translateX(20px);
+# }
+# .hamburger span {
+#     display: block;
+#     height: 3px;
+#     width: 100%;
+#     background: var(--primary-blue);
+#     border-radius: 3px;
+#     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+#     box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+# }
+
+# .hamburger span:nth-child(1) {
+#     transform-origin: right center;
+# }
+# .hamburger.open span:nth-child(1) {
+#     transform: rotate(45deg) translate(5px, 5px);
+# }
+# .hamburger.open span:nth-child(3) {
+#     transform: rotate(-45deg) translate(7px, -6px);
+# }
+# .hamburger span:nth-child(3) {
+#     transform-origin: right center;
+#     margin-top: 4px;
+# }
+# .hamburger.open span:nth-child(2) {
+#     opacity: 0;
+#     transform: translateX(20px);
+# }
+# .hamburger span:nth-child(2) {
+#     margin-top: 4px;
+# }

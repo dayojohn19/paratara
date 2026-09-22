@@ -123,6 +123,123 @@
             padding: 40px;
             font-style: italic;
         }
+        
+        /* Collections Gallery */
+        #collections-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .collection-card {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .collection-card:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            transform: translateY(-4px);
+            border-color: #007bff;
+        }
+        
+        .collection-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            background: #f5f5f5;
+        }
+        
+        .collection-info {
+            padding: 15px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .collection-info h3 {
+            margin: 0 0 10px 0;
+            font-size: 1rem;
+            color: #2c3e50;
+            word-break: break-word;
+        }
+        
+        .collection-meta {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        
+        .collection-meta strong {
+            display: inline-block;
+            color: #333;
+            min-width: 70px;
+        }
+        
+        .collection-status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin: 8px 0;
+        }
+        
+        .status-collected {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-uncollected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .collection-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: auto;
+            padding-top: 12px;
+            border-top: 1px solid #f0f0f0;
+        }
+        
+        .btn-delete {
+            flex: 1;
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+        
+        .btn-delete:hover {
+            background: #c82333;
+        }
+        
+        .btn-delete:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .empty-gallery {
+            grid-column: 1 / -1;
+            text-align: center;
+            color: #999;
+            padding: 40px;
+            font-style: italic;
+        }
+        
         @page { margin: 0; }
     </style>
 </head>
@@ -136,19 +253,14 @@
 </div>
     <button id="generate-collage-btn">Generate A4 Collage</button>
     <div id="collage-result" style="margin:10px 0;"></div>
-    <ul>
-    {% for collection in collections %}
-        <li>
-            <strong>ID:</strong> {{ collection.collectionUniqueID }}<br>
-            <strong>Name:</strong> {{ collection.collectionName }}<br>
-            <strong>Is Collected:</strong> {{ collection.collectionIsCollected }}<br>
-            <strong>Collected At:</strong> {{ collection.collectionCollected }}<br>
-            <strong>Timestamp:</strong> {{ collection.collectionTimstamp }}<br>
-        </li>
-        <hr>
-    {% endfor %}
-    </ul>
-</ul>
+    
+    <h2>Collections Gallery</h2>
+    <div id="collections-gallery"></div>
+    
+    <!-- Collections data for JavaScript -->
+    <script type="application/json" id="collections-data">
+        {% if collections %}{{ collections|safe }}{% else %}[]{% endif %}
+    </script>
 
 <script>
 
@@ -370,6 +482,124 @@ function fetchCollageList() {
 
 document.getElementById('refresh-collages-btn').onclick = fetchCollageList;
 window.addEventListener('DOMContentLoaded', fetchCollageList);
+
+// Render Collections Gallery
+function renderCollectionsGallery(collections) {
+    const gallery = document.getElementById('collections-gallery');
+    gallery.innerHTML = '';
+    
+    if (!collections || collections.length === 0) {
+        gallery.innerHTML = '<div class="empty-gallery">No collections found.</div>';
+        return;
+    }
+    
+    collections.forEach(collection => {
+        const card = document.createElement('div');
+        card.className = 'collection-card';
+        
+        const isCollected = collection.collectionIsCollected;
+        const statusClass = isCollected ? 'status-collected' : 'status-uncollected';
+        const statusText = isCollected ? 'Collected' : 'Not Collected';
+        
+        card.innerHTML = `
+            <img src="${collection.collectionImage || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%23f5f5f5%22 width=%22200%22 height=%22200%22/%3E%3C/svg%3E'}" 
+                 alt="${collection.collectionName}" 
+                 class="collection-image"
+                 onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%23f5f5f5%22 width=%22200%22 height=%22200%22/%3E%3C/svg%3E'">
+            <div class="collection-info">
+                <h3>${collection.collectionName}</h3>
+                <div class="collection-meta">
+                    <div><strong>ID:</strong> ${collection.collectionUniqueID}</div>
+                    <div><strong>Timestamp:</strong> ${collection.collectionTimstamp || 'N/A'}</div>
+                    ${collection.collectionCollected ? `<div><strong>Collected At:</strong> ${collection.collectionCollected}</div>` : ''}
+                </div>
+                <div class="collection-status ${statusClass}">${statusText}</div>
+                <div class="collection-actions">
+                    ${!isCollected ? `<button class="btn-delete" onclick="deleteCollection('${collection.collectionUniqueID}', this)">Delete</button>` : ''}
+                </div>
+            </div>
+        `;
+        
+        gallery.appendChild(card);
+    });
+}
+
+// Delete Collection
+function deleteCollection(collectionId, buttonElement) {
+    if (!confirm('Are you sure you want to delete this collection?')) {
+        return;
+    }
+    
+    buttonElement.disabled = true;
+    buttonElement.textContent = 'Deleting...';
+    
+    fetch(`/garden/delete_collection/${collectionId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Collection deleted successfully');
+            // Remove the card from the gallery
+            buttonElement.closest('.collection-card').style.opacity = '0.5';
+            setTimeout(() => {
+                buttonElement.closest('.collection-card').remove();
+            }, 300);
+        } else {
+            alert('Failed to delete collection: ' + (data.error || 'Unknown error'));
+            buttonElement.disabled = false;
+            buttonElement.textContent = 'Delete';
+        }
+    })
+    .catch(error => {
+        alert('Error deleting collection: ' + error);
+        buttonElement.disabled = false;
+        buttonElement.textContent = 'Delete';
+    });
+}
+
+// Get CSRF Token from cookies
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Initialize gallery with collections data from template
+document.addEventListener('DOMContentLoaded', function() {
+    try {
+        const scriptTag = document.getElementById('collections-data');
+        const jsonText = scriptTag.textContent.trim();
+        console.log('Raw JSON:', jsonText);
+        
+        const collectionsData = JSON.parse(jsonText);
+        console.log('Parsed collections:', collectionsData);
+        console.log('Number of collections:', collectionsData.length);
+        
+        if (collectionsData.length === 0) {
+            console.warn('No collections found in data');
+        }
+        
+        renderCollectionsGallery(collectionsData);
+    } catch (e) {
+        console.error('Error loading collections data:', e);
+        console.error('Stack trace:', e.stack);
+        renderCollectionsGallery([]);
+    }
+});
 </script>
 </body>
 </html>

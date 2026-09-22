@@ -1,4 +1,17 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@272&display=swap');
 
+@font-face {
+    font-family: 'Duolingo Feather Bold';
+    src: url('/static/home/fonts/Duolingo-Feather-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+    background-color: rgba(172, 255, 47, 0.183);
+}
+
+:root {
+    --font-duolinggo: 'Duolingo Feather Bold', 'Segoe UI', sans-serif;
+}
 
 .CommentBuilder-btn {
     border-radius: 6px;

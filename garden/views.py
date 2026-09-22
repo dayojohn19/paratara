@@ -42,6 +42,7 @@ from django.core import signing
 from django.utils import timezone
 from django.http import HttpResponseForbidden
 from django.db.models import Count
+from django.conf import settings
 
 
 
@@ -541,12 +542,113 @@ def placeResorts(request, placeID=None): # accept data['placeID']
 
 def viewCollection(request):
     from .models import Collection
+    import json
+    import os
+    from django.conf import settings
 
-    # collectionList = Collection.objects.filter(collectionIsCollected=True)
-    # collectionList = Collection.objects.filter(collectionIsCollected=False)
-    # print('Collection LISTS? /////////\n\n\n\n',collectionList)
-    # collectionList = Collection.objects.filter(collectionIsCollected__in=[False])
-    return render(request, 'garden/qr_images.html')
+    try:
+        # Get master images directory
+        master_dir = os.path.join(settings.MEDIA_ROOT, 'image_cards', 'master')
+        
+        print(f"\n=== COLLECTION DEBUG ===")
+        print(f"Looking for images in: {master_dir}")
+        
+        # Get all PNG files from master directory
+        image_files = []
+        image_map = {}  # Map unique ID to image path
+        
+        if os.path.exists(master_dir):
+            for filename in os.listdir(master_dir):
+                if filename.endswith('.png'):
+                    image_files.append(filename)
+                    
+                    # Extract unique ID from filename
+                    # Format: ...something-<UNIQUE_ID>-master.png
+                    # Extract everything between the last '-' before 'master' and '-master'
+                    if '-master.png' in filename:
+                        parts = filename.replace('-master.png', '').split('-')
+                        unique_id = parts[-1]  # Last part is the unique ID
+                        image_map[unique_id] = filename
+                        print(f"Found image: {unique_id} -> {filename}")
+        
+        print(f"Total images in master: {len(image_files)}")
+        print(f"Image map keys: {list(image_map.keys())[:5]}...")
+        
+        # Get all collections and filter by images
+        all_collections = Collection.objects.all()
+        print(f"Total collections in DB: {all_collections.count()}")
+        
+        collections_data = []
+        for collection in all_collections:
+            try:
+                # Check if this collection has an image
+                unique_id = collection.collectionUniqueID
+                
+                if unique_id and unique_id in image_map:
+                    # Collection has a matching image
+                    image_filename = image_map[unique_id]
+                    image_url = f"{settings.MEDIA_URL}image_cards/master/{image_filename}"
+                    
+                    collections_data.append({
+                        'collectionUniqueID': collection.collectionUniqueID,
+                        'collectionName': collection.collectionName,
+                        'collectionIsCollected': collection.collectionIsCollected,
+                        'collectionCollected': collection.collectionCollected.isoformat() if collection.collectionCollected else None,
+                        'collectionTimstamp': collection.collectionTimstamp.isoformat() if collection.collectionTimstamp else None,
+                        'collectionImage': image_url,
+                        'collectionDescription': collection.collectionDescription,
+                    })
+                    print(f"Added collection: {unique_id}")
+                else:
+                    if unique_id:
+                        print(f"Skipped collection (no image): {unique_id}")
+                        
+            except Exception as e:
+                print(f"Error processing collection {collection.id}: {str(e)}")
+                continue
+        
+        print(f"Collections with images: {len(collections_data)}")
+        print(f"=== END DEBUG ===\n")
+        
+        return render(request, 'garden/qr_images.html', {
+            'collections': json.dumps(collections_data)
+        })
+    except Exception as e:
+        print(f"Error in viewCollection: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return render(request, 'garden/qr_images.html', {
+            'collections': json.dumps([])
+        })
+
+
+@csrf_exempt
+def collection_debug_api(request):
+    """Debug endpoint to check collections in database"""
+    from .models import Collection
+    
+    try:
+        all_collections = Collection.objects.all()
+        count = all_collections.count()
+        
+        data = {
+            'total_collections': count,
+            'collections': []
+        }
+        
+        for collection in all_collections[:50]:  # Limit to first 50 for performance
+            data['collections'].append({
+                'id': collection.id,
+                'collectionUniqueID': collection.collectionUniqueID,
+                'collectionName': collection.collectionName,
+                'collectionIsCollected': collection.collectionIsCollected,
+                'collectionPicture': collection.collectionPicture,
+                'collectionTimstamp': str(collection.collectionTimstamp),
+            })
+        
+        return JsonResponse(data, safe=False)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 
@@ -630,11 +732,7 @@ def registerAllImage(request):
         # Step 1: upload all submitted files and get remote URLs
         # collection_group = cform.cleaned_data['collectionGroup']
         collection_group = request.POST.get('collectionGroupName') or request.POST.get('collectionName') or customTitlerequest or 'Default Group'
-        # TEMPORARY COMMENTED
-        # TODO
-        # print('Making folder name : ',collection_group)
-        # image_urls = get_uploaded_image_urls(files, folder_name=collection_group)
-        image_urls = ['https://test1','https://test2','https://test2','https://test2','https://test2','https://test2','https://test2'] 
+        image_urls = get_uploaded_image_urls(files, folder_name=str(collection_group))
 
         if not image_urls:
             return render(
@@ -685,9 +783,10 @@ def registerAllImage(request):
             create_collection_qr(
                 request,
                 collection,
-                'https://www.upload-apk.com/jGKFBqod1LMjQry',
+                # 'https://www.upload-apk.com/jGKFBqod1LMjQry',
+                '',
                 customTitle=customTitlerequest,
-                include_heading_title=include_heading_title if include_qr_code else False,
+                include_heading_title=include_heading_title,
                 paste_qr=include_qr_code
             )
 
@@ -732,6 +831,19 @@ def registrationPage(request):
     from .forms import ProvinceForm, CollectionForm, PlaceProfileForm,VisitorForm
     from .models import CollectionGroup
     from home.models import Places_v2
+
+    test_images_dir = os.path.join(settings.MEDIA_ROOT, 'image_cards', 'testimages')
+    allowed_ext = ('.jpg', '.jpeg', '.png', '.webp', '.gif')
+    test_collection_image_urls = []
+    if os.path.isdir(test_images_dir):
+        test_filenames = [
+            f for f in os.listdir(test_images_dir)
+            if f.lower().endswith(allowed_ext)
+        ]
+        test_collection_image_urls = [
+            f"{settings.MEDIA_URL.rstrip('/')}/image_cards/testimages/{name}"
+            for name in test_filenames
+        ]
 
     # Always define forms for rendering
     pform = ProvinceForm()
@@ -833,6 +945,7 @@ def registrationPage(request):
             'PlaceProfileForm': ppform,
             'VisitorForm': vform,
             'collectionGroups': CollectionGroup.objects.all(),
+            'test_collection_image_urls': test_collection_image_urls,
             'message': message
         }
         print(f"[registrationPage] Rendering form with message: {message}")
@@ -851,6 +964,7 @@ def registrationPage(request):
         'PlaceProfileForm': ppform,
         'VisitorForm': vform,
         'collectionGroups': CollectionGroup.objects.all(),
+        'test_collection_image_urls': test_collection_image_urls,
         'message': message
     }
     print("[registrationPage] GET or initial render")
@@ -1530,3 +1644,72 @@ def generate_a4_collage(request):
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})
     return JsonResponse({'success': False, 'error': 'Invalid request method.'})
+
+
+@csrf_exempt
+def delete_collection(request, collection_id):
+    """Delete a collection by its ID and remove its image files (master and QR)"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Only POST method is allowed'}, status=400)
+    
+    try:
+        from django.conf import settings
+        import os
+        
+        collection = Collection.objects.get(collectionUniqueID=collection_id)
+        
+        # Optional: Only allow deletion if not collected
+        if collection.collectionIsCollected:
+            return JsonResponse({'success': False, 'error': 'Cannot delete a collected collection'}, status=403)
+        
+        # Directories to check
+        master_dir = os.path.join(settings.MEDIA_ROOT, 'image_cards', 'master')
+        qr_dir = os.path.join(settings.MEDIA_ROOT, 'image_cards', 'qr')
+        
+        deleted_files = []
+        
+        # Delete master image
+        if os.path.exists(master_dir):
+            for filename in os.listdir(master_dir):
+                if filename.endswith('-master.png'):
+                    # Extract unique ID from filename
+                    if '-master.png' in filename:
+                        parts = filename.replace('-master.png', '').split('-')
+                        file_unique_id = parts[-1]
+                        
+                        if file_unique_id == collection_id:
+                            file_path = os.path.join(master_dir, filename)
+                            try:
+                                os.remove(file_path)
+                                deleted_files.append(f"Master: {filename}")
+                                print(f"[Delete Collection] Removed master image: {file_path}")
+                            except Exception as e:
+                                print(f"[Delete Collection] Error removing master file {file_path}: {str(e)}")
+        
+        # Delete QR image
+        if os.path.exists(qr_dir):
+            for filename in os.listdir(qr_dir):
+                if filename.endswith('-qr.png'):
+                    # Extract unique ID from filename
+                    if '-qr.png' in filename:
+                        parts = filename.replace('-qr.png', '').split('-')
+                        file_unique_id = parts[-1]
+                        
+                        if file_unique_id == collection_id:
+                            file_path = os.path.join(qr_dir, filename)
+                            try:
+                                os.remove(file_path)
+                                deleted_files.append(f"QR: {filename}")
+                                print(f"[Delete Collection] Removed QR image: {file_path}")
+                            except Exception as e:
+                                print(f"[Delete Collection] Error removing QR file {file_path}: {str(e)}")
+        
+        # Delete the collection from database
+        collection.delete()
+        message = f"Collection deleted successfully. Removed files: {', '.join(deleted_files)}" if deleted_files else "Collection deleted successfully"
+        return JsonResponse({'success': True, 'message': message})
+    
+    except Collection.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Collection not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)

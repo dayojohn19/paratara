@@ -369,7 +369,12 @@
             {{ CollectionForm.include_qr_code }} Include QR Code
         </label>
     </div>
-    <input type="submit" value="Submit Collection" class="btn btn-warning">
+
+    <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px;">
+        <button type="button" id="load-test-collection" class="btn btn-secondary">Quick Test Collection</button>
+        <input type="submit" value="Submit Collection" class="btn btn-warning">
+    </div>
+    <div id="collection-test-status" class="note" style="margin-top: 10px;"></div>
 </form>
 
 <hr>
@@ -433,6 +438,7 @@
 </form>
 
 </div>
+{{ test_collection_image_urls|json_script:"test-collection-image-urls" }}
 <script>
 const placePictureFileInput = document.getElementById('placePictureFile');
 const placePictureUrlInput = document.getElementById('placePictureUrl');
@@ -642,6 +648,106 @@ async function createViaje(placename, meetDates = []) {
       alert('Error: ' + error.message);
     }
   });
+
+const collectionForm = document.querySelector('form[action*="register-from-image-bank"]');
+const collectionTestButton = document.getElementById('load-test-collection');
+const collectionTestStatus = document.getElementById('collection-test-status');
+const testCollectionImageUrls = JSON.parse(
+    document.getElementById('test-collection-image-urls')?.textContent || '[]'
+);
+
+if (collectionTestButton && collectionForm) {
+    collectionTestButton.addEventListener('click', async function() {
+        const titleInput = collectionForm.querySelector('[name="collectioncustomTitle"]');
+        const nameInput = collectionForm.querySelector('[name="collectionName"]');
+        const groupSelect = collectionForm.querySelector('[name="collectionGroup"]');
+        const groupInput = collectionForm.querySelector('[name="collectionGroupName"]');
+        const descriptionField = collectionForm.querySelector('[name="collectionDescription"]');
+        const themeSelect = collectionForm.querySelector('[name="collectionTheme"]');
+        const placeSelect = collectionForm.querySelector('[name="collectionPlace"]');
+        const placeDirectSelect = collectionForm.querySelector('[name="collectionPlaceDirect"]');
+        const touristSpotSelect = collectionForm.querySelector('[name="touristSpot"]');
+        const imageInput = collectionForm.querySelector('[name="images"]');
+        const inputQRCODE = collectionForm.querySelector('[name="include_qr_code"]');
+        if (inputQRCODE) inputQRCODE.value = 0;
+        if (titleInput) titleInput.value = 'Philippine Island';
+        if (nameInput) nameInput.value = 'Name Input Value';
+        if (groupInput) groupInput.value = 'Group Value Indicator';
+        if (groupSelect && groupSelect.options.length > 1) {
+            groupSelect.selectedIndex = 1;
+        }
+        if (descriptionField) descriptionField.value = 'Sample description for testing collection generation.';
+        if (themeSelect && themeSelect.options.length > 1) {
+            
+        }
+        if (placeSelect && placeSelect.options.length > 1) {
+            placeSelect.selectedIndex = 1;
+        }
+        if (placeDirectSelect && placeDirectSelect.options.length > 1) {
+            placeDirectSelect.selectedIndex = 1;
+        }
+        if (touristSpotSelect && touristSpotSelect.options.length > 0) {
+            touristSpotSelect.selectedIndex = 0;
+            if (touristSpotSelect.multiple) {
+                for (let i = 0; i < touristSpotSelect.options.length; i++) {
+                    touristSpotSelect.options[i].selected = i === 0;
+                }
+            }
+        }
+
+        if (imageInput) {
+            if (!testCollectionImageUrls.length) {
+                collectionTestStatus.textContent = 'No test images found in media/image_cards/testimages.';
+                return;
+            }
+
+            const MIN_TEST_IMAGES = 5;
+            const shuffledUrls = [...testCollectionImageUrls].sort(() => Math.random() - 0.5);
+            const selectedUrls = shuffledUrls.slice(0, Math.min(MIN_TEST_IMAGES, shuffledUrls.length));
+
+            while (selectedUrls.length < MIN_TEST_IMAGES) {
+                const fallbackUrl = testCollectionImageUrls[
+                    Math.floor(Math.random() * testCollectionImageUrls.length)
+                ];
+                selectedUrls.push(fallbackUrl);
+            }
+
+            collectionTestStatus.textContent = `Loading ${selectedUrls.length} random test images...`;
+
+            try {
+                const dataTransfer = new DataTransfer();
+
+                for (let i = 0; i < selectedUrls.length; i++) {
+                    const imageUrl = selectedUrls[i];
+                    const response = await fetch(imageUrl, { cache: 'no-store' });
+                    if (!response.ok) {
+                        throw new Error(`Failed to load ${imageUrl} (HTTP ${response.status})`);
+                    }
+
+                    const imageBlob = await response.blob();
+                    const imageNameFromUrl = imageUrl.split('/').pop() || `test-image-${i + 1}.jpg`;
+                    const imageFile = new File([imageBlob], `${i + 1}-${imageNameFromUrl}`, {
+                        type: imageBlob.type || 'image/jpeg'
+                    });
+                    dataTransfer.items.add(imageFile);
+                }
+
+                imageInput.files = dataTransfer.files;
+            } catch (error) {
+                collectionTestStatus.textContent = `Failed to load random test images: ${error.message}`;
+                return;
+            }
+        }
+
+        collectionTestStatus.textContent = 'Sample data loaded. Generating collection...';
+        if (typeof collectionForm.requestSubmit === 'function') {
+            collectionForm.requestSubmit();
+        } else {
+            collectionForm.submit();
+        }
+    });
+}
+
 </script>
 </body>
 </html>

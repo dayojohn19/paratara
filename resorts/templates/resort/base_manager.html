@@ -201,14 +201,14 @@
     }
 
     .toolbar {
+      width: 100vw;
       position: sticky;
-      top: 22px;
+      top: 0;
       z-index: 30;
       margin: -48px auto 3rem;
-      width: min(1180px, calc(100% - 2.5rem));
       backdrop-filter: blur(18px);
       background: var(--surface-glass);
-      border-radius: var(--radius-lg);
+      border-radius: 0px 0px 10px 10px;
       border: 1px solid rgba(37, 99, 235, 0.14);
       box-shadow: var(--shadow-soft);
       overflow: hidden;
@@ -1066,9 +1066,12 @@
 
     .fancybox__toolbar {
       z-index: 100001 !important;
+      pointer-events: auto !important;
     }
 
-    .fancybox__button--close {
+    .fancybox__button--close,
+    .fancybox__toolbar .f-button.is-close-btn,
+    .fancybox__toolbar .f-button[data-fancybox-close] {
       opacity: 1 !important;
       visibility: visible !important;
       pointer-events: auto !important;
@@ -1078,7 +1081,9 @@
       border-radius: 999px !important;
     }
 
-    .fancybox__button--close:hover {
+    .fancybox__button--close:hover,
+    .fancybox__toolbar .f-button.is-close-btn:hover,
+    .fancybox__toolbar .f-button[data-fancybox-close]:hover {
       background: rgba(255, 255, 255, 1) !important;
     }
 
@@ -1088,21 +1093,35 @@
     }
 
     /* Prevent the calendar iframe modal from going wider than the viewport */
-    .fancybox__slide.has-html {
+    .fancybox__slide.has-html,
+    .fancybox__slide.has-html.has-iframe {
       padding: 0 !important;
+      margin: 0 !important;
+      background: transparent !important;
     }
 
-    .fancybox__slide .f-html {
+    .fancybox__slide .f-html,
+    .fancybox__slide.has-html.has-iframe .f-html {
       padding: 0 !important;
+      margin: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      max-width: 100vw !important;
+      max-height: 100vh !important;
+      background: transparent !important;
     }
 
     .fancybox__slide .iframe-container {
       width: 100% !important;
       max-width: 100vw !important;
-      height: 80vh;
+      height: 100vh;
       max-height: 100vh;
       overflow: hidden;
       box-sizing: border-box;
+      border-radius: 0 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      background: transparent !important;
     }
 
     .fancybox__slide .calendar-frame {
@@ -1113,11 +1132,17 @@
     }
 
     .fancybox__slide .iframe-container > .is-close-button,
-    .fancybox__slide .iframe-container > .f-button.is-close-button {
-      position: absolute !important;
-      top: 12px !important;
-      right: 12px !important;
-      z-index: 100002 !important;
+    .fancybox__slide .iframe-container > .f-button.is-close-button,
+    .fancybox__slide .iframe-container > .is-close-btn,
+    .fancybox__slide .iframe-container > .f-button.is-close-btn,
+    .fancybox__slide .f-html > .f-button.is-close-button,
+    .fancybox__slide.has-html.has-iframe > .f-html > .f-button.is-close-button,
+    .fancybox__toolbar .f-button.is-close-btn,
+    .fancybox__toolbar .f-button[data-fancybox-close] {
+      position: fixed !important;
+      top: max(12px, env(safe-area-inset-top)) !important;
+      right: max(12px, env(safe-area-inset-right)) !important;
+      z-index: 100003 !important;
       opacity: 1 !important;
       visibility: visible !important;
       pointer-events: auto !important;
@@ -1129,8 +1154,17 @@
     }
 
     .fancybox__slide .iframe-container > .is-close-button:hover,
-    .fancybox__slide .iframe-container > .f-button.is-close-button:hover {
+    .fancybox__slide .iframe-container > .f-button.is-close-button:hover,
+    .fancybox__slide .iframe-container > .is-close-btn:hover,
+    .fancybox__slide .iframe-container > .f-button.is-close-btn:hover,
+    .fancybox__slide .f-html > .f-button.is-close-button:hover,
+    .fancybox__slide.has-html.has-iframe > .f-html > .f-button.is-close-button:hover,
+    .fancybox__toolbar .f-button.is-close-btn:hover,
+    .fancybox__toolbar .f-button[data-fancybox-close]:hover {
       background: rgba(255, 255, 255, 1) !important;
+    }
+    .f-html {
+      padding:0;
     }
   </style>
 </head>

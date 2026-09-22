@@ -22,11 +22,26 @@ load_dotenv(dotenv_path=_PROJECT_ROOT / ".env", override=False)
 # External service and API variables
 OPENAI_API_KEY = config("OPENAI_API_KEY", default="")
 GROK_API_KEY = os.getenv('GROK_API_KEY')
-GROK_MODEL_NAME_EXPENSIVE = config("GROK_MODEL_NAME", default="grok-4")
-GROK_MODEL_NAME = config("GROK_MODEL_NAME", default="grok-4.3")
-# GROK_CLIENT = OpenAI(api_key=GROK_API_KEY, base_url="https://api.x.ai/v1")
-# GROK_CLIENT = OpenAI(api_key=GROK_API_KEY, base_url="https://api.x.ai/v1")
-# GROK_MODEL_NAME=llama-3.3-70b-versatile
+SUPPORTED_GROQ_MODEL = "groq/compound"
+VALID_GROQ_MODELS = {
+    "groq/compound",
+    "openai/gpt-oss-20b",
+    "qwen/qwen3.8-27b",
+}
+
+def _resolve_groq_model(env_key: str, default: str) -> str:
+    value = config(env_key, default=default).strip()
+    if value in VALID_GROQ_MODELS:
+        return value
+    if value and value.startswith("groq/"):
+        return SUPPORTED_GROQ_MODEL
+    return default if value not in {"", "None"} else default
+
+
+GROK_MODEL_NAME_EXPENSIVE = _resolve_groq_model("GROK_MODEL_NAME_EXPENSIVE", SUPPORTED_GROQ_MODEL)
+GROK_MODEL_NAME = _resolve_groq_model("GROK_MODEL_NAME", SUPPORTED_GROQ_MODEL)
+# Use a model that is actually available on the current Groq account. Stale names like
+# llama-3.3-70b-versatile or grok-4.3 return 404/invalid_request errors for some keys.
 GROK_CLIENT = OpenAI(api_key=GROK_API_KEY, base_url="https://api.groq.com/openai/v1")
 XAI_IMAGE_MODEL = 'grok-imagine-image-quality'
 
@@ -288,7 +303,7 @@ SECRET_KEY = config(
 ALLOWED_HOSTS = _split_csv(
     config(
         "ALLOWED_HOSTS",
-        default="localhost,127.0.0.1,paratara.com,www.paratara.com,digitallife11.pythonanywhere.com,,www.ourblueearth.online,ourblueearth.online",
+        default="172.16.0.108,mbp.local,localhost,127.0.0.1,paratara.com,www.paratara.com,digitallife11.pythonanywhere.com,,www.ourblueearth.online,ourblueearth.online",
     )
 )
 if PYTHONANYWHERE_DOMAIN and PYTHONANYWHERE_DOMAIN not in ALLOWED_HOSTS:

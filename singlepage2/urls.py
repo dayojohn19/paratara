@@ -1,11 +1,19 @@
 from django.urls import path
 from . import views
 from django.views.generic import TemplateView
+from .htmlwriter_noai import blog_form_view, create_blog_view, get_places_json
 
   
 app_name = "singlepage2" 
 urlpatterns = [
+    # Blog form and creation (NEW - Non-AI version)
+    path('create/', blog_form_view, name='blog_form'),
+    path('submit/', create_blog_view, name='create_blog'),
+    path('api/places/', get_places_json, name='get_places'),
+    
+    # Existing blog paths
     path("blog/", views.blogFunc, name="blogFunc"),
+    path("blog/manual-generate/", views.generate_manual_blog_page, name="manual_blog_page_generate"),
     path("kefir/", views.kefir, name="kefir"),
     path("blog-edits/save-file/", views.save_blog_paragraph_file_edit, name="save_blog_paragraph_file_edit"),
     path("blog-edits/save/", views.save_blog_paragraph_file_edit, name="save_blog_paragraph_edit"),

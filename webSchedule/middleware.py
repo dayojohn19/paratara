@@ -84,6 +84,8 @@ class NotFoundIPBlockMiddleware:
                 expires_at__gt=now,
             ).first()
             if active_block:
+                print('"Too many not-found requests. Try again later.",')
+                return response
                 return HttpResponse(
                     "Too many not-found requests. Try again later.",
                     status=429,
