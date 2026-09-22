@@ -1,0 +1,611 @@
+{% extends "home/layout.html" %}
+{% load static %}
+
+{% block title %}Create Blog Post{% endblock %}
+
+{% block extra_css %}
+<style>
+    .blog-form-container {
+        max-width: 1000px;
+        margin: 40px auto;
+        padding: 30px;
+        background: #f9f9f9;
+        border-radius: 8px;
+    }
+    
+    .form-section {
+        margin-bottom: 30px;
+        padding: 20px;
+        background: white;
+        border-radius: 6px;
+        border-left: 4px solid #007bff;
+    }
+    
+    .form-section h3 {
+        margin-top: 0;
+        color: #333;
+        font-size: 18px;
+        font-weight: 600;
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+        color: #555;
+    }
+    
+    input[type="text"],
+    input[type="url"],
+    input[type="number"],
+    select,
+    textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+        font-family: inherit;
+    }
+    
+    input[type="text"]:focus,
+    input[type="url"]:focus,
+    input[type="number"]:focus,
+    select:focus,
+    textarea:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+    }
+    
+    textarea {
+        resize: vertical;
+        min-height: 120px;
+    }
+    
+    .help-text {
+        font-size: 12px;
+        color: #888;
+        margin-top: 5px;
+    }
+    
+    .char-count {
+        font-size: 12px;
+        color: #999;
+        text-align: right;
+        margin-top: 5px;
+    }
+    
+    .faq-item {
+        background: #f0f0f0;
+        padding: 15px;
+        margin-bottom: 10px;
+        border-radius: 4px;
+        border-left: 3px solid #28a745;
+    }
+    
+    .faq-item.template {
+        display: none;
+    }
+    
+    .btn-container {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+    
+    button {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        font-size: 14px;
+        cursor: pointer;
+        font-weight: 500;
+    }
+    
+    .btn-primary {
+        background: #007bff;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: #0056b3;
+    }
+    
+    .btn-success {
+        background: #28a745;
+        color: white;
+    }
+    
+    .btn-success:hover {
+        background: #218838;
+    }
+    
+    .btn-danger {
+        background: #dc3545;
+        color: white;
+    }
+    
+    .btn-danger:hover {
+        background: #c82333;
+    }
+    
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+    
+    .btn-secondary:hover {
+        background: #5a6268;
+    }
+    
+    input[type="submit"] {
+        width: auto;
+        padding: 12px 30px;
+        background: #007bff;
+        color: white;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        border-radius: 4px;
+    }
+    
+    input[type="submit"]:hover {
+        background: #0056b3;
+    }
+    
+    .remove-btn {
+        background: #dc3545;
+        color: white;
+        padding: 5px 10px;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: 12px;
+    }
+    
+    .remove-btn:hover {
+        background: #c82333;
+    }
+    
+    .error-message {
+        color: #dc3545;
+        font-size: 12px;
+        margin-top: 5px;
+    }
+    
+    .success-message {
+        background: #d4edda;
+        color: #155724;
+        padding: 15px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+    }
+    
+    .info-box {
+        background: #e7f3ff;
+        border-left: 4px solid #007bff;
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+        font-size: 14px;
+        color: #004085;
+    }
+    
+    .two-column {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+    
+    .html-template-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 10px 0 12px;
+    }
+
+    .html-template-btn {
+        background: #eef4ff;
+        color: #1e3a8a;
+        border: 1px solid #bfdbfe;
+        border-radius: 8px;
+        padding: 6px 10px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s ease;
+    }
+
+    .html-template-btn:hover {
+        background: #dbeafe;
+    }
+
+    @media (max-width: 768px) {
+        .two-column {
+            grid-template-columns: 1fr;
+        }
+        
+        .blog-form-container {
+            margin: 10px;
+            padding: 15px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="blog-form-container">
+    <h1>✍️ Create Blog Post</h1>
+    
+    <div class="info-box">
+        ℹ️ Fill out the form below to create a new blog post. All fields are optional except for the place name and title.
+    </div>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="success-message">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+    
+    <form method="POST" id="blogForm">
+        {% csrf_token %}
+        
+        <!-- BASIC INFORMATION SECTION -->
+        <div class="form-section">
+            <h3>📍 Basic Information</h3>
+            
+            <div class="form-group">
+                <label for="place_name">Place Name <span style="color: red;">*</span></label>
+                <input 
+                    type="text" 
+                    id="place_name" 
+                    name="place_name" 
+                    required 
+                    list="places_list"
+                    placeholder="e.g., Siargao Island, Boracay"
+                >
+                <datalist id="places_list">
+                    {% for place in places %}
+                        <option value="{{ place }}">{{ place }}</option>
+                    {% empty %}
+                        <option value="Siargao">Siargao</option>
+                        <option value="Boracay">Boracay</option>
+                        <option value="Bohol">Bohol</option>
+                    {% endfor %}
+                </datalist>
+                <div class="help-text">Start typing to search existing places in your database</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="title">Blog Title <span style="color: red;">*</span></label>
+                <input 
+                    type="text" 
+                    id="title" 
+                    name="title" 
+                    required 
+                    placeholder="e.g., Best Time to Visit Siargao Island"
+                    maxlength="255"
+                >
+                <div class="char-count"><span id="title-count">0</span>/255</div>
+            </div>
+            
+            <div class="two-column">
+                <div class="form-group">
+                    <label for="category">Category</label>
+                    <select id="category" name="category">
+                        <option value="Guide">Guide</option>
+                        <option value="Story">Story</option>
+                        <option value="Tip and Trick">Tip and Trick</option>
+                        <option value="Explore">Explore</option>
+                        <option value="Product">Product</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="readtime">Estimated Read Time (minutes)</label>
+                    <input 
+                        type="number" 
+                        id="readtime" 
+                        name="readtime" 
+                        value="5"
+                        min="1"
+                        max="60"
+                    >
+                </div>
+            </div>
+        </div>
+        
+        <!-- CONTENT SECTION -->
+        <div class="form-section">
+            <h3>📝 Blog Content</h3>
+            
+            <div class="form-group">
+                <label for="summary">Summary (Short Description)</label>
+                <textarea 
+                    id="summary" 
+                    name="summary" 
+                    placeholder="Write a brief summary of your blog post (1-2 sentences)"
+                    maxlength="400"
+                ></textarea>
+                <div class="char-count"><span id="summary-count">0</span>/400</div>
+                <div class="help-text">This appears in search results and social media</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="textContent">Main Blog Content</label>
+                <div class="html-template-toolbar">
+                    <button type="button" class="html-template-btn" data-template="<h2>Section Heading</h2>\n\n">H2</button>
+                    <button type="button" class="html-template-btn" data-template="<p>Your paragraph here.</p>\n\n">Paragraph</button>
+                    <button type="button" class="html-template-btn" data-template="<p><strong>Important:</strong> Your text here.</p>\n\n">Strong</button>
+                    <button type="button" class="html-template-btn" data-template="<ul>\n  <li>Item 1</li>\n  <li>Item 2</li>\n</ul>\n\n">List</button>
+                    <button type="button" class="html-template-btn" data-template="<a href=\"https://example.com\" target=\"_blank\" rel=\"noopener noreferrer\">Link text</a>\n\n">Link</button>
+                    <button type="button" class="html-template-btn" data-template="<figure>\n  <img src=\"https://images.example.com/your-image.jpg\" alt=\"Place image\" loading=\"lazy\" style=\"width:100%;height:auto;border-radius:12px;\">\n  <figcaption>Photo credit or short caption</figcaption>\n</figure>\n\n">Image</button>
+                    <button type="button" class="html-template-btn" data-template="<h3>Location</h3>\n<p>Find us here: <a href=\"https://www.google.com/maps/search/?api=1&query=Your+Place+Name\" target=\"_blank\" rel=\"noopener noreferrer\">Open in Google Maps</a></p>\n\n">Map</button>
+                    <button type="button" class="html-template-btn" data-template="<h2>Overview</h2>\n<p>Describe the place, the experience, and what makes it memorable.</p>\n\n<h2>Things to Do</h2>\n<ul>\n  <li>Activity one</li>\n  <li>Activity two</li>\n  <li>Activity three</li>\n</ul>\n\n<h2>Best Time to Visit</h2>\n<p>Share the best season, weather, and travel tips.</p>\n\n<h2>How to Get There</h2>\n<p>Include directions, travel routes, or a nearby landmark.</p>\n\n<h2>Tips</h2>\n<p>List practical advice for visitors and travelers.</p>\n\n">Full blog</button>
+                </div>
+                <textarea 
+                    id="textContent" 
+                    name="textContent" 
+                    placeholder="Write your blog post content here. You can use HTML tags for formatting."
+                ></textarea>
+                <div class="help-text">Supports HTML formatting (use &lt;h2&gt;, &lt;p&gt;, &lt;strong&gt;, &lt;ul&gt;, &lt;a&gt;, etc.)</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="meta_description">Meta Description (for SEO)</label>
+                <textarea 
+                    id="meta_description" 
+                    name="meta_description" 
+                    placeholder="Write a compelling description for search engines (150-160 chars)"
+                    maxlength="160"
+                    style="min-height: 60px;"
+                ></textarea>
+                <div class="char-count"><span id="meta-count">0</span>/160</div>
+            </div>
+        </div>
+        
+        <!-- SEO & MEDIA SECTION -->
+        <div class="form-section">
+            <h3>🖼️ Media & SEO</h3>
+            
+            <div class="form-group">
+                <label for="cover_image_url">Cover Image URL</label>
+                <input 
+                    type="url" 
+                    id="cover_image_url" 
+                    name="cover_image_url" 
+                    placeholder="https://example.com/image.jpg"
+                >
+                <div class="help-text">Full URL to the blog cover image</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="searchable_keywords">Searchable Keywords</label>
+                <textarea 
+                    id="searchable_keywords" 
+                    name="searchable_keywords" 
+                    placeholder="Enter keywords separated by commas: island, travel, tourism, adventure"
+                    style="min-height: 60px;"
+                ></textarea>
+                <div class="help-text">Help people find your post by adding relevant keywords</div>
+            </div>
+            
+            <div class="two-column">
+                <div class="form-group">
+                    <label for="seo_title">SEO Title</label>
+                    <input 
+                        type="text" 
+                        id="seo_title" 
+                        name="seo_title" 
+                        placeholder="Title for search engines (if different from main title)"
+                        maxlength="255"
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label for="longitude">Longitude (optional)</label>
+                    <input 
+                        type="text" 
+                        id="longitude" 
+                        name="longitude" 
+                        placeholder="e.g., 126.1234"
+                    >
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="latitude">Latitude (optional)</label>
+                <input 
+                    type="text" 
+                    id="latitude" 
+                    name="latitude" 
+                    placeholder="e.g., 9.8765"
+                >
+            </div>
+        </div>
+        
+        <!-- FAQ SECTION -->
+        <div class="form-section">
+            <h3>❓ Frequently Asked Questions</h3>
+            <div class="info-box">
+                Add FAQ items to help readers find answers quickly. You can add as many as you want.
+            </div>
+            
+            <div id="faq-container"></div>
+            
+            <div class="btn-container">
+                <button type="button" id="add-faq-btn" class="btn-success">+ Add FAQ Item</button>
+            </div>
+            
+            <!-- Hidden template for FAQ items -->
+            <div class="faq-item template" id="faq-template">
+                <div class="form-group">
+                    <label>Question</label>
+                    <textarea 
+                        class="faq-question" 
+                        placeholder="Enter the FAQ question"
+                        style="min-height: 50px; margin-bottom: 10px;"
+                    ></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Answer</label>
+                    <textarea 
+                        class="faq-answer" 
+                        placeholder="Enter the answer to the question"
+                        style="min-height: 80px; margin-bottom: 10px;"
+                    ></textarea>
+                </div>
+                <button type="button" class="remove-btn">Remove This Question</button>
+            </div>
+        </div>
+        
+        <!-- SUBMIT SECTION -->
+        <div class="form-section">
+            <div class="btn-container">
+                <input type="submit" value="📤 Create Blog Post">
+                <button type="reset" class="btn-secondary">Clear Form</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+function insertHtmlTemplate(templateText) {
+    const textarea = document.getElementById('textContent');
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const existing = textarea.value;
+    const nextValue = existing.slice(0, start) + templateText + existing.slice(end);
+
+    textarea.value = nextValue;
+    textarea.focus();
+
+    const cursorPosition = start + templateText.length;
+    textarea.setSelectionRange(cursorPosition, cursorPosition);
+}
+
+document.querySelectorAll('.html-template-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        insertHtmlTemplate(this.dataset.template || '');
+    });
+});
+
+// Character counters
+document.getElementById('title').addEventListener('input', function() {
+    document.getElementById('title-count').textContent = this.value.length;
+});
+
+document.getElementById('summary').addEventListener('input', function() {
+    document.getElementById('summary-count').textContent = this.value.length;
+});
+
+document.getElementById('meta_description').addEventListener('input', function() {
+    document.getElementById('meta-count').textContent = this.value.length;
+});
+
+// FAQ Management
+let faqCount = 0;
+
+document.getElementById('add-faq-btn').addEventListener('click', function(e) {
+    e.preventDefault();
+    addFaqItem();
+});
+
+function addFaqItem() {
+    const template = document.getElementById('faq-template').cloneNode(true);
+    template.classList.remove('template');
+    template.id = `faq-${faqCount}`;
+    
+    const removeBtn = template.querySelector('.remove-btn');
+    removeBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        template.remove();
+    });
+    
+    const inputs = template.querySelectorAll('textarea');
+    inputs[0].name = `faq_question_${faqCount}`;
+    inputs[1].name = `faq_answer_${faqCount}`;
+    
+    document.getElementById('faq-container').appendChild(template);
+    faqCount++;
+}
+
+// Form submission - collect FAQ data
+document.getElementById('blogForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Collect FAQ entries
+    const faqEntries = [];
+    document.querySelectorAll('#faq-container .faq-item:not(.template)').forEach(item => {
+        const question = item.querySelector('.faq-question').value.trim();
+        const answer = item.querySelector('.faq-answer').value.trim();
+        if (question && answer) {
+            faqEntries.push({ question, answer });
+        }
+    });
+    
+    // Create a hidden field to store FAQ data as JSON
+    let faqField = document.getElementById('faq_json_data');
+    if (!faqField) {
+        faqField = document.createElement('input');
+        faqField.type = 'hidden';
+        faqField.id = 'faq_json_data';
+        faqField.name = 'faq_json_data';
+        this.appendChild(faqField);
+    }
+    faqField.value = JSON.stringify(faqEntries);
+    
+    // Submit the form
+    this.submit();
+});
+
+// Optional: Add sample FAQ questions based on category
+document.getElementById('category').addEventListener('change', function() {
+    const suggestions = {
+        'Guide': [
+            { q: 'What is the best time to visit?', a: '' },
+            { q: 'How much is the entrance fee or total cost?', a: '' },
+            { q: 'How do I get there?', a: '' }
+        ],
+        'Story': [
+            { q: 'What is the main story or experience about?', a: '' },
+            { q: 'What can readers learn from this experience?', a: '' }
+        ],
+        'Tip and Trick': [
+            { q: 'What are the most important tips to know first?', a: '' },
+            { q: 'What common mistakes should readers avoid?', a: '' }
+        ],
+        'Explore': [
+            { q: 'What are the best things to do nearby?', a: '' },
+            { q: 'How much time should visitors plan for this experience?', a: '' }
+        ],
+        'Product': [
+            { q: 'What is the best product to buy in 2026?', a: '' },
+            { q: 'Where is the best place to buy it?', a: '' }
+        ]
+    };
+    
+    const suggestions_for_category = suggestions[this.value] || [];
+    const container = document.getElementById('faq-container');
+    
+    // Clear existing FAQs
+    container.innerHTML = '';
+    faqCount = 0;
+    
+    // Add suggestion FAQs
+    suggestions_for_category.forEach(item => {
+        addFaqItem();
+        const lastFaq = container.lastElementChild;
+        lastFaq.querySelector('.faq-question').value = item.q;
+        lastFaq.querySelector('.faq-answer').placeholder = 'Fill in the answer...';
+    });
+});
+</script>
+{% endblock %}

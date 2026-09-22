@@ -1,0 +1,12 @@
+made this temporarily commented 
+
+<!-- <div id=mobileChatBtn style=background:var(--accent);cursor:pointer;z-index:1;justify-content:center;align-items:center;width:60px;height:60px;display:flex;position:fixed;bottom:20px;right:20px>
+
+AND THIS ONE TOO 
+    <!-- <div class=ask-box><input placeholder="Ask us" class=ask-input id=quick-ask-input>
+      <button class=ask-send-btn id=quick-ask-send>
+        <svg viewbox="0 0 16 16" height=16 width=16>
+          <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z" fill=white></path>
+        </svg>
+      </button>
+    </div> -->
