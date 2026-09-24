@@ -403,7 +403,7 @@ class PackageReview(models.Model):
         ordering = ['-created_at']
         constraints = [
             models.CheckConstraint(
-                condition=models.Q(rating__gte=1) & models.Q(rating__lte=5),
+                check=models.Q(rating__gte=1) & models.Q(rating__lte=5),
                 name='package_review_rating_1_to_5'
             ),
             models.UniqueConstraint(
