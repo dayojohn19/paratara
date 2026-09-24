@@ -499,7 +499,7 @@ def _draw_postcard_layout(borders_collage, x, y, w, h, rotate_90, place_logo_pat
         print(f"[Postcard] Failed to draw adaptive title: {e}")
 
     try:
-        site_text = "Published by Garden Home PostCard"
+        site_text = "Garden Home PostCard"
         footer_font_size = max(8, int(h * 0.018))
         try:
             footer_font = ImageFont.truetype(font_path, footer_font_size)
