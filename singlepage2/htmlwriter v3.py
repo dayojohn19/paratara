@@ -191,11 +191,7 @@ def render_faq_section(faq_entries):
 
 # USES call htmlwriter then calls generate_blog_object to save the blog in the database, then generates the html page with SEO optimizations, FAQ schema, and article schema for better search engine visibility. The generated HTML is saved in the appropriate folder structure for serving as a static page on the site.
 def generate_blog_object(request, place_name, title, category='Guide', summary='No Summary Provided', text_content=''):
-    # FIX: guard against missing place (was silently crashing later on `place.blog`)
     place = Places_v2.objects.filter(placename__iexact=place_name).first()
-    if place is None:
-        raise ValueError(f"Place not found: {place_name}")
-
     category = normalize_blog_category(category)
     candidate_summary = clean_blog_metadata(summary)[:400].strip()
     if candidate_summary in DEFAULT_SUMMARY_VALUES:
@@ -221,13 +217,9 @@ def generate_blog_object(request, place_name, title, category='Guide', summary='
 
             if update_fields:
                 b.save(update_fields=update_fields)
-                # FIX: regenerate the static HTML so the page reflects the update
-                generate_blog_page(request, place_name, b.title, text_content,
-                                   category=b.category)
 
             return b
-
-    title = re.sub(r'<a\b[^>]*>(.*?)</a>', r'\1', title, flags=re.IGNORECASE | re.DOTALL)
+    title = re.sub(r'<a\b[^>]*>(.*?)</a>',r'\1',title,flags=re.IGNORECASE | re.DOTALL)
     blog_item = Blogs.objects.create(
         category=category,
         blogplace=place,
@@ -238,22 +230,19 @@ def generate_blog_object(request, place_name, title, category='Guide', summary='
     )
     generate_blog_page(request, place_name, title, text_content, category=category)
     place.blog.add(blog_item)
-    # FIX: return the created object (was returning None)
-    return blog_item
 
 
 def generate_blog_page(request, place_name, title, body_text, cover_image_url=None, faq_entries=None, blog_searchable_keys_description=None, category=None):
     category = normalize_blog_category(category)
-
     def _get_image_cover(place_name, title):
         from imageapp.imageuploader import getTitlePhoto
         togen = f"Travel guide cover photo for {title} in {place_name}. Show the destination clearly with natural colors and simple composition."
         image_url = getTitlePhoto(request, togen)
         return image_url
+        
 
     def _strip_html_tags(html: str) -> str:
         return re.sub('<[^<]+?>', '', html or '')
-
     def create_blog_searchable_keys_description(title, place_name, category):
         try:
             meta_prompt = f'''Write one meta "{title}" about "{place_name}".
@@ -273,28 +262,21 @@ Rules:
             return _blog_searchable
         except Exception:
             _blog_searchable = f"{title} in {place_name}: directions, entrance fee, practical tips, and best time to visit."
-
+        
         return _blog_searchable
 
+    # if cover_image_url is None:
+    #     return _get_image_cover(place_name, title)
     if blog_searchable_keys_description is None:
         blog_searchable_keys_description = create_blog_searchable_keys_description(title, place_name, category)
-
     title = (title or '').strip() or f"{category} to {place_name}"
-
-    # FIX: fall back to a generated cover image if none supplied
-    if not cover_image_url:
-        try:
-            cover_image_url = _get_image_cover(place_name, title)
-        except Exception:
-            cover_image_url = "/static/images/default-cover.jpg"
-
-    # FIX: og:image / twitter:image / Article schema want absolute URLs
-    cover_image_abs = cover_image_url
-    if cover_image_abs and cover_image_abs.startswith("/"):
-        cover_image_abs = f"https://www.paratara.com{cover_image_abs}"
+    text_content = _strip_html_tags(body_text)
 
     """Generate optimized blog HTML page with SEO and performance enhancements."""
+    # Print FAQ entries and searchable keys with 0.5s delays
+    # blog_obj = generate_blog_object(request, place_name, title, category=category, summary=blog_searchable_keys_description or "", text_content=body_text)
 
+    
     csrf_token = ""
     if request is not None:
         try:
@@ -304,9 +286,25 @@ Rules:
     upload_url = reverse("imageapp:uploadimage")
     subscribe_url = reverse("apis:subscribe_email")
     blog_edit_save_url = reverse("singlepage2:save_blog_paragraph_file_edit")
+# def generate_blog_page(place_name, title, body_text, cover_image_url="/static/images/default-cover.jpg", faq_list=None):
 
     place_slug = slugify(place_name)
     title_slug = slugify(title)
+
+    # Define folder path
+    folder_path = os.path.join(
+        settings.BASE_DIR,
+        "singlepage2", "templates", "blogs", place_slug
+    )
+
+    # Create folder if missing
+    try:
+        os.makedirs(folder_path, exist_ok=True)
+    except OSError:
+        raise
+
+    # The final HTML file location
+    file_path = os.path.join(folder_path, f"{title_slug}.html")
 
     # The canonical full URL on your live site
     canonical_url = f"https://www.paratara.com/pages/blog/{place_slug}/{title_slug}/"
@@ -314,11 +312,11 @@ Rules:
         place_page_url = reverse("home:place_by_slug", kwargs={"place_slug": place_slug})
     except Exception:
         place_page_url = f"/places/{place_slug}/"
-
     editable_body_text = mark_editable_blog_body(body_text)
     generated_at = timezone.now()
     published_iso, published_display = format_blog_datetime(generated_at)
     modified_iso, modified_display = format_blog_datetime(generated_at)
+    schema_date = timezone.localtime(generated_at).date().isoformat()
 
     collections_html = f'''
                         <div id="collections-header">
@@ -328,19 +326,12 @@ Rules:
                         </div>
                         '''
 
-    # =========================================================
-    # FAQ entries: only generate when the caller didn't pass them.
-    # FIX: previously we shadowed the `faq_entries` argument with `[]`
-    # and always hit the LLM, discarding caller-supplied entries.
-    # =========================================================
-    generated_faq_entries = []
-    if not faq_entries:
-        try:
-            faq_questions = FAQ_QUESTIONS_BY_CATEGORY.get(
-                category, FAQ_QUESTIONS_BY_CATEGORY["Guide"]
-            )
+    # Build FAQ Schema and Article Schema
+    faq_entries = []
+    try:
+        faq_questions = FAQ_QUESTIONS_BY_CATEGORY.get(category, FAQ_QUESTIONS_BY_CATEGORY["Guide"])
 
-            faq_prompt = f'''Write 5 short, factual FAQs about "{title}" in "{place_name}".
+        faq_prompt = f'''Write 5 short, factual FAQs about "{title}" in "{place_name}".
 
 Return ONLY a raw JSON array with no markdown, no code fences, and no explanation text before or after.
 
@@ -357,43 +348,41 @@ Rules:
 - Cover these angles: {faq_questions}
 - Start the array with [ and end with ].
 '''
-            res = client.chat.completions.create(
-                model=settings.GROK_MODEL_NAME,
-                messages=[{"role": "user", "content": faq_prompt}],
-                max_tokens=1200
-            )
-            faq_text = res.choices[0].message.content.strip()
+        res = client.chat.completions.create(
+            model=settings.GROK_MODEL_NAME,
+            messages=[{"role": "user", "content": faq_prompt}],
+            max_tokens=1200
+        )
+        faq_text = res.choices[0].message.content.strip()
 
-            # Robust parse: handles markdown fences, preamble text, Python literals
-            parsed_faqs = parse_llm_json_array(faq_text)
-            for entry in parsed_faqs:
-                if not isinstance(entry, dict):
-                    continue
-                # Normalize keys so downstream rendering is consistent
-                question_name = entry.get("name") or entry.get("question") or ""
-                accepted = entry.get("acceptedAnswer") or entry.get("accepted_answer") or {}
-                if isinstance(accepted, dict):
-                    answer_text = accepted.get("text") or accepted.get("answer") or ""
-                else:
-                    answer_text = str(accepted)
+        # Robust parse: handles markdown fences, preamble text, Python literals
+        parsed_faqs = parse_llm_json_array(faq_text)
+        for entry in parsed_faqs:
+            if not isinstance(entry, dict):
+                continue
+            # Normalize keys so downstream rendering is consistent
+            question_name = entry.get("name") or entry.get("question") or ""
+            accepted = entry.get("acceptedAnswer") or entry.get("accepted_answer") or {}
+            if isinstance(accepted, dict):
+                answer_text = accepted.get("text") or accepted.get("answer") or ""
+            else:
+                answer_text = str(accepted)
 
-                if not question_name or not answer_text:
-                    continue
+            if not question_name or not answer_text:
+                continue
 
-                generated_faq_entries.append({
-                    "@type": "Question",
-                    "@id": f"{canonical_url}#{slugify(question_name)}",
-                    "name": question_name.strip(),
-                    "acceptedAnswer": {
-                        "@type": "Answer",
-                        "text": answer_text.strip(),
-                    },
-                })
+            faq_entries.append({
+                "@type": "Question",
+                "@id": f"{canonical_url}#{slugify(question_name)}",
+                "name": question_name.strip(),
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": answer_text.strip(),
+                },
+            })
 
-        except Exception:
-            generated_faq_entries = []
-
-    faq_entries = faq_entries or generated_faq_entries
+    except Exception:
+        faq_entries = []
 
     faq_schema = ""
     if faq_entries:
@@ -408,41 +397,36 @@ Rules:
                 """
     faq_html = render_faq_section(faq_entries)
 
-    # =========================================================
     # Article schema for SEO
-    # FIX: use full ISO 8601 timestamps for datePublished/dateModified,
-    # and only emit `image` when we actually have one.
-    # =========================================================
     article_schema_dict = {
-        "@context": "https://schema.org",
-        "@type": "Article",
-        "headline": f"{title} — {place_name}",
-        "description": blog_searchable_keys_description or f"How {title} in {place_name}",
-        "author": {
-            "@type": "Organization",
-            "name": "Foreign Travel Steps",
-            "url": "https://foreigntravelsteps.com"
-        },
-        "datePublished": published_iso,
-        "dateModified": modified_iso,
-        "url": canonical_url,
-    }
-    if cover_image_abs:
-        article_schema_dict["image"] = cover_image_abs
-
+            "@context": "https://schema.org",
+            "@type": "Article",
+            "headline": f"{title} — {place_name}",
+            "description": blog_searchable_keys_description or f"How {title} in {place_name}",
+            "image": cover_image_url,
+            "author": {
+                "@type": "Organization",
+                "name": "Foreign Travel Steps",
+                "url": "https://foreigntravelsteps.com"
+            },
+            "datePublished": schema_date,
+            "dateModified": schema_date,
+            "url": f"https://www.paratara.com/pages/blog/{place_slug}/{title_slug}/"
+        }
     article_schema = f"""
                         <script type="application/ld+json">
                         {json.dumps(article_schema_dict, indent=2)}
                         </script>
                     """
+        
+
+
 
     # Full SEO HTML Page
     html_content = f"""
     <!DOCTYPE html>
         <html lang="en">
         <head>
-                                            <!-- FIX: charset must be within the first 1024 bytes -->
-                                            <meta charset="UTF-8">
                                             {faq_schema}
                                             {article_schema}
                                             <!-- Performance: DNS prefetch and preconnect -->
@@ -472,6 +456,7 @@ Rules:
                                             }})(window, document, 'script', 'dataLayer', 'GTM-MNDNQVRF');
                                             </script>
                                             <!-- End Google Tag Manager -->
+                                                <meta charset="UTF-8">
 
                                                 <title>{title} — {place_name} Travel Guide</title>
 
@@ -485,13 +470,13 @@ Rules:
                                                 <meta property="og:description" content="{blog_searchable_keys_description if blog_searchable_keys_description else f'{title} in {place_name}: directions, entrance fee, practical tips, and best time to visit.'}">
                                                 <meta property="og:type" content="article">
                                                 <meta property="og:url" content="{canonical_url}">
-                                                <meta property="og:image" content="{cover_image_abs}">
+                                                <meta property="og:image" content="{cover_image_url}">
 
                                                 <!-- Twitter -->
                                                 <meta name="twitter:card" content="summary_large_image">
                                                 <meta name="twitter:title" content="{title} — {place_name}">
                                                 <meta name="twitter:description" content="A helpful travel guide for {place_name}.">
-                                                <meta name="twitter:image" content="{cover_image_abs}">
+                                                <meta name="twitter:image" content="{cover_image_url}">
 
                                                 <!-- Mobile Responsive -->
                                                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -3223,12 +3208,15 @@ document.addEventListener('click', (ev) => {{
 </body>
 </html>
 """
+    
 
-    # FIX: single source of truth for the output folder — removed the
-    # duplicated `folder` block that re-derived the path via __file__.
+
+
+
+
     folder = os.path.join(
-        settings.BASE_DIR,
-        "singlepage2", "templates", "blogs", place_slug,
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "singlepage2", "templates", "blogs", place_slug
     )
     os.makedirs(folder, exist_ok=True)
 
@@ -3242,5 +3230,6 @@ document.addEventListener('click', (ev) => {{
         optimize_file(file_path)
     except Exception:
         pass
+
 
     return html_content

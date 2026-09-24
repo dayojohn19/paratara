@@ -22,12 +22,13 @@ load_dotenv(dotenv_path=_PROJECT_ROOT / ".env", override=False)
 # External service and API variables
 OPENAI_API_KEY = config("OPENAI_API_KEY", default="")
 GROK_API_KEY = os.getenv('GROK_API_KEY')
-SUPPORTED_GROQ_MODEL = "groq/compound"
+SUPPORTED_GROQ_MODEL = "openai/gpt-oss-20b"
+
 VALID_GROQ_MODELS = {
-    "groq/compound",
     "openai/gpt-oss-20b",
     "qwen/qwen3.8-27b",
 }
+
 
 def _resolve_groq_model(env_key: str, default: str) -> str:
     value = config(env_key, default=default).strip()
@@ -303,7 +304,7 @@ SECRET_KEY = config(
 ALLOWED_HOSTS = _split_csv(
     config(
         "ALLOWED_HOSTS",
-        default="172.16.0.108,mbp.local,localhost,127.0.0.1,paratara.com,www.paratara.com,digitallife11.pythonanywhere.com,,www.ourblueearth.online,ourblueearth.online",
+        default="192.168.8.105,172.16.0.108,mbp.local,localhost,127.0.0.1,paratara.com,www.paratara.com,digitallife11.pythonanywhere.com,,www.ourblueearth.online,ourblueearth.online",
     )
 )
 if PYTHONANYWHERE_DOMAIN and PYTHONANYWHERE_DOMAIN not in ALLOWED_HOSTS:

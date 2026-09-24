@@ -206,11 +206,11 @@ def _parse_blog_response(full_response, fallback_title, place_name):
             print('Blog Full response :', full_response[:1000])
             print()
             print(blog_content[:1000])
-            print()
+            print()            
             print('Blog content before cleaning:', blog_content[:1000])
     except Exception as e:
         pass
-
+    
     blog_content = re.sub(r'^\s*Title:\s*[^\n]+\n+', '', blog_content, flags=re.IGNORECASE).strip()
     for _ in range(2):
         blog_content = re.sub(r'\s*(Category|Summary):\s*[^\n]+\s*$', '', blog_content, flags=re.IGNORECASE).strip()
@@ -222,9 +222,6 @@ def _parse_blog_response(full_response, fallback_title, place_name):
 
 def process_creating_blog(request, for_place,blog__title=None,to_title=None,create_tourist_spot=False):
 
-    # FIX: initialize `url` outside the try blocks so the final print/return
-    # never references an unbound name if an earlier step raised.
-    url = None
 
     try:
         link_promotion_present = None
@@ -275,6 +272,15 @@ def process_creating_blog(request, for_place,blog__title=None,to_title=None,crea
                 topic = extract_res.choices[0].message.content.strip()
                 print(f"   📍 Extracted topic: {topic}")
                 
+                # Now generate an engaging blog title based on the extracted topic
+                # title_prompt = f'''Generate a single catchy and engaging blog title (max 60 characters) "{topic}" in "{for_place.placename}". 
+                # Only return the title, nothing else.'''
+                # title_res = client.chat.completions.create(
+                #     model=settings.GROK_MODEL_NAME,
+                #     messages=[{"role": "user", "content": title_prompt}],
+                #     max_tokens=100
+                # )
+                # blog__title = title_res.choices[0].message.content.strip()
                 blog__title = topic
                 print(f"   ✅ Generated blog title: {blog__title}")
             except Exception as e:
@@ -330,6 +336,27 @@ def process_creating_blog(request, for_place,blog__title=None,to_title=None,crea
             print(f"   ✅ Content generated: {len(blog_content)} characters")
             
             # =========================
+            # Generate Meta Description
+            # =========================
+            print(f"\n[3.1/5] 🔍 Generating SEO meta description...")
+            # meta_description = ''
+            # try:
+            #     meta_prompt = f'''Create an SEO-friendly meta description for a travel blog titled "{blog_title}" about "{blog__title}" in "{for_place.placename}". 
+            #                     with like these keywords: {blog__title}, {for_place.placename}, travel guide, things to do, entrance fee, tips, festivals and best time to visit.
+            #                     Keep it under 160 characters and make it enticing for travelers searching online.'''
+            #     meta_res = client.chat.completions.create(
+            #         model=settings.GROK_MODEL_NAME,
+            #         messages=[{"role": "user", "content": meta_prompt}],
+            #         max_tokens=160
+            #     )
+            #     meta_description = meta_res.choices[0].message.content.strip().strip('"')
+            # except Exception as e:
+            #     print("META DESCRIPTION ERROR:", e)
+            #     meta_description = f"Discover {blog__title} in {for_place.placename}: Complete travel guide with directions, top activities, entrance fees, insider tips, and best times to visit for an unforgettable experience."
+            
+            # print(f"   ✅ Meta description: {meta_description[:60]}...")
+            
+            # =========================
             # Generate FAQ Entries (for SEO Schema)
             # =========================
             print(f"\n[3.2/5] ❓ Generating FAQ entries...")
@@ -349,6 +376,16 @@ def process_creating_blog(request, for_place,blog__title=None,to_title=None,crea
 
             print(f"\n[3.5/5] 🗂️  Creating database entry...")
             # TODO CAN CALL singlepage.views import create_blog_from_user_request()
+            # blog = Blogs.objects.create(
+            #     blogplace=for_place,
+            #     title=blog_title[:64],
+            #     category="Guide",
+            #     summarize=spot.desc[:140],
+            #     readtime=5,
+            #     localurlpath=f"/pages/blog/{place_slug}/{blog_slug}",
+            #     textContent=blog_content
+            # )
+            # for_place.blog.add(blog)
             print(f"   ✅ Blog entry created in database")
             # ---------==== endtodo
             # =========================
@@ -390,8 +427,7 @@ def process_creating_blog(request, for_place,blog__title=None,to_title=None,crea
 
             print(f"\n{'='*60}")
             print(f"✅ COMPLETED: {blog__title}")
-            if url:
-                print(f"link: {url}")
+            print(f"link: {url}")
             print(f"{'='*60}\n")
             return url
 
@@ -403,6 +439,7 @@ def process_creating_blog(request, for_place,blog__title=None,to_title=None,crea
         print(f"\n{'='*60}")
         print(f"❌ TASK ERROR: {e}")
         print(f"{'='*60}\n")
+
 
 
 def process_create_tourist_spot(request,url, blog_summary):
@@ -474,7 +511,16 @@ Creating Tourist Spots
 # ----------- Processing Spot
         if not desc:
             try:
+            #     print(f"   ⏳ Generating description...")
+            #     prompt = f"Write a short 1-2 sentence tourist description of {name} in {place.placename}"
+            #     res = client.chat.completions.create(
+            #         model=settings.GROK_MODEL_NAME,
+            #         messages=[{"role": "user", "content": prompt}],
+            #         max_tokens=100
+            #     )
+                # desc = res.choices[0].message.content.strip()
                 desc = blog_summary
+                # spot.save()
                 print(f"   ✅ Description saved")
             except Exception as e:
                 print("DESC ERROR:", e)

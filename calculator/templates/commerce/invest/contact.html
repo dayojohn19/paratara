@@ -115,7 +115,8 @@
     </span>
 </div>
 <hr>
-<!-- <script src="https://smtpjs.com/v3/smtp.js"></script> -->
+<script src="https://smtpjs.com/v3/smtp.js"></script>
+
 <script>
     function sendMessage_v1() {
         infoContact = document.querySelector("#userContactInfo")
@@ -135,12 +136,18 @@
             return alert('Tell us your reason')
         }
         toSend = `${infoName.value}:     ${infoMessage.value} ____  ${infoPlace.value}, ${infoContact.value}`
+        console.log('-----Sending--')
         console.log(toSend)
         sendEmail()
     }
 
 
     function sendEmail() {
+    console.log("Email object:", typeof Email);
+
+    if (typeof Email === "undefined") {
+        return alert("SMTPJS failed to load.");
+    }        
         Email.send({
             Host: "smtp.elasticemail.com",
             Username: "repapaka20@gmail.com",

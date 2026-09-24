@@ -1426,26 +1426,57 @@ section {
                 
                 const fullMessage = `\n${originalMessage} \n \n Booking Inquiry ${booking_inquiry} \n\n contact me:\n${sender_name}\n \n  ${sender_contact}`;
                 this.message.value = fullMessage;
+                document.getElementById('contact-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    const form = this;
+    const formData = new FormData(form);
+
+    Fancybox.close([{ src: "#contact-form-dialog" }]);
+    alert('Sending Message');
+
+    fetch('/contact/send/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('SUCCESS!');
+            alert('Message Sent!');
+            form.reset();
+        } else {
+            console.log('FAILED...', data.error);
+            alert('Message Not Sent!');
+        }
+    })
+    .catch(error => {
+        console.error('FAILED...', error);
+        alert('Message Not Sent!');
+    });
+});
+        //         (function() {
+        //             emailjs.init({ publicKey: "kPR5fCmH0j3E0NSyr" });
+        //         })();
                 
-                (function() {
-                    emailjs.init({ publicKey: "kPR5fCmH0j3E0NSyr" });
-                })();
+        //         event.preventDefault();
+        //         Fancybox.close([{ src: "#contact-form-dialog" }]);
+        //         alert('Sending Message');
                 
-                event.preventDefault();
-                Fancybox.close([{ src: "#contact-form-dialog" }]);
-                alert('Sending Message');
-                
-                emailjs.sendForm('service_jv335d7', 'template_hzlk188', this)
-                    .then(() => {
-                        console.log('SUCCESS!');
-                        alert('Message Sent!');
-                        this.reset();
-                    }, (error) => {
-                        alert('Message Not Sent!');
-                        console.log('FAILED...', error);
-                    });
-            });
-        };
+        //         emailjs.sendForm('service_jv335d7', 'template_hzlk188', this)
+        //             .then(() => {
+        //                 console.log('SUCCESS!');
+        //                 alert('Message Sent!');
+        //                 this.reset();
+        //             }, (error) => {
+        //                 alert('Message Not Sent!');
+        //                 console.log('FAILED...', error);
+        //             });
+        //     });
+        // };
 
         function addAndRemoveTag(e) {
             const cell = e.target;

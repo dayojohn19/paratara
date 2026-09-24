@@ -15,237 +15,13 @@
   <meta property="og:description" content="{% if meta_description %}{{ meta_description }}{% elif place.placename %}Discover {{ place.placename }} travel guides, resort options, local events, tourist spots, and shared trip schedules with Paratara.{% else %}Plan trips with Paratara.{% endif %}">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="theme-color" content="#4b6b2c">
-  <meta name="color-scheme" content="light">
-
-  {# Resource hints: warm up third-party origins used later in the page #}
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preconnect" href="https://www.google.com">
-  <link rel="dns-prefetch" href="https://www.instagram.com">
-  <link rel="dns-prefetch" href="https://www.google.com">
-
   <link rel="stylesheet" href="{% static 'home/place-page.css' %}?v=20260918-2">
-
-  {# ---------- Inline critical CSS: skeletons, toasts, layout polish ---------- #}
-  <style>
-    :root {
-      --pt-radius-sm: 8px;
-      --pt-radius-md: 12px;
-      --pt-radius-lg: 18px;
-      --pt-shadow-sm: 0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.08);
-      --pt-shadow-md: 0 4px 12px rgba(16,24,40,.08), 0 2px 4px rgba(16,24,40,.04);
-      --pt-shadow-lg: 0 12px 28px rgba(16,24,40,.12);
-      --pt-border: 1px solid rgba(16,24,40,.08);
-      --pt-muted: #667085;
-      --pt-text: #101828;
-      --pt-bg-soft: #f7f8fa;
-      --pt-accent: #4b6b2c;
-      --pt-accent-soft: rgba(75,107,44,.08);
-    }
-
-    /* Reduce long-task jank on below-fold sections */
-    .page-stack > .panel { content-visibility: auto; contain-intrinsic-size: 800px; }
-    .panel--blogs { content-visibility: auto; contain-intrinsic-size: 500px; }
-
-    /* ---------- Skeleton loaders ---------- */
-    @keyframes pt-shimmer {
-      0%   { background-position: -400px 0; }
-      100% { background-position: 400px 0; }
-    }
-    .pt-skel {
-      display: block;
-      border-radius: var(--pt-radius-sm);
-      background: linear-gradient(90deg, #eef0f3 0%, #f6f7f9 40%, #eef0f3 80%);
-      background-size: 800px 100%;
-      animation: pt-shimmer 1.4s linear infinite;
-    }
-    .pt-skel--text  { height: 12px; margin: 6px 0; }
-    .pt-skel--title { height: 18px; width: 60%; margin-bottom: 10px; }
-    .pt-skel--media { height: 160px; width: 100%; border-radius: var(--pt-radius-md); }
-    .pt-skel--chip  { height: 22px; width: 90px; border-radius: 999px; }
-
-    .pt-skeleton-card {
-      background: #fff;
-      border: var(--pt-border);
-      border-radius: var(--pt-radius-md);
-      padding: 16px;
-      box-shadow: var(--pt-shadow-sm);
-    }
-    .pt-skeleton-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-      gap: 16px;
-    }
-
-    /* ---------- Toasts ---------- */
-    #pt-toast-region {
-      position: fixed;
-      top: max(16px, env(safe-area-inset-top));
-      right: 16px;
-      z-index: 20000;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      pointer-events: none;
-      max-width: min(360px, calc(100vw - 32px));
-    }
-    .pt-toast {
-      pointer-events: auto;
-      background: #fff;
-      color: var(--pt-text);
-      border: var(--pt-border);
-      border-left: 4px solid var(--pt-accent);
-      border-radius: var(--pt-radius-sm);
-      padding: 12px 14px;
-      box-shadow: var(--pt-shadow-md);
-      font-size: 14px;
-      line-height: 1.4;
-      opacity: 0;
-      transform: translateY(-6px);
-      transition: opacity .18s ease, transform .18s ease;
-    }
-    .pt-toast.is-visible { opacity: 1; transform: translateY(0); }
-    .pt-toast.is-error { border-left-color: #b42318; }
-    .pt-toast.is-info  { border-left-color: #667eea; }
-
-    /* ---------- Hero polish ---------- */
-    .hero--enhanced {
-      position: relative;
-      isolation: isolate;
-      overflow: hidden;
-      padding: clamp(20px, 4vw, 40px);
-      background:
-        radial-gradient(120% 120% at 0% 0%, rgba(75,107,44,.18), transparent 55%),
-        radial-gradient(120% 120% at 100% 0%, rgba(102,126,234,.14), transparent 55%),
-        linear-gradient(180deg, #fbfcfb 0%, #f4f6f2 100%);
-      border: var(--pt-border);
-      box-shadow: var(--pt-shadow-sm);
-    }
-    .hero--enhanced .hero__heading {
-      font-weight: 700;
-      letter-spacing: -0.01em;
-      line-height: 1.1;
-    }
-    .hero--enhanced .hero__heading small {
-      display: block;
-      font-size: .55em;
-      font-weight: 500;
-      color: var(--pt-muted);
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      margin-bottom: 6px;
-    }
-    .hero--enhanced .ask-box {
-      box-shadow: var(--pt-shadow-md);
-      background: #fff;
-      border: var(--pt-border);
-      border-radius: 999px;
-    }
-
-    /* ---------- Section headers ---------- */
-    .section-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-bottom: 12px;
-    }
-    .section-header h2 {
-      font-size: clamp(18px, 2.4vw, 22px);
-      font-weight: 650;
-      letter-spacing: -0.01em;
-      margin: 0;
-    }
-
-
-    /* ---------- Buttons ---------- */
-    .button { transition: transform .12s ease, box-shadow .12s ease, background .12s ease; }
-    .button:active { transform: translateY(1px); }
-    .button--primary { box-shadow: 0 1px 0 rgba(0,0,0,.04); }
-
-    /* ---------- Blog cards ---------- */
-    .blog-post {
-      background: #fff;
-      border: var(--pt-border);
-      border-radius: var(--pt-radius-md);
-      padding: 18px;
-      box-shadow: var(--pt-shadow-sm);
-      transition: transform .15s ease, box-shadow .15s ease;
-    }
-    .blog-post:hover { transform: translateY(-2px); box-shadow: var(--pt-shadow-md); }
-    .blog-title { font-size: 16px; font-weight: 600; margin: 6px 0 4px; }
-    .blog-category {
-      display: inline-block;
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: .06em;
-      padding: 3px 8px;
-      border-radius: 999px;
-      background: var(--pt-accent-soft);
-      color: var(--pt-accent);
-    }
-    .blog-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; }
-    .blog-meta-item { color: var(--pt-muted); font-size: 12px; }
-
-    /* ---------- Empty / loading states ---------- */
-    .empty-state {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 28px 16px;
-      border: 1px dashed rgba(16,24,40,.15);
-      border-radius: var(--pt-radius-md);
-      color: var(--pt-muted);
-      background: var(--pt-bg-soft);
-      font-size: 14px;
-      text-align: center;
-    }
-    .loading-symbol {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      border: 3px solid rgba(75,107,44,.2);
-      border-top-color: var(--pt-accent);
-      animation: pt-spin .8s linear infinite;
-      margin: 16px auto;
-    }
-    @keyframes pt-spin { to { transform: rotate(360deg); } }
-
-    /* ---------- Sticky top-nav backdrop ---------- */
-    .top-nav {
-      backdrop-filter: saturate(180%) blur(12px);
-      -webkit-backdrop-filter: saturate(180%) blur(12px);
-      background: rgba(255,255,255,.85);
-      border-bottom: var(--pt-border);
-    }
-
-    /* ---------- Calendar polish ---------- */
-    .panel--calendar .panel__body { border-radius: var(--pt-radius-md); }
-    .calendar-header .nav-btn {
-      border-radius: 50%;
-      width: 34px; height: 34px;
-      display: inline-flex; align-items: center; justify-content: center;
-      background: #fff;
-      cursor: pointer;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .pt-skel, .loading-symbol { animation: none; }
-      .blog-post { transition: none; }
-    }
-  </style>
 </head>
 <body>
 {% block body %}
 
 {# ================================================================== #}
-{#  TOAST REGION (replaces blocking alerts for non-critical feedback)  #}
-{# ================================================================== #}
-<div id="pt-toast-region" aria-live="polite" aria-atomic="true"></div>
-
-{# ================================================================== #}
-{#  BOOT SCRIPT: helpers + toast + config                             #}
+{#  SCRIPTS                                                           #}
 {# ================================================================== #}
 <script src="{% static 'home/place-calendar.js' %}" defer></script>
 <script>
@@ -258,7 +34,6 @@
   };
 
   (function () {
-    /* ---------------- Schedule helper functions ---------------- */
     function runWhenReady(callback) {
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', callback, { once: true });
@@ -266,6 +41,7 @@
         callback();
       }
     }
+
     function runWhenIdle(callback) {
       if ('requestIdleCallback' in window) {
         window.requestIdleCallback(callback, { timeout: 1500 });
@@ -273,10 +49,20 @@
         window.setTimeout(callback, 150);
       }
     }
+
     function runWhenVisible(target, callback, options) {
       let hasRun = false;
-      const run = function () { if (hasRun) return; hasRun = true; callback(); };
-      if (!target) { runWhenIdle(run); return; }
+      const run = function () {
+        if (hasRun) return;
+        hasRun = true;
+        callback();
+      };
+
+      if (!target) {
+        runWhenIdle(run);
+        return;
+      }
+
       if ('IntersectionObserver' in window) {
         const observer = new IntersectionObserver(function (entries) {
           if (entries.some(function (entry) { return entry.isIntersecting; })) {
@@ -285,8 +71,11 @@
           }
         }, Object.assign({ rootMargin: '300px 0px', threshold: 0.01 }, options || {}));
         observer.observe(target);
-      } else { runWhenIdle(run); }
+      } else {
+        runWhenIdle(run);
+      }
     }
+
     function cssUrl(url) {
       return 'url("' + String(url).replace(/["\\]/g, '\\$&') + '")';
     }
@@ -296,43 +85,27 @@
     window.placeWhenVisible = runWhenVisible;
     window.placeLazyBackground = function (element, url) {
       if (!element || !url) return;
-      runWhenVisible(element, function () { element.style.backgroundImage = cssUrl(url); });
+      runWhenVisible(element, function () {
+        element.style.backgroundImage = cssUrl(url);
+      });
     };
     window.placeLazyImageAttrs = ' loading="lazy" decoding="async"';
-
-    /* ---------------- Toast notifications ---------------- */
-    const toastRegion = document.getElementById('pt-toast-region');
-    window.placeToast = function (message, type) {
-      if (!toastRegion || !message) return;
-      const toast = document.createElement('div');
-      toast.className = 'pt-toast' + (type ? ' is-' + type : '');
-      toast.textContent = message;
-      toastRegion.appendChild(toast);
-      // Force reflow so transition applies
-      void toast.offsetHeight;
-      toast.classList.add('is-visible');
-      setTimeout(function () {
-        toast.classList.remove('is-visible');
-        setTimeout(function () { toast.remove(); }, 250);
-      }, 3200);
-    };
   }());
 </script>
 <script src="{% static 'home/place-page-core.js' %}?v=20260618-1" defer></script>
-
 <script>
-  /* =================================================================
-     Core inline logic (kept on the page for demo purposes)
-     ================================================================= */
+  // Generate math challenge
   let mathA, mathB, mathCorrectAnswer;
   function generateMathChallenge() {
     mathA = Math.floor(Math.random() * 10) + 1;
     mathB = Math.floor(Math.random() * 10) + 1;
     mathCorrectAnswer = mathA + mathB;
     const mathQuestion = document.getElementById('mathQuestion');
-    if (mathQuestion) { mathQuestion.textContent = `${mathA} + ${mathB}`; }
+    if (mathQuestion) {
+      mathQuestion.textContent = `${mathA} + ${mathB}`;
+    }
   }
-
+  // Get CSRF token from cookie for Django POST requests
   function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -349,47 +122,95 @@
   }
   const csrftoken = getCookie('csrftoken');
 
+  // Get user's geolocation
   function getUserLocation() {
-    return new Promise((resolve) => {
-      if (!navigator.geolocation) { resolve(null); return; }
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Geolocation is not supported by this browser'));
+        return;
+      }
+
       navigator.geolocation.getCurrentPosition(
-        (position) => resolve({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          accuracy: position.coords.accuracy
-        }),
-        () => resolve(null),
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        (position) => {
+          const coords = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy
+          };
+          resolve(coords);
+        },
+        (error) => {
+          console.warn('Geolocation error:', error);
+          // Don't reject - allow joining without location
+          resolve(null);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        }
       );
     });
   }
 
+  // Handle schedule join with confirmation and geolocation
   async function joinSchedule(scheduleId, scheduleTitle) {
     const authenticated = window.placeIsAuthenticated
       ? window.placeIsAuthenticated()
       : {{ request.user.is_authenticated|yesno:"true,false" }};
     if (!authenticated) {
-      if (window.openPlaceAuth) { window.openPlaceAuth(() => joinSchedule(scheduleId, scheduleTitle)); }
-      else { window.placeToast('Login is temporarily unavailable. Please try again.', 'error'); }
+      if (window.openPlaceAuth) {
+        window.openPlaceAuth(() => joinSchedule(scheduleId, scheduleTitle));
+      } else {
+        alert('Login is temporarily unavailable. Please try again.');
+      }
       return;
     }
-    if (!confirm(`Are you sure you want to join "${scheduleTitle}"?`)) return;
 
+    // Show confirmation dialog
+    const isConfirmed = confirm(`Are you sure you want to join "${scheduleTitle}"?`);
+
+    if (!isConfirmed) {
+      return;
+    }
+
+    // Request user's location
     let userLocation = null;
     let manualPickLocation = '';
-    try { userLocation = await getUserLocation(); } catch {}
+    try {
+      userLocation = await getUserLocation();
+      if (userLocation) {
+        console.log('Location obtained:', userLocation);
+      } else {
+        console.log('Location permission denied or unavailable');
+      }
+    } catch (error) {
+      console.error('Error getting location:', error);
+      // Continue without location
+    }
 
+    // If we don't have GPS coordinates, prompt the user to enter a pickup location
     if (!userLocation) {
       manualPickLocation = (prompt('We could not access your location. Please enter your pick-up location address') || '').trim();
-      if (!manualPickLocation) { window.placeToast('Pickup location is required to join this schedule.', 'error'); return; }
+
+      if (!manualPickLocation) {
+        alert('Pickup location is required to join this schedule.');
+        return;
+      }
+
+      // If user entered "lat,lng", also populate pickCoordinate
       const match = manualPickLocation.match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/);
       if (match) {
         const latitude = Number(match[1]);
         const longitude = Number(match[2]);
-        if (Number.isFinite(latitude) && Number.isFinite(longitude)) { userLocation = { latitude, longitude }; }
+
+        if (Number.isFinite(latitude) && Number.isFinite(longitude)) {
+          userLocation = { latitude, longitude };
+        }
       }
     }
 
+    // Prepare form data
     const formData = new FormData();
     const manualContact = (prompt('Enter your Contact Details') || '').trim();
     formData.append('pickContact', manualContact);
@@ -400,185 +221,281 @@
       formData.append('pickLocation', manualPickLocation);
     }
 
+    // Send request to join
     try {
       const response = await fetch(`/schedule/${scheduleId}/join/`, {
-        method: 'POST', headers: { 'X-CSRFToken': csrftoken }, body: formData
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrftoken,
+        },
+        body: formData
       });
       const data = await response.json().catch(() => ({}));
+
       if (data.success || data.already_joined) {
-        window.placeToast(data.message || 'Successfully joined the schedule!');
+        alert(data.message || 'Successfully joined the schedule!');
       } else if (response.status === 401) {
-        if (window.openPlaceAuth) { window.openPlaceAuth(() => joinSchedule(scheduleId, scheduleTitle)); }
-        else { window.placeToast('Login is temporarily unavailable. Please try again.', 'error'); }
+        if (window.openPlaceAuth) {
+          window.openPlaceAuth(() => joinSchedule(scheduleId, scheduleTitle));
+        } else {
+          alert('Login is temporarily unavailable. Please try again.');
+        }
       } else {
-        window.placeToast(data.error || 'Failed to join schedule', 'error');
+        alert(data.error || 'Failed to join schedule');
       }
-    } catch {
-      window.placeToast('An error occurred while joining. Please try again.', 'error');
+    } catch (error) {
+      console.error('Error joining schedule:', error);
+      alert('An error occurred while joining. Please try again.');
     }
   }
 
   async function viewJoiners(scheduleId, scheduleTitle) {
-    if ('{{request.user}}' === 'AnonymousUser') {
-      window.placeToast('You must be logged in to view joiners.', 'error');
+    // Check if user is logged in
+    const currentPageUser = '{{request.user}}';
+    if (currentPageUser === "AnonymousUser") {
+      alert('You must be logged in to view joiners.');
       window.location.href = '/userProfile/login/';
       return;
     }
+
     try {
       const response = await fetch(`/api/schedule/${scheduleId}/joiners/`, {
-        method: 'GET', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken }
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrftoken
+        }
       });
-      if (!response.ok) throw new Error('Failed to load joiners.');
-      const data = await response.json();
-      if (!data.joiners || !data.joiners.length) { window.placeToast('No one has joined this schedule yet.', 'info'); return; }
 
-      let joinersHTML = `<h3>Joiners for "${scheduleTitle}"</h3><ul style="text-align:left;">`;
-      data.joiners.forEach(joiner => {
-        joinersHTML += `<li>
-          <strong>${joiner.userName || 'Anonymous'}</strong><br>
-          📍 Pick Location: ${pickLocationToHtml(joiner.pickLocation)}<br>
-          📞 Contact: ${joiner.contact || 'N/A'}<br>
-          <small>Joined: ${new Date(joiner.timestamp).toLocaleString()}</small>
-        </li>`;
-      });
-      joinersHTML += '</ul>';
+      if (response.ok) {
+        const data = await response.json();
+        if (data.joiners && data.joiners.length > 0) {
+          // Display joiners in a modal or alert
+          let joinersHTML = `<h3>Joiners for "${scheduleTitle}"</h3><ul style="text-align: left;">`;
+          data.joiners.forEach(joiner => {
+            joinersHTML += `<li>
+              <strong>${joiner.userName || 'Anonymous'}</strong><br>
+              📍 Pick Location: ${pickLocationToHtml(joiner.pickLocation)}<br>
+              📞 Contact: ${joiner.contact || 'N/A'}<br>
+              <small>Joined: ${new Date(joiner.timestamp).toLocaleString()}</small>
+            </li>`;
+          });
+          joinersHTML += '</ul>';
 
-      const modal = document.createElement('div');
-      modal.style.cssText = `position:fixed;inset:0;background:rgba(16,24,40,.55);display:flex;align-items:center;justify-content:center;z-index:10000;padding:16px;`;
-      modal.innerHTML = `
-        <div style="background:#fff;padding:24px;border-radius:12px;max-width:520px;width:100%;max-height:80vh;overflow-y:auto;box-shadow:0 12px 28px rgba(16,24,40,.25);">
-          ${joinersHTML}
-          <button style="margin-top:16px;padding:10px 18px;background:#4b6b2c;color:#fff;border:none;border-radius:8px;cursor:pointer;">Close</button>
-        </div>`;
-      modal.querySelector('button').addEventListener('click', () => modal.remove());
-      modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
-      document.body.appendChild(modal);
+          // Create and show modal
+          const modal = document.createElement('div');
+          modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+          `;
+          modal.innerHTML = `
+          <div style="background: white; padding: 30px; max-width: 500px; max-height: 80vh; overflow-y: auto;">
+              ${joinersHTML}
+              <button onclick="this.closest('div').parentElement.remove()" style="margin-top: 20px; padding: 10px 20px; background: #667eea; color: white; border: none; cursor: pointer;">Close</button>
+            </div>
+          `;
+          document.body.appendChild(modal);
+        } else {
+          alert('No one has joined this schedule yet.');
+        }
+      } else {
+        alert('Failed to load joiners. Please try again.');
+      }
     } catch (error) {
-      window.placeToast('Failed to load joiners. Please try again.', 'error');
+      console.error('Error fetching joiners:', error);
+      alert('An error occurred while loading joiners. Please try again.');
     }
   }
 
   async function deleteSchedule(scheduleId, scheduleTitle, clickedButton) {
-    if (!confirm(`Are you sure you want to delete "${scheduleTitle}"? This cannot be undone.`)) return;
-    if ('{{request.user}}' === 'AnonymousUser') {
-      window.placeToast('You must be logged in to delete a schedule.', 'error');
+    const isConfirmed = confirm(`Are you sure you want to delete "${scheduleTitle}"? This cannot be undone.`);
+    if (!isConfirmed) {
+      return;
+    }
+
+    // Check if user is logged in
+    const currentPageUser = '{{request.user}}';
+    if (currentPageUser === "AnonymousUser") {
+      alert('You must be logged in to delete a schedule.');
       window.location.href = '/userProfile/';
       return;
     }
+
     try {
       const response = await fetch(`/schedule/${scheduleId}/delete/`, {
-        method: 'POST', headers: { 'X-CSRFToken': csrftoken },
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrftoken,
+        },
       });
+
       const data = await response.json().catch(() => ({}));
+
       if (response.ok && data.success) {
-        window.placeToast(data.message || 'Schedule deleted');
+        alert(data.message || 'Schedule deleted');
         const card = clickedButton && clickedButton.closest ? clickedButton.closest('.schedule-card') : null;
-        card ? card.remove() : window.location.reload();
+        if (card) {
+          card.remove();
+        } else {
+          window.location.reload();
+        }
         return;
       }
+
       if (response.status === 401) {
-        window.placeToast('Please log in to delete this schedule.', 'error');
+        alert('Please log in to delete this schedule.');
         window.location.href = '/userProfile/';
         return;
       }
-      window.placeToast((data && (data.error || data.message)) || 'Failed to delete schedule', 'error');
-    } catch {
-      window.placeToast('An error occurred while deleting. Please try again.', 'error');
+
+      alert((data && (data.error || data.message)) || 'Failed to delete schedule');
+    } catch (error) {
+      console.error('Error deleting schedule:', error);
+      alert('An error occurred while deleting. Please try again.');
     }
   }
 
   function escapeHtml(value) {
     return String(value)
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
   function parseLatLng(text) {
     const match = String(text || '').match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/);
     if (!match) return null;
+
     const latitude = Number(match[1]);
     const longitude = Number(match[2]);
     if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
-    if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) return null;
+    if (latitude < -90 || latitude > 90) return null;
+    if (longitude < -180 || longitude > 180) return null;
+
     return { latitude, longitude };
   }
 
   function googleMapsDirectionsUrl(latitude, longitude) {
-    return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${latitude},${longitude}`)}`;
+    const destination = encodeURIComponent(`${latitude},${longitude}`);
+    return `https://www.google.com/maps/dir/?api=1&destination=${destination}`;
   }
 
   function pickLocationToHtml(pickLocation) {
     if (!pickLocation) return 'Not specified';
+
     const parsed = parseLatLng(pickLocation);
     if (!parsed) return escapeHtml(pickLocation);
+
     const coordsLabel = escapeHtml(`${parsed.latitude},${parsed.longitude}`);
     const href = googleMapsDirectionsUrl(parsed.latitude, parsed.longitude);
-    return `${coordsLabel} — <a href="${href}" target="_blank" rel="noopener noreferrer" style="color:#667eea;text-decoration:underline;">Get directions</a>`;
+    return `${coordsLabel} — <a href="${href}" target="_blank" rel="noopener noreferrer" style="color: #667eea; text-decoration: underline;">Get directions</a>`;
   }
 
   function convertMarkdownLinks(text) {
-    return String(text || '').replace(/\[([^\]]+)\]\(([^\)]+)\)/g,
-      '<a href="$2" target="_blank" rel="noopener" style="color:#667eea;text-decoration:underline;">$1</a>');
+    // Convert markdown links [text](url) to HTML anchor tags
+    return String(text || '').replace(/\[([^\]]+)\]\(([^\)]+)\)/g, '<a href="$2" target="_blank" style="color: #667eea; text-decoration: underline;">$1</a>');
   }
 
-  function renderDiscussionItems(items) { (Array.isArray(items) ? items : []).forEach(discussionBuilder); }
+  function renderDiscussionItems(items) {
+    (Array.isArray(items) ? items : []).forEach(discussionBuilder);
+  }
 
   function discussionViewer(placeID, method = 'GET') {
-    const discussionNode = document.getElementById('allDiscussion');
+    const discussionNode = document.getElementById("allDiscussion");
     if (!discussionNode) return Promise.resolve();
 
     const username = localStorage.getItem('username') || '';
     const userID = localStorage.getItem('userID') || '';
+
     const requestOptions = {
-      method, headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken }
+      method: method,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken
+      }
     };
     if (method !== 'GET') {
-      requestOptions.body = JSON.stringify({ message: '', username, userID });
+      requestOptions.body = JSON.stringify({
+        message: "",
+        username: username,
+        userID: userID
+      });
     }
+
     return fetch(`/discuss/${placeID}`, requestOptions)
       .then((response) => response.json())
-      .then((data) => { renderDiscussionItems(data.response); });
+      .then((data) => {
+        renderDiscussionItems(data.response);
+      });
   }
 
   let discussionHistoryPromise = null;
   function ensureDiscussionHistory() {
     if (!discussionHistoryPromise) {
-      discussionHistoryPromise = discussionViewer(`{{placeid}}`, 'GET')
-        .catch(() => { discussionHistoryPromise = null; });
+      discussionHistoryPromise = discussionViewer(`{{placeid}}`, 'GET').catch((error) => {
+        discussionHistoryPromise = null;
+        console.error('Failed to load discussions:', error);
+      });
     }
     return discussionHistoryPromise;
   }
 
+  // Spam protection variables
   let lastMessageTime = 0;
-  const MESSAGE_COOLDOWN = 10000;
-  const RATE_LIMIT_WINDOW = 60000;
+  const MESSAGE_COOLDOWN = 10000; // 10 seconds between messages
+  const RATE_LIMIT_WINDOW = 60000; // 1 minute
   const MAX_MESSAGES_PER_MINUTE = 5;
   const renderedDiscussionKeys = new Set();
 
   function discussionFetcher(placeID, method, button) {
-    const messageInput = document.querySelector('#discuss-message');
+    const messageInput = document.querySelector("#discuss-message");
     const message = messageInput.value.trim();
-    if (message === '') return Promise.resolve();
-    if (message.length < 2) { window.placeToast('Message is too short. Please write at least 2 characters.', 'error'); return Promise.resolve(); }
 
-    const now = Date.now();
-    const timeSinceLastMessage = now - lastMessageTime;
-    if (timeSinceLastMessage < MESSAGE_COOLDOWN) {
-      const remainingSeconds = Math.ceil((MESSAGE_COOLDOWN - timeSinceLastMessage) / 1000);
-      window.placeToast(`Please wait ${remainingSeconds} seconds before sending another message.`, 'error');
+    // Validation
+    if (message === "") {
       return Promise.resolve();
     }
 
+    if (message.length < 2) {
+      alert("Message is too short. Please write at least 2 characters.");
+      return Promise.resolve();
+    }
+
+    // Check cooldown
+    const now = Date.now();
+    const timeSinceLastMessage = now - lastMessageTime;
+
+    if (timeSinceLastMessage < MESSAGE_COOLDOWN) {
+      const remainingSeconds = Math.ceil((MESSAGE_COOLDOWN - timeSinceLastMessage) / 1000);
+      alert(`Please wait ${remainingSeconds} seconds before sending another message.`);
+      return Promise.resolve();
+    }
+
+    // Check rate limit
     const storedData = localStorage.getItem('messageTimestamps');
     let timestamps = storedData ? JSON.parse(storedData) : [];
     timestamps = timestamps.filter(t => now - t < RATE_LIMIT_WINDOW);
+
     if (timestamps.length >= MAX_MESSAGES_PER_MINUTE) {
-      window.placeToast('Rate limit exceeded. Please wait a minute before sending more messages.', 'error');
+      alert("Rate limit exceeded. Please wait a minute before sending more messages.");
       return Promise.resolve();
     }
 
-    messageInput.value = '';
+    // Clear input and disable button
+    messageInput.value = "";
     button.disabled = true;
+
+    // Replace button content with spinner
     const originalContent = button.innerHTML;
     button.innerHTML = '<div class="spinner"></div>';
 
@@ -586,61 +503,117 @@
     const userID = localStorage.getItem('userID') || '';
 
     return fetch(`/discuss/${placeID}`, {
-      method, headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
-      body: JSON.stringify({ message, username, userID }),
+      method: method,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken
+      },
+      body: JSON.stringify({
+        message: message,
+        username: username,
+        userID: userID
+      }),
     })
       .then((response) => {
-        if (!response.ok) return response.json().then(err => { throw new Error(err.error || 'Failed to send message'); });
+        if (!response.ok) {
+          return response.json().then(err => {
+            throw new Error(err.error || 'Failed to send message');
+          });
+        }
         return response.json();
       })
       .then((data) => {
         if (data.blog_url) {
-          discussionBuilder({ discusserName: 'Paratara', discuss: `Blog ready: [Open blog](${data.blog_url})`, timestamp: new Date().toISOString() });
-          lastMessageTime = now; timestamps.push(now); localStorage.setItem('messageTimestamps', JSON.stringify(timestamps));
-          button.disabled = false; button.innerHTML = originalContent;
+          discussionBuilder({
+            discusserName: "Paratara",
+            discuss: `Blog ready: [Open blog](${data.blog_url})`,
+            timestamp: new Date().toISOString()
+          });
+
+          lastMessageTime = now;
+          timestamps.push(now);
+          localStorage.setItem('messageTimestamps', JSON.stringify(timestamps));
+
+          button.disabled = false;
+          button.innerHTML = originalContent;
           return;
         }
-        if (!data.response || !data.response.length) { button.disabled = false; button.innerHTML = originalContent; return; }
+
+        if (!data.response || data.response.length === 0) {
+          button.disabled = false;
+          button.innerHTML = originalContent;
+          return;
+        }
+
         renderDiscussionItems(data.response);
-        lastMessageTime = now; timestamps.push(now); localStorage.setItem('messageTimestamps', JSON.stringify(timestamps));
-        button.disabled = false; button.innerHTML = originalContent;
+
+        // Update spam protection tracking
+        lastMessageTime = now;
+        timestamps.push(now);
+        localStorage.setItem('messageTimestamps', JSON.stringify(timestamps));
+
+        // Re-enable button and restore content
+        button.disabled = false;
+        button.innerHTML = originalContent;
       })
       .catch((error) => {
-        window.placeToast(error.message || 'Failed to send message. Please try again.', 'error');
+        console.error('Error sending message:', error);
+        alert(error.message || 'Failed to send message. Please try again.');
+
+        // Restore input value on error
         messageInput.value = message;
-        button.disabled = false; button.innerHTML = originalContent;
+
+        // Re-enable button
+        button.disabled = false;
+        button.innerHTML = originalContent;
       });
   }
 
   function discussionBuilder(element) {
-    const discusslists = document.getElementById('allDiscussion');
+    const discusslists = document.getElementById("allDiscussion");
     if (!element || !discusslists) return;
-    const discussionKey = element.id ? `id:${element.id}` : [element.discusserName || '', element.discuss || '', element.timestamp || ''].join('|');
+
+    const discussionKey = element.id ? `id:${element.id}` : [
+      element.discusserName || '',
+      element.discuss || '',
+      element.timestamp || ''
+    ].join('|');
     if (renderedDiscussionKeys.has(discussionKey)) return;
     renderedDiscussionKeys.add(discussionKey);
 
-    const discussContainer = document.createElement('div');
+    const discussContainer = document.createElement("div");
     const newDate = new Date(element.timestamp);
-    const formattedDate = newDate.toLocaleString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const options = {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    };
+    let formattedDate = newDate.toLocaleString("en-US", options);
 
-    discussContainer.classList.add('other-message');
-    discussContainer.classList.add((element.discusserName || '').toLowerCase() === 'assistant' ? 'assistant-message' : 'user-message');
+    discussContainer.classList.add("other-message");
+    discussContainer.classList.add(
+      (element.discusserName || '').toLowerCase() === 'assistant' ? 'assistant-message' : 'user-message'
+    );
 
-    const discuss = document.createElement('div');
-    discuss.classList.add('message-bubble');
+    const discuss = document.createElement("div");
+    discuss.classList.add("message-bubble")
+    // Convert markdown links to HTML before inserting
     const messageWithLinks = convertMarkdownLinks(element.discuss);
     discuss.innerHTML = `<span>${element.discusserName}:</span> ${messageWithLinks} <div class="message-time">${formattedDate}</div>`;
+
     discussContainer.appendChild(discuss);
     discusslists.appendChild(discussContainer);
   }
 </script>
 
 {# ================================================================== #}
-{#  MODALS                                                             #}
+{#  MODALS (kept in the DOM, hidden by default)                       #}
 {# ================================================================== #}
 <div class="modal-for-blog" id="modal-for-blog-id" role="dialog" aria-modal="true" aria-label="Blog reader">
   <span class="close-modal-for-blog" id="closemodalpageBtn" role="button" tabindex="0" aria-label="Close">&times;</span>
-  <iframe id="modalforblogContentframe" title="Blog content" loading="lazy"></iframe>
+  <iframe id="modalforblogContentframe" title="Blog content"></iframe>
 </div>
 
 <div class="additionalDetailsModal modal">
@@ -649,7 +622,9 @@
       <h2 id="AdditionalDetailsHeader">Additional Details</h2>
       <span class="close" onclick="closeThisModal('id')" role="button" tabindex="0" aria-label="Close">&times;</span>
     </div>
-    <div class="modal-body" id="AdditionalDetailsContainer"><p>This is modal-body put ID on this modal</p></div>
+    <div class="modal-body" id="AdditionalDetailsContainer">
+      <p>This is modal-body put ID on this modal</p>
+    </div>
     <div class="modal-image"><img id="AdditionalDetailsImage" alt=""></div>
     <div class="modal-footer" id="AdditionalDetailsFooter"></div>
   </div>
@@ -664,38 +639,71 @@
     <div class="modal-body">
       <form id="addScheduleForm" class="add-schedule-form">
         <div class="add-schedule-grid">
-          <label>Schedule type
+          <label>
+            Schedule type
             <select id="scheduleTypeAndMode" name="scheduleTypeAndMode" required>
               <option value="carpool">Carpool</option>
             </select>
           </label>
-          <label>Day <input id="dateN" name="dateN" type="number" min="1" max="31" required></label>
-          <label>Month
+          <label>
+            Day
+            <input id="dateN" name="dateN" type="number" min="1" max="31" required>
+          </label>
+          <label>
+            Month
             <select id="monthN" name="monthN" required>
               <option value="" disabled selected>Select month</option>
-              <option value="1">January</option><option value="2">February</option><option value="3">March</option>
-              <option value="4">April</option><option value="5">May</option><option value="6">June</option>
-              <option value="7">July</option><option value="8">August</option><option value="9">September</option>
-              <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+              <option value="1">January</option>
+              <option value="2">February</option>
+              <option value="3">March</option>
+              <option value="4">April</option>
+              <option value="5">May</option>
+              <option value="6">June</option>
+              <option value="7">July</option>
+              <option value="8">August</option>
+              <option value="9">September</option>
+              <option value="10">October</option>
+              <option value="11">November</option>
+              <option value="12">December</option>
             </select>
           </label>
-          <label>Year <input id="yearN" name="yearN" type="number" min="2000" required></label>
+          <label>
+            Year
+            <input id="yearN" name="yearN" type="number" min="2000" required>
+          </label>
         </div>
+
         <div class="add-schedule-grid">
-          <label>Where to meet <input id="meetPlace" name="meetPlace" placeholder="Where to meet" required></label>
-          <label>Destination <input id="endPlace" name="endPlace" placeholder="Destination" required value="{place_current}"></label>
-          <label>Meet time <input id="meetTime" name="meetTime" type="time"></label>
+          <label>
+            Where to meet
+            <input id="meetPlace" name="meetPlace" placeholder="Where to meet" required>
+          </label>
+          <label>
+            Destination
+            <input id="endPlace" name="endPlace" placeholder="Destination" required value="{place_current}">
+          </label>
+          <label>
+            Meet time
+            <input id="meetTime" name="meetTime" type="time">
+          </label>
         </div>
+
         <div class="add-schedule-grid">
-          <label>Contact details <input id="detailsContact" name="detailsContact" placeholder="Phone / Messenger / Email"></label>
-          <label>Maker or looker
+          <label>
+            Contact details
+            <input id="detailsContact" name="detailsContact" placeholder="Phone / Messenger / Email">
+          </label>
+          <label>
+            Maker or looker
             <select id="MakerOrLooker" name="MakerOrLooker">
               <option value="Make" selected>Maker (I have a ride)</option>
               <option value="Look">Looker (I need a ride)</option>
             </select>
           </label>
         </div>
+
         <div id="addScheduleStatus" role="status"></div>
+
         <div class="add-schedule-actions">
           <button class="button button--ghost" id="cancelAddSchedule" type="button">Cancel</button>
           <button class="button button--primary" id="addScheduleSubmit" type="submit">Create schedule</button>
@@ -708,7 +716,7 @@
 <div id="mapModal" role="dialog" aria-modal="true" aria-label="Map">
   <div>
     <button id="closeMapBtn" type="button" aria-label="Close map">&times;</button>
-    <iframe id="map-modal" title="Map" loading="lazy" style="border:0;width:100%;height:100%"></iframe>
+    <iframe id="map-modal" title="Map" style="border:0;width:100%;height:100%"></iframe>
   </div>
 </div>
 
@@ -741,10 +749,22 @@
             <input type="hidden" id="siargaoEventDate" name="event_date">
             <input id="website_field" name="website" autocomplete="off" tabindex="-1" style="display:none" aria-hidden="true">
             <div class="event-register__grid">
-              <div><label for="ev_full_name">Name</label><input id="ev_full_name" name="full_name" placeholder="Your name" required></div>
-              <div><label for="ev_email">Email</label><input id="ev_email" name="email" type="email" placeholder="you@email.com" required></div>
-              <div><label for="ev_phone">Phone (optional)</label><input id="ev_phone" name="phone" placeholder="+63..."></div>
-              <div><label for="ev_pax">Pax</label><input id="ev_pax" name="pax" type="number" min="1" value="1"></div>
+              <div>
+                <label for="ev_full_name">Name</label>
+                <input id="ev_full_name" name="full_name" placeholder="Your name" required>
+              </div>
+              <div>
+                <label for="ev_email">Email</label>
+                <input id="ev_email" name="email" type="email" placeholder="you@email.com" required>
+              </div>
+              <div>
+                <label for="ev_phone">Phone (optional)</label>
+                <input id="ev_phone" name="phone" placeholder="+63...">
+              </div>
+              <div>
+                <label for="ev_pax">Pax</label>
+                <input id="ev_pax" name="pax" type="number" min="1" value="1">
+              </div>
             </div>
             <div class="event-register__full">
               <label for="ev_notes">Notes (optional)</label>
@@ -796,7 +816,9 @@
       <h2>Photo</h2>
       <span class="close" onclick="closeBulletinImageModal()" role="button" tabindex="0" aria-label="Close">&times;</span>
     </div>
-    <div class="modal-body modal-body--flush"><img id="bulletinModalImage" alt="Community bulletin photo"></div>
+    <div class="modal-body modal-body--flush">
+      <img id="bulletinModalImage" alt="Community bulletin photo">
+    </div>
   </div>
 </div>
 
@@ -814,7 +836,9 @@
           <textarea class="chat-input" id="discuss-message" maxlength="200" placeholder="Type your message..."></textarea>
           <button type="button" class="chat-send-btn" id="modal-send-btn" aria-label="Send message"
                   onclick="discussionFetcher('{{placeid}}','POST', this)">
-            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z"></path></svg>
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z"></path>
+            </svg>
           </button>
         </div>
       </div>
@@ -829,7 +853,9 @@
   <div class="top-nav__inner">
     <a class="top-nav__brand" href="#top">
       <span class="top-nav__brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 16 16" width="14" height="14"><path d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path></svg>
+        <svg viewBox="0 0 16 16" width="14" height="14">
+          <path d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path>
+        </svg>
       </span>
       Paratara
     </a>
@@ -841,46 +867,51 @@
       <a href="#community-bulletin">Community</a>
       <a href="#schedules">Schedules</a>
       <a href="#blogs">Blogs</a>
-      {% if user.is_superuser %}<a href="/est/resort/createnewresort">Add your business</a>{% endif %}
+      {% if user.is_superuser %}
+      <a href="/est/resort/createnewresort">Add your business</a>
+      {% endif %}
     </nav>
 
     {% if user.is_superuser %}
     <button class="top-nav__toggle" id="placeNavToggle" type="button"
             aria-label="Toggle navigation" aria-controls="placeNavMenu" aria-expanded="false">
-      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1 3.5A.5.5 0 0 1 1.5 3h13a.5.5 0 0 1 0 1h-13A.5.5 0 0 1 1 3.5zm0 4A.5.5 0 0 1 1.5 7h13a.5.5 0 0 1 0 1h-13A.5.5 0 0 1 1 7.5zm.5 3.5a.5.5 0 0 0 0 1h13a.5.5 0 0 0 0-1h-13z"></path></svg>
+      <svg viewBox="0 0 16 16" aria-hidden="true">
+        <path d="M1 3.5A.5.5 0 0 1 1.5 3h13a.5.5 0 0 1 0 1h-13A.5.5 0 0 1 1 3.5zm0 4A.5.5 0 0 1 1.5 7h13a.5.5 0 0 1 0 1h-13A.5.5 0 0 1 1 7.5zm.5 3.5a.5.5 0 0 0 0 1h13a.5.5 0 0 0 0-1h-13z"></path>
+      </svg>
     </button>
     {% endif %}
   </div>
 </header>
 
 {# ================================================================== #}
-{#  HERO (enhanced)                                                   #}
+{#  HERO                                                              #}
 {# ================================================================== #}
-<section class="hero hero--enhanced">
+<section class="hero">
   <div class="hero__intro">
-    <h1 class="hero__heading">
-      <small>Travel guide</small>
-      <span id="place-name">Loading…</span>
-    </h1>
+    <h1 class="hero__heading"><span id="place-name">Loading…</span></h1>
   </div>
 
   <div class="hero__actions">
     <div class="ask-box">
       <input class="ask-input" id="quick-ask-input" type="text" placeholder="Ask us anything about this place">
       <button class="ask-send-btn" id="quick-ask-send" type="button" aria-label="Send question">
-        <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z" fill="currentColor"></path></svg>
+        <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+          <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z" fill="currentColor"></path>
+        </svg>
       </button>
     </div>
 
     <button class="button button--ghost" id="openMapBtn" type="button" style="display:none">
-      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M15.817.113A.5.5 0 0 1 16 .5v14a.5.5 0 0 1-.402.49l-5 1a.502.502 0 0 1-.196 0L5.5 15.01l-4.902.98A.5.5 0 0 1 0 15.5v-14a.5.5 0 0 1 .402-.49l5-1a.5.5 0 0 1 .196 0L10.5.99l4.902-.98a.5.5 0 0 1 .415.103zM10 1.91l-4-.8v12.98l4 .8V1.91zm1 12.98 4-.8V1.11l-4 .8v12.98zm-6-.8V1.11l-4 .8v12.98l4-.8z" fill-rule="evenodd"></path></svg>
+      <svg viewBox="0 0 16 16" aria-hidden="true">
+        <path d="M15.817.113A.5.5 0 0 1 16 .5v14a.5.5 0 0 1-.402.49l-5 1a.502.502 0 0 1-.196 0L5.5 15.01l-4.902.98A.5.5 0 0 1 0 15.5v-14a.5.5 0 0 1 .402-.49l5-1a.5.5 0 0 1 .196 0L10.5.99l4.902-.98a.5.5 0 0 1 .415.103zM10 1.91l-4-.8v12.98l4 .8V1.91zm1 12.98 4-.8V1.11l-4 .8v12.98zm-6-.8V1.11l-4 .8v12.98l4-.8z" fill-rule="evenodd"></path>
+      </svg>
       <span>Find tourist spot</span>
     </button>
   </div>
 </section>
 
 {# ================================================================== #}
-{#  MAIN                                                               #}
+{#  MAIN CONTENT                                                      #}
 {# ================================================================== #}
 <main class="page-container" id="top">
 
@@ -900,14 +931,7 @@
       <div class="section-header">
         <h2 id="blog-heading">Latest blogs</h2>
       </div>
-      <div class="blog-grid" id="blog-grid">
-        <div class="pt-skeleton-grid" aria-hidden="true">
-          <div class="pt-skeleton-card"><div class="pt-skel pt-skel--title"></div><div class="pt-skel pt-skel--text"></div><div class="pt-skel pt-skel--text" style="width:80%"></div></div>
-          <div class="pt-skeleton-card"><div class="pt-skel pt-skel--title"></div><div class="pt-skel pt-skel--text"></div><div class="pt-skel pt-skel--text" style="width:80%"></div></div>
-          <div class="pt-skeleton-card"><div class="pt-skel pt-skel--title"></div><div class="pt-skel pt-skel--text"></div><div class="pt-skel pt-skel--text" style="width:80%"></div></div>
-          <div class="pt-skeleton-card"><div class="pt-skel pt-skel--title"></div><div class="pt-skel pt-skel--text"></div><div class="pt-skel pt-skel--text" style="width:80%"></div></div>
-        </div>
-      </div>
+      <div class="blog-grid" id="blog-grid"></div>
       <div id="blog-pagination"></div>
     </section>
   </div>
@@ -916,7 +940,9 @@
 
     <!-- Activities & services -->
     <section class="panel" aria-labelledby="resort-activities-heading" id="things-to-do">
-      <div class="section-header"><h2 id="resort-activities-heading">Activities &amp; services</h2></div>
+      <div class="section-header">
+        <h2 id="resort-activities-heading">Activities &amp; services</h2>
+      </div>
       <div id="resort-activities-list-js"></div>
       <div class="load-more-wrap" hidden id="resort-activities-load-more"></div>
       <script>
@@ -961,7 +987,9 @@
             } catch {
               append || (container.innerHTML = `<div class="empty-state">Failed to load activities.</div>`);
               window.placeSetLoadMoreButton(`resort-activities-load-more`, !!append, false, function () { fetchAndRenderResortActivities(placeId, true); });
-            } finally { resortActivitiesPagination.loading = false; }
+            } finally {
+              resortActivitiesPagination.loading = false;
+            }
           }
         }
         window.placePageReady(function () {
@@ -972,7 +1000,9 @@
 
     <!-- Accommodations -->
     <section class="panel panel--accommodations" aria-labelledby="accommodations-heading" id="accommodations">
-      <div class="section-header"><h2 id="accommodations-heading">Accommodations</h2></div>
+      <div class="section-header">
+        <h2 id="accommodations-heading">Accommodations</h2>
+      </div>
       <div id="accommodations-list-js"></div>
       <div class="load-more-wrap" hidden id="accommodations-load-more"></div>
       <script>
@@ -1016,7 +1046,9 @@
             } catch {
               append || (container.innerHTML = `<div class="empty-state">Failed to load accommodations.</div>`);
               window.placeSetLoadMoreButton(`accommodations-load-more`, !!append, false, function () { fetchAndRenderAccommodations(placeId, true); });
-            } finally { accommodationsPagination.loading = false; }
+            } finally {
+              accommodationsPagination.loading = false;
+            }
           }
         }
         window.placePageReady(function () {
@@ -1048,11 +1080,14 @@
         <article class="calendar-item bulletin-card">
           {% with first_image=post.images.all.0 %}
             {% if first_image and first_image.image_url %}
-            <a class="bulletin-image-link bulletin-card__media" href="{{ first_image.image_url }}" data-image-url="{{ first_image.image_url }}">
+            <a class="bulletin-image-link bulletin-card__media"
+               href="{{ first_image.image_url }}"
+               data-image-url="{{ first_image.image_url }}">
               <img src="{{ first_image.image_url }}" alt="{{ post.ai_title|default:'Bulletin image' }}" loading="lazy" decoding="async">
             </a>
             {% endif %}
           {% endwith %}
+
           <div class="bulletin-card__body">
             {% if user.is_superuser %}
             <form action="{% url 'home:community_bulletin_delete' placeid post.id %}" method="post" class="bulletin-card__delete">
@@ -1060,7 +1095,9 @@
               <button class="button button--ghost" type="submit">Delete</button>
             </form>
             {% endif %}
+
             <p class="bulletin-card__title">{{ post.ai_title|default:"Community bulletin" }}</p>
+
             {% if post.images.all|length > 1 %}
             <div class="bulletin-card__thumbs">
               {% for img in post.images.all %}
@@ -1093,14 +1130,18 @@
 
     <!-- Schedules -->
     <section class="panel" id="schedules" aria-labelledby="schedules-heading">
-      <div class="section-header"><h2 id="schedules-heading">Schedules</h2></div>
+      <div class="section-header">
+        <h2 id="schedules-heading">Schedules</h2>
+      </div>
       <div class="schedules-list" id="calendar-allsched-list" role="list" aria-live="polite" aria-label="Available schedules"></div>
       <div class="load-more-wrap" hidden id="schedules-load-more"></div>
     </section>
 
     <!-- Events -->
     <section class="panel panel--events" id="events" aria-labelledby="events-schedule-heading">
-      <div class="section-header"><h2 id="events-schedule-heading">Upcoming events</h2></div>
+      <div class="section-header">
+        <h2 id="events-schedule-heading">Upcoming events</h2>
+      </div>
       <div class="calendar-grid" id="event-objects-list"></div>
       <div class="load-more-wrap" hidden id="events-load-more"></div>
     </section>
@@ -1109,7 +1150,7 @@
 </main>
 
 {# ================================================================== #}
-{#  INLINE SCRIPTS: bulletin, blogs, plan/calendar                    #}
+{#  INLINE SCRIPTS (bulletin, blogs, plan/calendar)                   #}
 {# ================================================================== #}
 <script>
   const communityBulletinState = { offset: 10, loading: false, hasNext: true };
@@ -1120,41 +1161,65 @@
     let title = post.ai_title || `Community bulletin`;
 
     let imageBlock = firstImage ? `
-      <a href="${window.placeEscapeHtml(firstImage)}" class="bulletin-image-link bulletin-card__media" data-image-url="${window.placeEscapeHtml(firstImage)}">
+      <a href="${window.placeEscapeHtml(firstImage)}" class="bulletin-image-link bulletin-card__media"
+         data-image-url="${window.placeEscapeHtml(firstImage)}">
         <img src="${window.placeEscapeHtml(firstImage)}" alt="${window.placeEscapeHtml(title)}" loading="lazy" decoding="async">
-      </a>` : ``;
+      </a>
+    ` : ``;
 
     let thumbnails = images.length > 1 ? `
       <div class="bulletin-card__thumbs">
         ${images.map(function (imageUrl) {
-          return `<a href="${window.placeEscapeHtml(imageUrl)}" class="bulletin-image-link" data-image-url="${window.placeEscapeHtml(imageUrl)}">
-            <img src="${window.placeEscapeHtml(imageUrl)}" alt="Bulletin photo" loading="lazy" decoding="async"></a>`;
+          return `
+            <a href="${window.placeEscapeHtml(imageUrl)}" class="bulletin-image-link"
+               data-image-url="${window.placeEscapeHtml(imageUrl)}">
+              <img src="${window.placeEscapeHtml(imageUrl)}" alt="Bulletin photo" loading="lazy" decoding="async">
+            </a>
+          `;
         }).join(``)}
-      </div>` : ``;
+      </div>
+    ` : ``;
 
-    return `<article class="calendar-item bulletin-card">${imageBlock}<div class="bulletin-card__body"><p class="bulletin-card__title">${window.placeEscapeHtml(title)}</p>${thumbnails}</div></article>`;
+    return `<article class="calendar-item bulletin-card">
+      ${imageBlock}
+      <div class="bulletin-card__body">
+        <p class="bulletin-card__title">${window.placeEscapeHtml(title)}</p>
+        ${thumbnails}
+      </div>
+    </article>`;
   }
 
   async function loadMoreCommunityBulletins() {
     if (communityBulletinState.loading || !communityBulletinState.hasNext) return;
     let grid = document.getElementById(`community-bulletin-grid`);
     if (!grid) return;
+
     communityBulletinState.loading = true;
     window.placeSetLoadMoreButton(`community-bulletin-load-more`, true, true, function () {});
+
     try {
-      let params = new URLSearchParams({ limit: String(window.placePageSize || 10), offset: String(communityBulletinState.offset) });
-      let response = await fetch(`{% url 'home:community_bulletin_list' placeid %}?${params.toString()}`, { headers: { Accept: `application/json` } });
+      let params = new URLSearchParams({
+        limit: String(window.placePageSize || 10),
+        offset: String(communityBulletinState.offset)
+      });
+      let response = await fetch(`{% url 'home:community_bulletin_list' placeid %}?${params.toString()}`, {
+        headers: { Accept: `application/json` }
+      });
       if (!response.ok) throw Error(`Failed to fetch bulletin posts`);
+
       let payload = await response.json();
       let posts = Array.isArray(payload.posts) ? payload.posts : [];
       posts.length && grid.insertAdjacentHTML(`beforeend`, posts.map(renderCommunityBulletinPost).join(``));
+
       let pagination = payload.pagination || {};
       communityBulletinState.offset = pagination.next_offset || communityBulletinState.offset + posts.length;
       communityBulletinState.hasNext = !!pagination.has_next;
       window.placeSetLoadMoreButton(`community-bulletin-load-more`, communityBulletinState.hasNext, false, loadMoreCommunityBulletins);
     } catch {
       window.placeSetLoadMoreButton(`community-bulletin-load-more`, true, false, loadMoreCommunityBulletins);
-    } finally { communityBulletinState.loading = false; }
+    } finally {
+      communityBulletinState.loading = false;
+    }
   }
 
   function openModalWithContent(event, url) {
@@ -1162,8 +1227,13 @@
     let modal = document.getElementById(`modal-for-blog-id`);
     let modalContentframe = document.getElementById(`modalforblogContentframe`);
     if (!modal || !modalContentframe) return;
+
     modalContentframe.src = url;
-    try { modal.classList.add(`show`); } catch (e) { console.error(`Failed to load page:`, e); }
+    try {
+      modal.classList.add(`show`);
+    } catch (error) {
+      console.error(`Failed to load page:`, error);
+    }
   }
 
   const closeBlogModalButton = document.getElementById(`closemodalpageBtn`);
@@ -1201,28 +1271,41 @@
     }
   }
 
+  // Load blogs as soon as the browser is idle — no scrolling required.
   function scheduleBlogsLoad(placeName) {
     if (placeName) pendingBlogPlaceName = placeName;
     if (blogsLoadScheduled) return;
     blogsLoadScheduled = true;
+
     let runLoad = function () {
       if (blogsLoaded) return;
-      if (!pendingBlogPlaceName) { blogsLoadScheduled = false; return; }
+      if (!pendingBlogPlaceName) {
+        // Nothing to load yet — allow a later call to schedule again.
+        blogsLoadScheduled = false;
+        return;
+      }
       blogsLoaded = true;
       loadBlogs(pendingBlogPlaceName);
     };
-    if (window.placeIdle) { window.placeIdle(runLoad); } else { window.setTimeout(runLoad, 200); }
+
+    if (window.placeIdle) {
+      window.placeIdle(runLoad);
+    } else {
+      window.setTimeout(runLoad, 200);
+    }
   }
 
   function renderBlogs() {
     let container = document.getElementById(`blog-grid`);
     let paginationContainer = document.getElementById(`blog-pagination`);
     if (!container) return;
+
     if (!allBlogs.length) {
       container.innerHTML = `<div class="empty-state">No blog posts yet.</div>`;
       paginationContainer && (paginationContainer.innerHTML = ``);
       return;
     }
+
     let totalPages = Math.ceil(allBlogs.length / blogsPerPage);
     let startIndex = (currentPage - 1) * blogsPerPage;
     let endIndex = startIndex + blogsPerPage;
@@ -1250,10 +1333,13 @@
     let paginationContainer = document.getElementById(`blog-pagination`);
     if (!paginationContainer) return;
     if (totalPages <= 1) { paginationContainer.innerHTML = ``; return; }
+
     let paginationHTML = `<div class="pagination-controls">`;
     if (currentPage > 1) paginationHTML += `<button class="pagination-btn" onclick="changePage(${currentPage - 1})">← Previous</button>`;
+
     let startPage = Math.max(1, currentPage - 2);
     let endPage = Math.min(totalPages, currentPage + 2);
+
     if (startPage > 1) {
       paginationHTML += `<button class="pagination-btn" onclick="changePage(1)">1</button>`;
       if (startPage > 2) paginationHTML += `<span class="pagination-dots">...</span>`;
@@ -1266,6 +1352,7 @@
       paginationHTML += `<button class="pagination-btn" onclick="changePage(${totalPages})">${totalPages}</button>`;
     }
     if (currentPage < totalPages) paginationHTML += `<button class="pagination-btn" onclick="changePage(${currentPage + 1})">Next →</button>`;
+
     paginationHTML += `</div>`;
     paginationContainer.innerHTML = paginationHTML;
   }
@@ -1340,7 +1427,8 @@
         options.skipBlogs || scheduleBlogsLoad(placeName);
 
         let placeEventItems = data.placeEvents || [];
-        let today = new Date(); today.setHours(0, 0, 0, 0);
+        let today = new Date();
+        today.setHours(0, 0, 0, 0);
         let scheduleCount = 0;
 
         if (options.renderEvents !== false) {
@@ -1369,9 +1457,11 @@
                 : e.backgroundURL && (card.style.backgroundImage = `url('${e.backgroundURL}')`);
               card.onclick = () => showEventModal(e);
               card.style.cursor = `pointer`;
+
               let overlay = document.createElement(`div`);
               overlay.className = `card-overlay`;
               card.appendChild(overlay);
+
               let content = document.createElement(`div`);
               content.className = `card-content`;
               content.innerHTML = `<h4>${e.scheduleTitle}</h4><p>📅 ${e.exactDate}</p>`;
@@ -1407,6 +1497,7 @@
           if (placeScheduleItems.length > 0 && allSchedContainer) {
             placeScheduleItems.forEach(schedItem => {
               new dateObjects(schedItem.fields).createObject(schedItem.fields);
+
               let sched = schedItem.fields;
               let schedCard = document.createElement(`div`);
               schedCard.className = `schedule-card`;
@@ -1426,11 +1517,14 @@
               let summaryActionMarkup = isPoster
                 ? `<button class="btn-view-joiners" type="button" data-schedule-action="joiners">View joiners</button>`
                 : `<button class="btn-join" type="button" data-schedule-action="join">Join</button>`;
+
               let expandedActionMarkup = isPoster
-                ? `<button class="btn-delete-schedule" type="button" data-schedule-action="delete">Delete</button>` : ``;
+                ? `<button class="btn-delete-schedule" type="button" data-schedule-action="delete">Delete</button>`
+                : ``;
 
               schedCard.innerHTML = `
                 <div class="schedule-card-title">${escapeHtml(displayTitle)}</div>
+
                 <div class="schedule-summary">
                   <div class="schedule-route schedule-when">
                     <span class="schedule-route-text">
@@ -1445,13 +1539,30 @@
                     ${summaryActionMarkup}
                   </div>
                 </div>
+
                 <div class="schedule-more" id="${scheduleDetailsId}" hidden>
                   <div class="schedule-detail-stack">
-                    <div class="schedule-detail-block"><span class="detail-label">Meetup place</span><span class="detail-value">${escapeHtml(meetupPlaceLabel)}</span></div>
-                    <div class="schedule-detail-block"><span class="detail-label">Destination</span><span class="detail-value">${escapeHtml(destinationLabel)}</span></div>
-                    <div class="schedule-detail-block"><span class="detail-label">Date and time</span><span class="detail-value">${escapeHtml(dateTimeLabel)}</span></div>
-                    <div class="schedule-detail-block"><span class="detail-label">Transportation</span><span class="detail-value">${escapeHtml(transportLabel)}</span></div>
-                    ${sched.scheduleCost ? `<div class="schedule-detail-block"><span class="detail-label">Cost</span><span class="detail-value">${escapeHtml(sched.scheduleCost)}</span></div>` : ``}
+                    <div class="schedule-detail-block">
+                      <span class="detail-label">Meetup place</span>
+                      <span class="detail-value">${escapeHtml(meetupPlaceLabel)}</span>
+                    </div>
+                    <div class="schedule-detail-block">
+                      <span class="detail-label">Destination</span>
+                      <span class="detail-value">${escapeHtml(destinationLabel)}</span>
+                    </div>
+                    <div class="schedule-detail-block">
+                      <span class="detail-label">Date and time</span>
+                      <span class="detail-value">${escapeHtml(dateTimeLabel)}</span>
+                    </div>
+                    <div class="schedule-detail-block">
+                      <span class="detail-label">Transportation</span>
+                      <span class="detail-value">${escapeHtml(transportLabel)}</span>
+                    </div>
+                    ${sched.scheduleCost ? `
+                    <div class="schedule-detail-block">
+                      <span class="detail-label">Cost</span>
+                      <span class="detail-value">${escapeHtml(sched.scheduleCost)}</span>
+                    </div>` : ``}
                     <div class="schedule-detail-block">
                       <span class="detail-label">Hosted by</span>
                       <div class="poster-info">
@@ -1465,12 +1576,15 @@
                       </div>
                     </div>
                   </div>
+
                   ${sched.otherDetails ? `<div class="schedule-description">${escapeHtml(sched.otherDetails)}</div>` : ``}
+
                   ${sched.reviewCount || expandedActionMarkup ? `<div class="schedule-expanded-actions">
                     ${sched.reviewCount ? `<span class="review-count">👁 ${escapeHtml(sched.reviewCount)} views</span>` : ``}
                     ${expandedActionMarkup}
                   </div>` : ``}
-                </div>`;
+                </div>
+              `;
 
               let toggleButton = schedCard.querySelector(`[data-schedule-toggle]`);
               let moreDetails = schedCard.querySelector(`#${scheduleDetailsId}`);
@@ -1535,6 +1649,7 @@
 
     let regStatus = document.getElementById(`siargaoEventRegisterStatus`);
     regStatus && (regStatus.textContent = ``);
+
     let regSubmit = document.getElementById(`siargaoEventRegisterSubmit`);
     regSubmit && (regSubmit.disabled = false, regSubmit.textContent = regSubmit.dataset.defaultLabel || `Register`);
 
@@ -1629,12 +1744,15 @@
       let date = new Date(year, month - 1 + amount, 1);
       return { month: date.getMonth() + 1, year: date.getFullYear() };
     }
+
     function buildCalendarPageUrl(month, year) {
       return `{% if place_slug %}/places/{{ place_slug }}/${year}/${month}/{% else %}/place/{{ placeid }}/${month}/${year}/{% endif %}`;
     }
+
     function buildCalendarJsonUrl(month, year) {
       return `/place/json/{{ placeid }}/${month}/${year}/`;
     }
+
     function renderCalendar(month, year) {
       let firstDay = new Date(year, month - 1, 1).getDay();
       let daysInMonth = new Date(year, month, 0).getDate();
@@ -1642,6 +1760,7 @@
       let weekdayClasses = [`sun`, `mon`, `tue`, `wed`, `thu`, `fri`, `sat`];
       let day = 1;
       let rows = ``;
+
       while (day <= daysInMonth) {
         let cells = ``;
         for (let weekday = 0; weekday < 7; weekday += 1) {
@@ -1654,19 +1773,32 @@
         }
         rows += `<tr>${cells}</tr>`;
       }
+
       let table = putCalendarHeader.querySelector(`table`);
-      let calendarHtml = `<table class="month"><thead><tr>${weekdayNames.map((name, index) => `<th class="${weekdayClasses[index]}">${name}</th>`).join(``)}</tr></thead><tbody>${rows}</tbody></table>`;
+      let calendarHtml = `
+        <table class="month">
+          <thead><tr>${weekdayNames.map((name, index) => `<th class="${weekdayClasses[index]}">${name}</th>`).join(``)}</tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+
       table ? table.outerHTML = calendarHtml : putCalendarHeader.insertAdjacentHTML(`beforeend`, calendarHtml);
     }
+
     function resetCalendarObjects() {
       window.schedDatas = [];
       window.allobjectList = [];
       window.allDates = Array.from(putCalendarHeader.querySelectorAll(`.wed,.mon,.tue,.thu,.fri,.sat,.sun`));
       let selectedDateList = document.getElementById(`calendar-objects-list`);
       selectedDateList && (selectedDateList.innerHTML = ``);
-      placePlanPagination.eventOffset = 0; placePlanPagination.eventHasNext = false; placePlanPagination.eventLoading = false;
-      placePlanPagination.scheduleOffset = 0; placePlanPagination.scheduleHasNext = false; placePlanPagination.scheduleLoading = false;
+      placePlanPagination.eventOffset = 0;
+      placePlanPagination.eventHasNext = false;
+      placePlanPagination.eventLoading = false;
+      placePlanPagination.scheduleOffset = 0;
+      placePlanPagination.scheduleHasNext = false;
+      placePlanPagination.scheduleLoading = false;
     }
+
     function updateCalendarNavigation() {
       let previous = getAdjacentMonth(currentCalendarMonth, currentCalendarYear, -1);
       let next = getAdjacentMonth(currentCalendarMonth, currentCalendarYear, 1);
@@ -1677,6 +1809,7 @@
       let currentHeader = document.getElementById(`month-year`);
       currentHeader && (currentHeader.textContent = new Date(currentCalendarYear, currentCalendarMonth - 1, 1).toLocaleString(`en-US`, { month: `long`, year: `numeric` }));
     }
+
     function setCalendarNavigationLoading(isLoading) {
       putCalendarHeader.setAttribute(`aria-busy`, isLoading ? `true` : `false`);
       navButtons.querySelectorAll(`[data-calendar-direction]`).forEach(link => {
@@ -1684,6 +1817,7 @@
       });
       navButtons.querySelectorAll(`.nav-btn`).forEach(button => { button.disabled = isLoading; });
     }
+
     async function navigateCalendar(month, year, historyMode) {
       let pageUrl = buildCalendarPageUrl(month, year);
       let jsonUrl = buildCalendarJsonUrl(month, year);
@@ -1692,10 +1826,12 @@
         event_limit: String(window.placePageSize || 10), event_offset: `0`,
         schedule_limit: String(window.placePageSize || 10), schedule_offset: `0`
       });
+
       setCalendarNavigationLoading(true);
       try {
         await getPlan(`${jsonUrl}?${params.toString()}`, {
-          skipBlogs: true, rethrowErrors: true,
+          skipBlogs: true,
+          rethrowErrors: true,
           beforeRender(data) {
             renderCalendar(parseInt(data.month, 10), parseInt(data.year, 10));
             resetCalendarObjects();
@@ -1710,8 +1846,11 @@
         updateCalendarNavigation();
         if (historyMode === `replace`) window.history.replaceState({ calendarMonth: month, calendarYear: year }, ``, pageUrl);
         else if (historyMode !== `none`) window.history.pushState({ calendarMonth: month, calendarYear: year }, ``, pageUrl);
-      } catch { window.location.href = pageUrl; }
-      finally { setCalendarNavigationLoading(false); }
+      } catch {
+        window.location.href = pageUrl;
+      } finally {
+        setCalendarNavigationLoading(false);
+      }
     }
 
     let previous = getAdjacentMonth(currentCalendarMonth, currentCalendarYear, -1);
@@ -1723,7 +1862,9 @@
           <a href="${buildCalendarPageUrl(previous.month, previous.year)}" data-calendar-direction="previous" aria-label="Previous month">
             <button class="nav-btn" type="button" aria-hidden="true" tabindex="-1">❮</button>
           </a>
-          <div class="calendar-header-left"><h2 id="month-year">December 2025</h2></div>
+          <div class="calendar-header-left">
+            <h2 id="month-year">December 2025</h2>
+          </div>
           <a href="${buildCalendarPageUrl(next.month, next.year)}" data-calendar-direction="next" aria-label="Next month">
             <button class="nav-btn" type="button" aria-hidden="true" tabindex="-1">❯</button>
           </a>
@@ -1731,7 +1872,8 @@
           <button class="add-schedule-btn" id="openAddScheduleBtn" type="button">+ Add schedule</button>
           {% endif %}
         </div>
-      </div>`;
+      </div>
+    `;
 
     let getElementInsertBeforeit = putCalendarHeader.firstChild;
     putCalendarHeader.insertBefore(navButtons, getElementInsertBeforeit);
@@ -1810,7 +1952,9 @@
         });
         let data = await response.json();
         if (!response.ok) throw Error(data.error || `Failed to create schedule`);
+
         addScheduleStatus && (addScheduleStatus.textContent = data.message || `Schedule created. Refreshing...`);
+
         setTimeout(() => {
           let targetMonth = data.monthN || (new Date()).getMonth() + 1;
           let targetYear = data.yearN || (new Date()).getFullYear();
@@ -1835,9 +1979,13 @@
       }));
     };
 
-    // Kick off plan + blogs during browser idle time instead of waiting for scroll.
-    if (window.placeIdle) { window.placeIdle(loadInitialPlacePlan); }
-    else { window.setTimeout(loadInitialPlacePlan, 200); }
+    // Start the plan / blogs fetch as soon as the browser goes idle instead of
+    // waiting for the user to scroll down to the schedules section.
+    if (window.placeIdle) {
+      window.placeIdle(loadInitialPlacePlan);
+    } else {
+      window.setTimeout(loadInitialPlacePlan, 200);
+    }
 
     let closeMapBtn = el(`closeMapBtn`);
     closeMapBtn && closeMapBtn.addEventListener(`click`, () => { el(`mapModal`).classList.remove(`show`); });
@@ -1863,14 +2011,19 @@
       if (!quickAskInput || !quickAskSend) return;
       let message = quickAskInput.value.trim();
       if (!message) return;
+
       document.getElementById(`discuss-message`).value = message;
+
       let modalSendBtn = document.getElementById(`modal-send-btn`);
       let modalOriginalContent = modalSendBtn.innerHTML;
+
       modalSendBtn.disabled = true;
       modalSendBtn.innerHTML = `<div class="spinner"></div>`;
+
       discussionFetcher(`{{placeid}}`, `POST`, modalSendBtn)
         .then(() => { modalSendBtn.disabled = false; modalSendBtn.innerHTML = modalOriginalContent; })
         .catch(() => { modalSendBtn.disabled = false; modalSendBtn.innerHTML = modalOriginalContent; });
+
       quickAskInput.value = ``;
       openMobileChat();
     };
@@ -1888,8 +2041,10 @@
     regForm && regForm.addEventListener(`submit`, async e => {
       e.preventDefault();
       if (!regForm.action) { regStatus && (regStatus.textContent = `Please select an event first.`); return; }
+
       let honeypot = document.getElementById(`website_field`);
       if (honeypot && honeypot.value !== ``) { regStatus && (regStatus.textContent = `Spam detected.`); return; }
+
       let mathAnswer = document.getElementById(`mathAnswer`);
       if (mathAnswer && parseInt(mathAnswer.value) !== mathCorrectAnswer) {
         regStatus && (regStatus.textContent = `Incorrect answer. Please try again.`);
@@ -1897,14 +2052,20 @@
         mathAnswer.focus();
         return;
       }
+
       let defaultLabel = regSubmit && regSubmit.dataset && regSubmit.dataset.defaultLabel ? regSubmit.dataset.defaultLabel : `Register`;
       regStatus && (regStatus.textContent = `Registering...`);
       regSubmit && (regSubmit.disabled = true, regSubmit.textContent = `Registering...`);
+
       try {
         let formData = new FormData(regForm);
         let response = await fetch(regForm.action, {
-          method: `POST`, headers: { 'X-CSRFToken': csrftoken }, body: formData, credentials: `same-origin`
+          method: `POST`,
+          headers: { 'X-CSRFToken': csrftoken },
+          body: formData,
+          credentials: `same-origin`
         });
+
         let message = ``;
         try {
           let params = new URL(response.url, window.location.origin).searchParams;
@@ -1912,8 +2073,10 @@
           else if (params.get(`ev_reg_exists`) === `1`) message = `You were already registered — we updated your details.`;
           else if (params.get(`ev_reg_error`) === `1`) message = `Please add your full name and email.`;
         } catch {}
+
         message ||= response.ok ? `Registration submitted.` : `Registration failed. Please try again.`;
         regStatus && (regStatus.textContent = message);
+
         generateMathChallenge();
         let mathAnswerField = document.getElementById(`mathAnswer`);
         mathAnswerField && (mathAnswerField.value = ``);

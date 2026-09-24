@@ -1,0 +1,47 @@
+/* 1. Tokens ---------------------------------------------------------------- */
+@font-face {
+  font-family: "Duolingo Feather Bold";
+  src: url("/static/home/fonts/Duolingo-Feather-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --accent: #4b6b2c;
+  --accent-dark: #2f4a1a;
+  --accent-soft: #eef3e5;
+  --accent-soft-2: #f6f9f1;
+
+  --ink: #16201a;
+  --text: #1f2a22;
+  --text-muted: #6b7565;
+
+  --surface: #ffffff;
+  --surface-alt: #f4f6f0;
+  --page-bg: #f6f7f3;
+  --border: #e5e8dd;
+  --border-strong: #ccd3c0;
+
+  --danger: #b42318;
+  --danger-soft: #fef3f2;
+
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-pill: 999px;
+
+  --shadow-xs: 0 1px 2px rgba(22, 32, 26, .05);
+  --shadow-sm: 0 4px 14px rgba(22, 32, 26, .07);
+  --shadow-md: 0 12px 32px rgba(22, 32, 26, .12);
+  --shadow-lg: 0 24px 60px rgba(22, 32, 26, .18);
+
+  --font-display: "Duolingo Feather Bold", "Segoe UI", system-ui, sans-serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-duolinggo: var(--font-display);
+
+  --container: 1200px;
+  --gap: 20px;
+  --transition: .18s ease;
+}

@@ -66,43 +66,6 @@ def normalize_blog_category(category):
     return category if category in BLOG_CATEGORY_VALUES else 'Guide'
 
 
-def parse_llm_json_array(raw_text):
-    """Robustly parse a JSON array from an LLM response.
-
-    Handles:
-    - Raw JSON arrays
-    - Markdown-fenced JSON (```json ... ```)
-    - Preamble / trailing text around the array
-    - Python-style literals (True/False/None) via ast.literal_eval fallback
-    """
-    if not raw_text:
-        return []
-
-    cleaned = str(raw_text).strip()
-
-    # Strip leading/trailing markdown code fences
-    cleaned = re.sub(r"^```(?:json|JSON|python)?\s*", "", cleaned)
-    cleaned = re.sub(r"\s*```\s*$", "", cleaned)
-
-    # Extract the first [...] block
-    start = cleaned.find('[')
-    end = cleaned.rfind(']')
-    if start == -1 or end == -1 or end <= start:
-        return []
-
-    payload = cleaned[start:end + 1]
-
-    for parser in (json.loads, ast.literal_eval):
-        try:
-            result = parser(payload)
-            if isinstance(result, list):
-                return result
-        except Exception:
-            continue
-
-    return []
-
-
 def mark_editable_blog_body(body_html):
     soup = BeautifulSoup(body_html or "", "html.parser")
     for container in soup.find_all(["section", "aside", "footer"]):
@@ -146,25 +109,10 @@ def render_faq_section(faq_entries):
         if not isinstance(entry, dict):
             continue
 
-        question = (
-            entry.get("name")
-            or entry.get("question")
-            or entry.get("text")
-            or ""
-        ).strip()
-
-        accepted_answer = (
-            entry.get("acceptedAnswer")
-            or entry.get("accepted_answer")
-            or entry.get("answer")
-            or {}
-        )
+        question = (entry.get("name") or "").strip()
+        accepted_answer = entry.get("acceptedAnswer") or {}
         if isinstance(accepted_answer, dict):
-            answer = (
-                accepted_answer.get("text")
-                or accepted_answer.get("answer")
-                or ""
-            ).strip()
+            answer = (accepted_answer.get("text") or "").strip()
         else:
             answer = str(accepted_answer).strip()
 
@@ -184,18 +132,15 @@ def render_faq_section(faq_entries):
     return f"""
     <section class="faq-section" aria-labelledby="faq-heading">
         <h2 id="faq-heading" data-blog-edit-index="0" data-blog-edit-scope="faq" data-blog-edit-tag="h2">Frequently Asked Questions</h2>
-        <div class="faq-list">{''.join(rows)}</div>
+        <div class="faq-list">
+            {''.join(rows)}
+        </div>
     </section>
     """
 
-
 # USES call htmlwriter then calls generate_blog_object to save the blog in the database, then generates the html page with SEO optimizations, FAQ schema, and article schema for better search engine visibility. The generated HTML is saved in the appropriate folder structure for serving as a static page on the site.
 def generate_blog_object(request, place_name, title, category='Guide', summary='No Summary Provided', text_content=''):
-    # FIX: guard against missing place (was silently crashing later on `place.blog`)
     place = Places_v2.objects.filter(placename__iexact=place_name).first()
-    if place is None:
-        raise ValueError(f"Place not found: {place_name}")
-
     category = normalize_blog_category(category)
     candidate_summary = clean_blog_metadata(summary)[:400].strip()
     if candidate_summary in DEFAULT_SUMMARY_VALUES:
@@ -221,13 +166,9 @@ def generate_blog_object(request, place_name, title, category='Guide', summary='
 
             if update_fields:
                 b.save(update_fields=update_fields)
-                # FIX: regenerate the static HTML so the page reflects the update
-                generate_blog_page(request, place_name, b.title, text_content,
-                                   category=b.category)
 
             return b
-
-    title = re.sub(r'<a\b[^>]*>(.*?)</a>', r'\1', title, flags=re.IGNORECASE | re.DOTALL)
+    title = re.sub(r'<a\b[^>]*>(.*?)</a>',r'\1',title,flags=re.IGNORECASE | re.DOTALL)
     blog_item = Blogs.objects.create(
         category=category,
         blogplace=place,
@@ -238,32 +179,25 @@ def generate_blog_object(request, place_name, title, category='Guide', summary='
     )
     generate_blog_page(request, place_name, title, text_content, category=category)
     place.blog.add(blog_item)
-    # FIX: return the created object (was returning None)
-    return blog_item
-
 
 def generate_blog_page(request, place_name, title, body_text, cover_image_url=None, faq_entries=None, blog_searchable_keys_description=None, category=None):
     category = normalize_blog_category(category)
-
     def _get_image_cover(place_name, title):
         from imageapp.imageuploader import getTitlePhoto
         togen = f"Travel guide cover photo for {title} in {place_name}. Show the destination clearly with natural colors and simple composition."
         image_url = getTitlePhoto(request, togen)
         return image_url
+        
 
     def _strip_html_tags(html: str) -> str:
         return re.sub('<[^<]+?>', '', html or '')
-
     def create_blog_searchable_keys_description(title, place_name, category):
         try:
-            meta_prompt = f'''Write one meta "{title}" about "{place_name}".
-
-Rules:
-- Under 150 characters.
-- Plain, factual, and direct.
-- No flowery words, no hype, no superlatives, no clickbait.
-- If it fits naturally, mention {place_name} and practical details like tips or best time to visit.
-- Return only the meta description text, nothing else.'''
+            meta_prompt = f'''Write one direct meta description for a {category} blog titled "{title}" in "{place_name}".
+                            Keep it under 150 characters.
+                            Use plain, factual wording.
+                            Include these terms naturally when possible: {title}, {place_name}, things to do, entrance fee, tips, best time to visit.
+                            Avoid hype, superlatives, and clickbait language.'''
             meta_res = client.chat.completions.create(
                 model=settings.GROK_MODEL_NAME,
                 messages=[{"role": "user", "content": meta_prompt}],
@@ -273,28 +207,21 @@ Rules:
             return _blog_searchable
         except Exception:
             _blog_searchable = f"{title} in {place_name}: directions, entrance fee, practical tips, and best time to visit."
-
+        
         return _blog_searchable
 
+    # if cover_image_url is None:
+    #     return _get_image_cover(place_name, title)
     if blog_searchable_keys_description is None:
         blog_searchable_keys_description = create_blog_searchable_keys_description(title, place_name, category)
-
     title = (title or '').strip() or f"{category} to {place_name}"
-
-    # FIX: fall back to a generated cover image if none supplied
-    if not cover_image_url:
-        try:
-            cover_image_url = _get_image_cover(place_name, title)
-        except Exception:
-            cover_image_url = "/static/images/default-cover.jpg"
-
-    # FIX: og:image / twitter:image / Article schema want absolute URLs
-    cover_image_abs = cover_image_url
-    if cover_image_abs and cover_image_abs.startswith("/"):
-        cover_image_abs = f"https://www.paratara.com{cover_image_abs}"
+    text_content = _strip_html_tags(body_text)
 
     """Generate optimized blog HTML page with SEO and performance enhancements."""
+    # Print FAQ entries and searchable keys with 0.5s delays
+    # blog_obj = generate_blog_object(request, place_name, title, category=category, summary=blog_searchable_keys_description or "", text_content=body_text)
 
+    
     csrf_token = ""
     if request is not None:
         try:
@@ -304,9 +231,25 @@ Rules:
     upload_url = reverse("imageapp:uploadimage")
     subscribe_url = reverse("apis:subscribe_email")
     blog_edit_save_url = reverse("singlepage2:save_blog_paragraph_file_edit")
+# def generate_blog_page(place_name, title, body_text, cover_image_url="/static/images/default-cover.jpg", faq_list=None):
 
     place_slug = slugify(place_name)
     title_slug = slugify(title)
+
+    # Define folder path
+    folder_path = os.path.join(
+        settings.BASE_DIR,
+        "singlepage2", "templates", "blogs", place_slug
+    )
+
+    # Create folder if missing
+    try:
+        os.makedirs(folder_path, exist_ok=True)
+    except OSError:
+        raise
+
+    # The final HTML file location
+    file_path = os.path.join(folder_path, f"{title_slug}.html")
 
     # The canonical full URL on your live site
     canonical_url = f"https://www.paratara.com/pages/blog/{place_slug}/{title_slug}/"
@@ -314,90 +257,58 @@ Rules:
         place_page_url = reverse("home:place_by_slug", kwargs={"place_slug": place_slug})
     except Exception:
         place_page_url = f"/places/{place_slug}/"
-
     editable_body_text = mark_editable_blog_body(body_text)
     generated_at = timezone.now()
     published_iso, published_display = format_blog_datetime(generated_at)
     modified_iso, modified_display = format_blog_datetime(generated_at)
+    schema_date = timezone.localtime(generated_at).date().isoformat()
 
     collections_html = f'''
                         <div id="collections-header">
-                            <h2>Local Collections &amp; QR Experiences</h2>
-                            <p id="collections-loading">Discover interactive collections nearby. Scan QR codes to save memories. Loading...</p>
-                            <div id="dynamic-collections" class="collection-section"></div>
+                            <h2>📱 Local Collections & QR Experiences</h2>
+                            <p id="collections-loading">Things to do interactive collections nearby. Scan QR codes for memories! Loading...</p>
+                            <div id="dynamic-collections" class="collection-section">
+                            </div>
                         </div>
                         '''
 
-    # =========================================================
-    # FAQ entries: only generate when the caller didn't pass them.
-    # FIX: previously we shadowed the `faq_entries` argument with `[]`
-    # and always hit the LLM, discarding caller-supplied entries.
-    # =========================================================
-    generated_faq_entries = []
-    if not faq_entries:
-        try:
-            faq_questions = FAQ_QUESTIONS_BY_CATEGORY.get(
-                category, FAQ_QUESTIONS_BY_CATEGORY["Guide"]
-            )
+    # Build FAQ Schema and Article Schema
+    try:
+        faq_entries = []
+        faq_questions = FAQ_QUESTIONS_BY_CATEGORY.get(category, FAQ_QUESTIONS_BY_CATEGORY["Guide"])
 
-            faq_prompt = f'''Write 5 short, factual FAQs about "{title}" in "{place_name}".
-
-Return ONLY a raw JSON array with no markdown, no code fences, and no explanation text before or after.
-
-Each item must use exactly this shape:
-{{"@type": "Question", "@id": "{canonical_url}#short-question-slug", "name": "<Question?>", "acceptedAnswer": {{"@type": "Answer", "text": "<Answer text.>"}}}}
-
-Rules:
-- Keep questions direct and specific.
-- Keep answers plain, factual, and short (1 to 2 sentences).
-- Do not use flowery words, hype, superlatives, or marketing tone.
-- Do not invent prices, opening hours, or facts you are not sure about.
-- If unsure about a specific fact, answer with a practical general guideline instead.
-- Use the canonical URL "{canonical_url}" in every "@id" field.
-- Cover these angles: {faq_questions}
-- Start the array with [ and end with ].
-'''
-            res = client.chat.completions.create(
-                model=settings.GROK_MODEL_NAME,
-                messages=[{"role": "user", "content": faq_prompt}],
-                max_tokens=1200
-            )
-            faq_text = res.choices[0].message.content.strip()
-
-            # Robust parse: handles markdown fences, preamble text, Python literals
-            parsed_faqs = parse_llm_json_array(faq_text)
-            for entry in parsed_faqs:
-                if not isinstance(entry, dict):
-                    continue
-                # Normalize keys so downstream rendering is consistent
-                question_name = entry.get("name") or entry.get("question") or ""
-                accepted = entry.get("acceptedAnswer") or entry.get("accepted_answer") or {}
-                if isinstance(accepted, dict):
-                    answer_text = accepted.get("text") or accepted.get("answer") or ""
-                else:
-                    answer_text = str(accepted)
-
-                if not question_name or not answer_text:
-                    continue
-
-                generated_faq_entries.append({
-                    "@type": "Question",
-                    "@id": f"{canonical_url}#{slugify(question_name)}",
-                    "name": question_name.strip(),
-                    "acceptedAnswer": {
-                        "@type": "Answer",
-                        "text": answer_text.strip(),
-                    },
-                })
-
-        except Exception:
-            generated_faq_entries = []
-
-    faq_entries = faq_entries or generated_faq_entries
-
+        faq_prompt = f'''Generate 5 direct FAQs about "{title}" in "{place_name}".
+        
+                        Return ONLY a valid JSON array with no markdown formatting. Format:
+                        [
+                        {{"@type": "Question", "@id": "{canonical_url}#[question name]", "name": "Question?", "acceptedAnswer": {{"@type": "Answer", "text": "Answer text."}}}},
+                        ... 
+                        ]
+                        Use the page URL "{canonical_url}" in all "@id" fields (question name1, question name2, question name3, etc.)
+                        Questions should cover: {faq_questions}
+                Keep answers concise (1-2 short sentences), clear, and factual.
+                Avoid promotional tone, exaggerated claims, and misleading wording.'''
+        res = client.chat.completions.create(
+            model=settings.GROK_MODEL_NAME,
+            messages=[{"role": "user", "content": faq_prompt}],
+            max_tokens=1000
+        )
+        faq_text = res.choices[0].message.content.strip()
+    
+        # Try to parse as JSON
+        faq_entries = ast.literal_eval(faq_text) if faq_text.startswith('[') else []
+        
+        # Post-process: ensure all @id fields use the canonical URL
+        for entry in faq_entries:
+            if isinstance(entry, dict):
+                entry["@id"] = f"{canonical_url}#{slugify(entry['name'])}"
+        
+    except Exception:
+        faq_entries = []
+    
     faq_schema = ""
     if faq_entries:
-        faq_schema = f"""
+                faq_schema = f"""
                     <script type="application/ld+json">
                     {json.dumps({
                         "@context": "https://schema.org",
@@ -407,42 +318,37 @@ Rules:
                     </script>
                 """
     faq_html = render_faq_section(faq_entries)
-
-    # =========================================================
+    
     # Article schema for SEO
-    # FIX: use full ISO 8601 timestamps for datePublished/dateModified,
-    # and only emit `image` when we actually have one.
-    # =========================================================
     article_schema_dict = {
-        "@context": "https://schema.org",
-        "@type": "Article",
-        "headline": f"{title} — {place_name}",
-        "description": blog_searchable_keys_description or f"How {title} in {place_name}",
-        "author": {
-            "@type": "Organization",
-            "name": "Foreign Travel Steps",
-            "url": "https://foreigntravelsteps.com"
-        },
-        "datePublished": published_iso,
-        "dateModified": modified_iso,
-        "url": canonical_url,
-    }
-    if cover_image_abs:
-        article_schema_dict["image"] = cover_image_abs
-
+            "@context": "https://schema.org",
+            "@type": "Article",
+            "headline": f"{title} — {place_name}",
+            "description": blog_searchable_keys_description or f"How {title} in {place_name}",
+            "image": cover_image_url,
+            "author": {
+                "@type": "Organization",
+                "name": "Foreign Travel Steps",
+                "url": "https://foreigntravelsteps.com"
+            },
+            "datePublished": schema_date,
+            "dateModified": schema_date,
+            "url": f"https://www.paratara.com/pages/blog/{place_slug}/{title_slug}/"
+        }
     article_schema = f"""
                         <script type="application/ld+json">
                         {json.dumps(article_schema_dict, indent=2)}
                         </script>
                     """
+        
+
+
 
     # Full SEO HTML Page
     html_content = f"""
     <!DOCTYPE html>
         <html lang="en">
         <head>
-                                            <!-- FIX: charset must be within the first 1024 bytes -->
-                                            <meta charset="UTF-8">
                                             {faq_schema}
                                             {article_schema}
                                             <!-- Performance: DNS prefetch and preconnect -->
@@ -450,7 +356,7 @@ Rules:
                                             <link rel="dns-prefetch" href="//pagead2.googlesyndication.com">
                                             <link rel="preconnect" href="https://fonts.googleapis.com">
                                             <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-                                            <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&amp;family=Inter:wght@400;500;600;700;800&amp;family=Roboto+Mono:wght@400;500&amp;display=swap">
+                                            <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,700;1,9..144,300;1,9..144,400;1,9..144,500&amp;family=Roboto+Mono:wght@272&amp;display=swap">
                                             <!-- Google tag (gtag.js) -->
                                             <script> window.dataLayer = window.dataLayer || []; function gtag(){{dataLayer.push(arguments);}} gtag('js', new Date()); gtag('config', 'G-BR63L5YLJD'); </script>
                                             <meta name="google-site-verification" content="8jqO-yxHVkp0mIbnh_nvbfA0N21q0QcCR4aDkFbb8rc" />
@@ -472,6 +378,7 @@ Rules:
                                             }})(window, document, 'script', 'dataLayer', 'GTM-MNDNQVRF');
                                             </script>
                                             <!-- End Google Tag Manager -->
+                                                <meta charset="UTF-8">
 
                                                 <title>{title} — {place_name} Travel Guide</title>
 
@@ -485,159 +392,149 @@ Rules:
                                                 <meta property="og:description" content="{blog_searchable_keys_description if blog_searchable_keys_description else f'{title} in {place_name}: directions, entrance fee, practical tips, and best time to visit.'}">
                                                 <meta property="og:type" content="article">
                                                 <meta property="og:url" content="{canonical_url}">
-                                                <meta property="og:image" content="{cover_image_abs}">
+                                                <meta property="og:image" content="{cover_image_url}">
 
                                                 <!-- Twitter -->
                                                 <meta name="twitter:card" content="summary_large_image">
                                                 <meta name="twitter:title" content="{title} — {place_name}">
                                                 <meta name="twitter:description" content="A helpful travel guide for {place_name}.">
-                                                <meta name="twitter:image" content="{cover_image_abs}">
+                                                <meta name="twitter:image" content="{cover_image_url}">
 
                                                 <!-- Mobile Responsive -->
                                                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 :root {{
-    --ink: #14211d;
-    --ink-soft: #33463f;
-    --ink-muted: #6b7d76;
-    --brand: #0f766e;
-    --brand-dark: #0b544e;
-    --brand-soft: #e6f4f1;
-    --accent: #d97706;
-    --accent-dark: #b45309;
-    --accent-soft: #fff5e6;
-    --link: #1d4ed8;
-    --page: #f5f7f5;
-    --surface: #ffffff;
-    --surface-soft: #f8fbf9;
-    --surface-warm: #fdfaf5;
-    --border: #e5ebe7;
-    --border-strong: #d1dad4;
-    --shadow-xs: 0 1px 2px rgba(20, 33, 29, 0.05);
-    --shadow-sm: 0 2px 6px rgba(20, 33, 29, 0.06);
-    --shadow-md: 0 10px 30px rgba(20, 33, 29, 0.08);
-    --shadow-lg: 0 24px 50px rgba(20, 33, 29, 0.10);
-    --radius-xs: 6px;
-    --radius-sm: 10px;
-    --radius: 16px;
-    --radius-lg: 22px;
-    --radius-xl: 32px;
-    --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    --font-display: "Fraunces", Georgia, "Times New Roman", serif;
-    --font-mono: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-    --container: 1120px;
+    --surface: #fffaf2;
+    --surface-alt: #edf7f2;
+    --page-bg: #f7f5ec;
+    --accent: #2f7d68;
+    --accent-dark: #17584b;
+    --accent-light: #d97a45;
+    --accent-blue: #2f6fb3;
+    --text: #27332f;
+    --text-muted: #65736d;
+    --border: #d8ded7;
+    --white: #ffffff;
+    --radius-lg: 18px;
+    --shadow-soft: 0 12px 34px rgba(23, 88, 75, 0.13);
 }}
 
-*, *::before, *::after {{ box-sizing: border-box; }}
-* {{ margin: 0; padding: 0; }}
-
-html {{ scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }}
+* {{
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}}
 
 body {{
     min-height: 100vh;
     background:
-        radial-gradient(900px 500px at 8% -10%, rgba(15, 118, 110, 0.07), transparent 60%),
-        radial-gradient(700px 420px at 100% 0%, rgba(217, 119, 6, 0.05), transparent 60%),
-        var(--page);
-    color: var(--ink);
-    font-family: var(--font-body);
+        radial-gradient(1200px 440px at 14% -5%, rgba(47, 111, 179, 0.14), transparent 60%),
+        radial-gradient(760px 300px at 90% 0%, rgba(47, 125, 104, 0.18), transparent 65%),
+        linear-gradient(to bottom right, #f6f7f4, #ecefe9 52%, #e5eae4);
+    font-family: "Source Sans 3", Arial, sans-serif;
     font-size: 17px;
-    line-height: 1.75;
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
+    line-height: 1.7;
+    color: var(--text);
 }}
 
-/* ============ TYPOGRAPHY ============ */
-h1, h2, h3, h4 {{
-    color: var(--ink);
-    font-family: var(--font-display);
-    font-weight: 600;
-    line-height: 1.2;
-    letter-spacing: -0.01em;
+.blog-shell {{
+    width: min(1120px, 100% - 2rem);
+    margin: 1.2rem auto 2.4rem;
+}}
+
+.white-color{{
+    color: wheat;
+}}
+h2,
+h3 {{
+    line-height: 1.25;
+    color: var(--text);
 }}
 
 h1 {{
-    font-size: clamp(2rem, 4.4vw, 3.15rem);
-    font-weight: 600;
-    font-style: italic;
-    margin-bottom: 0.85rem;
-    letter-spacing: -0.02em;
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    font-weight: 700;
+    margin-bottom: 1rem;
+      font-family: "Fraunces",Georgia,serif;
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(36px,5vw,72px);
+  line-height: 1;
+  letter-spacing: 0.02em;
 }}
 
 h2 {{
-    font-family: var(--font-display);
-    font-size: clamp(1.5rem, 2.6vw, 2rem);
-    font-weight: 600;
-    font-style: normal;
-    color: var(--ink);
-    margin: 2.5rem 0 1.1rem;
-    padding-bottom: 0.65rem;
+    font-size: clamp(1.45rem, 3vw, 1.9rem);
+    font-weight: 700;
+    color: #d97a45;
+    margin: 2.25rem 0 1rem;
+    padding-bottom: 0.5rem;
     border-bottom: 1px solid var(--border);
-    position: relative;
-}}
-h2::after {{
-    content: "";
-    position: absolute;
-    left: 0;
-    bottom: -1px;
-    width: 56px;
-    height: 3px;
-    background: var(--accent);
-    border-radius: 3px;
+
+    font-family: "Roboto Mono", monospace;
+  font-optical-sizing: auto;
+  font-weight: 272;
+  font-style: normal;
 }}
 
 h3 {{
-    font-size: clamp(1.15rem, 1.9vw, 1.35rem);
-    font-weight: 600;
-    color: var(--brand-dark);
-    margin: 1.8rem 0 0.7rem;
+    font-size: clamp(1.12rem, 2vw, 1.32rem);
+    font-weight: 650;
+    color: var(--accent);
+    margin: 1.5rem 0 0.75rem;
 }}
 
 p {{
-    margin-bottom: 1.15rem;
-    font-size: 1.05rem;
-    color: var(--ink-soft);
+    padding:0;
+    margin-bottom: 1.1rem;
+    font-size: clamp(1.05rem, 2.5vw, 1.25rem);
 }}
 
-li {{ margin-bottom: 0.55rem; color: var(--ink-soft); }}
+li {{
+    margin-bottom: 0.55rem;
+}}
 
 a {{
-    color: var(--link);
-    text-decoration: none;
-    border-bottom: 1px solid transparent;
-    transition: border-color 0.2s ease, color 0.2s ease;
+    color: var(--accent-blue);
 }}
-a:hover {{ border-bottom-color: currentColor; }}
 
-strong {{ font-weight: 700; color: var(--ink); }}
-em {{ font-style: italic; }}
+strong {{
+    font-weight: 650;
+}}
 
 img {{
     width: 100%;
     height: auto;
-    display: block;
-    object-fit: cover;
-    object-position: center;
+    margin: 1.4rem 0;
+    object-fit:cover;
+    object-position:center;
+
 }}
 
 #blog-editable-body img,
 #blog-editable-body .editable-blog-image {{
     display: block;
-    width: min(100%, 900px);
+    width: min(100%, 860px);
     max-width: 100%;
     height: auto;
     max-height: min(70vh, 720px);
     object-fit: cover;
-    margin: 1.6rem auto;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-sm);
+    margin: 1.35rem auto;
 }}
-#blog-editable-body img[data-blog-source-image="true"] {{ display: none; }}
-#blog-editable-body [data-editing="true"] img {{ cursor: default; }}
-#blog-editable-body img:not([data-blog-source-image="true"]) {{ cursor: zoom-in; }}
 
-/* ============ LIGHTBOX ============ */
+#blog-editable-body img[data-blog-source-image="true"] {{
+    display: none;
+}}
+
+#blog-editable-body [data-editing="true"] img {{
+    cursor: default;
+}}
+
+#blog-editable-body img:not([data-blog-source-image="true"]) {{
+    cursor: zoom-in;
+}}
+
 .blog-image-lightbox {{
     position: fixed;
     inset: 0;
@@ -646,39 +543,38 @@ img {{
     align-items: center;
     justify-content: center;
     padding: 1rem;
-    background: rgba(10, 20, 18, 0.94);
-    backdrop-filter: blur(6px);
+    background: rgba(0, 0, 0, 0.92);
     cursor: zoom-out;
 }}
-.blog-image-lightbox.open {{ display: flex; }}
+
+.blog-image-lightbox.open {{
+    display: flex;
+}}
+
 .blog-image-lightbox img {{
     width: auto;
     max-width: 96vw;
+    height: auto;
     max-height: 94vh;
     max-height: 94svh;
     margin: 0;
     object-fit: contain;
-    box-shadow: var(--shadow-lg);
-    border-radius: var(--radius-sm);
 }}
+
 .blog-image-lightbox button {{
     position: absolute;
-    top: 0.9rem;
-    right: 0.9rem;
-    width: 46px;
-    height: 46px;
+    top: 0.75rem;
+    right: 0.75rem;
+    width: 44px;
+    height: 44px;
     color: #ffffff;
-    font-size: 1.9rem;
+    font-size: 2rem;
     line-height: 1;
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.18);
-    border-radius: 50%;
+    background: transparent;
+    border: 0;
     cursor: pointer;
-    transition: background 0.2s ease;
 }}
-.blog-image-lightbox button:hover {{ background: rgba(255,255,255,0.18); }}
 
-/* ============ NAVBAR ============ */
 .navbar {{
     position: sticky;
     top: 0;
@@ -686,74 +582,74 @@ img {{
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.85rem clamp(1rem, 3vw, 2rem);
-    background: rgba(255, 255, 255, 0.88);
-    backdrop-filter: saturate(180%) blur(14px);
-    -webkit-backdrop-filter: saturate(180%) blur(14px);
+    padding: 0.9rem 1.25rem;
+    backdrop-filter: blur(8px);
+    background: rgba(255, 255, 255, 0.95);
     border-bottom: 1px solid var(--border);
 }}
+
 .navbar-brand-row {{
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
 }}
+
 .logo {{
     display: inline-flex;
     align-items: center;
-    font-family: var(--font-display);
-    font-size: 1.35rem;
-    font-weight: 700;
-    font-style: italic;
-    letter-spacing: -0.01em;
-    color: var(--brand-dark);
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--accent-dark);
     text-decoration: none;
-    border-bottom: none;
 }}
-.logo:hover {{ color: var(--brand); border-bottom: none; }}
 
-/* --- Animated hamburger --- */
-.hamburger {{
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: stretch;
-    gap: 5px;
-    width: 38px;
-    height: 38px;
-    padding: 9px;
-    border-radius: 10px;
-    cursor: pointer;
-    background: transparent;
-    transition: background 0.2s ease;
+.place-page-link {{
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.7rem;
+    padding: 0.58rem 0.95rem;
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: 700;
+    border-radius: 999px;
+    background: linear-gradient(120deg, var(--accent-dark), var(--accent-blue));
+    box-shadow: 0 7px 18px rgba(23, 88, 75, 0.28);
 }}
-.hamburger:hover {{ background: var(--brand-soft); }}
+
+.place-page-link:hover {{
+    filter: brightness(1.03);
+}}
+
+.place-page-link.place-page-link-nav {{
+    margin-top: 0;
+    padding: 0.42rem 0.75rem;
+    font-size: 0.85rem;
+}}
+
+.hamburger {{
+    display: block;
+    width: 32px;
+    height: 30px;
+    padding: 6px;
+    cursor: pointer;
+}}
+
 .hamburger span {{
     display: block;
     width: 100%;
-    height: 2px;
-    border-radius: 2px;
-    background: var(--brand-dark);
-    transform-origin: center;
-    transition:
-        transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55),
-        opacity 0.22s ease,
-        width 0.3s ease,
-        background 0.2s ease;
+    height: 3px;
+    margin-top: 4px;
+    
+    background: cadetblue;
 }}
-.hamburger.open {{
-    background: var(--brand-soft);
+
+.hamburger span:first-child {{
+    margin-top: 0;
 }}
-.hamburger.open span:nth-child(1) {{
-    transform: translateY(7px) rotate(45deg);
-    background: var(--brand);
-}}
+
 .hamburger.open span:nth-child(2) {{
-    opacity: 0;
-    transform: scaleX(0.2);
-}}
-.hamburger.open span:nth-child(3) {{
-    transform: translateY(-7px) rotate(-45deg);
-    background: var(--brand);
+    opacity: 0.35;
 }}
 
 .nav-links {{
@@ -762,32 +658,34 @@ img {{
     left: 0;
     right: 0;
     display: none;
-    overflow: hidden;
-    max-height: 0;
+    overflow-y: auto;
+    max-height: 70vh;
     background: #ffffff;
-    border-bottom: 1px solid transparent;
-    box-shadow: none;
-    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-                box-shadow 0.25s ease,
-                border-color 0.25s ease;
+    border-bottom: 1px solid var(--border);
 }}
+
 .nav-links.open {{
     display: block;
-    max-height: 70vh;
-    overflow-y: auto;
-    border-bottom-color: var(--border);
-    box-shadow: var(--shadow-md);
-    animation: navSlideDown 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }}
-@keyframes navSlideDown {{
-    from {{ opacity: 0; transform: translateY(-8px); }}
-    to   {{ opacity: 1; transform: translateY(0); }}
-}}
-.nav-links a {{ text-decoration: none; border-bottom: none; }}
 
-.dropdown {{ position: relative; }}
-.dropdown-menu {{ display: none; width: 100%; list-style: none; background: #ffffff; }}
-.dropdown.open .dropdown-menu {{ display: block; }}
+.nav-links a {{
+    text-decoration: none;
+}}
+
+.dropdown {{
+    position: relative;
+}}
+
+.dropdown-menu {{
+    display: none;
+    width: 100%;
+    list-style: none;
+    background: #ffffff;
+}}
+
+.dropdown.open .dropdown-menu {{
+    display: block;
+}}
 
 #blog-list {{
     width: 100%;
@@ -797,164 +695,112 @@ img {{
     list-style: none;
     background: #ffffff;
 }}
-#blog-list li {{ margin: 0; padding: 0.35rem 1.5rem; border-bottom: 1px solid var(--border); }}
-#blog-list li:last-child {{ border-bottom: none; }}
+
+#blog-list li {{
+    margin: 0;
+    padding: 0.35rem 1rem;
+    border-bottom: 1px solid #edf0ee;
+}}
+
 #blog-list a {{
     display: block;
-    padding: 0.65rem 0;
-    color: var(--ink-soft);
-    font-size: 0.95rem;
-    font-weight: 500;
-    transition: color 0.15s ease, padding 0.15s ease;
+    padding: 0.55rem 0;
+    color: var(--text-muted);
+    font-size: 0.9rem;
 }}
-#blog-list a:hover {{ color: var(--brand-dark); padding-left: 6px; }}
 
-.place-page-link {{
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.7rem 1.15rem;
-    color: #ffffff;
-    font-weight: 600;
-    font-size: 0.92rem;
-    letter-spacing: 0.01em;
-    text-decoration: none;
-    border-radius: 999px;
-    border-bottom: none;
-    background: linear-gradient(135deg, var(--brand-dark), var(--brand));
-    box-shadow: 0 6px 18px rgba(15, 118, 110, 0.22);
-    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
-}}
-.place-page-link:hover {{
-    transform: translateY(-1px);
-    box-shadow: 0 10px 22px rgba(15, 118, 110, 0.28);
-    border-bottom: none;
-}}
-.place-page-link::after {{ content: "→"; font-weight: 500; }}
-.place-page-link.place-page-link-nav {{ margin-top: 0; padding: 0.5rem 0.95rem; font-size: 0.85rem; }}
-
-/* ============ LAYOUT ============ */
-.blog-shell {{
-    width: min(var(--container), 100% - 2rem);
-    margin: 1.75rem auto 3rem;
+#blog-list a:hover {{
+    color: var(--accent-dark);
 }}
 
 #body-contents {{
-    padding: clamp(1.5rem, 3.5vw, 3rem);
-    background: var(--surface);
-    border: 1px solid var(--border);
+    margin:  0;
+    padding: clamp(1.1rem, 2.8vw, 2rem);
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid rgba(216, 222, 215, 0.85);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-soft);
+    border-bottom: 0;
 }}
 
-/* ============ HERO ============ */
 .blog-hero {{
-    margin-bottom: 2rem;
-    padding: clamp(1.25rem, 3vw, 2rem) 0 clamp(1rem, 3vw, 1.5rem);
-    border-bottom: 1px solid var(--border);
-    position: relative;
-}}
-.blog-kicker {{
-    display: inline-block;
-    margin-bottom: 1rem;
-    padding: 0.35rem 0.85rem;
-    color: var(--brand-dark);
-    background: var(--brand-soft);
-    border-radius: 999px;
-    font-family: var(--font-body);
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-}}
-.blog-hero h1 {{
-    margin-bottom: 1.35rem;
-    color: var(--ink);
+    margin-bottom: 1.4rem;
+    padding: clamp(1rem, 3vw, 1.5rem);
+    border: 1px solid #dbe6df;
+    border-radius: calc(var(--radius-lg) - 4px);
+    background: linear-gradient(120deg, #f6fbf8, #eef6fb 62%, #f8f4ef);
 }}
 
-/* ============ DATE META ============ */
+.blog-kicker {{
+    margin-bottom: 0.45rem;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 0.78rem;
+    font-weight: 700;
+}}
+
 .blog-date-meta {{
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem 1.5rem;
-    padding: 0.85rem 0 1.5rem;
-    margin: 0;
-    color: var(--ink-muted);
-    font-size: 0.88rem;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 2rem;
-}}
-.blog-date-meta time {{
-    color: var(--ink);
-    font-weight: 600;
+    margin:0;
+    padding-right: 0.9rem;
+    gap: 0.5rem 1rem;
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    flex-direction: row-reverse;
 }}
 
-/* ============ SECTION CONTENT ============ */
-.content-section,
-.content-block {{ margin-bottom: 2.5rem; }}
+.blog-date-meta time {{
+    color: var(--text);
+    font-weight: 650;
+}}
 
 .intro-section,
 .cta-section {{
-    position: relative;
-    padding: clamp(1.75rem, 4vw, 2.75rem);
-    margin: 2.5rem 0;
-    color: #ffffff;
-    border-radius: var(--radius-lg);
-    background: linear-gradient(135deg, var(--brand-dark) 0%, var(--brand) 55%, #1b8a80 100%);
-    box-shadow: var(--shadow-md);
-    overflow: hidden;
+    padding: clamp(1.5rem, 4vw, 2.5rem);
+    margin: 2rem 0;
+    background: linear-gradient(135deg, var(--accent-dark), var(--accent-blue));
+
 }}
-.intro-section::before,
-.cta-section::before {{
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(600px 240px at 100% 100%, rgba(217, 119, 6, 0.18), transparent 60%);
-    pointer-events: none;
-}}
-.intro-section > *,
-.cta-section > * {{ position: relative; z-index: 1; }}
 
 .intro-section h2,
-.cta-section h2,
-.intro-section h1,
-.cta-section h1 {{
-    color: #ffffff;
+.cta-section h2 {{
+    color: var(--white);
     border: 0;
     margin-top: 0;
 }}
-.intro-section h2::after,
-.cta-section h2::after {{ background: var(--accent); }}
-.intro-section p,
-.cta-section p {{ color: rgba(255, 255, 255, 0.92); font-size: 1.05rem; }}
 
-.highlight-box,
-.tip-box,
-.mindset-box {{
-    padding: 1.35rem 1.5rem;
-    margin: 1.75rem 0;
-    background: var(--surface-soft);
-    border-left: 4px solid var(--brand);
-    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+.cta-section h1 {{
+    color: var(--white);
+    border: 0;
+    margin-top: 0;
 }}
-.tip-box {{ border-left-color: var(--accent); background: var(--accent-soft); }}
-.mindset-box {{ background: var(--surface-warm); border-left-color: var(--brand); }}
+.intro-section p,
+.cta-section p {{
+    color: rgba(241, 241, 241, 0.92);
+    font-size: clamp(1.05rem, 2.5vw, 1.25rem);
+}}
 
-/* ============ GRID IMAGE LAYOUT ============ */
+.content-section,
+.content-block {{
+    margin-bottom: 2.5rem;
+}}
+
 @media (min-width: 769px) {{
     #blog-editable-body section[data-blog-image-layout="true"] {{
         display: grid;
         grid-template-columns: minmax(260px, 0.95fr) minmax(0, 1.05fr);
-        column-gap: clamp(1.75rem, 4vw, 3rem);
-        row-gap: 0.85rem;
+        column-gap: clamp(1.5rem, 4vw, 3rem);
+        row-gap: 0.75rem;
         align-items: start;
-        margin: 2rem 0;
     }}
+
     #blog-editable-body section[data-blog-image-layout="true"] > h2 {{
         grid-column: 1 / -1;
         grid-row: 1;
         margin-bottom: 0.35rem;
     }}
+
     #blog-editable-body section[data-blog-image-layout="true"] > img {{
         grid-column: 1;
         grid-row: 2;
@@ -964,102 +810,97 @@ img {{
         max-height: min(70vh, 720px);
         margin: 0 0 1.25rem;
         object-fit: cover;
-        border-radius: var(--radius);
-        box-shadow: var(--shadow-sm);
     }}
-    #blog-editable-body section[data-blog-image-layout="true"] > img:first-of-type {{ grid-row: 2; }}
+
+    #blog-editable-body section[data-blog-image-layout="true"] > img:first-of-type {{
+        grid-row: 2;
+    }}
+
     #blog-editable-body section[data-blog-image-layout="true"] > p {{
         grid-column: 2;
         grid-row: 2;
         min-width: 0;
         margin-top: 0;
     }}
+
     #blog-editable-body section[data-blog-image-layout="true"] > :not(h2):not(img):not(p) {{
         grid-column: 1 / -1;
     }}
 }}
 
-/* ============ COLLECTIONS ============ */
-#collections-header {{ margin-top: 2.5rem; }}
-#collections-header h2 {{ margin-top: 0; }}
-#collections-loading {{ color: var(--ink-muted); font-size: 0.95rem; }}
+.highlight-box,
+.tip-box,
+.mindset-box {{
+    padding: 1.5rem;
+
+
+
+    border-left: 5px solid var(--accent);
+
+}}
+
+.tip-box {{
+    border-left-color: var(--accent-light);
+}}
+
+.mindset-box {{
+    background: var(--surface);
+}}
 
 .collection-section,
 #dynamic-collections {{
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 1.25rem;
-    margin-top: 1.35rem;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
 }}
+
 .collection-item,
 .collection-section .collection-card {{
-    display: flex;
-    flex-direction: column;
-    padding: 1.15rem;
-    background: var(--surface);
+    padding: 1rem;
+    background: #ffffff;
     border: 1px solid var(--border);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-xs);
-    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    
 }}
-.collection-item:hover,
-.collection-section .collection-card:hover {{
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-md);
-    border-color: var(--border-strong);
-}}
+
 .collection-item img,
 .collection-section .collection-card img {{
     height: 180px;
     object-fit: cover;
-    margin: 0 0 0.9rem;
-    border-radius: var(--radius-sm);
+    margin: 0 0 0.85rem;
 }}
+
 .collection-item h4,
 .collection-section .collection-card h4 {{
-    color: var(--brand-dark);
-    font-size: 1.05rem;
-    font-weight: 700;
-    margin-bottom: 0.4rem;
+    color: var(--accent-dark);
+    font-weight: 650;
 }}
-.collection-item p,
-.collection-section .collection-card p {{
-    color: var(--ink-muted);
-    font-size: 0.92rem;
-    line-height: 1.55;
-    margin-bottom: 0.75rem;
-}}
+
 .collection-link,
 .collection-section .collection-link {{
     display: inline-block;
-    align-self: flex-start;
-    margin-top: auto;
-    padding: 0.55rem 0.95rem;
+    padding: 0.7rem 1rem;
     color: #ffffff;
-    font-weight: 600;
-    font-size: 0.88rem;
     text-decoration: none;
-    border-bottom: none;
-    border-radius: 999px;
-    background: var(--brand);
-    transition: background 0.15s ease, transform 0.15s ease;
+    font-weight: 650;
+    background: var(--accent);
+    
 }}
-.collection-link:hover {{ background: var(--brand-dark); border-bottom: none; }}
 
 .directions-link {{
     display: inline-flex;
     align-items: center;
-    gap: 0.35em;
+    gap: 0.4em;
     margin-top: 0.5rem;
-    color: var(--link);
-    font-weight: 600;
-    font-size: 0.9rem;
-    border-bottom: none;
+    color: var(--accent-blue);
+    font-weight: 700;
 }}
-.directions-link:hover {{ border-bottom: none; text-decoration: underline; }}
 
-/* ============ TOUR GUIDE CARD ============ */
-.tour-guide-card {{ max-width: 640px; margin-left: auto; margin-right: auto; text-align: left; }}
+.tour-guide-card {{
+    margin: 0 auto;
+    text-align: left;
+}}
+
 .tour-guide-card input {{
     width: 100%;
     margin-top: 0.75rem;
@@ -1067,305 +908,137 @@ img {{
     color: #ffffff;
     font: inherit;
     border: 1px solid rgba(255, 255, 255, 0.35);
-    border-radius: var(--radius-sm);
+    
     background: rgba(255, 255, 255, 0.12);
 }}
 
-/* ============ PROFESSIONAL FOOTER ============ */
-.site-footer {{
-    position: relative;
-    margin-top: 4rem;
-    padding: clamp(2.75rem, 5vw, 4rem) clamp(1rem, 3vw, 2rem) 2rem;
-    color: rgba(255, 255, 255, 0.78);
-    background: linear-gradient(180deg, #0b2420 0%, #0a1a17 100%);
-    overflow: hidden;
-}}
-.site-footer::before {{
-    content: "";
-    position: absolute;
-    inset: 0;
-    background:
-        radial-gradient(700px 300px at 12% 0%, rgba(20, 184, 166, 0.12), transparent 60%),
-        radial-gradient(700px 300px at 88% 100%, rgba(217, 119, 6, 0.08), transparent 60%);
-    pointer-events: none;
-}}
-.site-footer > * {{ position: relative; z-index: 1; }}
-
-.footer-inner {{ max-width: 1120px; margin: 0 auto; }}
-
-.footer-top {{
-    display: grid;
-    grid-template-columns: 1.5fr 1fr 1fr 1.6fr;
-    gap: 2.5rem;
-    padding-bottom: 2.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.10);
-}}
-@media (max-width: 900px) {{
-    .footer-top {{ grid-template-columns: 1fr 1fr; gap: 2rem; }}
-}}
-@media (max-width: 560px) {{
-    .footer-top {{ grid-template-columns: 1fr; }}
+footer {{
+    padding: clamp(2rem, 5vw, 3.5rem) 1.25rem;
+    color: var(--white);
+    text-align: center;
+    background: linear-gradient(135deg, #17584b, #202c3d);
 }}
 
-.footer-brand .footer-logo {{
-    display: inline-block;
-    font-family: var(--font-display);
-    font-size: 1.65rem;
-    font-weight: 700;
-    font-style: italic;
-    letter-spacing: -0.01em;
+footer h1 {{
+    max-width: 860px;
+    margin: 1.5rem auto 0.75rem;
+    color: var(--white);
+    font-size: clamp(1.4rem, 3vw, 1.9rem);
+}}
+
+footer p {{
+    max-width: 820px;
+    margin-left: auto;
+    margin-right: auto;
+    color: rgba(255, 255, 255, 0.9);
+}}
+
+footer a {{
     color: #ffffff;
-    text-decoration: none;
-    border-bottom: none;
-    margin-bottom: 0.75rem;
-}}
-.footer-brand .footer-tagline {{
-    color: rgba(255, 255, 255, 0.66);
-    font-size: 0.95rem;
-    line-height: 1.65;
-    max-width: 320px;
-    margin: 0;
 }}
 
-.footer-col h3 {{
-    margin: 0 0 1rem;
-    color: #ffffff;
-    font-family: var(--font-body);
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-}}
-.footer-col ul {{
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: grid;
-    gap: 0.55rem;
-}}
-.footer-col a {{
-    color: rgba(255, 255, 255, 0.72);
-    font-size: 0.95rem;
-    text-decoration: none;
-    border-bottom: none;
-    transition: color 0.15s ease, transform 0.15s ease;
-    display: inline-block;
-}}
-.footer-col a:hover {{
-    color: #ffffff;
-    border-bottom: none;
-    transform: translateX(2px);
-}}
-
-.footer-newsletter p {{
-    color: rgba(255, 255, 255, 0.66);
-    font-size: 0.95rem;
-    margin: 0 0 0.85rem;
-    line-height: 1.6;
-}}
-
-#subscribeForm {{
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    padding: 0;
-    margin: 0;
-    max-width: 100%;
-    background: transparent;
-    border: 0;
-    backdrop-filter: none;
-}}
-#subscribeForm input[type="email"],
-#subscribeForm input[type="text"] {{
-    flex: 1 1 140px;
-    min-height: 44px;
-    padding: 0.65rem 0.85rem;
-    color: #ffffff;
-    font: inherit;
-    font-size: 0.92rem;
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: var(--radius-sm);
-    background: rgba(255, 255, 255, 0.06);
-    transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
-}}
-#subscribeForm input::placeholder {{ color: rgba(255, 255, 255, 0.45); }}
-#subscribeForm input:focus {{
-    outline: none;
-    border-color: rgba(20, 184, 166, 0.65);
-    background: rgba(255, 255, 255, 0.10);
-    box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.18);
-}}
-#subscribeForm button {{
-    min-height: 44px;
-    padding: 0.65rem 1.15rem;
-    color: #0b2420;
-    font: inherit;
-    font-size: 0.9rem;
-    font-weight: 700;
-    letter-spacing: 0.01em;
-    border: 0;
-    border-radius: var(--radius-sm);
-    background: linear-gradient(135deg, #34d399, #10b981);
-    cursor: pointer;
-    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
-    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.22);
-}}
-#subscribeForm button:hover {{
-    transform: translateY(-1px);
-    filter: brightness(1.04);
-}}
-
-.footer-share {{
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 1rem;
-    padding: 1.75rem 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.10);
-}}
-.footer-share p {{
-    margin: 0;
-    color: rgba(255, 255, 255, 0.72);
-    font-size: 0.95rem;
-    white-space: nowrap;
-}}
+#subscribeForm,
 #imageform {{
+    max-width: 760px;
+    margin: 0 auto 1.5rem;
+    padding: 1rem;
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
-    gap: 0.6rem;
-    margin: 0;
-    padding: 0;
-    background: transparent;
-    border: 0;
-    backdrop-filter: none;
-    flex: 1 1 auto;
+    gap: 0.75rem;
+    background: rgba(255, 255, 255, 0.10);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    
 }}
+
+#imageform {{
+    margin-top: 2rem;
+    justify-content: center;
+}}
+
+#subscribeForm input[type="email"],
+#subscribeForm input[type="text"],
 #imageform input[type="file"] {{
     flex: 1 1 220px;
-    min-height: 40px;
-    padding: 0.5rem 0.75rem;
-    color: rgba(255, 255, 255, 0.85);
+    min-height: 44px;
+    padding: 0.75rem 0.9rem;
+    color: var(--text);
     font: inherit;
-    font-size: 0.88rem;
-    border: 1px dashed rgba(255, 255, 255, 0.25);
-    border-radius: var(--radius-sm);
-    background: rgba(255, 255, 255, 0.04);
-    cursor: pointer;
+    border: 1px solid #d9dfdc;
+    
+    background: #ffffff;
 }}
-#imageform input[type="file"]::file-selector-button {{
-    margin-right: 0.6rem;
-    padding: 0.4rem 0.75rem;
-    color: #ffffff;
-    background: rgba(255, 255, 255, 0.10);
-    border: 0;
-    border-radius: var(--radius-xs);
-    cursor: pointer;
-    font: inherit;
-    font-size: 0.85rem;
-    font-weight: 600;
+
+#subscribeForm input:focus,
+#imageform input[type="file"]:focus {{
+    border-color: var(--accent-light);
+    outline: 2px solid rgba(217, 122, 69, 0.28);
+    outline-offset: 1px;
 }}
-#imageform button {{
-    min-height: 40px;
-    padding: 0.55rem 1rem;
+
+#subscribeForm button,
+#imageform button,
+footer button {{
+    min-height: 44px;
+    padding: 0.75rem 1.2rem;
     color: #ffffff;
     font: inherit;
-    font-size: 0.88rem;
     font-weight: 700;
-    border: 1px solid rgba(255, 255, 255, 0.22);
-    border-radius: var(--radius-sm);
-    background: rgba(255, 255, 255, 0.08);
+    border: 0;
+    
+    background: var(--accent-light);
     cursor: pointer;
-    transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
-}}
-#imageform button:hover {{
-    background: rgba(255, 255, 255, 0.14);
-    border-color: rgba(255, 255, 255, 0.35);
-    transform: translateY(-1px);
 }}
 
-.footer-bottom {{
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem 1.5rem;
-    padding-top: 1.75rem;
-    color: rgba(255, 255, 255, 0.55);
-    font-size: 0.85rem;
-}}
-.footer-bottom p {{ margin: 0; color: inherit; font-size: inherit; }}
-.footer-bottom a {{
-    color: rgba(255, 255, 255, 0.78);
-    text-decoration: none;
-    border-bottom: none;
-}}
-.footer-bottom a:hover {{ color: #ffffff; border-bottom: none; }}
-.footer-meta {{
-    display: inline-flex;
-    align-items: center;
-    gap: 0.6rem;
-}}
-.footer-meta .dot {{
-    display: inline-block;
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background: currentColor;
-    opacity: 0.5;
-}}
-
-@media (max-width: 768px) {{
-    .footer-share {{ flex-direction: column; align-items: stretch; }}
-    #imageform {{ flex-direction: column; align-items: stretch; }}
-    #imageform input[type="file"],
-    #imageform button {{ width: 100%; }}
-    .footer-bottom {{ flex-direction: column; align-items: flex-start; }}
-}}
-
-/* ============ EDITOR UI ============ */
 #blog-editable-body [data-blog-edit-index],
 section[aria-labelledby="faq-heading"] [data-blog-edit-index] {{
     position: relative;
-    border-radius: var(--radius-sm);
-    transition: background 0.15s ease;
+    padding: 1rem;
+    font-weight:300;
+    word-spacing:0.1rem
 }}
-#blog-editable-body [data-blog-edit-index]:hover,
-section[aria-labelledby="faq-heading"] [data-blog-edit-index]:hover {{
-    background: rgba(15, 118, 110, 0.05);
-}}
+
 #blog-editable-body [data-editing="true"],
 section[aria-labelledby="faq-heading"] [data-editing="true"] {{
-    padding: 0.85rem 1.1rem;
-    background: #f7fbfa;
-    border: 1px solid var(--brand);
-    border-radius: var(--radius-sm);
+    padding: 0.75rem 1rem;
+    background: #f7f7f7;
+    border: 1px solid #cbd5e1;
+    
+
     outline: none;
-    box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.10);
-    transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+
+    transition:
+        background-color 0.15s ease,
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
+
+    box-shadow:
+        0 1px 2px rgba(0,0,0,0.04),
+        0 0 0 3px rgba(37, 99, 235, 0.12);
 }}
 
 .blog-edit-button {{
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 30px;
-    height: 30px;
-    margin-left: 0.5rem;
-    color: var(--ink-muted);
+    width: 28px;
+    height: 28px;
+    margin-left: 0.45rem;
     font: inherit;
     font-size: 0.9rem;
-    border: 1px solid transparent;
-    border-radius: 50%;
+
+    border: none;
+
+
     cursor: pointer;
     vertical-align: middle;
-    background: transparent;
-    transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    color: rgba(0, 0, 0, 0.63);
+    background: rgba(97, 76, 76, 0);
 }}
+
 .blog-edit-button:hover {{
     color: #ffffff;
-    background: var(--brand);
-    border-color: var(--brand);
+    background: var(--accent);
+    border-color: var(--accent);
 }}
 
 .blog-paragraph-tools {{
@@ -1373,211 +1046,199 @@ section[aria-labelledby="faq-heading"] [data-editing="true"] {{
     flex-wrap: wrap;
     align-items: center;
     gap: 0.5rem;
-    margin: -0.55rem 0 1.25rem;
-    padding: 0.75rem;
-    border-radius: var(--radius-sm);
-    background: var(--surface-soft);
-    border: 1px solid var(--border);
+    margin: -0.55rem 0 1.1rem;
 }}
 
-.blog-section-actions {{ display: flex; justify-content: flex-end; margin: 1rem 0 1.2rem; }}
+.blog-section-actions {{
+    display: flex;
+    justify-content: flex-end;
+    margin: 1rem 0 1.2rem;
+}}
 
 .blog-add-section-button {{
     min-height: 42px;
-    padding: 0.7rem 1.15rem;
+    padding: 0.7rem 1rem;
     color: #ffffff;
     font: inherit;
-    font-weight: 600;
-    font-size: 0.92rem;
+    font-weight: 700;
     border: 0;
     border-radius: 999px;
-    background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+    background: linear-gradient(120deg, var(--accent), var(--accent-blue));
     cursor: pointer;
-    box-shadow: 0 6px 16px rgba(15, 118, 110, 0.22);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
 }}
-.blog-add-section-button:hover {{ transform: translateY(-1px); box-shadow: 0 10px 20px rgba(15, 118, 110, 0.28); }}
 
 .blog-add-section-form {{
     display: grid;
     gap: 0.75rem;
     margin: 0 0 1.5rem;
-    padding: 1.1rem;
+    padding: 1rem;
     border: 1px solid var(--border);
-    border-radius: var(--radius);
-    background: var(--surface-soft);
+    border-radius: 14px;
+    background: #f8fbf9;
 }}
-.blog-add-section-form[hidden] {{ display: none; }}
+
+.blog-add-section-form[hidden] {{
+    display: none;
+}}
+
 .blog-add-section-form input,
 .blog-add-section-form textarea {{
     width: 100%;
-    padding: 0.85rem 0.95rem;
-    color: var(--ink);
+    padding: 0.8rem 0.9rem;
+    color: var(--text);
     font: inherit;
-    font-size: 0.95rem;
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    border-radius: 12px;
     background: #ffffff;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }}
-.blog-add-section-form input:focus,
-.blog-add-section-form textarea:focus {{
-    outline: none;
-    border-color: var(--brand);
-    box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
-}}
-.blog-add-section-form textarea {{ min-height: 140px; resize: vertical; }}
 
-.blog-add-section-form-actions {{ display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }}
+.blog-add-section-form textarea {{
+    min-height: 140px;
+    resize: vertical;
+}}
+
+.blog-add-section-form-actions {{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    align-items: center;
+}}
 
 .blog-add-section-save,
 .blog-add-section-cancel {{
     min-height: 40px;
-    padding: 0.65rem 1.15rem;
+    padding: 0.65rem 1rem;
     font: inherit;
-    font-weight: 600;
-    font-size: 0.9rem;
+    font-weight: 700;
     border-radius: 999px;
     cursor: pointer;
-    transition: transform 0.15s ease;
 }}
+
 .blog-add-section-save {{
     color: #ffffff;
     border: 0;
-    background: var(--brand-dark);
+    background: var(--accent-dark);
 }}
+
 .blog-add-section-cancel {{
-    color: var(--ink);
-    border: 1px solid var(--border-strong);
+    color: var(--text);
+    border: 1px solid var(--border);
     background: #ffffff;
 }}
-.blog-add-section-save:hover,
-.blog-add-section-cancel:hover {{ transform: translateY(-1px); }}
 
 .blog-paragraph-tools button {{
     min-height: 36px;
-    padding: 0.5rem 0.9rem;
+    padding: 0.45rem 0.85rem;
     font: inherit;
-    font-weight: 600;
-    font-size: 0.86rem;
-    border-radius: 999px;
+    font-weight: 700;
+    
     cursor: pointer;
-    transition: transform 0.15s ease, filter 0.15s ease;
 }}
-.blog-paragraph-tools button:hover {{ transform: translateY(-1px); }}
 
-.blog-save-button {{ color: #ffffff; border: 0; background: linear-gradient(135deg, var(--brand), var(--brand-dark)); }}
-.blog-cancel-button {{ color: var(--ink); border: 1px solid var(--border-strong); background: #ffffff; }}
-.blog-image-upload-button {{ color: var(--brand-dark); border: 1px solid rgba(15, 118, 110, 0.4); background: var(--brand-soft); }}
-.blog-url-button {{ color: var(--link); border: 1px solid rgba(29, 78, 216, 0.35); background: #eff6ff; }}
+.blog-save-button {{
+    color: #ffffff;
+    border: 0;
+    background: rebeccapurple;
+}}
 
-.blog-url-input,
+.blog-cancel-button {{
+    color: var(--text);
+    border: 1px solid var(--border);
+    background: #ffffff;
+}}
+
+.blog-image-upload-button {{
+    color: var(--accent-dark);
+    border: 1px solid rgba(47, 125, 104, 0.35);
+    background: #edf7f2;
+}}
+
+.blog-url-button {{
+    color: #1d4ed8;
+    border: 1px solid rgba(37, 99, 235, 0.35);
+    background: #eff6ff;
+}}
+
+.blog-url-input {{
+    flex: 1 1 260px;
+    min-height: 36px;
+    min-width: 220px;
+    padding: 0.45rem 0.7rem;
+    color: var(--text);
+    font: inherit;
+    border: 1px solid var(--border);
+    
+    background: #ffffff;
+}}
+
+.blog-url-input:focus {{
+    border-color: #2563eb;
+    outline: 2px solid rgba(37, 99, 235, 0.18);
+    outline-offset: 1px;
+}}
+
 .blog-image-name-input {{
     flex: 1 1 220px;
-    min-height: 38px;
+    min-height: 36px;
     min-width: 200px;
-    padding: 0.5rem 0.75rem;
-    color: var(--ink);
+    padding: 0.45rem 0.7rem;
+    color: var(--text);
     font: inherit;
-    font-size: 0.9rem;
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius-xs);
+    border: 1px solid var(--border);
+    
     background: #ffffff;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }}
-.blog-url-input:focus,
+
 .blog-image-name-input:focus {{
-    outline: none;
-    border-color: var(--link);
-    box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.12);
-}}
-.blog-image-name-input:focus {{
-    border-color: var(--brand);
-    box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
+    border-color: rgba(47, 125, 104, 0.72);
+    outline: 2px solid rgba(47, 125, 104, 0.18);
+    outline-offset: 1px;
 }}
 
-.blog-image-upload-button:disabled {{ cursor: wait; opacity: 0.7; }}
-.blog-image-upload-input {{ display: none; }}
+.blog-image-upload-button:disabled {{
+    cursor: wait;
+    opacity: 0.7;
+}}
 
-.blog-edit-status {{ color: var(--ink-muted); font-size: 0.88rem; }}
-.blog-edit-status.error {{ color: #b42318; font-weight: 600; }}
+.blog-image-upload-input {{
+    display: none;
+}}
 
-/* ============ FAQ ============ */
-.faq-section {{ margin: 3rem 0 0; }}
+.blog-edit-status {{
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}}
 
-.faq-list {{ display: grid; gap: 0.85rem; }}
+.blog-edit-status.error {{
+    color: #b42318;
+}}
+
+.faq-section {{
+    margin: 2.75rem 0 0;
+}}
+
+.faq-list {{
+    display: grid;
+    gap: 0.75rem;
+}}
 
 .faq-item {{
     border: 1px solid var(--border);
-    border-radius: var(--radius);
-    background: var(--surface);
-    overflow: hidden;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }}
-.faq-item:hover {{ border-color: var(--border-strong); box-shadow: var(--shadow-xs); }}
-.faq-item[open] {{ border-color: var(--brand); box-shadow: var(--shadow-sm); }}
 
 .faq-item summary {{
-    position: relative;
-    padding: 1.05rem 3rem 1.05rem 1.15rem;
-    color: var(--ink);
-    font-weight: 600;
-    font-size: 1.02rem;
+    padding: 0.95rem 1rem;
+    color: var(--accent-dark);
     cursor: pointer;
-    list-style: none;
-    border-radius: var(--radius);
-    transition: background 0.15s ease, color 0.15s ease;
 }}
-.faq-item summary::-webkit-details-marker {{ display: none; }}
-.faq-item summary::after {{
-    content: "+";
-    position: absolute;
-    right: 1.15rem;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 26px;
-    height: 26px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--brand-dark);
-    font-size: 1.15rem;
-    font-weight: 500;
-    background: var(--brand-soft);
-    border-radius: 50%;
-    transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
-}}
-.faq-item[open] summary::after {{
-    content: "−";
-    background: var(--brand);
-    color: #ffffff;
-    transform: translateY(-50%) rotate(180deg);
-}}
-.faq-item summary:hover {{ background: var(--surface-soft); color: var(--brand-dark); }}
 
 .faq-item p {{
     margin: 0;
-    padding: 1rem 1.15rem 1.15rem;
-    color: var(--ink-muted);
-    font-size: 0.98rem;
-    line-height: 1.7;
-    border-top: 1px solid var(--border);
+    padding: 0 1rem 1rem;
+    color: var(--text-muted);
 }}
 
-/* ============ RESPONSIVE ============ */
 @media (max-width: 768px) {{
-    body {{ font-size: 16px; }}
-
-    .blog-shell {{ width: min(var(--container), 100% - 0.9rem); margin-top: 0.75rem; }}
-
-    #body-contents {{
-        padding: 1.25rem;
-        border-radius: 0;
-        border-left: 0;
-        border-right: 0;
-        box-shadow: none;
-    }}
-
     #blog-editable-body img,
     #blog-editable-body .editable-blog-image {{
         width: 100%;
@@ -1585,19 +1246,42 @@ section[aria-labelledby="faq-heading"] [data-editing="true"] {{
         max-height: calc(100vh - 2rem);
         max-height: calc(100svh - 2rem);
         object-fit: contain;
-        border-radius: var(--radius-sm);
     }}
 
-    h1 {{ font-size: clamp(1.75rem, 7vw, 2.3rem); }}
-    h2 {{ font-size: clamp(1.3rem, 5vw, 1.6rem); margin-top: 2rem; }}
+    .blog-save-button {{
+    width: 100%;
+}}
+.blog-paragraph-tools button {{
 
-    .blog-save-button {{ width: 100%; }}
+}}
+    body {{
+        font-size: 15.5px;
+    }}
 
-    .navbar {{ padding: 0.75rem 1rem; }}
-    .place-page-link.place-page-link-nav {{ display: none; }}
+    .blog-shell {{
+        width: min(1120px, 100% - 0.9rem);
+        margin-top: 0.65rem;
+    }}
 
-    .blog-paragraph-tools {{ padding: 0.6rem; }}
-    .blog-paragraph-tools button {{ width: 100%; }}
+    #body-contents {{
+        margin-top: 0;
+
+        border-left: 0;
+        border-right: 0;
+    }}
+
+    .navbar {{
+        padding: 0.8rem 1rem;
+    }}
+
+    .place-page-link.place-page-link-nav {{
+        display: none;
+    }}
+
+    #subscribeForm button,
+    #imageform button {{
+        width: 100%;
+    }}
 }}
 </style>
 
@@ -1648,7 +1332,7 @@ section[aria-labelledby="faq-heading"] [data-editing="true"] {{
 <main class="blog-shell">
     <article id="body-contents">
         <header class="blog-hero">
-                <span class="blog-kicker">{category} · {place_name}</span>
+                <p class="blog-kicker">{category} guide in {place_name}</p>
                 <h1>{title}</h1>
                 <a class="place-page-link" href="{place_page_url}">Explore {place_name}</a>
         </header>
@@ -3101,11 +2785,6 @@ document.addEventListener("DOMContentLoaded", () => {{
     getBlogLists();
     fetchCollections();
 
-    const yearEl = document.getElementById('footerYear');
-    if (yearEl) {{
-        yearEl.textContent = new Date().getFullYear();
-    }}
-
 
     
 let bottomTriggered = false;
@@ -3159,76 +2838,46 @@ document.addEventListener('click', (ev) => {{
             <a href="/userProfile/tour-guide/register/" class="collection-link" style="display: inline-block;">Register as Tour Guide</a>
         </div>
     </section>
-<footer class="site-footer">
-    <div class="footer-inner">
-        <div class="footer-top">
-            <div class="footer-brand">
-                <a class="footer-logo" href="/">ParaTara</a>
-                <p class="footer-tagline">Travel guides and local experiences for {place_name} and beyond — written for real trips, not for clicks.</p>
-            </div>
+  <footer>
+  <form method="post" action="{subscribe_url}" id="subscribeForm">
+    <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
+    <input type="email" name="email" placeholder="Your email" required>
+    <input type="text" name="name" placeholder="Name (optional)" type="text">
+    <input type="hidden" name="source" value="blog_footer">
+    <button type="submit">Subscribe</button>
+</form>
+    <h1>{title}</h1>
+  <p><strong>Location:</strong> {place_name}</p>
 
-            <div class="footer-col">
-                <h3>Explore</h3>
-                <ul>
-                    <li><a href="/">Home</a></li>
-                    <li><a href="/places/">Places</a></li>
-                    <li><a href="/pages/blog/">Blog</a></li>
-                    <li><a href="/userProfile/tour-guide/register/">Tour guides</a></li>
-                </ul>
-            </div>
 
-            <div class="footer-col">
-                <h3>Company</h3>
-                <ul>
-                    <li><a href="/about/">About</a></li>
-                    <li><a href="https://foreigntravelsteps.com">Foreign Travel Steps</a></li>
-                    <li><a href="mailto:foreigntravelsteps@paratara.com">Contact</a></li>
-                    <li><a href="/privacy/">Privacy</a></li>
-                </ul>
-            </div>
+    <p>Written by <strong><a href="https://foreigntravelsteps.com">Foreign Travel Steps</a></strong> | Contact Me at <a href="#">foreigntravelsteps@paratara.com</a> </p>
+  
+  
 
-            <div class="footer-col footer-newsletter">
-                <h3>Stay in touch</h3>
-                <p>New travel guides and local tips, straight to your inbox.</p>
-                <form method="post" action="{subscribe_url}" id="subscribeForm">
-                    <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
-                    <input type="email" name="email" placeholder="Your email" required>
-                    <input type="text" name="name" placeholder="Name (optional)">
-                    <input type="hidden" name="source" value="blog_footer">
-                    <button type="submit">Subscribe</button>
-                </form>
-            </div>
-        </div>
 
-        <div class="footer-share">
-            <p>Share your {place_name} photos with the community:</p>
-            <form id="imageform" action="{upload_url}" method="POST" enctype="multipart/form-data">
-                {{% csrf_token %}}
-                <input type="hidden" value="{place_name}" name="imageclassID" required>
-                <input type="file" name="image" accept="image/*" required>
-                <button type="submit">Upload picture</button>
-            </form>
-        </div>
 
-        <div class="footer-bottom">
-            <p>&copy; <span id="footerYear">2026</span> ParaTara. Written by <a href="https://foreigntravelsteps.com">Foreign Travel Steps</a>.</p>
-            <p class="footer-meta">
-                <span>{category}</span>
-                <span class="dot"></span>
-                <span>{place_name}</span>
-            </p>
-        </div>
-    </div>
+
+
+<form id="imageform" action="{upload_url}" method="POST" enctype="multipart/form-data">
+    {{% csrf_token %}}
+
+    <input type="hidden" value="{place_name}" name="imageclassID" required>
+    <input type="file" name="image" required>
+    <button type="submit">Share your {place_name} Pictures</button>
+</form>
 </footer>
 </body>
 </html>
 """
+    
 
-    # FIX: single source of truth for the output folder — removed the
-    # duplicated `folder` block that re-derived the path via __file__.
+
+
+
+
     folder = os.path.join(
-        settings.BASE_DIR,
-        "singlepage2", "templates", "blogs", place_slug,
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "singlepage2", "templates", "blogs", place_slug
     )
     os.makedirs(folder, exist_ok=True)
 
@@ -3243,4 +2892,41 @@ document.addEventListener('click', (ev) => {{
     except Exception:
         pass
 
+
     return html_content
+
+
+# .hamburger.open span:nth-child(2) {
+#     opacity: 0;
+#     transform: translateX(20px);
+# }
+# .hamburger span {
+#     display: block;
+#     height: 3px;
+#     width: 100%;
+#     background: var(--primary-blue);
+#     border-radius: 3px;
+#     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+#     box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+# }
+
+# .hamburger span:nth-child(1) {
+#     transform-origin: right center;
+# }
+# .hamburger.open span:nth-child(1) {
+#     transform: rotate(45deg) translate(5px, 5px);
+# }
+# .hamburger.open span:nth-child(3) {
+#     transform: rotate(-45deg) translate(7px, -6px);
+# }
+# .hamburger span:nth-child(3) {
+#     transform-origin: right center;
+#     margin-top: 4px;
+# }
+# .hamburger.open span:nth-child(2) {
+#     opacity: 0;
+#     transform: translateX(20px);
+# }
+# .hamburger span:nth-child(2) {
+#     margin-top: 4px;
+# }
