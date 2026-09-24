@@ -1857,9 +1857,6 @@
   }
 
   .hero-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
     overflow: hidden;
     box-shadow: var(--shadow-md);
     transition: background 0.25s ease, border-color 0.25s ease;
@@ -2181,9 +2178,6 @@
 
   .support-card {
     min-width: 0;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
     padding: 1rem;
     box-shadow: var(--shadow-md);
     transition: background 0.25s ease, border-color 0.25s ease;
