@@ -76,9 +76,16 @@ def _link_user_profile(user, profile, photo=None):
         user.photoLink = photo
         changed_fields.append("photoLink")
 
+    # if changed_fields:
+    #     update_kwargs = {field: getattr(user, field) for field in changed_fields}
+    #     type(user).objects.filter(pk=user.pk).update(**update_kwargs)
+
     if changed_fields:
+        # Accessing fields via getattr will automatically evaluate the SimpleLazyObject
         update_kwargs = {field: getattr(user, field) for field in changed_fields}
-        type(user).objects.filter(pk=user.pk).update(**update_kwargs)
+        
+        # Use get_user_model() to safely access the manager
+        get_user_model().objects.filter(pk=user.pk).update(**update_kwargs)        
 
 
 @transaction.atomic

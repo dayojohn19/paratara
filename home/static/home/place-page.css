@@ -1717,6 +1717,13 @@ align-items: center;
     }
 
     @media (min-width: 768px) {
+
+
+  .hero--enhanced  {
+    grid-template-columns: minmax(0px, 0.7fr) minmax(0px, 1fr) !important;
+  }
+
+
           .top-nav {
       position: fixed;
             width: 100%;
@@ -2265,7 +2272,8 @@ align-items: center;
 
 .hero {
   display: grid;
-  grid-template-columns: minmax(0px, 0.7fr) minmax(0px, 1fr);
+  
+  grid-template-columns: 1fr;
   gap: 14px;
   padding: 20px;
   background: var(--surface);
@@ -2409,6 +2417,8 @@ align-items: center;
 @media (max-width: 680px) {
   .hero {
     padding: 16px;
+    
+    
   }
 
   .section-jumpbar {

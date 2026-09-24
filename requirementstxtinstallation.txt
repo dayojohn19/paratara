@@ -1,0 +1,13 @@
+python3 -c "
+import subprocess
+with open('requirements.txt') as f:
+    for line in f:
+        req = line.strip()
+        if not req or req.startswith('#'): continue
+        print(f'Installing {req}...')
+        res = subprocess.run(['pip3', 'install', req])
+        if res.returncode != 0 and ('==' in req or '>=' in req):
+            pkg = req.split('==')[0].split('>=')[0].split('<=')[0].strip()
+            print(f'Version failed. Trying latest version of {pkg}...')
+            subprocess.run(['pip3', 'install', pkg])
+"
