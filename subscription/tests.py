@@ -442,6 +442,42 @@ class PayMongoCheckoutAndWebhookTests(TestCase):
         self.assertNotIn("customer_id", payload["data"]["attributes"])
         self.assertEqual(response["data"]["id"], "cs_without_customer_link")
 
+    @patch("subscription.services.paymongo.requests.request")
+    def test_checkout_session_retries_with_card_if_payment_methods_are_rejected(self, mocked_request):
+        rejected_response = Mock(status_code=400, ok=False)
+        rejected_response.json.return_value = {"errors": [{"detail": "payment_method_types is invalid"}]}
+        accepted_response = Mock(status_code=200, ok=True)
+        accepted_response.json.return_value = {
+            "data": {
+                "id": "cs_card_only",
+                "attributes": {"checkout_url": "https://checkout.paymongo.com/card-only"},
+            }
+        }
+        mocked_request.side_effect = [rejected_response, accepted_response]
+        payment_transaction = Transaction.objects.create(
+            source_website=self.source,
+            product=self.product,
+            plan=self.plan,
+            payment_button=self.button,
+            amount=self.plan.price,
+            amount_centavos=49900,
+            currency="PHP",
+        )
+
+        payload, response = PayMongoClient().create_checkout_session(
+            transaction=payment_transaction,
+            line_item_name=self.plan.name,
+            description=self.plan.description,
+            success_url="https://www.paratara.com/success",
+            cancel_url="https://www.paratara.com/cancel",
+            metadata={"internal_reference_id": payment_transaction.internal_reference_id},
+        )
+
+        retry_payload = mocked_request.call_args_list[1].kwargs["json"]
+        self.assertEqual(retry_payload["data"]["attributes"]["payment_method_types"], ["card"])
+        self.assertEqual(payload, retry_payload)
+        self.assertEqual(response["data"]["id"], "cs_card_only")
+
     @patch("subscription.views.PayMongoClient.create_checkout_session")
     def test_checkout_posts_to_specific_payment_button_url(self, mocked_checkout):
         specific_button_id = "btn_c0a3733eb3094a7b966ccd58"
@@ -621,6 +657,53 @@ class PayMongoCheckoutAndWebhookTests(TestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(PayMongoWebhookEvent.objects.filter(processing_status="invalid").count(), 1)
+
+    def test_webhook_rejects_paid_amount_mismatch(self):
+        transaction = Transaction.objects.create(
+            source_website=self.source,
+            product=self.product,
+            plan=self.plan,
+            payment_button=self.button,
+            amount=self.plan.price,
+            amount_centavos=49900,
+            currency="PHP",
+            paymongo_checkout_session_id="cs_amount_mismatch",
+        )
+        payload = {
+            "data": {
+                "id": "evt_amount_mismatch",
+                "attributes": {
+                    "type": "checkout_session.payment.paid",
+                    "data": {
+                        "id": "cs_amount_mismatch",
+                        "type": "checkout_session",
+                        "attributes": {
+                            "status": "paid",
+                            "metadata": {"internal_reference_id": transaction.internal_reference_id},
+                            "payments": [{
+                                "id": "pay_amount_mismatch",
+                                "type": "payment",
+                                "attributes": {"status": "paid", "amount": 100, "currency": "PHP"},
+                            }],
+                        },
+                    },
+                },
+            }
+        }
+        raw_body, signature_header = self._signed_webhook(payload)
+
+        response = self.client.post(
+            reverse("subscription:paymongo_webhook"),
+            data=raw_body,
+            content_type="application/json",
+            HTTP_PAYMONGO_SIGNATURE=signature_header,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        transaction.refresh_from_db()
+        self.assertEqual(transaction.status, "failed")
+        self.assertIn("does not match", transaction.failure_reason)
+        self.assertFalse(Subscription.objects.exists())
 
     def test_subscription_updated_cancelled_deactivates_user_subscription(self):
         User = get_user_model()

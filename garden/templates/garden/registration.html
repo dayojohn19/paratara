@@ -2,443 +2,735 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="{% static 'bootstrap/css/master.css' %}" />
-    <script src="{% static 'bootstrap/js/bootstrap.js' %}"></script>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel</title>
- 
+    <link rel="stylesheet" href="{% static 'bootstrap/css/master.css' %}" />
+    <script src="{% static 'bootstrap/js/bootstrap.js' %}"></script>
+
     <style>
-        * {
-            box-sizing: border-box;
+        /* ============ Design tokens ============ */
+        :root {
+            --bg: #eef1f7;
+            --surface: #ffffff;
+            --surface-2: #f7f9fc;
+            --text: #0f172a;
+            --muted: #64748b;
+            --label: #334155;
+            --border: #e4e8ef;
+            --border-strong: #cfd6e0;
+            --primary: #2563eb;
+            --success: #0f9d6e;
+            --warning: #d97706;
+            --info: #0e90b8;
+            --secondary: #5b6675;
+            --radius: 16px;
+            --radius-sm: 10px;
+            --shadow: 0 1px 2px rgba(15, 23, 42, .05), 0 12px 32px -18px rgba(15, 23, 42, .35);
+            --ring: 0 0 0 3px rgba(37, 99, 235, .18);
         }
+
+        *, *::before, *::after { box-sizing: border-box; }
+        [hidden] { display: none !important; }
+        html { scroll-behavior: smooth; }
 
         body {
-            background: #f7f7f7;
             margin: 0;
-            padding: 20px;
-            font-family: Arial, sans-serif;
+            padding: 0 16px 72px;
+            background-color: var(--bg);
+            background-image: radial-gradient(900px 420px at 50% -160px, #ffffff 0%, rgba(255, 255, 255, 0) 70%);
+            color: var(--text);
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             font-size: 16px;
+            line-height: 1.55;
+            -webkit-font-smoothing: antialiased;
         }
 
-        h1, h2, h3 {
+        .page { max-width: 1180px; margin: 0 auto; }
+
+        /* ============ Header ============ */
+        .page-header { padding: 44px 0 22px; text-align: center; }
+
+        .eyebrow {
+            margin: 0 0 10px;
+            font-size: 12px;
             font-weight: 700;
-            color: #333;
-            margin-bottom: 10px;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+            color: var(--primary);
         }
 
-        h1 {
-            font-size: 1.8rem;
+        .page-header h1 {
+            margin: 0 0 10px;
+            font-size: clamp(1.6rem, 4vw, 2.25rem);
+            font-weight: 800;
+            letter-spacing: -.02em;
+            line-height: 1.2;
+            color: var(--text);
         }
 
-        h2 {
-            font-size: 1.4rem;
+        .lede {
+            margin: 0 auto;
+            max-width: 56ch;
+            font-size: 15px;
+            color: var(--muted);
         }
 
-        h3 {
-            font-size: 1.1rem;
+        /* ============ Quick nav ============ */
+        .quick-nav {
+            position: sticky;
+            top: 10px;
+            z-index: 20;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 6px;
+            margin: 24px auto 28px;
+            padding: 8px;
+            background: rgba(255, 255, 255, .85);
+            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
         }
 
-        form {
-            background: #fff;
-            width: 100%;
-            max-width: 700px;
-            margin: 25px auto;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-
-        form h2 {
-            color: #444;
-            margin-bottom: 25px;
-            text-align: center;
-        }
-
-        label, div {
+        .quick-nav a {
+            padding: 8px 14px;
+            border-radius: 999px;
+            font-size: 14px;
             font-weight: 600;
-            margin-top: 10px;
-            display: block;
+            color: #475569;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: background-color .15s ease, color .15s ease;
         }
 
-        input[type="text"],
-        input[type="number"],
-        select,
-        textarea {
-            width: 100%;
-            padding: 12px;
-            margin-top: 8px;
-            margin-bottom: 16px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 16px;
-            -webkit-appearance: none;
-            appearance: none;
+        .quick-nav a:hover { background: #eef2ff; color: var(--primary); }
+
+        /* ============ Grid + cards ============ */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+            gap: 22px;
+            align-items: start;
         }
 
-        /* Better mobile touch targets */
-        input[type="text"],
-        input[type="number"],
-        input[type="file"],
-        select,
-        textarea {
-            min-height: 44px;
+        .card {
+            --accent: var(--primary);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 24px;
+            scroll-margin-top: 100px;
         }
 
-        input[type="submit"] {
-            padding: 14px 28px;
-            font-size: 16px;
-            border-radius: 6px;
-            margin-top: 20px;
-            min-height: 44px;
-            cursor: pointer;
-            border: none;
-            font-weight: 600;
-            width: 100%;
+        .card--wide { grid-column: 1 / -1; }
+
+        .accent-indigo  { --accent: #6366f1; }
+        .accent-emerald { --accent: #0f9d6e; }
+        .accent-amber   { --accent: #d97706; }
+        .accent-sky     { --accent: #0e90b8; }
+        .accent-rose    { --accent: #e11d48; }
+        .accent-violet  { --accent: #7c3aed; }
+
+        .card h2 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0 0 6px;
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: -.01em;
+            color: var(--text);
         }
 
-        /* Button styling for mobile */
-        .btn {
-            transition: 0.2s ease;
+        .card h2::before {
+            content: "";
+            flex: none;
+            width: 4px;
+            height: 20px;
+            border-radius: 999px;
+            background: var(--accent);
         }
 
-        .btn:hover {
-            opacity: 0.9;
+        .card-sub {
+            margin: 0 0 20px;
+            font-size: 13.5px;
+            color: var(--muted);
         }
 
-        .btn:active {
-            transform: scale(0.98);
+        .card h3 {
+            margin: 24px 0 12px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: var(--muted);
         }
+
+        form { margin: 0; }
 
         hr {
-            margin: 40px 0;
-            border-top: 1px solid #ddd;
+            border: 0;
+            height: 1px;
+            margin: 24px 0;
+            background: var(--border);
         }
 
-        .note {
-            color: #666;
-            font-size: 14px;
-            line-height: 1.5;
-            margin: 12px 0;
-        }
-
-        .small-link {
-            font-size: 14px;
-            color: #0d6efd;
-            text-decoration: none;
-        }
-
-        .small-link:hover {
-            text-decoration: underline;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 900px;
-            margin: auto;
-            padding: 0;
-        }
-
-        /* WRAPPER HOLDS SELECT + COLOR CIRCLE */
-        .color-select-wrapper {
-            position: relative;
+        /* ============ Fields ============ */
+        .card label {
             display: block;
-            width: 100%;
+            margin: 0 0 6px;
+            font-size: 13px;
+            font-weight: 650;
+            letter-spacing: .01em;
+            color: var(--label);
         }
 
-        /* THE SELECT DROPDOWN */
-        .color-select {
-            padding-left: 45px;
-            height: 44px;
-            border-radius: 8px;
-            font-size: 16px;
-            appearance: none;
-            -webkit-appearance: none;
-            background-color: white;
+        input[type="text"],
+        input[type="number"],
+        input[type="url"],
+        input[type="date"],
+        input[type="email"],
+        input[type="password"],
+        select,
+        textarea {
             width: 100%;
-            border: 1px solid #ccc;
+            min-height: 46px;
+            margin: 0 0 16px;
+            padding: 11px 14px;
+            font-family: inherit;
+            font-size: 15px;
+            line-height: 1.4;
+            color: var(--text);
+            background: var(--surface-2);
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius-sm);
+            transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+        }
+
+        textarea { min-height: 100px; resize: vertical; }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            background: #fff;
+            border-color: var(--primary);
+            box-shadow: var(--ring);
+        }
+
+        input::placeholder,
+        textarea::placeholder { color: #9aa5b4; }
+
+        /* Selects */
+        select {
+            -webkit-appearance: none;
+            appearance: none;
+            padding-right: 40px;
+            background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%2364748b' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 13px center;
+            background-size: 16px;
             cursor: pointer;
         }
 
-        /* CIRCLE COLOR PREVIEW */
+        select[multiple] {
+            min-height: 128px;
+            padding: 8px;
+            padding-right: 8px;
+            background-image: none;
+        }
+
+        select[multiple] option { padding: 6px 8px; border-radius: 6px; }
+
+        /* File inputs */
+        input[type="file"] {
+            width: 100%;
+            margin: 0 0 16px;
+            padding: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            color: var(--muted);
+            background: var(--surface-2);
+            border: 1px dashed var(--border-strong);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: border-color .15s ease, background-color .15s ease;
+        }
+
+        input[type="file"]:hover { border-color: var(--primary); background: #f5f8ff; }
+
+        input[type="file"]::file-selector-button {
+            margin-right: 12px;
+            padding: 9px 14px;
+            font: inherit;
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--text);
+            background: #fff;
+            border: 1px solid var(--border-strong);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: .15s ease;
+        }
+
+        input[type="file"]::file-selector-button:hover {
+            background: #eef2ff;
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* Checkbox rows */
+        .check-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 0 0 10px;
+            padding: 12px 14px;
+            font-size: 14.5px;
+            font-weight: 550;
+            color: var(--label);
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: border-color .15s ease, background-color .15s ease;
+        }
+
+        .check-row:hover { border-color: var(--border-strong); background: #f1f5fb; }
+
+        .check-row input[type="checkbox"] {
+            flex: none;
+            width: 18px;
+            height: 18px;
+            min-height: 0;
+            margin: 0;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        /* ============ Buttons ============ */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            min-height: 46px;
+            padding: 12px 22px;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 650;
+            line-height: 1;
+            color: #fff;
+            text-decoration: none;
+            background: var(--primary);
+            border: 1px solid transparent;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            -webkit-appearance: none;
+            appearance: none;
+            transition: transform .12s ease, filter .15s ease, box-shadow .15s ease;
+        }
+
+        .btn:hover { filter: brightness(1.08); }
+        .btn:active { transform: translateY(1px); }
+        .btn:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(37, 99, 235, .35); }
+        .btn:disabled { opacity: .55; cursor: not-allowed; filter: none; }
+
+        .btn.btn-primary   { background: var(--primary); }
+        .btn.btn-success   { background: var(--success); }
+        .btn.btn-secondary { background: var(--secondary); }
+        .btn.btn-warning   { background: var(--warning); }
+        .btn.btn-info      { background: var(--info); }
+
+        .btn-sm { min-height: 40px; padding: 9px 16px; font-size: 14px; }
+
+        .btn-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .btn-row .btn { width: auto; flex: 1 1 180px; }
+
+        /* ============ Notes, callouts, links ============ */
+        .note {
+            margin: 10px 0;
+            font-size: 13.5px;
+            line-height: 1.6;
+            color: var(--muted);
+        }
+
+        .note:empty { display: none; }
+
+        .callout {
+            margin: 0 0 18px;
+            padding: 14px 16px;
+            background: #f5f8ff;
+            border: 1px solid #dbe6ff;
+            border-left: 3px solid var(--primary);
+            border-radius: 10px;
+        }
+
+        .card .callout h3 {
+            margin: 0 0 4px;
+            font-size: 13.5px;
+            font-weight: 700;
+            letter-spacing: 0;
+            text-transform: none;
+            color: #1e3a8a;
+        }
+
+        .callout .note { margin: 0; color: #3b5680; }
+
+        .small-link {
+            font-weight: 600;
+            color: var(--primary);
+            text-decoration: none;
+            border-bottom: 1px solid rgba(37, 99, 235, .35);
+        }
+
+        .small-link:hover { color: #1d4ed8; border-bottom-color: currentColor; }
+
+        /* ============ Layout helpers ============ */
+        .field-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+            gap: 0 20px;
+        }
+
+        .date-list {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .date-list input[type="date"] { flex: 1 1 180px; margin-bottom: 0; }
+        .date-list .btn { width: auto; flex: 0 0 auto; }
+
+        /* ============ Color select ============ */
+        .color-select-wrapper {
+            position: relative;
+            margin-bottom: 16px;
+        }
+
         .color-preview {
             position: absolute;
-            left: 12px;
-            top: 50%;
+            left: 14px;
+            top: 23px;
+            z-index: 1;
             width: 20px;
             height: 20px;
-            background: #ccc;
+            background: #cbd5e1;
+            border: 1px solid rgba(15, 23, 42, .12);
             border-radius: 50%;
+            box-shadow: inset 0 0 0 2px #fff;
             transform: translateY(-50%);
             pointer-events: none;
-            z-index: 1;
+            transition: background-color .18s ease;
         }
 
-        /* Tablet and larger screens */
-        @media (min-width: 768px) {
-            body {
-                padding: 40px;
-            }
-
-            form {
-                padding: 30px;
-            }
-
-            input[type="submit"] {
-                width: auto;
-            }
-
-            h1 {
-                font-size: 2.2rem;
-            }
+        .color-select {
+            padding-left: 46px;
+            margin-bottom: 0;
         }
 
-        /* Desktop and larger screens */
-        @media (min-width: 1024px) {
-            .container {
-                width: 90%;
-            }
-
-            form {
-                width: 70%;
-            }
+        /* ============ Responsive ============ */
+        @media (max-width: 520px) {
+            body { padding: 0 12px 48px; }
+            .page-header { padding: 30px 0 16px; }
+            .card { padding: 18px; }
+            .quick-nav { top: 6px; padding: 7px; gap: 4px; }
+            .quick-nav a { padding: 7px 11px; font-size: 13px; }
+            .btn-row .btn { flex: 1 1 100%; }
         }
 
-        /* Extra small screens (phones in portrait) */
-        @media (max-width: 480px) {
-            body {
-                padding: 12px;
-            }
-
-            form {
-                margin: 15px auto;
-                padding: 15px;
-            }
-
-            h1 {
-                font-size: 1.5rem;
-            }
-
-            h2 {
-                font-size: 1.2rem;
-            }
-
-            label {
-                margin-top: 8px;
-            }
-
-            .note {
-                font-size: 13px;
-            }
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+            * { transition: none !important; }
         }
     </style>
-
 </head>
 <body>
 
-<div class="container">
+<div class="page">
 
-<h1 style="text-align:center;">{{message}}</h1>
+    <header class="page-header">
+        <p class="eyebrow">Garden Admin</p>
+        <h1>{{ message|default:"Registration Panel" }}</h1>
+        <p class="lede">Create provinces, places, collections, visitors, tourist spots and Viajes — all from one place.</p>
+    </header>
 
+    <nav class="quick-nav" aria-label="Jump to section">
+        <a href="#province">Province</a>
+        <a href="#place">Place</a>
+        <a href="#collection">Collection</a>
+        <a href="#visitor">Visitor</a>
+        <a href="#tourist-spot">Tourist Spot</a>
+        <a href="#viaje">Viaje v2</a>
+    </nav>
 
-<!-- Province Form -->
-<form method="post" action="{% url 'garden:registrationpage' %}" id="placeProfileForm">
-    <h2>Create New Province</h2>
-    {% csrf_token %}
-    <input type="hidden" name="form_type" value="province">
-    <label>Province Name</label>
-    {{ProvinceForm.provinceName}}
-    <input type="submit" value="Submit" class="btn btn-primary">
-</form>
+    <main class="grid">
 
-<hr>
+        <!-- ================= Province Form ================= -->
+        <section class="card accent-indigo" id="province">
+            <h2>Create New Province</h2>
+            <p class="card-sub">Add a province to group your places under.</p>
 
+            <form method="post" action="{% url 'garden:registrationpage' %}" id="placeProfileForm">
+                {% csrf_token %}
+                <input type="hidden" name="form_type" value="province">
+                <label>Province Name</label>
+                {{ ProvinceForm.provinceName }}
+                <input type="submit" value="Submit" class="btn btn-primary">
+            </form>
+        </section>
 
-<!-- Place Profile Form -->
-<form method="post" action="{% url 'garden:registrationpage' %}">
-    <h2>New Place</h2>
-    {% csrf_token %}
-    <input type="hidden" name="form_type" value="place">
-    <label>Place Name</label>
-    {{PlaceProfileForm.placeName}}
-        <label>Place Picture</label>
-        <!-- File input for image upload -->
-        <input type="file" id="placePictureFile" accept="image/*">
-        <!-- Hidden input to store Cloudinary URL -->
-        <input type="hidden" name="placePicture" id="placePictureUrl">
-        <div id="uploadStatus" class="note"></div>
-    <label>Place Province</label>
-    {{PlaceProfileForm.placeProvince}}
-    <input type="submit" value="Submit" class="btn btn-success" id="placeProfileSubmit">
-</form>
+        <!-- ================= Place Profile Form ================= -->
+        <section class="card accent-emerald" id="place">
+            <h2>New Place</h2>
+            <p class="card-sub">Create a place and attach a picture.</p>
 
-<hr>
+            <form method="post" action="{% url 'garden:registrationpage' %}">
+                {% csrf_token %}
+                <input type="hidden" name="form_type" value="place">
+                <label>Place Name</label>
+                {{ PlaceProfileForm.placeName }}
 
-<!-- Collection Form -->
-<form method="post" action="{% url 'garden:registerImagesFromImageBank' %}" enctype="multipart/form-data">
-    <h2>Add Collection</h2>
-    {% csrf_token %}
-    
-    <label>Custom Title</label>
-    <input name="collectioncustomTitle" type="text">
+                <label>Place Picture</label>
+                <!-- File input for image upload -->
+                <input type="file" id="placePictureFile" accept="image/*">
+                <!-- Hidden input to store Cloudinary URL -->
+                <input type="hidden" name="placePicture" id="placePictureUrl">
+                <div id="uploadStatus" class="note"></div>
 
+                <label>Place Province</label>
+                {{ PlaceProfileForm.placeProvince }}
+                <input type="submit" value="Submit" class="btn btn-success" id="placeProfileSubmit">
+            </form>
+        </section>
 
+        <!-- ================= Collection Form ================= -->
+        <section class="card card--wide accent-amber" id="collection">
+            <h2>Add Collection</h2>
+            <p class="card-sub">Build a themed collection of images and attach it to a place.</p>
 
-    <label>Collection Name</label>
-    <input class="form-select" name="collectionName" type="text" list="cnames">
-    <datalist id="cnames">
-        {% for i in CollectionForm.collectionName %}
-            <option>{{i}}</option>
-        {% endfor %}
-    </datalist>
+            <form method="post" action="{% url 'garden:registerImagesFromImageBank' %}" enctype="multipart/form-data">
+                {% csrf_token %}
 
-    <label>Collection Group (choose existing)</label>
-    <select name="collectionGroup" class="form-select">
-        <option value="">-- Select existing group --</option>
-        {% for g in collectionGroups %}
-            <option value="{{ g.id }}">{{ g.name }}</option>
-        {% endfor %}
-    </select>
+                <div class="field-grid">
+                    <div>
+                        <label>Custom Title</label>
+                        <input name="collectioncustomTitle" type="text">
+                    </div>
+                    <div>
+                        <label>Collection Name</label>
+                        <input name="collectionName" type="text" list="cnames">
+                        <datalist id="cnames">
+                            {% for i in CollectionForm.collectionName %}
+                                <option>{{i}}</option>
+                            {% endfor %}
+                        </datalist>
+                    </div>
+                </div>
 
-    <label>Or New Group Name</label>
-    <input name="collectionGroupName" type="text" placeholder="New group name (optional)">
+                <div class="field-grid">
+                    <div>
+                        <label>Collection Group (choose existing)</label>
+                        <select name="collectionGroup">
+                            <option value="">-- Select existing group --</option>
+                            {% for g in collectionGroups %}
+                                <option value="{{ g.id }}">{{ g.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label>Or New Group Name</label>
+                        <input name="collectionGroupName" id="collectionGroupName" type="text" placeholder="New group name (optional)">
+                    </div>
+                </div>
 
-    <hr>
+                <div id="new-group-address-field" hidden>
+                    <label for="collectionGroupAddress">New Group Address</label>
+                    <input name="collectionGroupAddress" id="collectionGroupAddress" type="text" placeholder="New group address">
+                </div>
 
-    <h3>Creating a Title</h3>
-    <p class="note">
-        Create a logo title from 
-        <a class="small-link" target="_blank" href="https://www.textstudio.com/logo/vaporwave-text-effect-2183">textstudio.com</a>
-        then upload to 
-        <a class="small-link" target="_blank" href="https://imgbb.com">imgbb.com</a>.
-    </p>
+                <div class="callout">
+                    <h3>Creating a Title</h3>
+                    <p class="note">
+                        Create a logo title from
+                        <a class="small-link" target="_blank" href="https://www.textstudio.com/logo/vaporwave-text-effect-2183">textstudio.com</a>
+                        then upload to
+                        <a class="small-link" target="_blank" href="https://imgbb.com">imgbb.com</a>.
+                    </p>
+                </div>
 
- 
+                <label>Collection Description</label>
+                {{ CollectionForm.collectionDescription }}
 
-    <label>Collection Description</label>
-    {{CollectionForm.collectionDescription}}
+                <label>Tourist Spots</label>
+                {{ CollectionForm.touristSpot }}
 
-    <label>Tourist Spots</label>
-    {{CollectionForm.touristSpot}}
+                <hr>
 
-    <hr>
+                <h3>Collection Theme</h3>
 
+                <!-- WRAPPER HOLDS SELECT + COLOR CIRCLE -->
+                <div class="color-select-wrapper">
+                    <!-- COLOR CIRCLE -->
+                    <span class="color-preview"></span>
 
+                    <!-- SELECT MENU -->
+                    <select name="collectionTheme" id="collectionTheme" class="color-select">
+                        <option value="">Select Theme</option>
+                        <option value="black" data-color="#000000">Black</option>
+                        <option value="gold" data-color="#D4AF37">Gold</option>
+                        <option value="champagne" data-color="#F7E7CE">Champagne</option>
+                        <option value="emerald" data-color="#50C878">Emerald</option>
+                        <option value="sapphire" data-color="#0F52BA">Sapphire</option>
+                        <option value="ruby" data-color="#E0115F">Ruby</option>
+                        <option value="rose-gold" data-color="#B76E79">Rose Gold</option>
+                        <option value="platinum" data-color="#E5E4E2">Platinum</option>
+                        <option value="pearl" data-color="#F0EDE5">Pearl</option>
+                        <option value="bronze" data-color="#CD7F32">Bronze</option>
+                    </select>
+                </div>
 
+                <div class="field-grid" style="margin-top:16px;">
+                    <div>
+                        <label>Collection Place</label>
+                        {{ CollectionForm.collectionPlace }}
+                    </div>
+                    <div>
+                        <label>Collection Place Direct</label>
+                        {{ CollectionForm.collectionPlaceDirect }}
+                    </div>
+                </div>
 
-<h3>Collection Theme</h3>
+                <label>Collection Images</label>
+                <input type="file" name="images" accept="image/*" multiple required>
 
-<!-- WRAPPER -->
-<div class="color-select-wrapper">
-    <!-- COLOR CIRCLE -->
-    <span class="color-preview"></span>
+                <div style="margin: 1em 0;">
+                    <label class="check-row">
+                        {{ CollectionForm.include_heading_title }}
+                        <span>Include Heading Title</span>
+                    </label>
+                    <label class="check-row">
+                        {{ CollectionForm.include_qr_code }}
+                        <span>Include QR Code</span>
+                    </label>
+                </div>
 
-    <!-- SELECT MENU -->
-    <select name="collectionTheme" id="collectionTheme" class="color-select">
-        <option value="">Select Theme</option>
-        <option value="black" data-color="#000000">Black</option>
-        <option value="gold" data-color="#D4AF37">Gold</option>
-        <option value="champagne" data-color="#F7E7CE">Champagne</option>
-        <option value="emerald" data-color="#50C878">Emerald</option>
-        <option value="sapphire" data-color="#0F52BA">Sapphire</option>
-        <option value="ruby" data-color="#E0115F">Ruby</option>
-        <option value="rose-gold" data-color="#B76E79">Rose Gold</option>
-        <option value="platinum" data-color="#E5E4E2">Platinum</option>
-        <option value="pearl" data-color="#F0EDE5">Pearl</option>
-        <option value="bronze" data-color="#CD7F32">Bronze</option>
-    </select>
+                <div class="btn-row">
+                    <button type="button" id="load-test-collection" class="btn btn-secondary">Quick Test Collection</button>
+                    <input type="submit" value="Submit Collection" class="btn btn-warning">
+                </div>
+                <div id="collection-test-status" class="note" style="margin-top: 10px;"></div>
+            </form>
+        </section>
+
+        <!-- ================= Visitor Form ================= -->
+        <section class="card accent-sky" id="visitor">
+            <h2>Make Visitor</h2>
+            <p class="card-sub">Register a visitor against an existing visitor ID.</p>
+
+            <form method="post" action="{% url 'garden:registrationpage' %}">
+                {% csrf_token %}
+                <input type="hidden" name="form_type" value="visitor">
+                <label>Visitor Name</label>
+                {{ VisitorForm.visitorName }}
+                <label>Visitor ID</label>
+                {{ VisitorForm.visitorID }}
+                <input type="submit" value="Submit" class="btn btn-secondary">
+            </form>
+        </section>
+
+        <!-- ================= Add Tourist Spot Form ================= -->
+        <section class="card accent-violet" id="tourist-spot">
+            <h2>Add Tourist Spot</h2>
+            <p class="card-sub">Attach a spot to a place with an optional image and coordinates.</p>
+
+            <form id="tourist-spot-form">
+                <div class="field-grid">
+                    <div>
+                        <label for="place-select">Place</label>
+                        <select id="place-select" required>
+                            <option value="">Loading places...</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="spot-name">Spot Name *</label>
+                        <input type="text" id="spot-name" placeholder="Enter spot name" required>
+                    </div>
+                </div>
+
+                <label for="spot-desc">Description (optional)</label>
+                <textarea id="spot-desc" rows="3" placeholder="Description"></textarea>
+
+                <div class="field-grid">
+                    <div>
+                        <label for="spot-image">Image</label>
+                        <input type="file" id="spot-image" accept="image/*">
+                    </div>
+                    <div>
+                        <label for="spot-url">URL (optional)</label>
+                        <input type="url" id="spot-url" placeholder="https://example.com">
+                    </div>
+                </div>
+
+                <label for="resort-select">Resorts (hold Ctrl/Cmd for multiple)</label>
+                <select id="resort-select" multiple>
+                    <option value="">Select resorts (optional)</option>
+                </select>
+
+                <div class="field-grid">
+                    <div>
+                        <label for="spot-lat">Latitude (optional)</label>
+                        <input type="number" id="spot-lat" step="any" placeholder="e.g. 10.123456">
+                    </div>
+                    <div>
+                        <label for="spot-lng">Longitude (optional)</label>
+                        <input type="number" id="spot-lng" step="any" placeholder="e.g. 123.123456">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-info">Create Spot</button>
+                <div id="spot-status" class="note"></div>
+            </form>
+        </section>
+
+        <!-- ================= Add Viaje v2 Form ================= -->
+        <section class="card accent-rose" id="viaje">
+            <h2>Create Viaje v2</h2>
+            <p class="card-sub">Schedule a new Viaje with one or more meet dates.</p>
+
+            <form id="viaje-form">
+                <label for="placename">Place Name *</label>
+                <input type="text" id="placename" placeholder="Enter place name" required>
+
+                <label>Meet Dates</label>
+                <div id="dates-container" class="date-list">
+                    <input type="date" class="meet-date" id="date-0">
+                    <button type="button" id="add-date" class="btn btn-secondary btn-sm">Add Date</button>
+                </div>
+
+                <button type="submit" class="btn btn-success">Create Viaje</button>
+                <div id="viaje-status" class="note"></div>
+            </form>
+        </section>
+
+    </main>
 </div>
 
-
-    <label>Collection Place</label>
-    {{CollectionForm.collectionPlace}}
-
-    <label>Collection Place Direct</label>
-    {{CollectionForm.collectionPlaceDirect}}
-
-    <label>Collection Images</label>
-    <input type="file" name="images" accept="image/*" multiple required>
-
-    <div style="margin: 1em 0;">
-        <label>
-            {{ CollectionForm.include_heading_title }} Include Heading Title
-        </label>
-        <br>
-        <label>
-            {{ CollectionForm.include_qr_code }} Include QR Code
-        </label>
-    </div>
-
-    <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px;">
-        <button type="button" id="load-test-collection" class="btn btn-secondary">Quick Test Collection</button>
-        <input type="submit" value="Submit Collection" class="btn btn-warning">
-    </div>
-    <div id="collection-test-status" class="note" style="margin-top: 10px;"></div>
-</form>
-
-<hr>
-
-
-<!-- Visitor Form -->
-<form method="post" action="{% url 'garden:registrationpage' %}">
-    <h2>Make Visitor</h2>
-    {% csrf_token %}
-    <input type="hidden" name="form_type" value="visitor">
-    <label>Visitor Name</label>
-    {{VisitorForm.visitorName}}
-    <label>Visitor ID</label>
-    {{VisitorForm.visitorID}}
-    <input type="submit" value="Submit" class="btn btn-secondary">
-</form>
-
-<hr>
-
-<!-- Add Tourist Spot Form -->
-<form id="tourist-spot-form">
-    <h2>Add Tourist Spot</h2>
-    <label>Place</label>
-    <select id="place-select" required>
-        <option value="">Loading places...</option>
-    </select>
-    <label>Spot Name *</label>
-    <input type="text" id="spot-name" placeholder="Enter spot name" required>
-    <label>Description (optional)</label>
-    <textarea id="spot-desc" rows="3" placeholder="Description"></textarea>
-    <label>Image</label>
-    <input type="file" id="spot-image" accept="image/*">
-    <label>URL (optional)</label>
-    <input type="url" id="spot-url" placeholder="https://example.com">
-    <label>Resorts (hold Ctrl/Cmd for multiple)</label>
-    <select id="resort-select" multiple>
-        <option value="">Select resorts (optional)</option>
-    </select>
-    <label>Latitude (optional)</label>
-    <input type="number" id="spot-lat" step="any" placeholder="e.g. 10.123456">
-    <label>Longitude (optional)</label>
-    <input type="number" id="spot-lng" step="any" placeholder="e.g. 123.123456">
-    <button type="submit" class="btn btn-info">Create Spot</button>
-    <div id="spot-status" class="note"></div>
-</form>
-
-<hr>
-
-<!-- Add Viaje v2 Form -->
-<form id="viaje-form">
-    <h2>Create Viaje v2</h2>
-    <label>Place Name *</label>
-    <input type="text" id="placename" placeholder="Enter place name" required>
-    <label>Meet Dates</label>
-    <div id="dates-container">
-        <input type="date" class="meet-date" id="date-0">
-        <button type="button" id="add-date">Add Date</button>
-    </div>
-    <button type="submit" class="btn btn-success">Create Viaje</button>
-    <div id="viaje-status" class="note"></div>
-</form>
-
-</div>
 {{ test_collection_image_urls|json_script:"test-collection-image-urls" }}
+
 <script>
 const placePictureFileInput = document.getElementById('placePictureFile');
 const placePictureUrlInput = document.getElementById('placePictureUrl');
@@ -529,85 +821,103 @@ placePictureFileInput.addEventListener('change', async function() {
         console.log('Upload error:', err);
     }
 });
-    // Tourist Spot functionality
-    async function createTouristSpot(formData) {
-      const statusEl = document.getElementById('spot-status');
-      statusEl.textContent = 'Creating spot...';
-      statusEl.style.color = '#007bff';
 
-      try {
-        const response = await fetch('/tourist-spot-create/', {
-          method: 'POST',
-          body: formData
-        });
+/* Keep the theme color dot in sync with the selected option.
+   (Purely visual — the select itself is unchanged.) */
+(function () {
+    const themeSelectEl = document.getElementById('collectionTheme');
+    const colorPreviewEl = document.querySelector('.color-preview');
+    if (!themeSelectEl || !colorPreviewEl) return;
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`HTTP ${response.status}: ${errorText}`);
-        }
+    const syncColorPreview = () => {
+        const opt = themeSelectEl.selectedOptions[0];
+        const color = opt && opt.dataset ? opt.dataset.color : '';
+        colorPreviewEl.style.background = color || '#cbd5e1';
+    };
 
-        const result = await response.text();  // Returns HTML, parse if needed
-        statusEl.textContent = 'Spot created successfully!';
-        statusEl.style.color = 'green';
-        document.getElementById('tourist-spot-form').reset();
-        console.log('Success:', result);
-      } catch (error) {
-        statusEl.textContent = 'Error: ' + error.message;
-        statusEl.style.color = 'red';
-        console.error('Error:', error);
-      }
-    }
+    themeSelectEl.addEventListener('change', syncColorPreview);
+    syncColorPreview();
+})();
 
-    // Populate places dropdown
-    async function loadPlaces() {
-      try {
-        const response = await fetch('/home/getcarpooljson/');
-        const data = await response.json();
-        const select = document.getElementById('place-select');
-        select.innerHTML = '<option value="">Select a place</option>';
-        data.PlacesList.forEach(place => {
-          const option = new Option(place.placename, place.id);
-          select.add(option);
-        });
-      } catch (error) {
-        console.error('Failed to load places:', error);
-        document.getElementById('place-select').innerHTML = '<option value="">Error loading places</option>';
-      }
-    }
+// Tourist Spot functionality
+async function createTouristSpot(formData) {
+  const statusEl = document.getElementById('spot-status');
+  statusEl.textContent = 'Creating spot...';
+  statusEl.style.color = '#007bff';
 
-    // Resort dropdown: optional, fetch if API exists or skip
-    // For now, manual or empty; extend as needed
-
-    // Form submit
-    document.getElementById('tourist-spot-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const formData = new FormData();
-      const placeId = document.getElementById('place-select').value;
-      const name = document.getElementById('spot-name').value.trim();
-      if (!placeId || !name) {
-        document.getElementById('spot-status').textContent = 'Place and name required.';
-        return;
-      }
-      formData.append('place', placeId);
-      formData.append('name', name);
-      const desc = document.getElementById('spot-desc').value.trim();
-      if (desc) formData.append('desc', desc);
-      const imageFile = document.getElementById('spot-image').files[0];
-      if (imageFile) formData.append('image_upload', imageFile);
-      const url = document.getElementById('spot-url').value.trim();
-      if (url) formData.append('url', url);
-      const resortSelect = document.getElementById('resort-select');
-      Array.from(resortSelect.selectedOptions).forEach(opt => formData.append('resortItem', opt.value));
-      const lat = document.getElementById('spot-lat').value;
-      if (lat) formData.append('latitude', lat);
-      const lng = document.getElementById('spot-lng').value;
-      if (lng) formData.append('longitude', lng);
-
-      await createTouristSpot(formData);
+  try {
+    const response = await fetch('/tourist-spot-create/', {
+      method: 'POST',
+      body: formData
     });
 
-    // Load places on page load
-    window.addEventListener('load', loadPlaces);
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP ${response.status}: ${errorText}`);
+    }
+
+    const result = await response.text();  // Returns HTML, parse if needed
+    statusEl.textContent = 'Spot created successfully!';
+    statusEl.style.color = 'green';
+    document.getElementById('tourist-spot-form').reset();
+    console.log('Success:', result);
+  } catch (error) {
+    statusEl.textContent = 'Error: ' + error.message;
+    statusEl.style.color = 'red';
+    console.error('Error:', error);
+  }
+}
+
+// Populate places dropdown
+async function loadPlaces() {
+  try {
+    const response = await fetch('/home/getcarpooljson/');
+    const data = await response.json();
+    const select = document.getElementById('place-select');
+    select.innerHTML = '<option value="">Select a place</option>';
+    data.PlacesList.forEach(place => {
+      const option = new Option(place.placename, place.id);
+      select.add(option);
+    });
+  } catch (error) {
+    console.error('Failed to load places:', error);
+    document.getElementById('place-select').innerHTML = '<option value="">Error loading places</option>';
+  }
+}
+
+// Resort dropdown: optional, fetch if API exists or skip
+// For now, manual or empty; extend as needed
+
+// Form submit
+document.getElementById('tourist-spot-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const formData = new FormData();
+  const placeId = document.getElementById('place-select').value;
+  const name = document.getElementById('spot-name').value.trim();
+  if (!placeId || !name) {
+    document.getElementById('spot-status').textContent = 'Place and name required.';
+    return;
+  }
+  formData.append('place', placeId);
+  formData.append('name', name);
+  const desc = document.getElementById('spot-desc').value.trim();
+  if (desc) formData.append('desc', desc);
+  const imageFile = document.getElementById('spot-image').files[0];
+  if (imageFile) formData.append('image_upload', imageFile);
+  const url = document.getElementById('spot-url').value.trim();
+  if (url) formData.append('url', url);
+  const resortSelect = document.getElementById('resort-select');
+  Array.from(resortSelect.selectedOptions).forEach(opt => formData.append('resortItem', opt.value));
+  const lat = document.getElementById('spot-lat').value;
+  if (lat) formData.append('latitude', lat);
+  const lng = document.getElementById('spot-lng').value;
+  if (lng) formData.append('longitude', lng);
+
+  await createTouristSpot(formData);
+});
+
+// Load places on page load
+window.addEventListener('load', loadPlaces);
 
 
 async function createViaje(placename, meetDates = []) {
@@ -633,28 +943,45 @@ async function createViaje(placename, meetDates = []) {
     throw error;
   }
 }
-  document.getElementById('viaje-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const placename = document.getElementById('placename').value;
-    const dates = [];
-    // Collect all date inputs
-    document.querySelectorAll('input[type="date"]').forEach(input => {
-      if (input.value) dates.push(input.value);
-    });
-    try {
-      await createViaje(placename, dates);
-      alert('Viaje created!');
-    } catch (error) {
-      alert('Error: ' + error.message);
-    }
+
+document.getElementById('viaje-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const placename = document.getElementById('placename').value;
+  const dates = [];
+  // Collect all date inputs
+  document.querySelectorAll('input[type="date"]').forEach(input => {
+    if (input.value) dates.push(input.value);
   });
+  try {
+    await createViaje(placename, dates);
+    alert('Viaje created!');
+  } catch (error) {
+    alert('Error: ' + error.message);
+  }
+});
 
 const collectionForm = document.querySelector('form[action*="register-from-image-bank"]');
 const collectionTestButton = document.getElementById('load-test-collection');
 const collectionTestStatus = document.getElementById('collection-test-status');
+const collectionGroupNameInput = document.getElementById('collectionGroupName');
+const collectionGroupAddressField = document.getElementById('new-group-address-field');
+const collectionGroupAddressInput = document.getElementById('collectionGroupAddress');
 const testCollectionImageUrls = JSON.parse(
     document.getElementById('test-collection-image-urls')?.textContent || '[]'
 );
+
+if (collectionGroupNameInput && collectionGroupAddressField && collectionGroupAddressInput) {
+    const updateGroupAddressVisibility = () => {
+        const hasNewGroupName = collectionGroupNameInput.value.trim().length > 0;
+        collectionGroupAddressField.hidden = !hasNewGroupName;
+        collectionGroupAddressInput.required = hasNewGroupName;
+        collectionGroupAddressInput.disabled = !hasNewGroupName;
+        if (!hasNewGroupName) collectionGroupAddressInput.value = '';
+    };
+
+    collectionGroupNameInput.addEventListener('input', updateGroupAddressVisibility);
+    updateGroupAddressVisibility();
+}
 
 if (collectionTestButton && collectionForm) {
     collectionTestButton.addEventListener('click', async function() {
@@ -678,7 +1005,7 @@ if (collectionTestButton && collectionForm) {
         }
         if (descriptionField) descriptionField.value = 'Sample description for testing collection generation.';
         if (themeSelect && themeSelect.options.length > 1) {
-            
+
         }
         if (placeSelect && placeSelect.options.length > 1) {
             placeSelect.selectedIndex = 1;

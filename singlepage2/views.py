@@ -1239,6 +1239,30 @@ def blog_html(request, slug,slugSec, slugName=None):
     return _render_blog_with_image_layout(request, f'blogs/{slug}/{slugSec}.html')
 
 
+def blog_tour_guides(request, place_slug):
+    from home.models import Places_v2
+    from userProfile.models import TourGuide
+
+    place = Places_v2.objects.filter(slug=place_slug).only('id').first()
+    if place is None:
+        return JsonResponse({'guides': []})
+
+    guides = TourGuide.objects.filter(
+        primary_place=place,
+        is_active=True,
+    ).exclude(mobile_number='').order_by('id')
+
+    return JsonResponse({
+        'guides': [
+            {
+                'mobile_number': guide.mobile_number,
+                'name': getattr(guide.user, 'username', '') or 'Tour guide',
+            }
+            for guide in guides
+        ]
+    })
+
+
 def blog_asset(request, slug, asset_name):
     place_slug = slugify(slug or "")
     safe_asset_name = os.path.basename(asset_name or "")

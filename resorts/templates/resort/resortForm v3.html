@@ -3,454 +3,789 @@
 <!-- CSS only -->
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous" />
 <link href="{% static 'bootstrap/assets/dist/css/bootstrap.min.css' %}" rel="stylesheet" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />    
 
 <style>
-  /* ============================================================
-     DESIGN TOKENS
-     ============================================================ */
-  :root {
-    /* Brand */
-    --brand-900: #0f1d33;
-    --brand-800: #16294a;
-    --brand-700: #1e3a5f;
-    --brand-600: #2c4f7c;
+  @custom-variant dark (&:is(.dark *));
 
-    /* Accent */
-    --gold: #d4af37;
-    --gold-dark: #b8941f;
-    --gold-light: #f0d98a;
-    --gold-tint: #fffbef;
+:root {
+  /* Executive Color Palette - Sophisticated & Luxurious */
+  --brand-1: #1a2942;
+  --brand-2: #0f1d33;
+  --accent-gold: #d4af37;
+  --accent-gold-light: #e8c96f;
+  --accent-gold-dark: #b8941f;
+  --ink: #1a1f36;
+  --ink-light: #4a5568;
+  --muted: #64748b;
+  --surface: #ffffff;
+  --surface-elevated: #fafbfc;
+  --surface-2: #f8f9fb;
+  --stroke: #e2e8f0;
+  --stroke-subtle: #f1f5f9;
+  --stroke-strong: rgba(212, 175, 55, 0.35);
+  
+  /* Premium Shadows */
+  --shadow-xl: 0 32px 80px rgba(26, 41, 66, 0.25), 0 0 1px rgba(26, 41, 66, 0.31);
+  --shadow-lg: 0 24px 60px rgba(26, 41, 66, 0.18), 0 0 1px rgba(26, 41, 66, 0.24);
+  --shadow-md: 0 12px 32px rgba(26, 41, 66, 0.12), 0 0 1px rgba(26, 41, 66, 0.16);
+  --shadow-sm: 0 4px 16px rgba(26, 41, 66, 0.08), 0 0 1px rgba(26, 41, 66, 0.12);
+  --shadow-gold: 0 8px 24px rgba(212, 175, 55, 0.25);
+  
+  /* Refined Border Radius */
+  --radius-xl: 16px;
+  --radius-lg: 12px;
+  --radius-md: 8px;
+  --radius-sm: 6px;
+  
+  /* Premium Easing */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  
+  /* Typography Tokens */
+  --font-size: 16px;
+  --font-weight-medium: 600;
+  --font-weight-normal: 400;
+  --letter-spacing-tight: -0.02em;
+  --letter-spacing-normal: 0;
+  --letter-spacing-wide: 0.025em;
+  
+  /* Design System Tokens */
+  --background: #ffffff;
+  --foreground: oklch(0.145 0 0);
+  --card: #ffffff;
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: #1a2942;
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.95 0.0058 264.53);
+  --secondary-foreground: #1a2942;
+  --muted: #f8f9fb;
+  --muted-foreground: #64748b;
+  --accent: #d4af37;
+  --accent-foreground: #1a2942;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: rgba(0, 0, 0, 0.08);
+  --input: transparent;
+  --input-background: #f8f9fb;
+  --switch-background: #cbd5e1;
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --radius: 0.75rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: #1a2942;
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
 
-    /* Neutrals */
-    --ink: #0f172a;
-    --ink-2: #334155;
-    --muted: #64748b;
-    --muted-2: #94a3b8;
-    --line: #e2e8f0;
-    --line-strong: #cbd5e1;
-    --surface: #ffffff;
-    --surface-2: #f8fafc;
-    --page: #eef2f7;
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.145 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.145 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.985 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.396 0.141 25.723);
+  --destructive-foreground: oklch(0.637 0.237 25.331);
+  --border: oklch(0.269 0 0);
+  --input: oklch(0.269 0 0);
+  --ring: oklch(0.439 0 0);
+  --font-weight-medium: 600;
+  --font-weight-normal: 400;
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(0.269 0 0);
+  --sidebar-ring: oklch(0.439 0 0);
+}
 
-    /* Status */
-    --danger: #dc2626;
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
 
-    /* Radius */
-    --r-sm: 8px;
-    --r-md: 10px;
-    --r-lg: 14px;
-    --r-xl: 20px;
-
-    /* Shadow */
-    --sh-sm: 0 1px 2px rgba(15, 23, 42, .06);
-    --sh-md: 0 4px 14px rgba(15, 23, 42, .08);
-    --sh-lg: 0 18px 40px -12px rgba(15, 23, 42, .18);
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    box-sizing: border-box;
   }
-
-  /* ============================================================
-     BASE
-     ============================================================ */
-  *,
-  *::before,
-  *::after { box-sizing: border-box; }
-
-  html { font-size: 16px; }
 
   body {
-    margin: 0;
-    min-height: 100vh;
-    padding: 2.5rem 1rem 4rem;
-    background: var(--page);
-    color: var(--ink);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-                 'Helvetica Neue', Arial, sans-serif;
-    font-size: 1rem;
-    line-height: 1.5;
+    @apply bg-background text-foreground;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: linear-gradient(180deg, #f8f9fb 0%, #ffffff 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    padding: 3rem 1.5rem;
+    position: relative;
   }
+  
+  /* Subtle background texture for premium feel */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image: 
+      radial-gradient(circle at 20% 10%, rgba(212, 175, 55, 0.03), transparent 40%),
+      radial-gradient(circle at 80% 80%, rgba(26, 41, 66, 0.02), transparent 40%);
+    z-index: 0;
+  }
+}
 
-  /* ============================================================
-     CARD
-     ============================================================ */
+/**
+ * Luxurious Form Styles - Executive Design
+ */
+@layer components {
   .form-container {
-    max-width: 860px;
+    max-width: 800px;
     margin: 0 auto;
     background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--r-xl);
-    box-shadow: var(--sh-lg);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-xl);
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    transition: transform 420ms var(--ease-out), box-shadow 420ms var(--ease-out);
+  }
+
+  .form-container:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 40px 100px rgba(26, 41, 66, 0.28), 0 0 1px rgba(26, 41, 66, 0.35);
+  }
+
+  .form-header {
+    background: linear-gradient(135deg, var(--brand-1) 0%, var(--brand-2) 100%);
+    color: white;
+    padding: 3rem 2.5rem 2.5rem;
+    text-align: center;
+    position: relative;
     overflow: hidden;
   }
-
-  /* ============================================================
-     HEADER
-     ============================================================ */
-  .form-header {
-    position: relative;
-    padding: 2.25rem 2.5rem 2rem;
-    text-align: center;
-    color: #fff;
-    background: linear-gradient(135deg, var(--brand-700) 0%, var(--brand-900) 100%);
-  }
-
-  /* Gold accent strip */
+  
+  /* Premium gold accent bar */
   .form-header::before {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
-    height: 5px;
-    background: linear-gradient(90deg, var(--gold-dark), var(--gold-light), var(--gold-dark));
+    height: 4px;
+    background: linear-gradient(90deg, 
+      transparent 0%, 
+      var(--accent-gold) 25%, 
+      var(--accent-gold-light) 50%, 
+      var(--accent-gold) 75%, 
+      transparent 100%);
+    box-shadow: 0 2px 12px rgba(212, 175, 55, 0.4);
+  }
+
+  .form-header::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: 
+      radial-gradient(ellipse 800px 300px at 50% -20%, rgba(212, 175, 55, 0.12), transparent 60%),
+      radial-gradient(ellipse 600px 200px at 20% 100%, rgba(255, 255, 255, 0.05), transparent 50%);
+    pointer-events: none;
   }
 
   .form-header h1 {
-    margin: 0 0 .5rem;
-    font-size: clamp(1.45rem, 3vw, 1.9rem);
+    margin: 0;
+    font-size: 2.25rem;
     font-weight: 700;
-    letter-spacing: -.01em;
-    line-height: 1.25;
-    color: #ffffff;           /* solid, high-contrast — no gradient text */
+    letter-spacing: var(--letter-spacing-tight);
+    text-shadow: 0 2px 16px rgba(0, 0, 0, 0.2);
+    position: relative;
+    z-index: 1;
+    background: linear-gradient(135deg, #ffffff 30%, var(--accent-gold-light) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
-  .form-subtitle {
-    margin: 0 0 1.5rem;
-    font-size: .9375rem;
-    line-height: 1.55;
-    color: rgba(255, 255, 255, .8);
-  }
-
-  /* Progress bar */
   .progress-bar-container {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
     height: 8px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, .18);
+    margin-top: 1.5rem;
+    border-radius: 4px;
     overflow: hidden;
+    position: relative;
+    z-index: 1;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .step-indicator {
+    margin-top: 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: var(--letter-spacing-wide);
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.85);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    position: relative;
+    z-index: 1;
   }
 
   .progress-bar-fill {
     height: 100%;
+    background: linear-gradient(90deg, var(--accent-gold-dark) 0%, var(--accent-gold-light) 100%);
     width: 0%;
-    border-radius: 999px;
-    background: linear-gradient(90deg, var(--gold), var(--gold-light));
-    transition: width .45s cubic-bezier(.16, 1, .3, 1);
+    transition: width 600ms var(--ease-out);
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.6);
   }
 
-  /* Step badge */
-  .step-indicator {
-    display: inline-block;
-    margin-top: .875rem;
-    padding: .35rem .9rem;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, .12);
-    border: 1px solid rgba(255, 255, 255, .22);
-    font-size: .8125rem;
-    font-weight: 600;
-    letter-spacing: .05em;
-    text-transform: uppercase;
-    color: var(--gold-light);
+  .progress-bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -50%;
+    height: 100%;
+    width: 50%;
+    background: linear-gradient(90deg, 
+      rgba(255, 255, 255, 0), 
+      rgba(255, 255, 255, 0.4), 
+      rgba(255, 255, 255, 0));
+    animation: shimmer 2s var(--ease-in-out) infinite;
   }
 
-  /* ============================================================
-     BODY
-     ============================================================ */
+  @keyframes shimmer {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(400%); }
+  }
+
   .form-body {
-    padding: 2.25rem 2.5rem 2.5rem;
+    padding: 3rem 2.5rem;
     background: var(--surface);
   }
 
-  /* ============================================================
-     STEPS
-     ============================================================ */
-  .form-step { display: none; }
+  .form-step {
+    display: none;
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 480ms var(--ease-out), transform 480ms var(--ease-out);
+    will-change: opacity, transform;
+  }
 
   .form-step.active {
     display: block;
-    animation: stepIn .35s cubic-bezier(.16, 1, .3, 1) both;
+    opacity: 1;
+    transform: translateY(0);
+    animation: elegantFadeIn 480ms var(--ease-out);
   }
 
   .form-step.leaving {
     display: block;
-    animation: stepOut .25s ease both;
+    animation: elegantFadeOut 320ms var(--ease-out) forwards;
   }
 
-  @keyframes stepIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to   { opacity: 1; transform: translateY(0); }
+  @keyframes elegantFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
-  @keyframes stepOut {
-    from { opacity: 1; transform: translateY(0); }
-    to   { opacity: 0; transform: translateY(-6px); }
+  @keyframes elegantFadeOut {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(-8px);
+    }
   }
 
-  /* ============================================================
-     QUESTION BLOCKS
-     ============================================================ */
   .question-block {
-    padding: 1.375rem 1.5rem;
-    margin-bottom: 1.25rem;
+    margin-bottom: 2rem;
+    padding: 1.75rem;
     background: var(--surface-2);
-    border: 1px solid var(--line);
-    border-radius: var(--r-lg);
-    transition: background .2s ease, border-color .2s ease, box-shadow .2s ease;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--stroke-subtle);
+    border-left: 3px solid var(--accent-gold);
+    transition: 
+      transform 280ms var(--ease-out), 
+      box-shadow 280ms var(--ease-out), 
+      border-color 280ms var(--ease-out), 
+      background 280ms var(--ease-out);
+    position: relative;
+  }
+  
+  .question-block::before {
+    content: '';
+    position: absolute;
+    left: -3px;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, var(--accent-gold-light) 0%, var(--accent-gold-dark) 100%);
+    opacity: 0;
+    transition: opacity 280ms var(--ease-out);
   }
 
   .question-block:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
     background: var(--surface);
-    border-color: var(--line-strong);
+    border-left-color: var(--accent-gold-light);
+  }
+  
+  .question-block:hover::before {
+    opacity: 1;
   }
 
   .question-block:focus-within {
+    border-color: var(--stroke-strong);
+    box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.08), var(--shadow-md);
     background: var(--surface);
-    border-color: var(--gold);
-    box-shadow: 0 0 0 4px rgba(212, 175, 55, .16);
+  }
+  
+  .question-block:focus-within::before {
+    opacity: 1;
   }
 
-  /* ============================================================
-     LABELS
-     ============================================================ */
   label {
-    display: block;
-    margin-bottom: .5rem;
-    font-size: .9375rem;
+    font-size: 1rem;
     font-weight: 600;
-    line-height: 1.45;
     color: var(--ink);
+    margin-bottom: 0.75rem;
+    display: block;
+    letter-spacing: var(--letter-spacing-normal);
   }
 
-  /* ============================================================
-     INPUTS
-     ============================================================ */
   .form-control,
   .form-select {
     width: 100%;
-    padding: .75rem .9375rem;
-    font-family: inherit;
+    border-radius: var(--radius-md);
+    border: 2px solid var(--stroke);
+    padding: 0.875rem 1.125rem;
     font-size: 1rem;
-    line-height: 1.5;
+    transition: 
+      border-color 280ms var(--ease-out), 
+      box-shadow 280ms var(--ease-out), 
+      transform 280ms var(--ease-out),
+      background 280ms var(--ease-out);
+    background: white;
     color: var(--ink);
-    background-color: var(--surface);
-    border: 1.5px solid var(--line-strong);
-    border-radius: var(--r-md);
-    transition: border-color .18s ease, box-shadow .18s ease;
+    font-weight: 400;
   }
 
   .form-control:focus,
   .form-select:focus {
+    border-color: var(--accent-gold);
+    box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.12), var(--shadow-sm);
     outline: none;
-    border-color: var(--gold);
-    box-shadow: 0 0 0 4px rgba(212, 175, 55, .18);
-    background-color: var(--surface);
+    transform: translateY(-1px);
+    background: white;
   }
-
-  .form-control::placeholder { color: var(--muted-2); }
-
-  .form-control:disabled,
-  .form-select:disabled {
-    background-color: #f1f5f9;
-    color: var(--muted);
-    cursor: not-allowed;
-  }
-
-  /* Checkboxes / radios */
-  .form-check-input {
-    width: 1.15em;
-    height: 1.15em;
-    margin-top: .18em;
-    accent-color: var(--brand-700);
-    cursor: pointer;
-  }
-
-  .form-check-label {
-    font-weight: 500;
-    color: var(--ink-2);
-    cursor: pointer;
-  }
-
-  /* ============================================================
-     HELP + ERROR TEXT
-     ============================================================ */
-  .form-text {
-    display: block;
-    margin-top: .5rem;
-    font-size: .8125rem;
-    line-height: 1.55;
+  
+  .form-control::placeholder {
     color: var(--muted);
   }
 
-  .text-danger {
-    margin-top: .4rem;
-    font-size: .8125rem;
-    font-weight: 500;
-    color: var(--danger);
-  }
-
-  /* ============================================================
-     AMENITY / PAYMENT GRID
-     ============================================================ */
   .amenities-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: .875rem;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1.25rem;
     margin-top: 1.25rem;
   }
 
   .amenity-item {
-    position: relative;
-    display: flex;
-    align-items: center;
-    padding: 1rem 1.125rem;
-    background: var(--surface);
-    border: 1.5px solid var(--line);
-    border-radius: var(--r-lg);
+    background: white;
+
+    border-radius: var(--radius-lg);
+    border: 2px solid var(--stroke);
+    transition: 
+      transform 280ms var(--ease-out), 
+      border-color 280ms var(--ease-out), 
+      box-shadow 280ms var(--ease-out), 
+      background 280ms var(--ease-out);
     cursor: pointer;
-    transition: border-color .18s ease, background .18s ease,
-                box-shadow .18s ease, transform .18s ease;
+    position: relative;
+    overflow: hidden;
   }
+  
+  /* .amenity-item::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.03) 0%, transparent 100%);
+    opacity: 0;
+    transition: opacity 280ms var(--ease-out);
+  } */
 
   .amenity-item:hover {
-    border-color: var(--gold);
-    transform: translateY(-1px);
-    box-shadow: var(--sh-md);
+    border-color: var(--accent-gold);
+    background: var(--surface-elevated);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+  }
+  
+  .amenity-item:hover::before {
+    opacity: 1;
   }
 
   .amenity-item:has(input[type="checkbox"]:checked),
   .amenity-item:has(input[type="radio"]:checked) {
-    border-color: var(--gold);
-    background: var(--gold-tint);
-    box-shadow: 0 0 0 3px rgba(212, 175, 55, .14);
+    border-color: var(--accent-gold);
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.06) 0%, rgba(212, 175, 55, 0.02) 100%);
+    box-shadow: 0 8px 24px rgba(212, 175, 55, 0.15), var(--shadow-gold);
+  }
+  
+  .amenity-item:has(input[type="checkbox"]:checked)::before,
+  .amenity-item:has(input[type="radio"]:checked)::before {
+    opacity: 1;
   }
 
-  .amenity-item label {
-    display: flex;
-    align-items: center;
-    gap: .75rem;
-    width: 100%;
-    margin: 0;
-    padding: 0;
-    font-size: .9375rem;
-    font-weight: 500;
-    color: var(--ink-2);
-    cursor: pointer;
+  .amenity-item:has(input[type="checkbox"]:checked)::after,
+  .amenity-item:has(input[type="radio"]:checked)::after {
+    content: '✓';
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-gold-dark) 100%);
+    color: white;
+    font-weight: 700;
+    font-size: 0.875rem;
+    box-shadow: var(--shadow-gold);
+    animation: checkmarkPop 400ms var(--ease-out);
+  }
+  
+  @keyframes checkmarkPop {
+    0% {
+      transform: scale(0) rotate(-180deg);
+      opacity: 0;
+    }
+    50% {
+      transform: scale(1.1) rotate(10deg);
+    }
+    100% {
+      transform: scale(1) rotate(0deg);
+      opacity: 1;
+    }
   }
 
   .amenity-item input[type="checkbox"],
   .amenity-item input[type="radio"] {
-    flex: 0 0 auto;
+    margin-right: 0.75rem;
+    cursor: pointer;
     width: 20px;
     height: 20px;
-    margin: 0;
-    accent-color: var(--brand-700);
-    cursor: pointer;
+    accent-color: var(--accent-gold);
   }
 
-  /* ============================================================
-     NAVIGATION BUTTONS
-     ============================================================ */
+  .amenity-item label {
+    margin: 0;
+    /* cursor: pointer; */
+    font-weight: 500;
+    font-size: 0.9375rem;
+    color: var(--ink-light);
+    letter-spacing: var(--letter-spacing-normal);
+  }
+
   .btn-group-nav {
     display: flex;
-    gap: 1rem;
-    margin-top: 2rem;
-    padding-top: 1.75rem;
-    border-top: 1px solid var(--line);
+    justify-content: space-between;
+    margin-top: 2.5rem;
+    gap: 1.25rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--stroke-subtle);
   }
 
   .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: .5rem;
-    padding: .875rem 1.75rem;
-    font-family: inherit;
-    font-size: .9375rem;
+    padding: 1rem 2.5rem;
+    border-radius: var(--radius-md);
     font-weight: 600;
-    letter-spacing: .01em;
-    line-height: 1.2;
-    color: #fff;
-    background: transparent;
-    border: 1.5px solid transparent;
-    border-radius: var(--r-md);
+    font-size: 1rem;
+    letter-spacing: var(--letter-spacing-wide);
+    border: none;
     cursor: pointer;
-    transition: background .18s ease, border-color .18s ease,
-                box-shadow .18s ease, transform .18s ease, color .18s ease;
+    transition: 
+      transform 280ms var(--ease-out), 
+      box-shadow 280ms var(--ease-out), 
+      background 280ms var(--ease-out), 
+      opacity 280ms var(--ease-out);
+    position: relative;
+    overflow: hidden;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    color: white;
   }
 
   .btn-next,
   .btn-submit {
+    background: linear-gradient(135deg, var(--brand-1) 0%, var(--brand-2) 100%);
+    color: white;
     flex: 1;
-    background: var(--brand-700);
-    color: #ffffff;
-    box-shadow: 0 2px 6px rgba(30, 58, 95, .25);
+    border: 2px solid transparent;
+    position: relative;
+  }
+  
+  /* Gold accent on primary buttons */
+  .btn-next::before,
+  .btn-submit::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    background: linear-gradient(135deg, var(--accent-gold-light) 0%, var(--accent-gold-dark) 100%);
+    border-radius: var(--radius-md);
+    opacity: 0;
+    transition: opacity 280ms var(--ease-out);
+    z-index: -1;
+  }
+
+  .btn-next::after,
+  .btn-submit::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: 
+      radial-gradient(circle at 30% 20%, rgba(212, 175, 55, 0.2), transparent 50%),
+      radial-gradient(circle at 70% 80%, rgba(255, 255, 255, 0.1), transparent 50%);
+    pointer-events: none;
   }
 
   .btn-next:hover,
   .btn-submit:hover {
-    background: var(--brand-800);
-    transform: translateY(-1px);
-    box-shadow: 0 8px 20px rgba(30, 58, 95, .3);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(26, 41, 66, 0.3), var(--shadow-gold);
+  }
+  
+  .btn-next:hover::before,
+  .btn-submit:hover::before {
+    opacity: 1;
   }
 
   .btn-next:active,
   .btn-submit:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 6px rgba(30, 58, 95, .25);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(26, 41, 66, 0.25);
   }
 
   .btn-prev {
-    background: var(--surface);
-    color: var(--ink-2);
-    border-color: var(--line-strong);
+    background: white;
+    color: var(--ink-light);
+    border: 2px solid var(--stroke);
+    font-weight: 600;
   }
 
   .btn-prev:hover {
     background: var(--surface-2);
-    border-color: var(--muted-2);
+    border-color: var(--accent-gold);
     color: var(--ink);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .btn-prev:active {
+    transform: translateY(0);
   }
 
   .btn:disabled {
-    opacity: .5;
+    opacity: 0.4;
     cursor: not-allowed;
     transform: none !important;
     box-shadow: none !important;
   }
 
-  /* ============================================================
-     MOTION / RESPONSIVE
-     ============================================================ */
+  .text-danger {
+    color: var(--destructive);
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    font-weight: 500;
+  }
+
+  .form-text {
+    color: var(--muted);
+    font-size: 0.875rem;
+    margin-top: 0.625rem;
+    display: block;
+    line-height: 1.5;
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .form-step.active,
-    .form-step.leaving { animation: none; }
-
-    .form-container,
-    .question-block,
-    .amenity-item,
-    .btn,
-    .progress-bar-fill { transition: none; }
+    .progress-bar-fill::after { animation: none; }
+    .form-step.active, .form-step.leaving { animation: none; }
+    .form-container, .question-block, .amenity-item, .btn { transition: none; }
+    .amenity-item:has(input:checked)::after { animation: none; }
   }
 
-  @media (max-width: 640px) {
-    body { padding: 1.25rem .75rem 3rem; }
+  @media (max-width: 768px) {
+    body {
+      padding: 1.5rem 1rem;
+    }
 
-    .form-header { padding: 1.75rem 1.25rem 1.5rem; }
-    .form-body   { padding: 1.5rem 1.25rem 2rem; }
+    .form-container {
+      border-radius: var(--radius-lg);
+    }
 
-    .question-block { padding: 1.125rem 1rem; }
+    .form-header {
+      padding: 2rem 1.5rem 1.75rem;
+    }
 
-    .amenities-grid { grid-template-columns: 1fr; }
+    .form-header h1 {
+      font-size: 1.75rem;
+    }
 
-    .btn-group-nav { flex-direction: column-reverse; }
-    .btn { width: 100%; }
+    .form-body {
+      padding: 2rem 1.5rem;
+    }
+
+    .amenities-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .btn-group-nav {
+      flex-direction: column-reverse;
+      gap: 1rem;
+    }
+    
+    .btn {
+      width: 100%;
+    }
   }
-</style>
+}
+
+/**
+ * Base typography. This is not applied to elements which have an ancestor with a Tailwind text class.
+ */
+@layer base {
+  :where(:not(:has([class*=' text-']), :not(:has([class^='text-'])))) {
+    h1 {
+      font-size: var(--text-2xl);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.3;
+      letter-spacing: var(--letter-spacing-tight);
+    }
+
+    h2 {
+      font-size: var(--text-xl);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.4;
+      letter-spacing: var(--letter-spacing-tight);
+    }
+
+    h3 {
+      font-size: var(--text-lg);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    h4 {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    label {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    button {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+      color: #ffffff;
+    }
+
+    input {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-normal);
+      line-height: 1.5;
+    }
+  }
+}
+
+html {
+  font-size: var(--font-size);
+}
+
+  </style>
 
 <div class="form-container">
   <div class="form-header">
-    <h1>Register Your Establishment</h1>
-    <p class="form-subtitle">Complete the steps below — it only takes a few minutes.</p>
+    <h1>REGISTER Establishment</h1>
     <div class="progress-bar-container">
       <div class="progress-bar-fill" id="progressBar"></div>
     </div>
@@ -460,13 +795,13 @@
   <div class="form-body">
     <form method="post" action="{% url 'resorts:registerResort' %}" id="resortForm">
       {% csrf_token %}
-
+      
       <div id="formStepsContainer"></div>
 
       <div class="btn-group-nav">
         <button type="button" class="btn btn-prev" id="prevBtn" onclick="changeStep(-1)" style="display: none;">Previous</button>
-        <button type="button" class="btn btn-next" id="nextBtn" onclick="changeStep(1)">Next</button>
-        <button type="submit" class="btn btn-submit" id="submitBtn" style="display: none;">Submit</button>
+        <button type="button" class="btn-next" id="nextBtn" onclick="changeStep(1)">Next</button>
+        <button type="submit" class="btn-submit" id="submitBtn" style="display: none;">Submit</button>
       </div>
     </form>
   </div>
@@ -682,7 +1017,7 @@
           geoBlock.innerHTML = `
             <label>Auto-fill Address</label>
             <div class="d-flex gap-2 flex-wrap align-items-center">
-              <button type="button" class="btn btn-prev" id="useGeolocationBtn" style="padding: .625rem 1rem;">Use my current location</button>
+              <button type="button" class="btn btn-prev" id="useGeolocationBtn" style="padding: 0.6rem 1rem;">Use my current location</button>
               <small class="form-text" style="margin-top: 0;" id="geoStatus"></small>
             </div>
             <small class="form-text">This asks for browser location permission and fills the address based on your current location.</small>
@@ -701,10 +1036,10 @@
           if (field.name === 'open_hours') {
             questionBlock.innerHTML = `
               <label>${field.label}</label>
-              <div class="d-flex gap-2 flex-wrap align-items-center" style="margin-bottom: .75rem;">
+              <div class="d-flex gap-2 flex-wrap align-items-center" style="margin-bottom: 0.5rem;">
                 <div class="form-check" style="margin: 0;">
                   <input class="form-check-input" type="checkbox" id="openHoursUseBuilder" checked>
-                  <label class="form-check-label" for="openHoursUseBuilder">Quick builder</label>
+                  <label class="form-check-label" for="openHoursUseBuilder" style="display: inline; font-weight: 600;">Quick builder</label>
                 </div>
                 <small class="form-text" style="margin: 0;">Generates a clean text like “Mon–Sun 8:00 AM – 9:00 PM”.</small>
               </div>
@@ -713,15 +1048,15 @@
                 <div class="d-flex gap-3 flex-wrap">
                   <div class="form-check" style="margin: 0;">
                     <input class="form-check-input" type="checkbox" id="openHours247">
-                    <label class="form-check-label" for="openHours247">Open 24/7</label>
+                    <label class="form-check-label" for="openHours247" style="display: inline; font-weight: 500;">Open 24/7</label>
                   </div>
                   <div class="form-check" style="margin: 0;">
                     <input class="form-check-input" type="checkbox" id="openHoursClosed">
-                    <label class="form-check-label" for="openHoursClosed">Temporarily closed</label>
+                    <label class="form-check-label" for="openHoursClosed" style="display: inline; font-weight: 500;">Temporarily closed</label>
                   </div>
                 </div>
 
-                <div class="d-flex gap-2 flex-wrap" style="margin-top: .875rem;">
+                <div class="d-flex gap-2 flex-wrap" style="margin-top: 0.75rem;">
                   <select class="form-select" id="openHoursDayPattern" style="max-width: 260px;">
                     <option value="Mon–Sun">Mon–Sun (daily)</option>
                     <option value="Mon–Fri">Mon–Fri</option>
@@ -732,7 +1067,7 @@
                   <input type="time" class="form-control" id="openHoursEnd" style="max-width: 170px;" value="21:00">
                 </div>
 
-                <small class="form-text" id="openHoursPreview" style="margin-top: .625rem;">Preview: (fill options above)</small>
+                <small class="form-text" id="openHoursPreview" style="margin-top: 0.5rem;">Preview: (fill options above)</small>
               </div>
 
               <div id="openHoursRawPanel" style="display:none;">
@@ -762,11 +1097,11 @@
       } else if (step.type === 'amenities') {
         const amenitiesSection = document.createElement('div');
         amenitiesSection.className = 'question-block';
-        amenitiesSection.innerHTML = '<label style="font-size: 1.125rem; text-align: center; margin-bottom: 0;">🏖️ Establishment Amenities &amp; Features</label><small class="form-text" style="text-align:center;">Tap each item you offer.</small>';
-
+        amenitiesSection.innerHTML = '<label style="font-size: 1.3rem; text-align: center; margin-bottom: 1.5rem;">🏖️ Establishment Amenities & Features</label>';
+        
         const amenitiesGrid = document.createElement('div');
         amenitiesGrid.className = 'amenities-grid';
-
+        
         step.fields.forEach(field => {
           // Extract input from field.html, ignore any label in field.html
           const parser = document.createElement('div');
@@ -779,42 +1114,35 @@
           const amenityDiv = document.createElement('div');
           amenityDiv.className = 'amenity-item';
           amenityDiv.innerHTML = `
-            <label>
+            <label style="display: flex; align-items: center; gap: 0.75rem; width: 100%; cursor: pointer; margin: 0; padding:1.25rem;">
               ${input ? input.outerHTML : ''}
               <span>${field.label}</span>
             </label>
           `;
           amenitiesGrid.appendChild(amenityDiv);
         });
-
+        
         amenitiesSection.appendChild(amenitiesGrid);
         stepDiv.appendChild(amenitiesSection);
       } else if (step.type === 'payments') {
         const paymentsSection = document.createElement('div');
         paymentsSection.className = 'question-block';
-        paymentsSection.innerHTML = '<label style="font-size: 1.125rem; text-align: center; margin-bottom: 0;">💳 Payment Methods Accepted</label><small class="form-text" style="text-align:center;">Tap each method you accept.</small>';
-
+        paymentsSection.innerHTML = '<label style="font-size: 1.3rem; text-align: center; margin-bottom: 1.5rem;">💳 Payment Methods Accepted</label>';
+        
         const paymentsGrid = document.createElement('div');
         paymentsGrid.className = 'amenities-grid';
-
+        
         step.fields.forEach(field => {
-          const parser = document.createElement('div');
-          parser.innerHTML = field.html;
-          const input = parser.querySelector('input');
-          if (input) parser.removeChild(input);
-
           const paymentDiv = document.createElement('div');
           paymentDiv.className = 'amenity-item';
           paymentDiv.innerHTML = `
-            <label>
-              ${input ? input.outerHTML : ''}
-              <span>${field.label}</span>
-            </label>
+            ${field.html}
+            <label>${field.label}</label>
           `;
-
+          
           paymentsGrid.appendChild(paymentDiv);
         });
-
+        
         paymentsSection.appendChild(paymentsGrid);
         stepDiv.appendChild(paymentsSection);
       }
@@ -863,13 +1191,13 @@
     const nextBtn = document.getElementById('nextBtn');
     const submitBtn = document.getElementById('submitBtn');
 
-    prevBtn.style.display = step === 0 ? 'none' : 'inline-flex';
-
+    prevBtn.style.display = step === 0 ? 'none' : 'block';
+    
     if (step === formSteps.length - 1) {
       nextBtn.style.display = 'none';
-      submitBtn.style.display = 'inline-flex';
+      submitBtn.style.display = 'block';
     } else {
-      nextBtn.style.display = 'inline-flex';
+      nextBtn.style.display = 'block';
       submitBtn.style.display = 'none';
     }
 
@@ -892,7 +1220,7 @@
 
   function changeStep(direction) {
     const newStep = currentStep + direction;
-
+    
     if (newStep >= 0 && newStep < formSteps.length) {
       const prev = currentStep;
       currentStep = newStep;
@@ -922,7 +1250,7 @@
     const statusEl = document.getElementById('geoStatus');
     if (!statusEl) return;
     statusEl.textContent = message || '';
-    statusEl.style.color = isError ? '#dc2626' : '#64748b';
+    statusEl.style.color = isError ? '#e53e3e' : '#718096';
   }
 
   function normalizeLocationText(value) {

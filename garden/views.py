@@ -751,14 +751,23 @@ def registerAllImage(request):
         from .models import CollectionGroup
         # Prefer an explicit group selection (id), then a provided group name, then fallbacks
         group_id = request.POST.get('collectionGroup')
-        provided_group_name = request.POST.get('collectionGroupName') or request.POST.get('collectionName') or customTitlerequest or 'Default Group'
+        new_group_name = request.POST.get('collectionGroupName', '').strip()
+        provided_group_name = new_group_name or request.POST.get('collectionName') or customTitlerequest or 'Default Group'
+        new_group_address = request.POST.get('collectionGroupAddress', '').strip() or None
+        group_defaults = {'address': new_group_address} if new_group_name else {}
         if group_id:
             try:
                 collection_group = CollectionGroup.objects.get(id=group_id)
             except (CollectionGroup.DoesNotExist, ValueError):
-                collection_group, _ = CollectionGroup.objects.get_or_create(name=provided_group_name)
+                collection_group, _ = CollectionGroup.objects.get_or_create(
+                    name=provided_group_name,
+                    defaults=group_defaults,
+                )
         else:
-            collection_group, _ = CollectionGroup.objects.get_or_create(name=provided_group_name)
+            collection_group, _ = CollectionGroup.objects.get_or_create(
+                name=provided_group_name,
+                defaults=group_defaults,
+            )
 
         # Step 3: create one collection per image and add to group
         for idx, img_url in enumerate(image_urls):

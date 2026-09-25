@@ -479,6 +479,160 @@ def _button_embed_data(button, request=None):
     return {"token": token, "script": script, "form": form}
 
 
+# @staff_member_required
+# def paymongo_setup_page(request):
+#     source_form = SourceWebsiteForm(prefix="source")
+#     product_form = SubscriptionProductForm(prefix="product")
+#     plan_form = SubscriptionPlanForm(prefix="plan")
+#     button_form = PaymentButtonForm(prefix="button")
+
+#     if request.method == "POST":
+#         action = request.POST.get("action")
+#         form_by_action = {
+#             "create_source": SourceWebsiteForm(request.POST, prefix="source"),
+#             "create_product": SubscriptionProductForm(request.POST, prefix="product"),
+#             "create_plan": SubscriptionPlanForm(request.POST, prefix="plan"),
+#             "create_button": PaymentButtonForm(request.POST, prefix="button"),
+#         }
+#         selected_form = form_by_action.get(action)
+
+#         if selected_form is None:
+#             messages.error(request, "Unknown setup action.")
+#         elif selected_form.is_valid():
+#             selected_form.save()
+#             messages.success(request, "PayMongo setup item saved.")
+#             return redirect("subscription:paymongo_setup")
+#         else:
+#             messages.error(request, "Please correct the highlighted fields.")
+#             if action == "create_source":
+#                 source_form = selected_form
+#             elif action == "create_product":
+#                 product_form = selected_form
+#             elif action == "create_plan":
+#                 plan_form = selected_form
+#             elif action == "create_button":
+#                 button_form = selected_form
+
+#     source_websites = SourceWebsite.objects.order_by("name")
+#     products = SubscriptionProduct.objects.order_by("name")
+#     plans = SubscriptionPlan.objects.select_related("subscriptionProduct").order_by("price", "name")
+#     buttons = PaymentButton.objects.select_related(
+#         "source_website",
+#         "product",
+#         "plan",
+#     ).order_by("-created_at")
+#     transactions = Transaction.objects.select_related(
+#         "source_website",
+#         "product",
+#         "plan",
+#         "customer",
+#         "payment_button",
+#     ).order_by("-created_at")[:25]
+#     webhook_events = PayMongoWebhookEvent.objects.select_related("transaction").order_by("-created_at")[:25]
+
+#     button_rows = []
+#     for button in buttons:
+#         embed_data = _button_embed_data(button, request=request)
+#         last_transaction = button.transactions.order_by("-created_at").first()
+#         button_rows.append(
+#             {
+#                 "button": button,
+#                 "embed_script": embed_data["script"],
+#                 "fallback_form": embed_data["form"],
+#                 "last_transaction": last_transaction,
+#                 "admin_url": _admin_change_url("paymentbutton", button),
+#             }
+#         )
+
+#     return render(
+#         request,
+#         "subscription/paymongosetup.html",
+#         {
+#             "source_form": source_form,
+#             "product_form": product_form,
+#             "plan_form": plan_form,
+#             "button_form": button_form,
+#             "source_websites": source_websites,
+#             "products": products,
+#             "plans": plans,
+#             "button_rows": button_rows,
+#             "transactions": transactions,
+#             "webhook_events": webhook_events,
+#             "paymongo_mode": getattr(settings, "PAYMONGO_MODE", "test"),
+#             "payment_base_url": get_payment_base_url(request),
+#         },
+#     )
+# ---------------------------------------------------------------------------
+# Fieldset layout for the PaymentButton form.
+# Each entry maps 1:1 to a group of PaymentButton model fields, so the form
+# on the setup page always mirrors the model.
+# ---------------------------------------------------------------------------
+PAYMENT_BUTTON_FIELDSETS = [
+    {
+        "title": "Target",
+        "description": "Which website shows the button, and which product / plan it sells.",
+        "fields": ["source_website", "product", "plan"],
+    },
+    {
+        "title": "Appearance",
+        "description": "What the customer actually sees on your site.",
+        "fields": ["label", "description"],
+        "wide": ["description"],
+    },
+    {
+        "title": "Checkout mode",
+        "description": "How PayMongo should process this payment.",
+        "fields": ["checkout_mode"],
+    },
+    {
+        "title": "Redirect URLs",
+        "description": "Optional. Leave blank to fall back to your site defaults.",
+        "fields": ["success_url", "cancel_url", "failed_url"],
+    },
+    {
+        "title": "PayMongo payment link",
+        "description": "Only used when the checkout mode is \u201cPayMongo Payment Link\u201d.",
+        "fields": ["payment_link_url", "payment_link_reference"],
+        "wide": ["payment_link_url"],
+        "mode": "paymongo_link",
+    },
+    {
+        "title": "Metadata",
+        "description": "Free-form JSON stored on the button and forwarded to PayMongo.",
+        "fields": ["metadata"],
+        "wide": ["metadata"],
+    },
+    {
+        "title": "Availability",
+        "description": "Inactive buttons keep their embed code but refuse new checkouts.",
+        "fields": ["active"],
+    },
+]
+
+
+def _build_fieldsets(form, fieldsets):
+    """
+    Turn a fieldset spec list into something the template can loop over,
+    resolving each field name to a real BoundField and silently skipping
+    anything the form does not expose (e.g. public_id, created_at).
+    """
+    rows = []
+    for spec in fieldsets:
+        fields = [form[name] for name in spec.get("fields", []) if name in form.fields]
+        if not fields:
+            continue
+        rows.append(
+            {
+                "title": spec["title"],
+                "description": spec.get("description", ""),
+                "mode": spec.get("mode", ""),
+                "wide": spec.get("wide", []),
+                "fields": fields,
+            }
+        )
+    return rows
+
+
 @staff_member_required
 def paymongo_setup_page(request):
     source_form = SourceWebsiteForm(prefix="source")
@@ -515,20 +669,32 @@ def paymongo_setup_page(request):
 
     source_websites = SourceWebsite.objects.order_by("name")
     products = SubscriptionProduct.objects.order_by("name")
-    plans = SubscriptionPlan.objects.select_related("subscriptionProduct").order_by("price", "name")
-    buttons = PaymentButton.objects.select_related(
-        "source_website",
-        "product",
-        "plan",
-    ).order_by("-created_at")
-    transactions = Transaction.objects.select_related(
-        "source_website",
-        "product",
-        "plan",
-        "customer",
-        "payment_button",
-    ).order_by("-created_at")[:25]
-    webhook_events = PayMongoWebhookEvent.objects.select_related("transaction").order_by("-created_at")[:25]
+    plans = (
+        SubscriptionPlan.objects
+        .select_related("subscriptionProduct")
+        .order_by("price", "name")
+    )
+    buttons = (
+        PaymentButton.objects
+        .select_related("source_website", "product", "plan")
+        .order_by("-created_at")
+    )
+    transactions = (
+        Transaction.objects
+        .select_related(
+            "source_website",
+            "product",
+            "plan",
+            "customer",
+            "payment_button",
+        )
+        .order_by("-created_at")[:25]
+    )
+    webhook_events = (
+        PayMongoWebhookEvent.objects
+        .select_related("transaction")
+        .order_by("-created_at")[:25]
+    )
 
     button_rows = []
     for button in buttons:
@@ -544,6 +710,18 @@ def paymongo_setup_page(request):
             }
         )
 
+    # --- new: grouped button form + helper data for the template -----------
+    button_fieldsets = _build_fieldsets(button_form, PAYMENT_BUTTON_FIELDSETS)
+
+    # plan.pk -> product.pk, used by a tiny bit of JS to filter the Plan
+    # select down to the plans that belong to the chosen Product.
+    plan_product_map = {
+        str(plan.pk): str(plan.subscriptionProduct_id)
+        for plan in plans
+    }
+
+    checkout_mode_value = button_form["checkout_mode"].value() or "hosted_checkout"
+
     return render(
         request,
         "subscription/paymongosetup.html",
@@ -552,6 +730,9 @@ def paymongo_setup_page(request):
             "product_form": product_form,
             "plan_form": plan_form,
             "button_form": button_form,
+            "button_fieldsets": button_fieldsets,
+            "plan_product_map": plan_product_map,
+            "checkout_mode_value": checkout_mode_value,
             "source_websites": source_websites,
             "products": products,
             "plans": plans,
@@ -562,7 +743,6 @@ def paymongo_setup_page(request):
             "payment_base_url": get_payment_base_url(request),
         },
     )
-
 
 @require_GET
 def embed_button_js(request):
@@ -2071,6 +2251,43 @@ def _customer_details_from_webhook_payload(payload, metadata):
     }
 
 
+def _paid_amount_mismatch(transaction_obj, payload):
+    """Return a reason when a supplied PayMongo payment amount is unsafe."""
+    payment_values = []
+
+    def collect(value):
+        if isinstance(value, dict):
+            object_id = str(value.get("id") or "")
+            if value.get("type") == "payment" or object_id.startswith("pay_"):
+                attributes = value.get("attributes") if isinstance(value.get("attributes"), dict) else value
+                if attributes.get("amount") is not None or attributes.get("currency"):
+                    payment_values.append(attributes)
+            for child in value.values():
+                collect(child)
+        elif isinstance(value, list):
+            for child in value:
+                collect(child)
+
+    collect(payload)
+    for payment in payment_values:
+        try:
+            amount = int(payment.get("amount"))
+        except (TypeError, ValueError):
+            return "PayMongo payment amount is invalid."
+        if amount != transaction_obj.amount_centavos:
+            return (
+                f"PayMongo payment amount {amount} does not match "
+                f"expected {transaction_obj.amount_centavos}."
+            )
+        currency = str(payment.get("currency") or "").upper()
+        if currency and currency != transaction_obj.currency.upper():
+            return (
+                f"PayMongo payment currency {currency} does not match "
+                f"expected {transaction_obj.currency.upper()}."
+            )
+    return ""
+
+
 def _process_paymongo_event(webhook_event, payload, event_type):
     _payment_flow_print(
         "_process_paymongo_event",
@@ -2103,6 +2320,16 @@ def _process_paymongo_event(webhook_event, payload, event_type):
 
     was_already_paid = transaction_obj.status == "paid"
     new_status = _status_for_paymongo_event(event_type, identifiers.get("paymongo_status"))
+    paid_amount_error = ""
+    if new_status == "paid":
+        paid_amount_error = _paid_amount_mismatch(transaction_obj, payload)
+        if paid_amount_error:
+            new_status = "failed"
+            _payment_flow_print(
+                "_process_paymongo_event",
+                "paid_amount_rejected",
+                f"reference={transaction_obj.internal_reference_id} error={paid_amount_error}",
+            )
     _payment_flow_print(
         "_process_paymongo_event",
         "status_mapped",
@@ -2111,6 +2338,9 @@ def _process_paymongo_event(webhook_event, payload, event_type):
     update_fields = ["raw_webhook_payload", "paymongo_status", "updated_at"]
     transaction_obj.raw_webhook_payload = payload
     transaction_obj.paymongo_status = identifiers.get("paymongo_status")
+    if paid_amount_error:
+        transaction_obj.failure_reason = paid_amount_error
+        update_fields.append("failure_reason")
     customer_details = _customer_details_from_webhook_payload(payload, metadata)
     billing_details = customer_details.get("billing_details") or {}
     _payment_flow_print(
@@ -2245,8 +2475,12 @@ def _checkout_session_response_is_paid(checkout_response):
         return True
 
     payments = attributes.get("payments") or []
-    if isinstance(payments, list) and payments:
-        return True
+    if isinstance(payments, list):
+        for payment in payments:
+            payment_attributes = payment.get("attributes", {}) if isinstance(payment, dict) else {}
+            payment_status = (payment_attributes.get("status") or "").lower()
+            if payment_status in {"paid", "succeeded"}:
+                return True
 
     payment_intent = attributes.get("payment_intent") or {}
     payment_intent_attributes = payment_intent.get("attributes") or {}

@@ -307,6 +307,10 @@ Rules:
 
     place_slug = slugify(place_name)
     title_slug = slugify(title)
+    tour_guides_url = reverse(
+        "singlepage2:blog_tour_guides",
+        kwargs={"place_slug": place_slug},
+    )
 
     # The canonical full URL on your live site
     canonical_url = f"https://www.paratara.com/pages/blog/{place_slug}/{title_slug}/"
@@ -322,7 +326,7 @@ Rules:
 
     collections_html = f'''
                         <div id="collections-header">
-                            <h2>Local Collections &amp; QR Experiences</h2>
+                            <h2>Local Collections &amp; Souvenirs</h2>
                             <p id="collections-loading">Discover interactive collections nearby. Scan QR codes to save memories. Loading...</p>
                             <div id="dynamic-collections" class="collection-section"></div>
                         </div>
@@ -1979,6 +1983,45 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg, onEmpty) {{
             }});
     }}
 
+    async function fetchTourGuideContacts() {{
+        const contacts = document.getElementById('tour-guide-contacts');
+        if (!contacts) return;
+
+        try {{
+            const response = await fetch('{tour_guides_url}', {{
+                headers: {{ 'X-Requested-With': 'XMLHttpRequest' }}
+            }});
+            if (!response.ok) throw new Error(`HTTP ${{response.status}}`);
+
+            const data = await response.json();
+            contacts.replaceChildren();
+
+            if (!Array.isArray(data.guides) || !data.guides.length) {{
+                const empty = document.createElement('p');
+                empty.className = 'tour-guide-status';
+                empty.textContent = 'No local tour guides are available yet.';
+                contacts.appendChild(empty);
+                return;
+            }}
+
+            data.guides.forEach(guide => {{
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.value = guide.mobile_number || '';
+                input.readOnly = true;
+                input.setAttribute('aria-label', `${{guide.name || 'Tour guide'}} mobile number`);
+                contacts.appendChild(input);
+            }});
+        }} catch (error) {{
+            console.error('Error fetching tour guides:', error);
+            contacts.replaceChildren();
+            const status = document.createElement('p');
+            status.className = 'tour-guide-status';
+            status.textContent = 'Tour guide contacts are unavailable right now.';
+            contacts.appendChild(status);
+        }}
+    }}
+
     function getParagraphCleanText(paragraph) {{
         const clone = paragraph.cloneNode(true);
         clone.querySelectorAll('.blog-edit-button, .blog-paragraph-tools').forEach(el => el.remove());
@@ -3100,6 +3143,7 @@ document.addEventListener("DOMContentLoaded", () => {{
     scheduleBlogImages();
     getBlogLists();
     fetchCollections();
+    fetchTourGuideContacts();
 
     const yearEl = document.getElementById('footerYear');
     if (yearEl) {{
@@ -3152,9 +3196,9 @@ document.addEventListener('click', (ev) => {{
     <section class="cta-section tour-guide-card">
         <h2>Tour Guide Contacts</h2>
         <p>Save a local contact before you go so it is easier to plan the day.</p>
-        {{% for tg in tourguide %}}
-        <input type="text" value="{{{{ tg.mobile_number }}}}" readonly aria-label="Tour guide mobile number">
-        {{% endfor %}}
+        <div id="tour-guide-contacts" aria-live="polite">
+            <p class="tour-guide-status">Loading local tour guides...</p>
+        </div>
         <div style="margin-top: 1.5rem;">
             <a href="/userProfile/tour-guide/register/" class="collection-link" style="display: inline-block;">Register as Tour Guide</a>
         </div>

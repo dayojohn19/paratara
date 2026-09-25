@@ -273,24 +273,48 @@ class PayMongoClient:
                 api_version=self.checkout_api_version,
             )
         except PayMongoAPIError as exc:
-            if not paymongo_customer_id or not getattr(settings, "PAYMONGO_CHECKOUT_CUSTOMER_ID_FALLBACK", True):
+            # Payment methods are account- and environment-dependent. A single
+            # unavailable method can make the whole checkout session invalid.
+            error_text = str(exc).lower()
+            methods_rejected = (
+                "payment_method_types" in error_text
+                or "payment method" in error_text
+                or "payment methods" in error_text
+            )
+            if methods_rejected and payment_methods != ["card"]:
+                _service_flow_print(
+                    "create_checkout_session",
+                    "checkout_payment_methods_retry",
+                    f"reference={transaction.internal_reference_id} retrying with card only",
+                )
+                fallback_attributes = dict(attributes)
+                fallback_attributes["payment_method_types"] = ["card"]
+                fallback_payload = {"data": {"attributes": fallback_attributes}}
+                response = self._request(
+                    "POST",
+                    "/checkout_sessions",
+                    payload=fallback_payload,
+                    api_version=self.checkout_api_version,
+                )
+                payload = fallback_payload
+            elif not paymongo_customer_id or not getattr(settings, "PAYMONGO_CHECKOUT_CUSTOMER_ID_FALLBACK", True):
                 raise
-
-            _service_flow_print(
-                "create_checkout_session",
-                "checkout_customer_id_retry_without_link",
-                f"reference={transaction.internal_reference_id} customer_id={paymongo_customer_id} error={exc}",
-            )
-            fallback_attributes = dict(attributes)
-            fallback_attributes.pop("customer_id", None)
-            fallback_payload = {"data": {"attributes": fallback_attributes}}
-            response = self._request(
-                "POST",
-                "/checkout_sessions",
-                payload=fallback_payload,
-                api_version=self.checkout_api_version,
-            )
-            payload = fallback_payload
+            else:
+                _service_flow_print(
+                    "create_checkout_session",
+                    "checkout_customer_id_retry_without_link",
+                    f"reference={transaction.internal_reference_id} customer_id={paymongo_customer_id} error={exc}",
+                )
+                fallback_attributes = dict(attributes)
+                fallback_attributes.pop("customer_id", None)
+                fallback_payload = {"data": {"attributes": fallback_attributes}}
+                response = self._request(
+                    "POST",
+                    "/checkout_sessions",
+                    payload=fallback_payload,
+                    api_version=self.checkout_api_version,
+                )
+                payload = fallback_payload
 
         _service_flow_print(
             "create_checkout_session",

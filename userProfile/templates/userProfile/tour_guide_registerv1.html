@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register as Tour Guide</title>
+    <style>
+        /* Modern Tour Guide Registration Styles */
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Montserrat:wght@300;400;500;600&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 3rem;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .form-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #34495e;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 0.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        input[type="url"],
+        input[type="number"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: 'Montserrat', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .help-text {
+            color: #7f8c8d;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            background: #f8f9fa;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            border: 1px solid #e1e8ed;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .checkbox-item:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            margin-right: 0.5rem;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 2rem;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .errorlist {
+            color: #e74c3c;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 1rem;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 2rem 1.5rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .checkbox-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Register as Tour Guide{% if selected_place %} in {{ selected_place.placename }}{% endif %}</h1>
+        <p>{% if selected_place %}Sign up to become a tour guide in <strong>{{ selected_place.placename }}</strong>.{% else %}Sign up for a tour guide account and start sharing your expertise with travelers.{% endif %} Fill out your account details and professional information below.</p>
+        
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="form-section">
+                <h2 class="section-title">Account Information</h2>
+                
+                <div class="form-group">
+                    {{ form.username.label_tag }}
+                    {{ form.username }}
+                    {{ form.username.errors }}
+                    <div class="help-text">Choose a unique username for your account</div>
+                </div>
+                
+                <div class="form-group">
+                    {{ form.email.label_tag }}
+                    {{ form.email }}
+                    {{ form.email.errors }}
+                    <div class="help-text">{{ form.email.help_text }}</div>
+                </div>
+                
+                <div class="form-group">
+                    {{ form.mobile_number.label_tag }}
+                    {{ form.mobile_number }}
+                    {{ form.mobile_number.errors }}
+                    <div class="help-text">Your mobile number for contact (e.g., +63 912 345 6789)</div>
+                </div>
+                
+                <div class="form-group">
+                    {{ form.password.label_tag }}
+                    {{ form.password }}
+                    {{ form.password.errors }}
+                    <div class="help-text">Choose a secure password</div>
+                </div>
+                
+                <div class="form-group">
+                    {{ form.password_confirm.label_tag }}
+                    {{ form.password_confirm }}
+                    {{ form.password_confirm.errors }}
+                    <div class="help-text">Confirm your password</div>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h2 class="section-title">Profile Information</h2>
+                
+                <div class="form-group">
+                    <label for="id_display_name">Display Name:</label>
+                    <input type="text" name="display_name" id="id_display_name" value="{{ form.display_name.value|default:'' }}" placeholder="Your display name">
+                    <div class="help-text">How you want to be known as a tour guide (optional)</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_selfie">Profile Selfie:</label>
+                    <input type="file" name="selfie" id="id_selfie" accept="image/*" capture="user" required>
+                    <div class="help-text">Take a selfie or upload a profile photo</div>
+                    <div id="image-preview" style="margin-top: 10px; display: none;">
+                        <img id="preview-img" src="" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 8px; border: 2px solid #667eea;">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h2 class="section-title">Professional Details</h2>
+                
+                <div class="form-group">
+                    {{ form.primary_place.label_tag }}
+                    {% if selected_place %}
+                    <div style="padding: 0.75rem; border: 2px solid #e1e8ed; border-radius: 8px; background: #f8f9fa; color: #2c3e50; font-weight: 500;">
+                        {{ selected_place.placename }} (pre-selected for this registration)
+                    </div>
+                    <input type="hidden" name="primary_place" value="{{ selected_place.id }}">
+                    {% else %}
+                    {{ form.primary_place }}
+                    {% endif %}
+                    {{ form.primary_place.errors }}
+                    <div class="help-text">Select the primary place where you will be guiding tours</div>
+                </div>
+                
+                <div class="form-group">
+                    {{ form.bio.label_tag }}
+                    {{ form.bio }}
+                    {{ form.bio.errors }}
+                    <div class="help-text">Tell visitors about yourself, your experience, and what makes you a great tour guide</div>
+                </div>
+                
+                <div class="form-group">
+                    {{ form.experience_years.label_tag }}
+                    {{ form.experience_years }}
+                    {{ form.experience_years.errors }}
+                    <div class="help-text">Number of years you've been working as a tour guide</div>
+                </div>
+                
+                <div class="form-group">
+                    {{ form.certifications.label_tag }}
+                    {{ form.certifications }}
+                    {{ form.certifications.errors }}
+                    <div class="help-text">Any certifications, licenses, or qualifications you hold</div>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h2 class="section-title">Tour Options</h2>
+                <p style="color: #7f8c8d; margin-bottom: 1rem;">Select tours and tourist spots you can guide (you can update these later):</p>
+                
+                <div class="form-group">
+                    <label>Available Tours:</label>
+                    <div class="checkbox-group" id="tours-container">
+                        {% for tour in tours %}
+                        <div class="checkbox-item" data-place-id="{{ tour.schedulePlace.id|default:'' }}">
+                            <input type="checkbox" name="tours" value="{{ tour.id }}" id="tour_{{ tour.id }}">
+                            <label for="tour_{{ tour.id }}">{{ tour.scheduleTitle }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Specialized Tourist Spots:</label>
+                    <div class="checkbox-group" id="spots-container">
+                        {% for spot in tourist_spots %}
+                        <div class="checkbox-item" data-place-id="{{ spot.place.id }}">
+                            <input type="checkbox" name="tourist_spots" value="{{ spot.id }}" id="spot_{{ spot.id }}">
+                            <label for="spot_{{ spot.id }}">{{ spot.name }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            {% if form.non_field_errors %}
+            <div class="errorlist">
+                {{ form.non_field_errors }}
+            </div>
+            {% endif %}
+            
+            <button type="submit" class="submit-btn">Register as Tour Guide</button>
+        </form>
+        
+        <a href="{% url 'userProfile:profile' %}" class="back-link">← Back to Profile</a>
+    </div>
+
+    <script>
+        // Handle checkbox selections for tours and tourist spots
+        document.addEventListener('DOMContentLoaded', function() {
+            const tourCheckboxes = document.querySelectorAll('input[name="tours"]');
+            const spotCheckboxes = document.querySelectorAll('input[name="tourist_spots"]');
+            
+            // Add click handlers to make checkboxes more user-friendly
+            document.querySelectorAll('.checkbox-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    if (e.target.tagName !== 'INPUT') {
+                        const checkbox = this.querySelector('input[type="checkbox"]');
+                        checkbox.checked = !checkbox.checked;
+                    }
+                });
+            });
+
+            // Image preview functionality
+            const selfieInput = document.getElementById('id_selfie');
+            const previewContainer = document.getElementById('image-preview');
+            const previewImg = document.getElementById('preview-img');
+
+            selfieInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        previewImg.src = e.target.result;
+                        previewContainer.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    previewContainer.style.display = 'none';
+                }
+            });
+
+            // Filter tours and spots based on selected place
+            const placeSelect = document.getElementById('id_primary_place');
+            const toursContainer = document.getElementById('tours-container');
+            const spotsContainer = document.getElementById('spots-container');
+
+            function filterByPlace() {
+                const selectedPlaceId = placeSelect ? placeSelect.value : '{{ selected_place.id|default:"" }}';
+                
+                // Filter tours
+                const tourItems = toursContainer.querySelectorAll('.checkbox-item');
+                tourItems.forEach(item => {
+                    const itemPlaceId = item.getAttribute('data-place-id');
+                    if (selectedPlaceId === '' || itemPlaceId === selectedPlaceId) {
+                        item.style.display = 'flex';
+                    } else {
+                        item.style.display = 'none';
+                        // Uncheck hidden items
+                        const checkbox = item.querySelector('input[type="checkbox"]');
+                        checkbox.checked = false;
+                    }
+                });
+
+                // Filter spots
+                const spotItems = spotsContainer.querySelectorAll('.checkbox-item');
+                spotItems.forEach(item => {
+                    const itemPlaceId = item.getAttribute('data-place-id');
+                    if (selectedPlaceId === '' || itemPlaceId === selectedPlaceId) {
+                        item.style.display = 'flex';
+                    } else {
+                        item.style.display = 'none';
+                        // Uncheck hidden items
+                        const checkbox = item.querySelector('input[type="checkbox"]');
+                        checkbox.checked = false;
+                    }
+                });
+            }
+
+            if (placeSelect) {
+                placeSelect.addEventListener('change', filterByPlace);
+            }
+            // Initial filter (works for both selectable and pre-selected places)
+            filterByPlace();
+        });
+    </script>
+</body>
+</html>

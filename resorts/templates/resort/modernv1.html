@@ -1347,7 +1347,6 @@ section {
     <!-- Contact Form Modal -->
     <div id="contact-form-dialog">
         <form id="contact-form">
-            {% csrf_token %}
             <h2>Contact Us</h2>
             <input id="resort-email" hidden type="email" name="to_name" value="{{resortObject.contactEmail}}">
             
@@ -1356,7 +1355,6 @@ section {
             
             <label for="guest_contact">Your Contact</label>
             <input name="sender_contact" type="text" id="guest_contact" placeholder="email or phone" required />
-            <small style="display:block;margin-top:-0.45rem;color:var(--subtle);">Use a valid email address or phone number.</small>
             
             <input style="display: none;" hidden type="email" name="reply_to" value="johnwebsiteprojects@gmail.com">
             
@@ -1364,10 +1362,6 @@ section {
             <textarea name="message" placeholder="Your message here..." id="guest_message" required></textarea>
             
             <textarea name="booking_inquiry" readonly id="guest_book" style="display: none;"></textarea>
-
-            <label for="verification_answer" id="verification-question">Human verification</label>
-            <input name="verification_answer" type="text" id="verification_answer"
-                inputmode="numeric" autocomplete="off" required />
             
             <button class="button-send" type="submit">
                 <svg viewBox="0 0 16 16" width="20" style="fill: currentColor">
@@ -1423,88 +1417,66 @@ section {
             navContainer.classList.remove('active');
         }
 
-        window.onload = function() {
-            const contactForm = document.getElementById('contact-form');
-            if (!contactForm) return;
+        window.onload = function() { 
+            document.getElementById('contact-form').addEventListener('submit', function(event) {
+                const originalMessage = this.message.value;
+                const booking_inquiry = this.booking_inquiry.value;
+                const sender_contact = this.sender_contact.value;
+                const sender_name = this.from_name.value;
+                
+                const fullMessage = `\n${originalMessage} \n \n Booking Inquiry ${booking_inquiry} \n\n contact me:\n${sender_name}\n \n  ${sender_contact}`;
+                this.message.value = fullMessage;
+                document.getElementById('contact-form').addEventListener('submit', function(event) {
+    event.preventDefault();
 
-            fetch('/contact/challenge/')
-                .then(response => response.json())
-                .then(data => {
-                    const question = document.getElementById('verification-question');
-                    if (question && data.question) question.textContent = data.question;
-                })
-                .catch(error => console.error('Failed to load human verification:', error));
+    const form = this;
+    const formData = new FormData(form);
 
-            contactForm.addEventListener('submit', function(event) {
-                event.preventDefault();
+    Fancybox.close([{ src: "#contact-form-dialog" }]);
+    alert('Sending Message');
 
-                const form = this;
-
-                // Build the composed message (original text + booking inquiry + sender info)
-                const originalMessage = form.message.value;
-                const booking_inquiry = form.booking_inquiry ? form.booking_inquiry.value : '';
-                const sender_contact = form.sender_contact ? form.sender_contact.value : '';
-                const sender_name = form.from_name ? form.from_name.value : '';
-
-                form.message.value =
-                    `\n${originalMessage} \n \n Booking Inquiry ${booking_inquiry} \n\n contact me:\n${sender_name}\n \n  ${sender_contact}`;
-
-                const formData = new FormData(form);
-
-                Fancybox.close([{ src: "#contact-form-dialog" }]);
-                alert('Sending Message');
-
-                // Safely grab the CSRF token if the form rendered one
-                const csrfInput = form.querySelector('[name=csrfmiddlewaretoken]');
-                const headers = {};
-                if (csrfInput) {
-                    headers['X-CSRFToken'] = csrfInput.value;
-                }
-
-                fetch('/contact/send/', {
-                    method: 'POST',
-                    body: formData,
-                    headers: headers
-                })
-                .then(async response => {
-                    const data = await response.json().catch(() => ({
-                        success: false,
-                        error: `Server returned HTTP ${response.status}`
-                    }));
-                    if (!response.ok) {
-                        throw new Error(data.error || `Server returned HTTP ${response.status}`);
-                    }
-                    return data;
-                })
-                .then(data => {
-                    if (data.success) {
-                        console.log('SUCCESS!');
-                        alert('Message Sent!');
-                        form.reset();
-                    } else {
-                        throw new Error(data.error || 'The server rejected the message.');
-                    }
-                })
-                .catch(error => {
-                    console.error('FAILED...', error);
-                    alert(`Message Not Sent: ${error.message}`);
-                });
-            });
-        };
-
-        // --- EmailJS alternative (kept for reference) ---
-        // (function() {
-        //     emailjs.init({ publicKey: "kPR5fCmH0j3E0NSyr" });
-        // })();
-        // emailjs.sendForm('service_jv335d7', 'template_hzlk188', this)
-        //     .then(() => {
-        //         console.log('SUCCESS!');
-        //         alert('Message Sent!');
-        //         this.reset();
-        //     }, (error) => {
-        //         alert('Message Not Sent!');
-        //         console.log('FAILED...', error);
+    fetch('/contact/send/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('SUCCESS!');
+            alert('Message Sent!');
+            form.reset();
+        } else {
+            console.log('FAILED...', data.error);
+            alert('Message Not Sent!');
+        }
+    })
+    .catch(error => {
+        console.error('FAILED...', error);
+        alert('Message Not Sent!');
+    });
+});
+        //         (function() {
+        //             emailjs.init({ publicKey: "kPR5fCmH0j3E0NSyr" });
+        //         })();
+                
+        //         event.preventDefault();
+        //         Fancybox.close([{ src: "#contact-form-dialog" }]);
+        //         alert('Sending Message');
+                
+        //         emailjs.sendForm('service_jv335d7', 'template_hzlk188', this)
+        //             .then(() => {
+        //                 console.log('SUCCESS!');
+        //                 alert('Message Sent!');
+        //                 this.reset();
+        //             }, (error) => {
+        //                 alert('Message Not Sent!');
+        //                 console.log('FAILED...', error);
+        //             });
         //     });
+        // };
 
         function addAndRemoveTag(e) {
             const cell = e.target;
@@ -1544,7 +1516,7 @@ section {
             if (!month) month = currentCalendarMonth;
             if (!year) year = currentCalendarYear;
             
-            const apiUrl = `${window.location.origin}/apis/get_calendar_view/?month=${month}&year=${year}`;
+            apiUrl = `${window.location.origin}/apis/get_calendar_view/?month=${month}&year=${year}`;
             try {
                 const response = await fetch(apiUrl);
                 if (!response.ok) throw new Error(`HTTP error ${response.status}`);
@@ -1598,15 +1570,12 @@ section {
         });
 
         function bookNow(toBook) {
-            const monthEls = document.querySelectorAll('.month');
-            const monthName = monthEls.length > 1 ? monthEls[1].textContent : (monthEls[0] ? monthEls[0].textContent : '');
-            const dom = document.querySelector("#contact-form-link");
-            if (dom) dom.click();
-            const bookContainer = document.querySelector("#guest_book");
-            if (bookContainer) {
-                bookContainer.value = monthName + '\n' + toBook + '\n';
-                bookContainer.style.display = "block";
-            }
+            monthName = document.querySelectorAll('.month')[1].textContent;
+            dom = document.querySelector("#contact-form-link");
+            dom.click();
+            bookContainer = document.querySelector("#guest_book");
+            bookContainer.value = monthName + '\n' + toBook + '\n';
+            bookContainer.style.display = "block";
         }
 
         function setAllElements(id, value) {
@@ -1770,9 +1739,9 @@ section {
         }
 
         function renderSubPackages(subPackages, resortID, container_box) {
-            const currentMonth = '{{currentMonth}}';
-            const currentYear = '{{currentYear}}';
-            let actID = 0;
+            currentMonth = '{{currentMonth}}';
+            currentYear = '{{currentYear}}';
+            actID = 0;
             const isPromotions = container_box === 'tour-sub-packages-container';
             const isActivities = container_box === 'activities-sub-packages-container';
             const primaryActionLabel = isPromotions ? 'Register' : 'Book Now';
@@ -1812,7 +1781,6 @@ section {
             
             function buildCard(subpackage) {
                 hasContent = true;
-                actID++;
                 const hasImages = subpackage.package_image && subpackage.package_image.length > 0;
                 const galleryName = `gallery-${actID}-${subpackage.package_id}`;
                 const dialogID = `dialog-content-${subpackage.package_id}-${resortID}`;
@@ -1845,51 +1813,51 @@ section {
                     ? `<div class="card-price">₱${subpackage.package_price.toLocaleString()}</div>`
                     : "";
 
-                const dialogInnerHTML = isPromotions
-                    ? `
-                        <div style="padding: 1rem;">
-                            <form method="post" action="${registerAction}" style="margin-top:0.75rem;">
-                                {% csrf_token %}
-                                <div style="display:grid;gap:0.75rem;grid-template-columns: 1fr 1fr;">
-                                    <div>
-                                        <label style="display:block;font-size:0.85rem;font-weight:600;color:var(--subtle);margin-bottom:0.35rem;">Full name</label>
-                                        <input name="full_name" placeholder="Your full name" required
-                                            style="width:100%;padding:0.65rem 0.75rem;border:1px solid var(--border);border-radius:var(--radius-sm);font:inherit;color:var(--text);background:var(--surface);" />
+                    const dialogInnerHTML = isPromotions
+                        ? `
+                            <div style="padding: 1rem;">
+                                <form method="post" action="${registerAction}" style="margin-top:0.75rem;">
+                                    {% csrf_token %}
+                                    <div style="display:grid;gap:0.75rem;grid-template-columns: 1fr 1fr;">
+                                        <div>
+                                            <label style="display:block;font-size:0.85rem;font-weight:600;color:var(--subtle);margin-bottom:0.35rem;">Full name</label>
+                                            <input name="full_name" placeholder="Your full name" required
+                                                style="width:100%;padding:0.65rem 0.75rem;border:1px solid var(--border);border-radius:var(--radius-sm);font:inherit;color:var(--text);background:var(--surface);" />
+                                        </div>
+                                        <div>
+                                            <label style="display:block;font-size:0.85rem;font-weight:600;color:var(--subtle);margin-bottom:0.35rem;">Email</label>
+                                            <input name="email" type="email" placeholder="you@email.com" required
+                                                style="width:100%;padding:0.65rem 0.75rem;border:1px solid var(--border);border-radius:var(--radius-sm);font:inherit;color:var(--text);background:var(--surface);" />
+                                        </div>
                                     </div>
-                                    <div>
-                                        <label style="display:block;font-size:0.85rem;font-weight:600;color:var(--subtle);margin-bottom:0.35rem;">Email</label>
-                                        <input name="email" type="email" placeholder="you@email.com" required
-                                            style="width:100%;padding:0.65rem 0.75rem;border:1px solid var(--border);border-radius:var(--radius-sm);font:inherit;color:var(--text);background:var(--surface);" />
+                                    <div style="display:grid;gap:0.75rem;grid-template-columns: 1fr 1fr;margin-top:0.75rem;">
+                                        <div>
+                                            <label style="display:block;font-size:0.85rem;font-weight:600;color:var(--subtle);margin-bottom:0.35rem;">Phone (optional)</label>
+                                            <input name="phone" placeholder="+63..."
+                                                style="width:100%;padding:0.65rem 0.75rem;border:1px solid var(--border);border-radius:var(--radius-sm);font:inherit;color:var(--text);background:var(--surface);" />
+                                        </div>
+                                        <div>
+                                            <label style="display:block;font-size:0.85rem;font-weight:600;color:var(--subtle);margin-bottom:0.35rem;">Pax</label>
+                                            <input name="pax" type="number" min="1" value="1"
+                                                style="width:100%;padding:0.65rem 0.75rem;border:1px solid var(--border);border-radius:var(--radius-sm);font:inherit;color:var(--text);background:var(--surface);" />
+                                        </div>
                                     </div>
-                                </div>
-                                <div style="display:grid;gap:0.75rem;grid-template-columns: 1fr 1fr;margin-top:0.75rem;">
-                                    <div>
-                                        <label style="display:block;font-size:0.85rem;font-weight:600;color:var(--subtle);margin-bottom:0.35rem;">Phone (optional)</label>
-                                        <input name="phone" placeholder="+63..."
-                                            style="width:100%;padding:0.65rem 0.75rem;border:1px solid var(--border);border-radius:var(--radius-sm);font:inherit;color:var(--text);background:var(--surface);" />
+                                    <div style="display:grid;gap:0.75rem;grid-template-columns: 1fr;margin-top:0.75rem;">
+                                        <div>
+                                            <label style="display:block;font-size:0.85rem;font-weight:600;color:var(--subtle);margin-bottom:0.35rem;">Notes (optional)</label>
+                                            <input name="notes" placeholder="Any notes"
+                                                style="width:100%;padding:0.65rem 0.75rem;border:1px solid var(--border);border-radius:var(--radius-sm);font:inherit;color:var(--text);background:var(--surface);" />
+                                        </div>
                                     </div>
-                                    <div>
-                                        <label style="display:block;font-size:0.85rem;font-weight:600;color:var(--subtle);margin-bottom:0.35rem;">Pax</label>
-                                        <input name="pax" type="number" min="1" value="1"
-                                            style="width:100%;padding:0.65rem 0.75rem;border:1px solid var(--border);border-radius:var(--radius-sm);font:inherit;color:var(--text);background:var(--surface);" />
-                                    </div>
-                                </div>
-                                <div style="display:grid;gap:0.75rem;grid-template-columns: 1fr;margin-top:0.75rem;">
-                                    <div>
-                                        <label style="display:block;font-size:0.85rem;font-weight:600;color:var(--subtle);margin-bottom:0.35rem;">Notes (optional)</label>
-                                        <input name="notes" placeholder="Any notes"
-                                            style="width:100%;padding:0.65rem 0.75rem;border:1px solid var(--border);border-radius:var(--radius-sm);font:inherit;color:var(--text);background:var(--surface);" />
-                                    </div>
-                                </div>
-                                <button class="btn btn-primary" type="submit" style="width:100%;margin-top:0.9rem;">Register</button>
-                            </form>
-                        </div>
-                    `
-                    : `
-                        <div class="iframe-loader"></div>
-                        <iframe class="calendar-frame" loading="lazy" sandbox="allow-scripts allow-forms allow-popups allow-same-origin" src="/resortManagement/calendar/${resortID}/${subpackage.package_id}/${currentMonth}/${currentYear}/upload"></iframe>
-                    `;
-
+                                    <button class="btn btn-primary" type="submit" style="width:100%;margin-top:0.9rem;">Register</button>
+                                </form>
+                            </div>
+                        `
+                        : `
+                            <div class="iframe-loader"></div>
+                            <iframe class="calendar-frame" loading="lazy" sandbox="allow-scripts allow-forms allow-popups allow-same-origin" src="/resortManagement/calendar/${resortID}/${subpackage.package_id}/${currentMonth}/${currentYear}/upload"></iframe>
+                        `;
+                    
                 cardDiv.innerHTML = `
                     <div class="card-image-container">
                         ${imageHTML}
@@ -2237,7 +2205,7 @@ section {
 
         async function loadResort(resortID) {
             const placeName = document.getElementById("resort-data").dataset.place;
-            const apiUrl = `${window.location.origin}/apis/getresortitem/${placeName}/`;
+            apiUrl = `${window.location.origin}/apis/getresortitem/${placeName}/`;
             
             try {
                 const response = await fetch(apiUrl);

@@ -7,6 +7,9 @@ from .forms import ResortForm, matterURLform
 # Create your views here.
 from django.http import HttpResponseRedirect, JsonResponse, HttpResponseForbidden, HttpResponse
 from django.conf import settings
+from django.core.mail import EmailMultiAlternatives
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
 
 from home.models import Places_v2
 from django.urls import reverse
@@ -15,6 +18,72 @@ from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.decorators.csrf import csrf_exempt
 import json
 import os
+import secrets
+
+
+def contact_challenge(request):
+    """Create a short-lived math challenge for the public contact form."""
+    first_number = secrets.randbelow(8) + 2
+    second_number = secrets.randbelow(8) + 2
+    request.session['contact_challenge_answer'] = str(first_number + second_number)
+    return JsonResponse({'question': f'What is {first_number} + {second_number}?'})
+
+
+def send_contact_message(request):
+    """Send a public resort inquiry through Django's configured email backend."""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'POST method required'}, status=405)
+
+    recipient = (request.POST.get('to_name') or '').strip()
+    sender_name = (request.POST.get('from_name') or '').strip()
+    sender_contact = (request.POST.get('sender_contact') or '').strip()
+    message = (request.POST.get('message') or '').strip()
+    booking_inquiry = (request.POST.get('booking_inquiry') or '').strip()
+    verification_answer = (request.POST.get('verification_answer') or '').strip()
+
+    expected_answer = request.session.get('contact_challenge_answer')
+    if not expected_answer or verification_answer != expected_answer:
+        return JsonResponse({'success': False, 'error': 'Please answer the verification question correctly'}, status=400)
+    request.session.pop('contact_challenge_answer', None)
+
+    if not recipient:
+        return JsonResponse({'success': False, 'error': 'Resort email is not configured'}, status=400)
+    try:
+        validate_email(recipient)
+    except ValidationError:
+        return JsonResponse({'success': False, 'error': 'Resort email is invalid'}, status=400)
+
+    if not resortItem.objects.filter(contactEmail__iexact=recipient).exists():
+        return JsonResponse({'success': False, 'error': 'Resort email is not recognized'}, status=400)
+
+    if not sender_name or not sender_contact or not message:
+        return JsonResponse({'success': False, 'error': 'Name, contact, and message are required'}, status=400)
+
+    if '@' in sender_contact:
+        try:
+            validate_email(sender_contact)
+        except ValidationError:
+            return JsonResponse({'success': False, 'error': 'Please provide a valid email address'}, status=400)
+
+    body = (
+        f'Message:\n{message}\n\n'
+        f'Booking inquiry:\n{booking_inquiry or "None"}\n\n'
+        f'Contact from:\n{sender_name}\n{sender_contact}'
+    )
+
+    try:
+        email = EmailMultiAlternatives(
+            subject=f'New resort inquiry from {sender_name}',
+            body=body,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[recipient],
+            reply_to=[settings.DEFAULT_FROM_EMAIL],
+        )
+        email.send(fail_silently=False)
+    except Exception as exc:
+        return JsonResponse({'success': False, 'error': f'Email could not be sent: {exc}'}, status=500)
+
+    return JsonResponse({'success': True})
 
 
 

@@ -32,6 +32,7 @@ from django.contrib.sitemaps.views import sitemap
 from home.models import allSchedules
 from home.sitemaps import allSchedulesSitemap,BlogsSitemap
 from resortManagement import views as resortManagement_views
+from resorts import views as resorts_views
 
 info_dict = {
     "queryset": allSchedules.objects.all(),
@@ -50,6 +51,8 @@ def legacy_resorts_redirect(request, path=""):
     return response
 
 urlpatterns = [ 
+    path('contact/challenge/', resorts_views.contact_challenge, name='contact_challenge'),
+    path('contact/send/', resorts_views.send_contact_message, name='send_contact_message'),
     path(
         "favicon.ico",
         home_views.favicon,

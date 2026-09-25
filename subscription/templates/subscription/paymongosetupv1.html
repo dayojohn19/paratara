@@ -1,4 +1,3 @@
-{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,11 +14,9 @@
             --accent: #0f766e;
             --accent-dark: #115e59;
             --danger: #b42318;
-            --warn: #b45309;
         }
 
         * { box-sizing: border-box; }
-
         body {
             margin: 0;
             background: var(--bg);
@@ -49,20 +46,17 @@
             padding: 18px;
         }
 
-        section > h2 { margin: 0 0 14px; font-size: 19px; }
+        h2 { margin: 0 0 14px; font-size: 19px; }
         h3 { margin: 0 0 10px; font-size: 16px; }
 
         .summary {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 12px;
-            background: transparent;
-            border: 0;
-            padding: 0;
         }
 
         .metric {
-            background: #ffffff;
+            background: #f9fafb;
             border: 1px solid var(--line);
             border-radius: 8px;
             padding: 14px;
@@ -156,12 +150,7 @@
             vertical-align: top;
         }
 
-        th {
-            color: var(--muted);
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: .04em;
-        }
+        th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
 
         .list {
             display: grid;
@@ -213,92 +202,6 @@
             gap: 8px;
         }
 
-        /* -----------------------------------------------------------------
-           Payment button builder — grouped fieldsets
-           ----------------------------------------------------------------- */
-        .builder {
-            display: grid;
-            gap: 16px;
-        }
-
-        .fieldset {
-            border: 1px solid var(--line);
-            border-radius: 8px;
-            padding: 14px;
-            background: #fbfcfe;
-            display: grid;
-            gap: 12px;
-        }
-
-        .fieldset-head {
-            display: flex;
-            align-items: baseline;
-            justify-content: space-between;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .fieldset-head h4 {
-            margin: 0;
-            font-size: 14px;
-            letter-spacing: .01em;
-        }
-
-        .fieldset-head .fieldset-desc {
-            color: var(--muted);
-            font-size: 12px;
-        }
-
-        .fieldset-fields {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 12px;
-        }
-
-        .fieldset-fields .field-wide { grid-column: 1 / -1; }
-
-        .field-label {
-            display: flex;
-            align-items: baseline;
-            justify-content: space-between;
-            gap: 8px;
-        }
-
-        .required-mark {
-            color: var(--danger);
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: .04em;
-        }
-
-        .fieldset[hidden] { display: none; }
-
-        .check-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .check-row input[type="checkbox"] {
-            width: auto;
-            margin: 0;
-        }
-
-        .check-row label { margin: 0; font-weight: 600; }
-
-        .builder-footer {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            align-items: center;
-            justify-content: space-between;
-            border-top: 1px dashed var(--line);
-            padding-top: 14px;
-        }
-
-        .builder-footer .muted { font-size: 12px; }
-
         @media (max-width: 760px) {
             table, thead, tbody, th, td, tr { display: block; }
             thead { display: none; }
@@ -309,11 +212,9 @@
 </head>
 <body>
     <header>
+ 
         <h1>PayMongo Subscription Setup</h1>
-        <p>
-            Mode: <strong>{{ paymongo_mode }}</strong> ·
-            Base URL: <strong>{{ payment_base_url }}</strong>
-        </p>
+        <p>Mode: <strong>{{ paymongo_mode }}</strong> · Base URL: <strong>{{ payment_base_url }}</strong></p>
     </header>
 
     <main>
@@ -379,68 +280,22 @@
                     {% endfor %}
                     <button type="submit">Save Plan</button>
                 </form>
-            </div>
-        </section>
 
-        <section>
-            <h2>Create Payment Button</h2>
-            <p class="muted">
-                Every field below maps directly to the <code>PaymentButton</code> model.
-                Grouped into sections so it is clear which part of the model you are filling in.
-            </p>
-
-            <form method="post" class="builder" id="payment-button-form">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="create_button">
-
-                {% for fieldset in button_fieldsets %}
-                    <fieldset
-                        class="fieldset"
-                        {% if fieldset.mode %}data-mode="{{ fieldset.mode }}"{% endif %}
-                    >
-                        <div class="fieldset-head">
-                            <h4>{{ fieldset.title }}</h4>
-                            {% if fieldset.description %}
-                                <span class="fieldset-desc">{{ fieldset.description }}</span>
-                            {% endif %}
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="create_button">
+                    <h3>Payment Button</h3>
+                    {% for field in button_form %}
+                        <div>
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.help_text %}<div class="field-help">{{ field.help_text }}</div>{% endif %}
+                            {% for error in field.errors %}<div class="errors">{{ error }}</div>{% endfor %}
                         </div>
-
-                        <div class="fieldset-fields">
-                            {% for field in fieldset.fields %}
-                                {% if field.field.widget.input_type == "checkbox" %}
-                                    <div class="field-wide">
-                                        <div class="check-row">
-                                            {{ field }}
-                                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                                        </div>
-                                        {% if field.help_text %}<div class="field-help">{{ field.help_text }}</div>{% endif %}
-                                        {% for error in field.errors %}<div class="errors">{{ error }}</div>{% endfor %}
-                                    </div>
-                                {% else %}
-                                    <div class="{% if field.name in fieldset.wide %}field-wide{% endif %}">
-                                        <div class="field-label">
-                                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                                            {% if field.field.required %}
-                                                <span class="required-mark">Required</span>
-                                            {% endif %}
-                                        </div>
-                                        {{ field }}
-                                        {% if field.help_text %}<div class="field-help">{{ field.help_text }}</div>{% endif %}
-                                        {% for error in field.errors %}<div class="errors">{{ error }}</div>{% endfor %}
-                                    </div>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                    </fieldset>
-                {% endfor %}
-
-                <div class="builder-footer">
-                    <span class="muted">
-                        Public ID, created/updated timestamps, and the active flag are managed automatically.
-                    </span>
+                    {% endfor %}
                     <button type="submit">Generate Button</button>
-                </div>
-            </form>
+                </form>
+            </div>
         </section>
 
         <section>
@@ -453,10 +308,7 @@
                                 <div>
                                     <h3>{{ row.button.label }}</h3>
                                     <div class="muted">
-                                        {{ row.button.source_website.name }} ·
-                                        {{ row.button.product.name }} ·
-                                        {{ row.button.plan.name }} ·
-                                        {{ row.button.get_checkout_mode_display }}
+                                        {{ row.button.source_website.name }} · {{ row.button.product.name }} · {{ row.button.plan.name }} · {{ row.button.get_checkout_mode_display }}
                                         {% if row.button.checkout_mode == "paymongo_link" %}
                                             <br>Reference: <code>{{ row.button.payment_link_reference|default:"-" }}</code>
                                             {% if row.button.payment_link_url %}
@@ -574,105 +426,17 @@
     </main>
 
     <script>
-        // -----------------------------------------------------------------
-        // 1. Copy-to-clipboard for embed snippets
-        // -----------------------------------------------------------------
         document.querySelectorAll(".copy-snippet").forEach((button) => {
             button.addEventListener("click", async () => {
                 const card = button.closest(".row-card");
                 const textarea = card ? card.querySelector("textarea") : null;
                 if (!textarea) return;
-                try {
-                    await navigator.clipboard.writeText(textarea.value);
-                } catch (err) {
-                    textarea.select();
-                    document.execCommand("copy");
-                }
+                await navigator.clipboard.writeText(textarea.value);
                 const original = button.textContent;
                 button.textContent = "Copied";
                 window.setTimeout(() => { button.textContent = original; }, 1200);
             });
         });
-
-        // -----------------------------------------------------------------
-        // 2. Conditionally show the "PayMongo payment link" fieldset
-        //    based on the currently selected checkout_mode.
-        // -----------------------------------------------------------------
-        (function () {
-            const form = document.getElementById("payment-button-form");
-            if (!form) return;
-
-            const modeSelect = form.querySelector('[name="button-checkout_mode"]')
-                || form.querySelector('[name="checkout_mode"]');
-            const linkFieldset = form.querySelector('.fieldset[data-mode="paymongo_link"]');
-
-            function syncLinkFieldset() {
-                if (!modeSelect || !linkFieldset) return;
-                const isLink = modeSelect.value === "paymongo_link";
-                linkFieldset.hidden = !isLink;
-
-                // Optional: disable the inputs when hidden so they do not
-                // get submitted with stale values.
-                linkFieldset.querySelectorAll("input, select, textarea").forEach((el) => {
-                    el.disabled = !isLink;
-                });
-            }
-
-            if (modeSelect) {
-                modeSelect.addEventListener("change", syncLinkFieldset);
-                syncLinkFieldset();
-            }
-        })();
-
-        // -----------------------------------------------------------------
-        // 3. Filter Plan choices based on the selected Product.
-        //    Uses plan_product_map = { "<plan_id>": "<product_id>", ... }
-        // -----------------------------------------------------------------
-        (function () {
-            const form = document.getElementById("payment-button-form");
-            if (!form) return;
-
-            const planProductMap = {{ plan_product_map|safe }};
-            const productSelect = form.querySelector('[name="button-product"]')
-                || form.querySelector('[name="product"]');
-            const planSelect = form.querySelector('[name="button-plan"]')
-                || form.querySelector('[name="plan"]');
-
-            if (!productSelect || !planSelect) return;
-
-            // Cache every original option once so we can rebuild the list.
-            const allPlanOptions = Array.from(planSelect.options).map((opt) => ({
-                value: opt.value,
-                label: opt.textContent,
-            }));
-
-            function syncPlanOptions() {
-                const productId = productSelect.value;
-                const current = planSelect.value;
-
-                // Clear existing options
-                planSelect.innerHTML = "";
-
-                allPlanOptions.forEach((opt) => {
-                    const optionProduct = planProductMap[String(opt.value)];
-                    // Keep placeholder options (empty value) and matching plans
-                    if (opt.value === "" || !productId || optionProduct === productId) {
-                        const newOpt = document.createElement("option");
-                        newOpt.value = opt.value;
-                        newOpt.textContent = opt.label;
-                        planSelect.appendChild(newOpt);
-                    }
-                });
-
-                // Restore previous selection if it is still valid
-                if (Array.from(planSelect.options).some((o) => o.value === current)) {
-                    planSelect.value = current;
-                }
-            }
-
-            productSelect.addEventListener("change", syncPlanOptions);
-            syncPlanOptions();
-        })();
     </script>
 </body>
 </html>

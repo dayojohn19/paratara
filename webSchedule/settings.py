@@ -46,7 +46,7 @@ GROK_MODEL_NAME = _resolve_groq_model("GROK_MODEL_NAME", SUPPORTED_GROQ_MODEL)
 GROK_CLIENT = OpenAI(api_key=GROK_API_KEY, base_url="https://api.groq.com/openai/v1")
 XAI_IMAGE_MODEL = 'grok-imagine-image-quality'
 
-
+PAYPAL_WEBHOOK_CLIENT = 'paypalrestsdk.WebhookEvent'
 # Local-first discussion assistant. The default template backend does not call
 # OpenAI, Grok, xAI, or any external paid/cloud LLM.
 AI_DISCUSSION_BACKEND = config("AI_DISCUSSION_BACKEND", default="template")
