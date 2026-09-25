@@ -32,6 +32,8 @@
           const modal = document.getElementById(modalId);
           if (modal) {
             modal.style.display = 'block';
+            const iframe = modal.querySelector('.calendar-frame');
+            if (iframe) iframe.style.display = 'block';
             const loader = modal.querySelector('.iframe-loader');
             if (loader) loader.style.display = 'block';
           }

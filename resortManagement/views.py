@@ -615,7 +615,7 @@ def marked_calendar(request, resort_id=1, room_id=1, month=None, year=1, whatste
         })
 
     weeks = [days[i:i+7] for i in range(0, len(days), 7)]
-    
+    print('Weeks: ', weeks)
 
     context = {
         'form':CheckinForm(
@@ -651,6 +651,7 @@ def marked_calendar(request, resort_id=1, room_id=1, month=None, year=1, whatste
         
     }
     # messages.success(request, "✅ MovedPayment completed and booking saved successfully!")
+    print('Context: ')
     return render(request, 'resortManagement/calendar.html', context)    
 
 
