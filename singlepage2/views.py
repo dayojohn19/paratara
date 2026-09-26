@@ -15,7 +15,7 @@ import json
 import stat
 from ipaddress import ip_address
 from typing import Optional
-from urllib.parse import urlparse
+from urllib.parse import quote, urlparse
 from html import escape, unescape
 from mimetypes import guess_type
 
@@ -1436,6 +1436,7 @@ def blog_tour_guides(request, place_slug):
                     and guide.user.additionalCreds.name != 'Facebook not Connected'
                     else guide.user.username
                 ) or 'Tour guide',
+                'profile_url': f"/userProfile/tour-guide/find/{quote(guide.user.username, safe='')}/",
                 'photo_url': (
                     guide.user.photoLink
                     or (

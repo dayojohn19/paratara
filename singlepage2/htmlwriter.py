@@ -1188,6 +1188,22 @@ img {{
 .tour-guide-details {{ padding: 0 0.9rem 0.9rem 4rem; color: rgba(255, 255, 255, 0.9); }}
 .tour-guide-details p {{ margin: 0.35rem 0 0; color: inherit; font-size: 0.92rem; line-height: 1.55; }}
 .tour-guide-details a {{ color: #ffffff; text-decoration: underline; }}
+.tour-guide-actions {{ display: flex; flex-wrap: wrap; gap: 0.55rem; margin-top: 0.85rem; }}
+.tour-guide-action {{
+    display: inline-flex;
+    align-items: center;
+    padding: 0.45rem 0.75rem;
+    color: #ffffff !important;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: none !important;
+    border: 1px solid rgba(255, 255, 255, 0.32);
+    border-radius: var(--radius-xs);
+    background: rgba(255, 255, 255, 0.10);
+}}
+.tour-guide-action:hover {{ background: rgba(255, 255, 255, 0.20); }}
+.tour-guide-action.whatsapp {{ background: #159447; border-color: #159447; }}
+.tour-guide-action.whatsapp:hover {{ background: #117a3a; }}
 
 /* ============ PROFESSIONAL FOOTER ============ */
 .site-footer {{
@@ -1770,12 +1786,13 @@ section[aria-labelledby="faq-heading"] [data-editing="true"] {{
             <h1 id="blog-summary">{escape(summary)}</h1>
             <p id="blog-title" class="blog-hero-title">{escape(title)}</p>
                 <a class="place-page-link" href="{place_page_url}">Explore {place_name}</a>
+            <p class="blog-date-meta">
+                <span>Published <time id="blog-published-at" datetime="{published_iso}">{published_display}</time></span>
+                <span>Last updated <time id="blog-last-updated" datetime="{modified_iso}">{modified_display}</time></span>
+            </p>                
         </header>
     {collections_html}
-    <p class="blog-date-meta">
-        <span>Published <time id="blog-published-at" datetime="{published_iso}">{published_display}</time></span>
-        <span>Last updated <time id="blog-last-updated" datetime="{modified_iso}">{modified_display}</time></span>
-    </p>
+
     <div id="blog-editable-body" data-place-slug="{place_slug}" data-title-slug="{title_slug}">
     {editable_body_text}
     </div>
@@ -2153,8 +2170,40 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg, onEmpty) {{
                 details.className = 'tour-guide-details';
 
                 const contact = document.createElement('p');
-                contact.textContent = `Mobile: ${{guide.mobile_number || 'Not provided'}}`;
+                const mobileNumber = String(guide.mobile_number || '').trim();
+                const whatsappNumber = mobileNumber
+                    .replace(/[^\d+]/g, '')
+                    .replace(/^\+/, '')
+                    .replace(/^0/, '63');
+                contact.appendChild(document.createTextNode('Mobile: '));
+                if (mobileNumber) {{
+                    contact.appendChild(document.createTextNode(mobileNumber));
+                }} else {{
+                    contact.appendChild(document.createTextNode('Not provided'));
+                }}
                 details.appendChild(contact);
+
+                const actions = document.createElement('div');
+                actions.className = 'tour-guide-actions';
+                if (guide.profile_url) {{
+                    const profileLink = document.createElement('a');
+                    profileLink.className = 'tour-guide-action';
+                    profileLink.href = guide.profile_url;
+                    profileLink.target = '_blank';
+                    profileLink.rel = 'noopener noreferrer';
+                    profileLink.textContent = 'View profile';
+                    actions.appendChild(profileLink);
+                }}
+                if (mobileNumber) {{
+                    const whatsappLink = document.createElement('a');
+                    whatsappLink.className = 'tour-guide-action whatsapp';
+                    whatsappLink.href = `https://wa.me/${{whatsappNumber}}`;
+                    whatsappLink.target = '_blank';
+                    whatsappLink.rel = 'noopener noreferrer';
+                    whatsappLink.textContent = 'Message on WhatsApp';
+                    actions.appendChild(whatsappLink);
+                }}
+                if (actions.childElementCount) details.appendChild(actions);
 
                 if (guide.bio) {{
                     const bio = document.createElement('p');
