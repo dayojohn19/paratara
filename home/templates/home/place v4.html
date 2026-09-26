@@ -23,7 +23,7 @@
   <link rel="dns-prefetch" href="https://www.instagram.com">
   <link rel="dns-prefetch" href="https://www.google.com">
 
-  <link rel="stylesheet" href="{% static 'home/place-page.css' %}?v=20260926-1">
+  <link rel="stylesheet" href="{% static 'home/place-page.css' %}?v=20260918-2">
 
   {# ---------- Inline critical CSS: skeletons, toasts, layout polish ---------- #}
   <style>
@@ -230,466 +230,10 @@
       cursor: pointer;
     }
 
-    /* ==================================================================
-       EVENT DETAILS MODAL — redesigned panel
-       Scoped to #eventDetailsModal so it never affects the rest of
-       the page. All existing IDs and hooks are preserved, so the
-       existing showEventModal()/registration JS keeps working.
-       ================================================================== */
-    #eventDetailsModal .modal-content {
-      max-width: 720px;
-      width: 100%;
-    }
-
-    #eventDetailsBody {
-      /* Design tokens — aligned with the page's green accent */
-      --ed-surface:      #f8fafc;
-      --ed-border:       #e4e7ec;
-      --ed-text:         #101828;
-      --ed-muted:        #667085;
-      --ed-accent:       #4b6b2c;
-      --ed-accent-hover: #3a5422;
-      --ed-accent-ring:  rgba(75,107,44,.18);
-      --ed-radius-sm:    10px;
-
-      color-scheme: light;
-      color: var(--ed-text);
-      font-size: 15px;
-      line-height: 1.55;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    #eventDetailsBody *,
-    #eventDetailsBody *::before,
-    #eventDetailsBody *::after {
-      box-sizing: border-box;
-    }
-
-    /* --- Meta rows (date, location, Instagram, website, etc.) --- */
-    #eventDetailsBody > p {
-      margin: 0 0 .5rem;
-      padding: .65rem .85rem;
-      background: var(--ed-surface);
-      border: 1px solid var(--ed-border);
-      border-radius: var(--ed-radius-sm);
-      font-size: .92rem;
-      line-height: 1.5;
-      overflow-wrap: anywhere;
-    }
-
-    #eventDetailsBody > p:last-of-type {
-      margin-bottom: 0;
-    }
-
-    /* Plain-text fallback line */
-    #eventDetailsText {
-      white-space: pre-line;
-      color: var(--ed-muted);
-      font-size: .875rem;
-      background: transparent;
-      border-color: transparent;
-      padding-left: 0;
-      padding-right: 0;
-    }
-
-    /* --- Links --- */
-    #eventDetailsBody a {
-      color: var(--ed-accent);
-      text-decoration: none;
-      border-bottom: 1px solid transparent;
-      transition: border-color .15s ease, color .15s ease;
-    }
-
-    #eventDetailsBody a:hover,
-    #eventDetailsBody a:focus-visible {
-      color: var(--ed-accent-hover);
-      border-bottom-color: currentColor;
-    }
-
-    #eventDetailsBody a:focus-visible {
-      outline: 2px solid var(--ed-accent);
-      outline-offset: 2px;
-      border-radius: 3px;
-    }
-
-    /* --- Description & additional details blocks --- */
-    #eventDescriptionContainer,
-    #eventAdditionalDetailsContainer {
-      margin: 0 0 .5rem;
-      padding: .9rem 1rem;
-      background: var(--ed-surface);
-      border: 1px solid var(--ed-border);
-      border-left: 3px solid var(--ed-accent);
-      border-radius: var(--ed-radius-sm);
-    }
-
-    #eventDescriptionContainer > p:first-child,
-    #eventAdditionalDetailsContainer > p:first-child {
-      margin: 0 0 .4rem;
-      font-size: .72rem;
-      font-weight: 700;
-      letter-spacing: .06em;
-      text-transform: uppercase;
-      color: var(--ed-muted);
-    }
-
-    #eventDescriptionContainer > p:last-child,
-    #eventAdditionalDetailsContainer > p:last-child {
-      margin: 0;
-      font-size: .92rem;
-      color: var(--ed-text);
-    }
-
-    /* --- Register section --- */
-    #eventDetailsBody .event-register {
-      margin-top: 1.5rem;
-      padding-top: 1.4rem;
-      border-top: 1px solid var(--ed-border);
-    }
-
-    #eventDetailsBody .event-register h3 {
-      margin: 0 0 1rem;
-      font-size: 1.05rem;
-      font-weight: 650;
-      letter-spacing: -.01em;
-      color: var(--ed-text);
-    }
-
-    #eventDetailsBody .event-register__grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: .9rem 1rem;
-    }
-
-    #eventDetailsBody .event-register__full {
-      margin-top: .9rem;
-    }
-
-    /* Labels */
-    #eventDetailsBody .event-register label {
-      display: block;
-      margin-bottom: .3rem;
-      font-size: .8rem;
-      font-weight: 600;
-      color: var(--ed-text);
-    }
-
-    #eventDetailsBody .event-register label span {
-      font-weight: 700;
-      color: var(--ed-accent);
-    }
-
-    /* Inputs (skip the hidden honeypot and event_date hidden field) */
-    #eventDetailsBody .event-register input:not([type="hidden"]):not(#website_field) {
-      display: block;
-      width: 100%;
-      padding: .65rem .8rem;
-      font: inherit;
-      font-size: .9rem;
-      color: var(--ed-text);
-      background: #fff;
-      border: 1px solid var(--ed-border);
-      border-radius: var(--ed-radius-sm);
-      transition: border-color .15s ease, box-shadow .15s ease;
-      appearance: none;
-    }
-
-    #eventDetailsBody .event-register input::placeholder {
-      color: #98a2b3;
-    }
-
-    #eventDetailsBody .event-register input:hover {
-      border-color: #cfd4dc;
-    }
-
-    #eventDetailsBody .event-register input:focus {
-      outline: none;
-      border-color: var(--ed-accent);
-      box-shadow: 0 0 0 3px var(--ed-accent-ring);
-    }
-
-    /* Keep the honeypot invisible no matter what */
-    #eventDetailsBody #website_field {
-      display: none !important;
-    }
-
-    /* Submit button — overrides the generic .button styling within this panel */
-    #eventDetailsBody #siargaoEventRegisterSubmit {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: .5rem;
-      width: 100%;
-      margin-top: 1.15rem;
-      padding: .8rem 1.4rem;
-      font: inherit;
-      font-size: .92rem;
-      font-weight: 650;
-      color: #fff;
-      background: var(--ed-accent);
-      border: 0;
-      border-radius: var(--ed-radius-sm);
-      cursor: pointer;
-      box-shadow: 0 1px 0 rgba(0,0,0,.04);
-      transition: background .15s ease, transform .06s ease, box-shadow .15s ease;
-    }
-
-    #eventDetailsBody #siargaoEventRegisterSubmit:hover:not(:disabled) {
-      background: var(--ed-accent-hover);
-      box-shadow: 0 6px 16px -6px rgba(75,107,44,.55);
-    }
-
-    #eventDetailsBody #siargaoEventRegisterSubmit:active:not(:disabled) {
-      transform: translateY(1px);
-      box-shadow: none;
-    }
-
-    #eventDetailsBody #siargaoEventRegisterSubmit:focus-visible {
-      outline: 2px solid var(--ed-accent);
-      outline-offset: 3px;
-    }
-
-    #eventDetailsBody #siargaoEventRegisterSubmit:disabled {
-      opacity: .6;
-      cursor: not-allowed;
-    }
-
-    /* Status / feedback area */
-    #siargaoEventRegisterStatus:not(:empty) {
-      margin-top: 1rem;
-      padding: .75rem .9rem;
-      font-size: .85rem;
-      line-height: 1.45;
-      border-radius: var(--ed-radius-sm);
-      background: #eff6ff;
-      border: 1px solid #bfdbfe;
-      color: #1e40af;
-    }
-
-    #siargaoEventRegisterStatus.is-success,
-    #siargaoEventRegisterStatus[data-state="success"] {
-      background: #ecfdf3;
-      border-color: #a6f4c5;
-      color: #027a48;
-    }
-
-    #siargaoEventRegisterStatus.is-error,
-    #siargaoEventRegisterStatus[data-state="error"] {
-      background: #fef3f2;
-      border-color: #fecdca;
-      color: #b42318;
-    }
-
-    /* Image inside the modal — rounded corners, breathing room */
-    #eventDetailsModal .modal-image img {
-      display: block;
-      width: 100%;
-      height: auto;
-      border-radius: var(--pt-radius-md);
-      margin-top: 1rem;
-    }
-
-    /* Responsive */
-    @media (max-width: 560px) {
-      #eventDetailsBody .event-register__grid {
-        grid-template-columns: 1fr;
-      }
-      #eventDetailsBody > p {
-        font-size: .875rem;
-      }
-    }
-
-    @media (min-width: 561px) {
-      #eventDetailsBody #siargaoEventRegisterSubmit {
-        width: auto;
-        min-width: 200px;
-      }
-    }
-
     @media (prefers-reduced-motion: reduce) {
       .pt-skel, .loading-symbol { animation: none; }
       .blog-post { transition: none; }
-      #eventDetailsBody a,
-      #eventDetailsBody .event-register input,
-      #eventDetailsBody #siargaoEventRegisterSubmit { transition: none; }
     }
-
-    /* ==================================================================
-   EVENTS PANEL — redesigned
-   Scoped to .panel--events so nothing leaks. The JS still creates
-   .calendar-event-card, .card-overlay, .card-content and
-   .calendar-event-register — those hooks are preserved and styled here.
-   ================================================================== */
-.panel--events {
-  --ev-accent:       #4b6b2c;
-  --ev-accent-hover: #3a5422;
-  --ev-radius:       14px;
-  --ev-card-min-h:   210px;
-}
-
-.panel--events .section-header { align-items: baseline; }
-
-.panel--events .section-header__hint {
-  font-size: .78rem;
-  color: var(--pt-muted);
-  letter-spacing: .02em;
-}
-
-/* Grid — slightly tighter than the default calendar-grid */
-.panel--events .calendar-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 16px;
-}
-
-/* -------- Event card -------- */
-.panel--events .calendar-event-card {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  min-height: var(--ev-card-min-h);
-  border-radius: var(--ev-radius);
-  background-size: cover;
-  background-position: center;
-  background-color: var(--ev-accent); /* fallback when no image */
-  box-shadow:
-    0 1px 2px rgba(16,24,40,.06),
-    0 10px 24px -14px rgba(16,24,40,.35);
-  transition: transform .18s ease, box-shadow .18s ease;
-  cursor: pointer;
-}
-
-.panel--events .calendar-event-card:hover,
-.panel--events .calendar-event-card:focus-within {
-  transform: translateY(-3px);
-  box-shadow:
-    0 2px 4px rgba(16,24,40,.08),
-    0 18px 36px -16px rgba(16,24,40,.45);
-}
-
-.panel--events .calendar-event-card:focus-visible {
-  outline: 3px solid var(--ev-accent);
-  outline-offset: 3px;
-}
-
-/* Dark gradient overlay so text is always readable */
-.panel--events .calendar-event-card .card-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background:
-    linear-gradient(180deg,
-      rgba(16,24,40,.05) 0%,
-      rgba(16,24,40,.25) 40%,
-      rgba(16,24,40,.78) 100%);
-  pointer-events: none;
-}
-
-/* Content stack pinned to the bottom */
-.panel--events .calendar-event-card .card-content {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  gap: .35rem;
-  min-height: var(--ev-card-min-h);
-  padding: 18px 18px 16px;
-  color: #fff;
-}
-
-.panel--events .calendar-event-card .card-content h4 {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 650;
-  line-height: 1.3;
-  letter-spacing: -.005em;
-  color: #fff;
-  text-shadow: 0 1px 2px rgba(0,0,0,.35);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.panel--events .calendar-event-card .card-content p {
-  margin: 0;
-  font-size: .82rem;
-  font-weight: 500;
-  color: rgba(255,255,255,.85);
-  text-shadow: 0 1px 2px rgba(0,0,0,.35);
-}
-
-/* Register button — overrides .button--primary inside the card */
-.panel--events .calendar-event-card .calendar-event-register {
-  align-self: flex-start;
-  margin-top: .6rem;
-  padding: .5rem .95rem;
-  font-size: .8rem;
-  font-weight: 650;
-  color: #fff;
-  background: rgba(255,255,255,.14);
-  border: 1px solid rgba(255,255,255,.35);
-  border-radius: 999px;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  cursor: pointer;
-  box-shadow: none;
-  transition: background .15s ease, border-color .15s ease, transform .06s ease;
-}
-
-.panel--events .calendar-event-card:hover .calendar-event-register,
-.panel--events .calendar-event-card:focus-within .calendar-event-register {
-  background: var(--ev-accent);
-  border-color: var(--ev-accent);
-}
-
-.panel--events .calendar-event-card .calendar-event-register:hover {
-  background: var(--ev-accent-hover);
-  border-color: var(--ev-accent-hover);
-}
-
-.panel--events .calendar-event-card .calendar-event-register:active {
-  transform: translateY(1px);
-}
-
-.panel--events .calendar-event-card .calendar-event-register:focus-visible {
-  outline: 2px solid #fff;
-  outline-offset: 2px;
-}
-
-/* Empty state spans the full grid */
-.panel--events .empty-state {
-  grid-column: 1 / -1;
-  min-height: 140px;
-}
-
-/* Responsive */
-@media (max-width: 560px) {
-  .panel--events .calendar-grid { grid-template-columns: 1fr; }
-  .panel--events .calendar-event-card,
-  .panel--events .calendar-event-card .card-content {
-    min-height: 180px;
-  }
-}
-
-/* Dark mode */
-@media (prefers-color-scheme: dark) {
-  .panel--events .calendar-event-card {
-    box-shadow:
-      0 1px 2px rgba(0,0,0,.4),
-      0 16px 32px -18px rgba(0,0,0,.7);
-  }
-}
-
-/* Reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  .panel--events .calendar-event-card,
-  .panel--events .calendar-event-card .calendar-event-register {
-    transition: none;
-  }
-  .panel--events .calendar-event-card:hover { transform: none; }
-}
   </style>
 </head>
 <body>
@@ -1240,24 +784,7 @@
       <h2 id="piT"></h2>
       <p class="pimp" id="piPrice"></p>
       <p class="pimdsc" id="piD"></p>
-      <button class="pim-more" id="piMore" type="button" aria-expanded="false" aria-controls="piDetails" hidden>More details</button>
-      <section class="pim-details" id="piDetails" aria-label="Establishment details" hidden>
-        <div id="piSummaryWrap" hidden>
-          <h3>About this place</h3>
-          <p id="piSummary"></p>
-        </div>
-        <div id="piAddressWrap" hidden>
-          <h3>Address</h3>
-          <p id="piAddress"></p>
-        </div>
-        <div class="pim-map-wrap" id="piMapWrap" hidden>
-          <iframe id="piMap" src="about:blank" title="Map showing this establishment" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-        </div>
-        <a class="pim-establishment-link" id="piEstablishmentLink" target="_blank" rel="noopener noreferrer" hidden>Visit establishment page</a>
-        <a class="pim-map-link" id="piMapLink" target="_blank" rel="noopener noreferrer" hidden>Open in map</a>
-      </section>
       <a class="button button--primary piml" id="piL" target="_blank" rel="noopener">View</a>
-      <script src="{% static 'home/place-item-details.js' %}?v=20260926-2" defer></script>
       <div class="prv" id="prP" hidden></div>
     </div>
   </div>
@@ -1283,6 +810,7 @@
       <div class="chat-container" id="container-placeDiscussion">
         <div class="chat-messages" id="allDiscussion"></div>
         <div class="chat-input-area">
+          <label class="sr-only" for="discuss-message">Your message</label>
           <textarea class="chat-input" id="discuss-message" maxlength="200" placeholder="Type your message..."></textarea>
           <button type="button" class="chat-send-btn" id="modal-send-btn" aria-label="Send message"
                   onclick="discussionFetcher('{{placeid}}','POST', this)">
@@ -1570,25 +1098,12 @@
       <div class="load-more-wrap" hidden id="schedules-load-more"></div>
     </section>
 
-    <!-- Events
+    <!-- Events -->
     <section class="panel panel--events" id="events" aria-labelledby="events-schedule-heading">
       <div class="section-header"><h2 id="events-schedule-heading">Upcoming events</h2></div>
       <div class="calendar-grid" id="event-objects-list"></div>
       <div class="load-more-wrap" hidden id="events-load-more"></div>
     </section>
- -->
-
-    <!-- Events -->
-<section class="panel panel--events" id="events" aria-labelledby="events-schedule-heading">
-  <div class="section-header">
-    <h2 id="events-schedule-heading">Upcoming events</h2>
-    <span class="section-header__hint">Tap a card to register</span>
-  </div>
-  <div class="calendar-grid" id="event-objects-list"></div>
-  <div class="load-more-wrap" hidden id="events-load-more"></div>
-</section>
-
-
 
   </div>
 </main>
@@ -1849,10 +1364,9 @@
               let card = document.createElement(`div`);
               card.className = `calendar-event-card`;
               card.style.backgroundColor = `#4b6b2c`;
-              let eventImageUrl = e.backgroundURL || e.thumbnailURL || e.scheduleImageURL;
-              eventImageUrl && window.placeLazyBackground
-                ? window.placeLazyBackground(card, eventImageUrl)
-                : eventImageUrl && (card.style.backgroundImage = `url('${eventImageUrl}')`);
+              e.backgroundURL && window.placeLazyBackground
+                ? window.placeLazyBackground(card, e.backgroundURL)
+                : e.backgroundURL && (card.style.backgroundImage = `url('${e.backgroundURL}')`);
               card.onclick = () => showEventModal(e);
               card.style.cursor = `pointer`;
               let overlay = document.createElement(`div`);
@@ -2074,8 +1588,8 @@
 
     let imageContainer = document.getElementById(`eventImageContainer`);
     let imageElement = document.getElementById(`eventDetailsImage`);
-    eventData.thumbnailURL || eventData.backgroundURL || eventData.scheduleImageURL
-      ? (imageElement.src = eventData.thumbnailURL || eventData.backgroundURL || eventData.scheduleImageURL, imageContainer.style.display = `block`)
+    eventData.thumbnailURL || eventData.backgroundURL
+      ? (imageElement.src = eventData.thumbnailURL || eventData.backgroundURL, imageContainer.style.display = `block`)
       : imageContainer.style.display = `none`;
 
     modal.style.display = `block`;

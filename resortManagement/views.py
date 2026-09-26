@@ -19,7 +19,8 @@ from requests.auth import HTTPBasicAuth
 from django.core.exceptions import PermissionDenied
 from django.conf import settings
 from django.contrib import messages
-from django.core.mail import EmailMessage
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
 from django.db.models import Q
 from django.db import transaction as db_transaction
 from django.views.decorators.cache import cache_page
@@ -31,10 +32,12 @@ import os
 import re
 import qrcode
 from io import BytesIO
+from email.mime.image import MIMEImage
 from django.forms.models import model_to_dict
 from django.utils.dateparse import parse_datetime
 from django.urls import reverse
 from subscription.services.paymongo import PayMongoClient, amount_to_centavos
+from subscription.room_booking_status import mark_room_booking_button_paid
 
 
 PAYPAL_API_BASE = getattr(settings, 'PAYPAL_API_BASE', 'https://api-m.paypal.com')
@@ -75,6 +78,12 @@ def _booking_receipt_code(checkin_instance):
     checkin_data.update({
         'resort_name_display': (resort_details.RealName or resort_details.name or '') if resort_details else '',
         'resort_address': resort_details.address if resort_details else '',
+        'resort_contact_number': resort_details.contactNumber if resort_details else '',
+        'resort_contact_email': resort_details.contactEmail if resort_details else '',
+        'resort_whatsapp_number': resort_details.whatsappNumber if resort_details else '',
+        'resort_open_hours': resort_details.open_hours if resort_details else '',
+        'resort_website': resort_details.websiteURL if resort_details else '',
+        'resort_description': resort_details.description if resort_details else '',
         'resort_logo': next(
             (
                 value
@@ -97,52 +106,95 @@ def _booking_receipt_code(checkin_instance):
     return encoded_booking
 
 
+# The Content-ID that links the embedded image to the <img src="cid:..."> in the HTML.
+QR_CONTENT_ID = 'booking-receipt-qr'
+
+RECEIPT_HTML_TEMPLATE = 'resortManagement/booking_receipt.html'
+RECEIPT_TEXT_TEMPLATE = 'resortManagement/booking_receipt.txt'
+
+
 def _send_booking_receipt_email(payment, checkin_instance, request):
-    payment.refresh_from_db(fields=['receipt_email_sent_at'])
-    if payment.receipt_email_sent_at or not checkin_instance.guest_email:
+    if not checkin_instance.guest_email:
         return False
+
+    claimed_at = timezone.now()
+    claimed = ResortBookingPayment.objects.filter(
+        pk=payment.pk,
+        receipt_email_sent_at__isnull=True,
+    ).update(receipt_email_sent_at=claimed_at)
+    if not claimed:
+        return False
+    payment.receipt_email_sent_at = claimed_at
 
     receipt_code = _booking_receipt_code(checkin_instance)
     receipt_url = request.build_absolute_uri(
         reverse('resort_management:qr', args=[receipt_code])
     )
+
     qr_buffer = BytesIO()
     qrcode.make(receipt_url).save(qr_buffer, format='PNG')
-    qr_buffer.seek(0)
+    qr_bytes = qr_buffer.getvalue()
 
-    resort_name = checkin_instance.resort.RealName or checkin_instance.resort.name
-    subject = f'Booking receipt: {checkin_instance.room.title}'
-    body = (
-        f"Hello {checkin_instance.guest_name},\n\n"
-        "Your payment and booking are confirmed.\n\n"
-        f"Resort: {resort_name}\n"
-        f"Room: {checkin_instance.room.title}\n"
-        f"Check-in: {checkin_instance.checkin_date:%B %d, %Y %I:%M %p}\n"
-        f"Check-out: {checkin_instance.checkout_date:%B %d, %Y %I:%M %p}\n"
-        f"Amount paid: PHP {payment.amount_centavos / 100:,.2f}\n\n"
-        f"Open your booking receipt: {receipt_url}\n\n"
-        "Your QR booking receipt is attached to this email."
+    resort = checkin_instance.resort
+    resort_name = resort.RealName or resort.name
+    resort_page_url = request.build_absolute_uri(
+        reverse('resorts:getResortID', kwargs={'resortID': resort.pk})
     )
-    message = EmailMessage(
+
+    context = {
+        'guest_name': checkin_instance.guest_name,
+        'resort_name': resort_name,
+        'room_title': checkin_instance.room.title,
+        'checkin_display': f'{checkin_instance.checkin_date:%B %d, %Y %I:%M %p}',
+        'checkout_display': f'{checkin_instance.checkout_date:%B %d, %Y %I:%M %p}',
+        'amount_display': f'PHP {payment.amount_centavos / 100:,.2f}',
+        'resort_address': resort.address,
+        'resort_contact_number': resort.contactNumber,
+        'resort_contact_email': resort.contactEmail,
+        'resort_whatsapp_number': resort.whatsappNumber,
+        'resort_open_hours': resort.open_hours,
+        'resort_website': resort.websiteURL,
+        'resort_page_url': resort_page_url,
+        'receipt_code': receipt_code,
+        'receipt_url': receipt_url,
+        'qr_cid': QR_CONTENT_ID,
+    }
+
+    subject = f'Booking receipt: {checkin_instance.room.title}'
+
+    message = EmailMultiAlternatives(
         subject=subject,
-        body=body,
+        body=render_to_string(RECEIPT_TEXT_TEMPLATE, context),
         from_email=settings.DEFAULT_FROM_EMAIL,
         to=[checkin_instance.guest_email],
     )
-    message.attach('booking-receipt-qr.png', qr_buffer.getvalue(), 'image/png')
+    message.attach_alternative(
+        render_to_string(RECEIPT_HTML_TEMPLATE, context),
+        'text/html',
+    )
+
+    # Embed the QR code inline so it renders in the body instead of as a file attachment.
+    qr_image = MIMEImage(qr_bytes, _subtype='png')
+    qr_image.add_header('Content-ID', f'<{QR_CONTENT_ID}>')
+    qr_image.add_header(
+        'Content-Disposition', 'inline', filename='booking-receipt-qr.png'
+    )
+    message.attach(qr_image)
+
     try:
         if message.send(fail_silently=False):
-            payment.receipt_email_sent_at = timezone.now()
-            payment.save(update_fields=['receipt_email_sent_at', 'updated_at'])
             return True
+        ResortBookingPayment.objects.filter(
+            pk=payment.pk,
+            receipt_email_sent_at=claimed_at,
+        ).update(receipt_email_sent_at=None)
+        payment.receipt_email_sent_at = None
     except Exception as exc:
         print(
             f'[resortManagement] Booking receipt email failed for payment {payment.pk}: {exc}',
             flush=True,
         )
     return False
-
-
 def has_active_subscription(resort_id):
     is_subscribed = ResortSubscription.objects.filter(
         resort=resort_id,
@@ -1014,6 +1066,7 @@ def paymongo_room_booking_return(request, payment_id):
     calendar_url = 'resort_management:movemarkedcalendarnamed'
 
     if payment.status == 'paid' and payment.checkin_id:
+        mark_room_booking_button_paid(booking_data)
         _send_booking_receipt_email(payment, payment.checkin, request)
         return _booking_receipt_redirect(payment.checkin)
     if request.GET.get('cancel') == '1':
@@ -1118,6 +1171,7 @@ def paymongo_room_booking_return(request, payment_id):
                 payment.status = 'paid'
                 payment.checkin = booking
                 payment.save(update_fields=['status', 'checkin', 'updated_at'])
+    mark_room_booking_button_paid(booking_data)
     if dates_conflicted:
         messages.error(request, 'PayMongo received your payment, but the dates were booked meanwhile. Contact the resort to resolve it.')
         return redirect(calendar_url, **redirect_args)

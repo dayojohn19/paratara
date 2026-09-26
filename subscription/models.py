@@ -97,6 +97,7 @@ class SubscriptionPlan(models.Model):
         ("weekly", "Weekly"),
         ("monthly", "Monthly"),
         ("yearly", "Yearly"),
+        ("one_time", "One Time"),
     ]
 
     TYPE_CHOICES = [
@@ -136,6 +137,13 @@ class SubscriptionPlan(models.Model):
 
 
 class SubscriptionProduct(models.Model):
+    resort_package = models.OneToOneField(
+        "resorts.Packages",
+        on_delete=models.SET_NULL,
+        related_name="subscription_product",
+        blank=True,
+        null=True,
+    )
     paypal_product_id = models.CharField(max_length=100, blank=True, null=True, unique=True)
     paymongo_product_id = models.CharField(max_length=100, blank=True, null=True, unique=True)
     name = models.CharField(max_length=150)
@@ -218,6 +226,7 @@ class PaymentButton(models.Model):
         default="hosted_checkout",
     )
     active = models.BooleanField(default=True)
+    paid = models.BooleanField(default=False)
     success_url = models.URLField(blank=True, null=True)
     cancel_url = models.URLField(blank=True, null=True)
     failed_url = models.URLField(blank=True, null=True)

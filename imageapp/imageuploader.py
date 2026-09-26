@@ -263,83 +263,37 @@ def _sanitize_title_image_filename(title):
 
 
 def getTitlePhoto(request, title):
-    """Generate an image from OpenAI for the given title, save it under MEDIA_ROOT, and return the local path."""
+    """Generate a title image with Pollinations and return its local path."""
     print('Generating title image for:', title)
     if not title or not title.strip():
         raise ValueError('Title must not be empty')
 
-    prompt = ({title})
+    from pollinations import Pollinations
 
-
-    client = settings.GROK_CLIENT
-
-
-    # Updated for xAI/Grok
-    # image_model = getattr(settings, 'XAI_IMAGE_MODEL', 'grok-imagine-image-quality')
-    image_model = getattr(settings, 'XAI_IMAGE_MODEL', 'grok-imagine-image')
-
-
-    try:
-        response = client.images.generate(
-            model=image_model,
-            prompt=prompt,
-            extra_body={
-                "aspect_ratio": "1:1"  # This is the equivalent of 1024x1024
-            },
-        )
-    except Exception as e:
-        print('OpenAI title image generation failed:', e)
-        raise
-
-    # Print usage if available
-    usage_info = None
-    if hasattr(response, 'usage'):
-        usage_info = response.usage
-    elif hasattr(response, 'data') and response.data and hasattr(response.data[0], 'usage'):
-        usage_info = response.data[0].usage
-
-    if usage_info:
-        if isinstance(usage_info, dict) and usage_info.get('total_tokens') is not None:
-            print(f" generate title Token usage: {usage_info.get('total_tokens')} total tokens")
-        else:
-            print(f"generate title Token usage: {usage_info}")
-    else:
-        print("No token usage info available in response")
-
-    image_item = response.data[0] if getattr(response, 'data', None) else None
-    if not image_item:
-        raise RuntimeError('OpenAI responded with no image data. Check your prompt and API response.')
-
-    raw_image_data = None
-    image_url = None
-    if isinstance(image_item, dict):
-        raw_image_data = image_item.get('b64_json')
-        image_url = image_item.get('url')
-    else:
-        if hasattr(image_item, 'b64_json'):
-            raw_image_data = image_item.b64_json
-        if hasattr(image_item, 'url'):
-            image_url = image_item.url
-
-    if raw_image_data:
-        image_bytes = base64.b64decode(raw_image_data)
-        print('Success! Generated image via base64 payload.')
-    elif image_url:
-        print(f'Success! Downloading generated image from URL: {image_url}')
-        image_response = requests.get(image_url, timeout=30)
-        image_response.raise_for_status()
-        image_bytes = image_response.content
-    else:
-        raise RuntimeError('OpenAI returned no image bytes or image URL for title image generation')
+    client = Pollinations(
+        timeout=90,
+        api_key=getattr(settings, 'POLLINATIONS_API_KEY', '') or None,
+    )
 
     output_dir = os.path.join(settings.MEDIA_ROOT, 'generated_title_images')
     os.makedirs(output_dir, exist_ok=True)
 
-    filename = f"{_sanitize_title_image_filename(title)}_{uuid.uuid4().hex}.png"
+    filename = f"{_sanitize_title_image_filename(title)}_{uuid.uuid4().hex}.jpg"
     local_path = os.path.join(output_dir, filename)
 
-    with open(local_path, 'wb') as out_file:
-        out_file.write(image_bytes)
+    client.download_image(
+        prompt=title,
+        output_path=local_path,
+        model='flux',
+        width=1024,
+        height=1024,
+        nologo=True,
+        private=True,
+        nofeed=True,
+    )
+    with Image.open(local_path) as generated_image:
+        generated_image.verify()
+
     print('Title image generated and saved to:', local_path)
     return local_path
 

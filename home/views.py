@@ -1499,6 +1499,18 @@ def placeCalendarJSON_v2(request, id, month=None, year=None):
                 link = None
 
             resort_list.append({'name': display_name, 'link': link})
+    for event in event_objs:
+        image_url = event.backgroundURL or event.thumbnailURL or event.scheduleImageURL
+        if not image_url and event.package:
+            package_image = event.package.images.first()
+            image_url = package_image.urlField if package_image else ''
+            if not image_url and event.package.packageName and event.package.packageName.ItemOfResort:
+                image_url = event.package.packageName.ItemOfResort.headerImage or ''
+        if image_url:
+            event.backgroundURL = event.backgroundURL or image_url
+            event.thumbnailURL = event.thumbnailURL or image_url
+            event.scheduleImageURL = event.scheduleImageURL or image_url
+
     event_data = serializers.serialize(
         'json',
         event_objs,

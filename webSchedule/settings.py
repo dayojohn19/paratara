@@ -44,7 +44,7 @@ GROK_MODEL_NAME = _resolve_groq_model("GROK_MODEL_NAME", SUPPORTED_GROQ_MODEL)
 # Use a model that is actually available on the current Groq account. Stale names like
 # llama-3.3-70b-versatile or grok-4.3 return 404/invalid_request errors for some keys.
 GROK_CLIENT = OpenAI(api_key=GROK_API_KEY, base_url="https://api.groq.com/openai/v1")
-XAI_IMAGE_MODEL = 'grok-imagine-image-quality'
+POLLINATIONS_API_KEY = config("POLLINATIONS_API_KEY", default="")
 
 PAYPAL_WEBHOOK_CLIENT = 'paypalrestsdk.WebhookEvent'
 # Local-first discussion assistant. The default template backend does not call

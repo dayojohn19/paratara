@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone as dt_timezone
 
 from django.shortcuts import get_object_or_404, redirect, render
-from django.db.models import Prefetch
+from django.db.models import Exists, OuterRef, Prefetch
 
 # Create your views here.
 # subscriptions/views.py
@@ -677,6 +677,11 @@ def paymongo_setup_page(request):
     buttons = (
         PaymentButton.objects
         .select_related("source_website", "product", "plan")
+        .annotate(
+            has_paid_transaction=Exists(
+                Transaction.objects.filter(payment_button_id=OuterRef("pk"), status="paid")
+            )
+        )
         .order_by("-created_at")
     )
     transactions = (
@@ -696,16 +701,30 @@ def paymongo_setup_page(request):
         .order_by("-created_at")[:25]
     )
 
+    paid_room_booking_data = []
+    if buttons.exists():
+        from resortManagement.models import ResortBookingPayment
+        from .room_booking_status import room_booking_matches_button_metadata
+
+        paid_room_booking_data = list(
+            ResortBookingPayment.objects.filter(status="paid").values_list("booking_data", flat=True)
+        )
+
     button_rows = []
     for button in buttons:
         embed_data = _button_embed_data(button, request=request)
         last_transaction = button.transactions.order_by("-created_at").first()
+        has_paid_room_booking = any(
+            room_booking_matches_button_metadata(booking_data, button.metadata)
+            for booking_data in paid_room_booking_data
+        )
         button_rows.append(
             {
                 "button": button,
                 "embed_script": embed_data["script"],
                 "fallback_form": embed_data["form"],
                 "last_transaction": last_transaction,
+                "has_paid_transaction": button.paid or button.has_paid_transaction or has_paid_room_booking,
                 "admin_url": _admin_change_url("paymentbutton", button),
             }
         )
@@ -1995,8 +2014,8 @@ def _sync_paymongo_profile_billing_details(profile, billing_details):
         "address_line1": address.get("line1"),
         "address_line2": address.get("line2"),
         "address_city": address.get("city"),
-        "address_state": address.get("state"),
-        "address_postal_code": address.get("postal_code"),
+        "address_state": address.get("state") or address.get("province") or address.get("region"),
+        "address_postal_code": address.get("postal_code") or address.get("zip") or address.get("zip_code"),
         "address_country": address.get("country"),
     }
     changed_fields = []

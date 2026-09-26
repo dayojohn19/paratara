@@ -1,6 +1,6 @@
 {% load static %}
 <!doctype html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -14,18 +14,61 @@
   <meta property="og:title" content="{% if page_title %}{{ page_title }}{% elif place.placename %}{{ place.placename }} Travel Guide | Paratara{% else %}Paratara{% endif %}">
   <meta property="og:description" content="{% if meta_description %}{{ meta_description }}{% elif place.placename %}Discover {{ place.placename }} travel guides, resort options, local events, tourist spots, and shared trip schedules with Paratara.{% else %}Plan trips with Paratara.{% endif %}">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="theme-color" content="#4b6b2c">
-  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#0a0f0a">
+  <meta name="color-scheme" content="dark">
 
-  {# Resource hints: warm up third-party origins used later in the page #}
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://www.google.com">
   <link rel="dns-prefetch" href="https://www.instagram.com">
   <link rel="dns-prefetch" href="https://www.google.com">
 
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            display: ['"Space Grotesk"', 'Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50:  '#f3f8ec',
+              100: '#e4efd5',
+              200: '#c9dfad',
+              300: '#a6c97d',
+              400: '#84b154',
+              500: '#659438',
+              600: '#4b6b2c',
+              700: '#3a5422',
+              800: '#2f441e',
+              900: '#293a1c',
+            },
+          },
+          animation: {
+            'shimmer': 'pt-shimmer 1.4s linear infinite',
+            'spin-slow': 'pt-spin .8s linear infinite',
+          },
+          keyframes: {
+            'pt-shimmer': {
+              '0%':   { backgroundPosition: '-400px 0' },
+              '100%': { backgroundPosition: '400px 0' },
+            },
+            'pt-spin': { 'to': { transform: 'rotate(360deg)' } },
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- Legacy CSS kept for dynamically-generated JS content + modal toggles -->
   <link rel="stylesheet" href="{% static 'home/place-page.css' %}?v=20260926-1">
 
-  {# ---------- Inline critical CSS: skeletons, toasts, layout polish ---------- #}
   <style>
     :root {
       --pt-radius-sm: 8px;
@@ -34,19 +77,20 @@
       --pt-shadow-sm: 0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.08);
       --pt-shadow-md: 0 4px 12px rgba(16,24,40,.08), 0 2px 4px rgba(16,24,40,.04);
       --pt-shadow-lg: 0 12px 28px rgba(16,24,40,.12);
-      --pt-border: 1px solid rgba(16,24,40,.08);
-      --pt-muted: #667085;
-      --pt-text: #101828;
-      --pt-bg-soft: #f7f8fa;
-      --pt-accent: #4b6b2c;
-      --pt-accent-soft: rgba(75,107,44,.08);
+      --pt-border: 1px solid rgba(255,255,255,.08);
+      --pt-muted: #94a3b8;
+      --pt-text: #f1f5f9;
+      --pt-bg-soft: rgba(255,255,255,.03);
+      --pt-accent: #84b154;
+      --pt-accent-soft: rgba(132,177,84,.12);
     }
 
-    /* Reduce long-task jank on below-fold sections */
+    html { background: #070b07; }
+    body { background: #070b07; color: #e2e8f0; }
+
     .page-stack > .panel { content-visibility: auto; contain-intrinsic-size: 800px; }
     .panel--blogs { content-visibility: auto; contain-intrinsic-size: 500px; }
 
-    /* ---------- Skeleton loaders ---------- */
     @keyframes pt-shimmer {
       0%   { background-position: -400px 0; }
       100% { background-position: 400px 0; }
@@ -54,7 +98,7 @@
     .pt-skel {
       display: block;
       border-radius: var(--pt-radius-sm);
-      background: linear-gradient(90deg, #eef0f3 0%, #f6f7f9 40%, #eef0f3 80%);
+      background: linear-gradient(90deg, rgba(255,255,255,.04) 0%, rgba(255,255,255,.09) 40%, rgba(255,255,255,.04) 80%);
       background-size: 800px 100%;
       animation: pt-shimmer 1.4s linear infinite;
     }
@@ -64,11 +108,10 @@
     .pt-skel--chip  { height: 22px; width: 90px; border-radius: 999px; }
 
     .pt-skeleton-card {
-      background: #fff;
-      border: var(--pt-border);
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,.08);
       border-radius: var(--pt-radius-md);
       padding: 16px;
-      box-shadow: var(--pt-shadow-sm);
     }
     .pt-skeleton-grid {
       display: grid;
@@ -90,13 +133,14 @@
     }
     .pt-toast {
       pointer-events: auto;
-      background: #fff;
-      color: var(--pt-text);
-      border: var(--pt-border);
-      border-left: 4px solid var(--pt-accent);
-      border-radius: var(--pt-radius-sm);
+      background: rgba(20,26,20,.95);
+      backdrop-filter: blur(12px);
+      color: #f1f5f9;
+      border: 1px solid rgba(255,255,255,.1);
+      border-left: 4px solid #84b154;
+      border-radius: 12px;
       padding: 12px 14px;
-      box-shadow: var(--pt-shadow-md);
+      box-shadow: 0 8px 24px rgba(0,0,0,.4);
       font-size: 14px;
       line-height: 1.4;
       opacity: 0;
@@ -104,604 +148,211 @@
       transition: opacity .18s ease, transform .18s ease;
     }
     .pt-toast.is-visible { opacity: 1; transform: translateY(0); }
-    .pt-toast.is-error { border-left-color: #b42318; }
-    .pt-toast.is-info  { border-left-color: #667eea; }
+    .pt-toast.is-error { border-left-color: #ef4444; }
+    .pt-toast.is-info  { border-left-color: #818cf8; }
 
-    /* ---------- Hero polish ---------- */
-    .hero--enhanced {
-      position: relative;
-      isolation: isolate;
-      overflow: hidden;
-      padding: clamp(20px, 4vw, 40px);
-      background:
-        radial-gradient(120% 120% at 0% 0%, rgba(75,107,44,.18), transparent 55%),
-        radial-gradient(120% 120% at 100% 0%, rgba(102,126,234,.14), transparent 55%),
-        linear-gradient(180deg, #fbfcfb 0%, #f4f6f2 100%);
-      border: var(--pt-border);
-      box-shadow: var(--pt-shadow-sm);
-    }
-    .hero--enhanced .hero__heading {
-      font-weight: 700;
-      letter-spacing: -0.01em;
-      line-height: 1.1;
-    }
-    .hero--enhanced .hero__heading small {
-      display: block;
-      font-size: .55em;
-      font-weight: 500;
-      color: var(--pt-muted);
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      margin-bottom: 6px;
-    }
-    .hero--enhanced .ask-box {
-      box-shadow: var(--pt-shadow-md);
-      background: #fff;
-      border: var(--pt-border);
-      border-radius: 999px;
-    }
-
-    /* ---------- Section headers ---------- */
-    .section-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-bottom: 12px;
-    }
-    .section-header h2 {
-      font-size: clamp(18px, 2.4vw, 22px);
-      font-weight: 650;
-      letter-spacing: -0.01em;
-      margin: 0;
-    }
-
-
-    /* ---------- Buttons ---------- */
-    .button { transition: transform .12s ease, box-shadow .12s ease, background .12s ease; }
-    .button:active { transform: translateY(1px); }
-    .button--primary { box-shadow: 0 1px 0 rgba(0,0,0,.04); }
-
-    /* ---------- Blog cards ---------- */
-    .blog-post {
-      background: #fff;
-      border: var(--pt-border);
-      border-radius: var(--pt-radius-md);
-      padding: 18px;
-      box-shadow: var(--pt-shadow-sm);
-      transition: transform .15s ease, box-shadow .15s ease;
-    }
-    .blog-post:hover { transform: translateY(-2px); box-shadow: var(--pt-shadow-md); }
-    .blog-title { font-size: 16px; font-weight: 600; margin: 6px 0 4px; }
-    .blog-category {
-      display: inline-block;
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: .06em;
-      padding: 3px 8px;
-      border-radius: 999px;
-      background: var(--pt-accent-soft);
-      color: var(--pt-accent);
-    }
-    .blog-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; }
-    .blog-meta-item { color: var(--pt-muted); font-size: 12px; }
-
-    /* ---------- Empty / loading states ---------- */
-    .empty-state {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 28px 16px;
-      border: 1px dashed rgba(16,24,40,.15);
-      border-radius: var(--pt-radius-md);
-      color: var(--pt-muted);
-      background: var(--pt-bg-soft);
-      font-size: 14px;
-      text-align: center;
-    }
+    /* Keep the critical modal / loading behaviours from legacy CSS */
     .loading-symbol {
       width: 28px;
       height: 28px;
       border-radius: 50%;
-      border: 3px solid rgba(75,107,44,.2);
-      border-top-color: var(--pt-accent);
+      border: 3px solid rgba(132,177,84,.2);
+      border-top-color: #84b154;
       animation: pt-spin .8s linear infinite;
       margin: 16px auto;
     }
     @keyframes pt-spin { to { transform: rotate(360deg); } }
 
-    /* ---------- Sticky top-nav backdrop ---------- */
-    .top-nav {
-      backdrop-filter: saturate(180%) blur(12px);
-      -webkit-backdrop-filter: saturate(180%) blur(12px);
-      background: rgba(255,255,255,.85);
-      border-bottom: var(--pt-border);
-    }
-
-    /* ---------- Calendar polish ---------- */
-    .panel--calendar .panel__body { border-radius: var(--pt-radius-md); }
-    .calendar-header .nav-btn {
-      border-radius: 50%;
-      width: 34px; height: 34px;
-      display: inline-flex; align-items: center; justify-content: center;
-      background: #fff;
-      cursor: pointer;
-    }
-
-    /* ==================================================================
-       EVENT DETAILS MODAL — redesigned panel
-       Scoped to #eventDetailsModal so it never affects the rest of
-       the page. All existing IDs and hooks are preserved, so the
-       existing showEventModal()/registration JS keeps working.
-       ================================================================== */
-    #eventDetailsModal .modal-content {
-      max-width: 720px;
-      width: 100%;
-    }
-
-    #eventDetailsBody {
-      /* Design tokens — aligned with the page's green accent */
-      --ed-surface:      #f8fafc;
-      --ed-border:       #e4e7ec;
-      --ed-text:         #101828;
-      --ed-muted:        #667085;
-      --ed-accent:       #4b6b2c;
-      --ed-accent-hover: #3a5422;
-      --ed-accent-ring:  rgba(75,107,44,.18);
-      --ed-radius-sm:    10px;
-
-      color-scheme: light;
-      color: var(--ed-text);
-      font-size: 15px;
-      line-height: 1.55;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    #eventDetailsBody *,
-    #eventDetailsBody *::before,
-    #eventDetailsBody *::after {
-      box-sizing: border-box;
-    }
-
-    /* --- Meta rows (date, location, Instagram, website, etc.) --- */
-    #eventDetailsBody > p {
-      margin: 0 0 .5rem;
-      padding: .65rem .85rem;
-      background: var(--ed-surface);
-      border: 1px solid var(--ed-border);
-      border-radius: var(--ed-radius-sm);
-      font-size: .92rem;
-      line-height: 1.5;
-      overflow-wrap: anywhere;
-    }
-
-    #eventDetailsBody > p:last-of-type {
-      margin-bottom: 0;
-    }
-
-    /* Plain-text fallback line */
-    #eventDetailsText {
-      white-space: pre-line;
-      color: var(--ed-muted);
-      font-size: .875rem;
-      background: transparent;
-      border-color: transparent;
-      padding-left: 0;
-      padding-right: 0;
-    }
-
-    /* --- Links --- */
-    #eventDetailsBody a {
-      color: var(--ed-accent);
-      text-decoration: none;
-      border-bottom: 1px solid transparent;
-      transition: border-color .15s ease, color .15s ease;
-    }
-
-    #eventDetailsBody a:hover,
-    #eventDetailsBody a:focus-visible {
-      color: var(--ed-accent-hover);
-      border-bottom-color: currentColor;
-    }
-
-    #eventDetailsBody a:focus-visible {
-      outline: 2px solid var(--ed-accent);
-      outline-offset: 2px;
-      border-radius: 3px;
-    }
-
-    /* --- Description & additional details blocks --- */
-    #eventDescriptionContainer,
-    #eventAdditionalDetailsContainer {
-      margin: 0 0 .5rem;
-      padding: .9rem 1rem;
-      background: var(--ed-surface);
-      border: 1px solid var(--ed-border);
-      border-left: 3px solid var(--ed-accent);
-      border-radius: var(--ed-radius-sm);
-    }
-
-    #eventDescriptionContainer > p:first-child,
-    #eventAdditionalDetailsContainer > p:first-child {
-      margin: 0 0 .4rem;
-      font-size: .72rem;
-      font-weight: 700;
-      letter-spacing: .06em;
-      text-transform: uppercase;
-      color: var(--ed-muted);
-    }
-
-    #eventDescriptionContainer > p:last-child,
-    #eventAdditionalDetailsContainer > p:last-child {
-      margin: 0;
-      font-size: .92rem;
-      color: var(--ed-text);
-    }
-
-    /* --- Register section --- */
-    #eventDetailsBody .event-register {
-      margin-top: 1.5rem;
-      padding-top: 1.4rem;
-      border-top: 1px solid var(--ed-border);
-    }
-
-    #eventDetailsBody .event-register h3 {
-      margin: 0 0 1rem;
-      font-size: 1.05rem;
-      font-weight: 650;
-      letter-spacing: -.01em;
-      color: var(--ed-text);
-    }
-
-    #eventDetailsBody .event-register__grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: .9rem 1rem;
-    }
-
-    #eventDetailsBody .event-register__full {
-      margin-top: .9rem;
-    }
-
-    /* Labels */
-    #eventDetailsBody .event-register label {
-      display: block;
-      margin-bottom: .3rem;
-      font-size: .8rem;
-      font-weight: 600;
-      color: var(--ed-text);
-    }
-
-    #eventDetailsBody .event-register label span {
-      font-weight: 700;
-      color: var(--ed-accent);
-    }
-
-    /* Inputs (skip the hidden honeypot and event_date hidden field) */
-    #eventDetailsBody .event-register input:not([type="hidden"]):not(#website_field) {
-      display: block;
-      width: 100%;
-      padding: .65rem .8rem;
-      font: inherit;
-      font-size: .9rem;
-      color: var(--ed-text);
-      background: #fff;
-      border: 1px solid var(--ed-border);
-      border-radius: var(--ed-radius-sm);
-      transition: border-color .15s ease, box-shadow .15s ease;
-      appearance: none;
-    }
-
-    #eventDetailsBody .event-register input::placeholder {
-      color: #98a2b3;
-    }
-
-    #eventDetailsBody .event-register input:hover {
-      border-color: #cfd4dc;
-    }
-
-    #eventDetailsBody .event-register input:focus {
-      outline: none;
-      border-color: var(--ed-accent);
-      box-shadow: 0 0 0 3px var(--ed-accent-ring);
-    }
-
-    /* Keep the honeypot invisible no matter what */
-    #eventDetailsBody #website_field {
-      display: none !important;
-    }
-
-    /* Submit button — overrides the generic .button styling within this panel */
-    #eventDetailsBody #siargaoEventRegisterSubmit {
-      display: inline-flex;
+    .empty-state {
+      display: flex;
       align-items: center;
       justify-content: center;
-      gap: .5rem;
-      width: 100%;
-      margin-top: 1.15rem;
-      padding: .8rem 1.4rem;
-      font: inherit;
-      font-size: .92rem;
-      font-weight: 650;
-      color: #fff;
-      background: var(--ed-accent);
-      border: 0;
-      border-radius: var(--ed-radius-sm);
-      cursor: pointer;
-      box-shadow: 0 1px 0 rgba(0,0,0,.04);
-      transition: background .15s ease, transform .06s ease, box-shadow .15s ease;
+      padding: 28px 16px;
+      border: 1px dashed rgba(255,255,255,.12);
+      border-radius: 16px;
+      color: #94a3b8;
+      background: rgba(255,255,255,.02);
+      font-size: 14px;
+      text-align: center;
     }
 
-    #eventDetailsBody #siargaoEventRegisterSubmit:hover:not(:disabled) {
-      background: var(--ed-accent-hover);
-      box-shadow: 0 6px 16px -6px rgba(75,107,44,.55);
+    /* Modal display toggles (JS uses style.display) */
+    .modal { display: none; }
+    .modal.show { display: block; }
+
+    /* Panels need explicit rounding/backdrop on dark bg */
+    .panel {
+      background: rgba(255,255,255,.025);
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 24px;
+    }
+    .panel__body { background: transparent; }
+
+    /* Blog card hover */
+    .blog-post { transition: transform .2s ease, box-shadow .2s ease; }
+    .blog-post:hover { transform: translateY(-2px); }
+
+    /* Calendar cells in dark mode */
+    #calendar-container { background: rgba(255,255,255,.02); }
+    #calendar-container th { background: rgba(132,177,84,.08); color: #c9dfad; }
+    #calendar-container td { color: #cbd5e1; border-color: rgba(255,255,255,.05); }
+
+    /* Event cards */
+    .calendar-event-card { transition: transform .25s ease, box-shadow .25s ease; }
+    .calendar-event-card:hover { transform: translateY(-4px); }
+
+    /* Chat panel */
+    .message-bubble { background: rgba(255,255,255,.05) !important; color: #e2e8f0 !important; }
+    .message-bubble span { color: #a6c97d !important; }
+    .message-time { color: #94a3b8 !important; }
+    #mobileChatModal .message-bubble { background: rgba(255,255,255,.05) !important; }
+    #mobileChatModal .other-message.user-message .message-bubble { background: rgba(132,177,84,.12) !important; }
+
+    /* Schedule cards */
+    .schedule-card { background: rgba(255,255,255,.03) !important; border-radius: 16px; }
+    .schedule-more { background: rgba(0,0,0,.25) !important; }
+    .detail-label { color: #94a3b8 !important; }
+    .detail-value, .schedule-description, .poster-name { color: #e2e8f0 !important; }
+    .poster-role, .review-count { color: #94a3b8 !important; }
+    .schedule-more-toggle,
+    .schedule-card .btn-join,
+    .schedule-card .btn-view-joiners,
+    .schedule-card .btn-delete-schedule {
+      background: rgba(255,255,255,.05) !important;
+      border: 1px solid rgba(255,255,255,.12) !important;
+      color: #e2e8f0 !important;
+      border-radius: 10px !important;
+    }
+    .schedule-card .btn-join,
+    .schedule-card .btn-view-joiners {
+      background: rgba(132,177,84,.15) !important;
+      color: #c9dfad !important;
+      border-color: rgba(132,177,84,.35) !important;
     }
 
-    #eventDetailsBody #siargaoEventRegisterSubmit:active:not(:disabled) {
-      transform: translateY(1px);
-      box-shadow: none;
+    /* Bulletin cards */
+    .bulletin-card { background: rgba(255,255,255,.03) !important; border-radius: 16px; overflow: hidden; }
+    .bulletin-card__title { color: #e2e8f0; }
+
+    /* Modal content dark */
+    .modal-content { background: #0f1410 !important; border: 1px solid rgba(255,255,255,.08); border-radius: 20px; }
+    .modal-header { background: linear-gradient(135deg, #4b6b2c 0%, #3a5422 100%) !important; }
+    .modal-body { background: #0f1410 !important; color: #e2e8f0; }
+
+    /* Blog modal iframe shell */
+    .modal-for-blog { background: #070b07; }
+
+    /* Item modal */
+    .pim { background: #070b07; color: #e2e8f0; }
+    .pimd { background: #070b07; }
+    .pimr, .pimdsc, .pim-details p { color: #94a3b8; }
+    .pimd h2 { color: #f1f5f9; }
+
+    /* Pagination on dark */
+    .pagination-btn {
+      background: rgba(255,255,255,.04) !important;
+      border-color: rgba(255,255,255,.1) !important;
+      color: #c9dfad !important;
+      border-radius: 10px !important;
+    }
+    .pagination-btn.active {
+      background: #659438 !important;
+      color: #fff !important;
+      border-color: #659438 !important;
     }
 
-    #eventDetailsBody #siargaoEventRegisterSubmit:focus-visible {
-      outline: 2px solid var(--ed-accent);
-      outline-offset: 3px;
+    /* Blog category chips — keep colored but softer on dark */
+    .category-guide   { background:#fbbf2420; color:#fbbf24; }
+    .category-story   { background:#a78bfa20; color:#a78bfa; }
+    .category-tip-and-trick { background:#84b15420; color:#a6c97d; }
+    .category-explore { background:#f472b620; color:#f472b6; }
+    .category-product { background:#f8717120; color:#f87171; }
+
+    /* Blog reader */
+    .blog-title { color: #f1f5f9; }
+    .blog-excerpt { color: #94a3b8; }
+    .blog-meta-item { color: #94a3b8; }
+    .blog-card { color: #a6c97d; }
+
+    /* Top nav */
+    .top-nav { background: transparent; }
+    .top-nav__inner { background: rgba(10,15,10,.72); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,.06); }
+    .top-nav__brand { color: #f1f5f9; }
+    .top-nav__brand-mark { color: #a6c97d; }
+    .top-nav__links a { color: #cbd5e1; }
+    .top-nav__links a:hover { color: #a6c97d; }
+    .top-nav__toggle { color: #cbd5e1; }
+    .top-nav__toggle svg { fill: #cbd5e1; }
+
+    /* Hero */
+    .hero--enhanced {
+      background: linear-gradient(180deg, rgba(132,177,84,.05) 0%, rgba(0,0,0,0) 100%), #0a0f0a !important;
+      border: 1px solid rgba(255,255,255,.06) !important;
+      box-shadow: none !important;
     }
+    .hero__heading { color: #f1f5f9 !important; }
+    .hero .ask-box { background: rgba(255,255,255,.04) !important; border: 1px solid rgba(255,255,255,.1) !important; }
+    .hero .ask-input { color: #f1f5f9 !important; }
+    .hero .ask-input::placeholder { color: #64748b !important; }
 
-    #eventDetailsBody #siargaoEventRegisterSubmit:disabled {
-      opacity: .6;
-      cursor: not-allowed;
+    /* Buttons */
+    .button--primary { background: linear-gradient(135deg, #659438 0%, #4b6b2c 100%) !important; color: #fff !important; }
+    .button--primary:hover { background: linear-gradient(135deg, #84b154 0%, #659438 100%) !important; }
+    .button--ghost { border: 1px solid rgba(255,255,255,.12) !important; color: #c9dfad !important; background: rgba(255,255,255,.03) !important; }
+    .button--ghost:hover { background: rgba(132,177,84,.1) !important; border-color: rgba(132,177,84,.4) !important; }
+
+    /* Add schedule button */
+    .add-schedule-btn { background: rgba(132,177,84,.12) !important; color: #c9dfad !important; border: 1px solid rgba(132,177,84,.35) !important; border-radius: 12px !important; }
+    .nav-btn { color: #c9dfad !important; }
+    .calendar-header h2 { color: #f1f5f9 !important; }
+
+    /* Chat input */
+    .chat-input { background: rgba(255,255,255,.04) !important; border-color: rgba(255,255,255,.1) !important; color: #f1f5f9 !important; }
+    .chat-input::placeholder { color: #64748b !important; }
+
+    /* Event register modal */
+    #eventDetailsBody > p { background: rgba(255,255,255,.03) !important; border-color: rgba(255,255,255,.08) !important; color: #e2e8f0 !important; }
+    #eventDetailsBody .event-register input:not([type="hidden"]):not(#website_field) { background: rgba(255,255,255,.04) !important; border-color: rgba(255,255,255,.1) !important; color: #f1f5f9 !important; }
+    #eventDescriptionContainer, #eventAdditionalDetailsContainer { background: rgba(255,255,255,.03) !important; border-color: rgba(255,255,255,.08) !important; }
+
+    /* Resort activity item */
+    .pc { background: rgba(255,255,255,.03) !important; border: 1px solid rgba(255,255,255,.06); border-radius: 16px !important; overflow: hidden; transition: transform .2s ease, border-color .2s ease; }
+    .pc:hover { transform: translateY(-2px); border-color: rgba(132,177,84,.35) !important; }
+    .pct { color: #f1f5f9 !important; }
+    .pcp { color: #a6c97d !important; }
+    .pcr { color: #94a3b8 !important; }
+
+    /* Rounded/filter clear for legacy overrides */
+    .button, .ask-input, .chat-input, .message-bubble, .modal-content,
+    .empty-state, .pagination-btn, .calendar-event-card, .add-schedule-btn {
+      border-radius: 12px;
     }
+    .modal-header { border-top-left-radius: 20px; border-top-right-radius: 20px; }
 
-    /* Status / feedback area */
-    #siargaoEventRegisterStatus:not(:empty) {
-      margin-top: 1rem;
-      padding: .75rem .9rem;
-      font-size: .85rem;
-      line-height: 1.45;
-      border-radius: var(--ed-radius-sm);
-      background: #eff6ff;
-      border: 1px solid #bfdbfe;
-      color: #1e40af;
-    }
-
-    #siargaoEventRegisterStatus.is-success,
-    #siargaoEventRegisterStatus[data-state="success"] {
-      background: #ecfdf3;
-      border-color: #a6f4c5;
-      color: #027a48;
-    }
-
-    #siargaoEventRegisterStatus.is-error,
-    #siargaoEventRegisterStatus[data-state="error"] {
-      background: #fef3f2;
-      border-color: #fecdca;
-      color: #b42318;
-    }
-
-    /* Image inside the modal — rounded corners, breathing room */
-    #eventDetailsModal .modal-image img {
-      display: block;
-      width: 100%;
-      height: auto;
-      border-radius: var(--pt-radius-md);
-      margin-top: 1rem;
-    }
-
-    /* Responsive */
-    @media (max-width: 560px) {
-      #eventDetailsBody .event-register__grid {
-        grid-template-columns: 1fr;
-      }
-      #eventDetailsBody > p {
-        font-size: .875rem;
-      }
-    }
-
-    @media (min-width: 561px) {
-      #eventDetailsBody #siargaoEventRegisterSubmit {
-        width: auto;
-        min-width: 200px;
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .pt-skel, .loading-symbol { animation: none; }
-      .blog-post { transition: none; }
-      #eventDetailsBody a,
-      #eventDetailsBody .event-register input,
-      #eventDetailsBody #siargaoEventRegisterSubmit { transition: none; }
-    }
-
-    /* ==================================================================
-   EVENTS PANEL — redesigned
-   Scoped to .panel--events so nothing leaks. The JS still creates
-   .calendar-event-card, .card-overlay, .card-content and
-   .calendar-event-register — those hooks are preserved and styled here.
-   ================================================================== */
-.panel--events {
-  --ev-accent:       #4b6b2c;
-  --ev-accent-hover: #3a5422;
-  --ev-radius:       14px;
-  --ev-card-min-h:   210px;
-}
-
-.panel--events .section-header { align-items: baseline; }
-
-.panel--events .section-header__hint {
-  font-size: .78rem;
-  color: var(--pt-muted);
-  letter-spacing: .02em;
-}
-
-/* Grid — slightly tighter than the default calendar-grid */
-.panel--events .calendar-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 16px;
-}
-
-/* -------- Event card -------- */
-.panel--events .calendar-event-card {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  min-height: var(--ev-card-min-h);
-  border-radius: var(--ev-radius);
-  background-size: cover;
-  background-position: center;
-  background-color: var(--ev-accent); /* fallback when no image */
-  box-shadow:
-    0 1px 2px rgba(16,24,40,.06),
-    0 10px 24px -14px rgba(16,24,40,.35);
-  transition: transform .18s ease, box-shadow .18s ease;
-  cursor: pointer;
-}
-
-.panel--events .calendar-event-card:hover,
-.panel--events .calendar-event-card:focus-within {
-  transform: translateY(-3px);
-  box-shadow:
-    0 2px 4px rgba(16,24,40,.08),
-    0 18px 36px -16px rgba(16,24,40,.45);
-}
-
-.panel--events .calendar-event-card:focus-visible {
-  outline: 3px solid var(--ev-accent);
-  outline-offset: 3px;
-}
-
-/* Dark gradient overlay so text is always readable */
-.panel--events .calendar-event-card .card-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background:
-    linear-gradient(180deg,
-      rgba(16,24,40,.05) 0%,
-      rgba(16,24,40,.25) 40%,
-      rgba(16,24,40,.78) 100%);
-  pointer-events: none;
-}
-
-/* Content stack pinned to the bottom */
-.panel--events .calendar-event-card .card-content {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  gap: .35rem;
-  min-height: var(--ev-card-min-h);
-  padding: 18px 18px 16px;
-  color: #fff;
-}
-
-.panel--events .calendar-event-card .card-content h4 {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 650;
-  line-height: 1.3;
-  letter-spacing: -.005em;
-  color: #fff;
-  text-shadow: 0 1px 2px rgba(0,0,0,.35);
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.panel--events .calendar-event-card .card-content p {
-  margin: 0;
-  font-size: .82rem;
-  font-weight: 500;
-  color: rgba(255,255,255,.85);
-  text-shadow: 0 1px 2px rgba(0,0,0,.35);
-}
-
-/* Register button — overrides .button--primary inside the card */
-.panel--events .calendar-event-card .calendar-event-register {
-  align-self: flex-start;
-  margin-top: .6rem;
-  padding: .5rem .95rem;
-  font-size: .8rem;
-  font-weight: 650;
-  color: #fff;
-  background: rgba(255,255,255,.14);
-  border: 1px solid rgba(255,255,255,.35);
-  border-radius: 999px;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  cursor: pointer;
-  box-shadow: none;
-  transition: background .15s ease, border-color .15s ease, transform .06s ease;
-}
-
-.panel--events .calendar-event-card:hover .calendar-event-register,
-.panel--events .calendar-event-card:focus-within .calendar-event-register {
-  background: var(--ev-accent);
-  border-color: var(--ev-accent);
-}
-
-.panel--events .calendar-event-card .calendar-event-register:hover {
-  background: var(--ev-accent-hover);
-  border-color: var(--ev-accent-hover);
-}
-
-.panel--events .calendar-event-card .calendar-event-register:active {
-  transform: translateY(1px);
-}
-
-.panel--events .calendar-event-card .calendar-event-register:focus-visible {
-  outline: 2px solid #fff;
-  outline-offset: 2px;
-}
-
-/* Empty state spans the full grid */
-.panel--events .empty-state {
-  grid-column: 1 / -1;
-  min-height: 140px;
-}
-
-/* Responsive */
-@media (max-width: 560px) {
-  .panel--events .calendar-grid { grid-template-columns: 1fr; }
-  .panel--events .calendar-event-card,
-  .panel--events .calendar-event-card .card-content {
-    min-height: 180px;
-  }
-}
-
-/* Dark mode */
-@media (prefers-color-scheme: dark) {
-  .panel--events .calendar-event-card {
-    box-shadow:
-      0 1px 2px rgba(0,0,0,.4),
-      0 16px 32px -18px rgba(0,0,0,.7);
-  }
-}
-
-/* Reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  .panel--events .calendar-event-card,
-  .panel--events .calendar-event-card .calendar-event-register {
-    transition: none;
-  }
-  .panel--events .calendar-event-card:hover { transform: none; }
-}
+    /* Scrollbar dark */
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.2); }
   </style>
 </head>
-<body>
+<body class="font-sans antialiased bg-[#070b07] text-neutral-100 selection:bg-brand-500/40 selection:text-white">
 {% block body %}
 
+<!-- Ambient background glow -->
+<div aria-hidden="true" class="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+  <div class="absolute -top-40 -left-40 h-[500px] w-[500px] rounded-full bg-brand-600/10 blur-3xl"></div>
+  <div class="absolute top-1/3 -right-40 h-[600px] w-[600px] rounded-full bg-emerald-500/5 blur-3xl"></div>
+  <div class="absolute bottom-0 left-1/2 h-[400px] w-[400px] -translate-x-1/2 rounded-full bg-brand-500/5 blur-3xl"></div>
+</div>
+
 {# ================================================================== #}
-{#  TOAST REGION (replaces blocking alerts for non-critical feedback)  #}
+{#  TOAST REGION                                                       #}
 {# ================================================================== #}
 <div id="pt-toast-region" aria-live="polite" aria-atomic="true"></div>
 
 {# ================================================================== #}
-{#  BOOT SCRIPT: helpers + toast + config                             #}
+{#  BOOT SCRIPT                                                        #}
 {# ================================================================== #}
 <script src="{% static 'home/place-calendar.js' %}" defer></script>
 <script>
@@ -714,20 +365,15 @@
   };
 
   (function () {
-    /* ---------------- Schedule helper functions ---------------- */
     function runWhenReady(callback) {
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', callback, { once: true });
-      } else {
-        callback();
-      }
+      } else { callback(); }
     }
     function runWhenIdle(callback) {
       if ('requestIdleCallback' in window) {
         window.requestIdleCallback(callback, { timeout: 1500 });
-      } else {
-        window.setTimeout(callback, 150);
-      }
+      } else { window.setTimeout(callback, 150); }
     }
     function runWhenVisible(target, callback, options) {
       let hasRun = false;
@@ -756,7 +402,6 @@
     };
     window.placeLazyImageAttrs = ' loading="lazy" decoding="async"';
 
-    /* ---------------- Toast notifications ---------------- */
     const toastRegion = document.getElementById('pt-toast-region');
     window.placeToast = function (message, type) {
       if (!toastRegion || !message) return;
@@ -764,7 +409,6 @@
       toast.className = 'pt-toast' + (type ? ' is-' + type : '');
       toast.textContent = message;
       toastRegion.appendChild(toast);
-      // Force reflow so transition applies
       void toast.offsetHeight;
       toast.classList.add('is-visible');
       setTimeout(function () {
@@ -778,7 +422,7 @@
 
 <script>
   /* =================================================================
-     Core inline logic (kept on the page for demo purposes)
+     Core inline logic (kept on the page)
      ================================================================= */
   let mathA, mathB, mathCorrectAnswer;
   function generateMathChallenge() {
@@ -969,12 +613,12 @@
     if (!parsed) return escapeHtml(pickLocation);
     const coordsLabel = escapeHtml(`${parsed.latitude},${parsed.longitude}`);
     const href = googleMapsDirectionsUrl(parsed.latitude, parsed.longitude);
-    return `${coordsLabel} — <a href="${href}" target="_blank" rel="noopener noreferrer" style="color:#667eea;text-decoration:underline;">Get directions</a>`;
+    return `${coordsLabel} — <a href="${href}" target="_blank" rel="noopener noreferrer" style="color:#a6c97d;text-decoration:underline;">Get directions</a>`;
   }
 
   function convertMarkdownLinks(text) {
     return String(text || '').replace(/\[([^\]]+)\]\(([^\)]+)\)/g,
-      '<a href="$2" target="_blank" rel="noopener" style="color:#667eea;text-decoration:underline;">$1</a>');
+      '<a href="$2" target="_blank" rel="noopener" style="color:#a6c97d;text-decoration:underline;">$1</a>');
   }
 
   function renderDiscussionItems(items) { (Array.isArray(items) ? items : []).forEach(discussionBuilder); }
@@ -1092,7 +736,7 @@
 </script>
 
 {# ================================================================== #}
-{#  MODALS                                                             #}
+{#  MODALS (all IDs preserved)                                         #}
 {# ================================================================== #}
 <div class="modal-for-blog" id="modal-for-blog-id" role="dialog" aria-modal="true" aria-label="Blog reader">
   <span class="close-modal-for-blog" id="closemodalpageBtn" role="button" tabindex="0" aria-label="Close">&times;</span>
@@ -1102,10 +746,10 @@
 <div class="additionalDetailsModal modal">
   <div class="modal-content">
     <div class="modal-header">
-      <h2 id="AdditionalDetailsHeader">Additional Details</h2>
+      <h2 id="AdditionalDetailsHeader" class="text-white">Additional Details</h2>
       <span class="close" onclick="closeThisModal('id')" role="button" tabindex="0" aria-label="Close">&times;</span>
     </div>
-    <div class="modal-body" id="AdditionalDetailsContainer"><p>This is modal-body put ID on this modal</p></div>
+    <div class="modal-body p-6" id="AdditionalDetailsContainer"><p class="text-neutral-400">This is modal-body put ID on this modal</p></div>
     <div class="modal-image"><img id="AdditionalDetailsImage" alt=""></div>
     <div class="modal-footer" id="AdditionalDetailsFooter"></div>
   </div>
@@ -1114,20 +758,20 @@
 <div class="modal" id="addScheduleModal">
   <div class="modal-content">
     <div class="modal-header">
-      <h2>Add schedule</h2>
+      <h2 class="text-white">Add schedule</h2>
       <span class="close" id="addScheduleClose" role="button" tabindex="0" aria-label="Close">&times;</span>
     </div>
-    <div class="modal-body">
-      <form id="addScheduleForm" class="add-schedule-form">
-        <div class="add-schedule-grid">
-          <label>Schedule type
-            <select id="scheduleTypeAndMode" name="scheduleTypeAndMode" required>
+    <div class="modal-body p-6">
+      <form id="addScheduleForm" class="add-schedule-form space-y-4">
+        <div class="add-schedule-grid grid gap-3 sm:grid-cols-2">
+          <label class="flex flex-col gap-1.5 text-sm font-semibold text-neutral-300">Schedule type
+            <select id="scheduleTypeAndMode" name="scheduleTypeAndMode" required class="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-neutral-100 outline-none focus:border-brand-400">
               <option value="carpool">Carpool</option>
             </select>
           </label>
-          <label>Day <input id="dateN" name="dateN" type="number" min="1" max="31" required></label>
-          <label>Month
-            <select id="monthN" name="monthN" required>
+          <label class="flex flex-col gap-1.5 text-sm font-semibold text-neutral-300">Day <input id="dateN" name="dateN" type="number" min="1" max="31" required class="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-neutral-100 outline-none focus:border-brand-400"></label>
+          <label class="flex flex-col gap-1.5 text-sm font-semibold text-neutral-300">Month
+            <select id="monthN" name="monthN" required class="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-neutral-100 outline-none focus:border-brand-400">
               <option value="" disabled selected>Select month</option>
               <option value="1">January</option><option value="2">February</option><option value="3">March</option>
               <option value="4">April</option><option value="5">May</option><option value="6">June</option>
@@ -1135,24 +779,24 @@
               <option value="10">October</option><option value="11">November</option><option value="12">December</option>
             </select>
           </label>
-          <label>Year <input id="yearN" name="yearN" type="number" min="2000" required></label>
+          <label class="flex flex-col gap-1.5 text-sm font-semibold text-neutral-300">Year <input id="yearN" name="yearN" type="number" min="2000" required class="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-neutral-100 outline-none focus:border-brand-400"></label>
         </div>
-        <div class="add-schedule-grid">
-          <label>Where to meet <input id="meetPlace" name="meetPlace" placeholder="Where to meet" required></label>
-          <label>Destination <input id="endPlace" name="endPlace" placeholder="Destination" required value="{place_current}"></label>
-          <label>Meet time <input id="meetTime" name="meetTime" type="time"></label>
+        <div class="add-schedule-grid grid gap-3 sm:grid-cols-2">
+          <label class="flex flex-col gap-1.5 text-sm font-semibold text-neutral-300">Where to meet <input id="meetPlace" name="meetPlace" placeholder="Where to meet" required class="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-neutral-100 outline-none focus:border-brand-400"></label>
+          <label class="flex flex-col gap-1.5 text-sm font-semibold text-neutral-300">Destination <input id="endPlace" name="endPlace" placeholder="Destination" required value="{place_current}" class="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-neutral-100 outline-none focus:border-brand-400"></label>
+          <label class="flex flex-col gap-1.5 text-sm font-semibold text-neutral-300">Meet time <input id="meetTime" name="meetTime" type="time" class="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-neutral-100 outline-none focus:border-brand-400"></label>
         </div>
-        <div class="add-schedule-grid">
-          <label>Contact details <input id="detailsContact" name="detailsContact" placeholder="Phone / Messenger / Email"></label>
-          <label>Maker or looker
-            <select id="MakerOrLooker" name="MakerOrLooker">
+        <div class="add-schedule-grid grid gap-3 sm:grid-cols-2">
+          <label class="flex flex-col gap-1.5 text-sm font-semibold text-neutral-300">Contact details <input id="detailsContact" name="detailsContact" placeholder="Phone / Messenger / Email" class="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-neutral-100 outline-none focus:border-brand-400"></label>
+          <label class="flex flex-col gap-1.5 text-sm font-semibold text-neutral-300">Maker or looker
+            <select id="MakerOrLooker" name="MakerOrLooker" class="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-neutral-100 outline-none focus:border-brand-400">
               <option value="Make" selected>Maker (I have a ride)</option>
               <option value="Look">Looker (I need a ride)</option>
             </select>
           </label>
         </div>
-        <div id="addScheduleStatus" role="status"></div>
-        <div class="add-schedule-actions">
+        <div id="addScheduleStatus" role="status" class="text-sm text-neutral-400"></div>
+        <div class="add-schedule-actions flex justify-end gap-2 pt-2">
           <button class="button button--ghost" id="cancelAddSchedule" type="button">Cancel</button>
           <button class="button button--primary" id="addScheduleSubmit" type="submit">Create schedule</button>
         </div>
@@ -1171,11 +815,11 @@
 <div class="modal" id="eventDetailsModal">
   <div class="modal-content">
     <div class="modal-header">
-      <h2 id="eventDetailsTitle">Event details</h2>
+      <h2 id="eventDetailsTitle" class="text-white">Event details</h2>
       <span class="close" onclick="closeEventModal()" role="button" tabindex="0" aria-label="Close">&times;</span>
     </div>
     <div class="modal-body">
-      <div id="eventDetailsBody">
+      <div id="eventDetailsBody" class="p-5">
         <p><strong>📅 <span id="eventDate"></span></strong></p>
         <p><strong>📍 <a id="eventLocationLink" target="_blank" rel="noopener"><span id="eventLocation"></span></a></strong></p>
         <p id="eventInstagramContainer" style="display:none"><strong>📷 Instagram:</strong> <a id="eventInstagram" target="_blank" rel="noopener"></a></p>
@@ -1264,25 +908,26 @@
 </div>
 
 <div class="modal" id="bulletinImageModal" role="dialog" aria-modal="true" aria-label="Community bulletin photo">
-  <div class="modal-content modal-content--wide">
+  <div class="modal-content modal-content--wide max-w-3xl">
     <div class="modal-header">
-      <h2>Photo</h2>
+      <h2 class="text-white">Photo</h2>
       <span class="close" onclick="closeBulletinImageModal()" role="button" tabindex="0" aria-label="Close">&times;</span>
     </div>
-    <div class="modal-body modal-body--flush"><img id="bulletinModalImage" alt="Community bulletin photo"></div>
+    <div class="modal-body modal-body--flush p-0"><img id="bulletinModalImage" alt="Community bulletin photo" class="w-full"></div>
   </div>
 </div>
 
 <div class="modal" id="mobileChatModal">
   <div class="modal-content modal-content--chat">
     <div class="modal-header">
-      <h2>Discussions</h2>
+      <h2 class="text-white">Discussions</h2>
       <span class="close" onclick="closeMobileChatModal()" role="button" tabindex="0" aria-label="Close">&times;</span>
     </div>
     <div class="modal-body">
       <div class="chat-container" id="container-placeDiscussion">
         <div class="chat-messages" id="allDiscussion"></div>
         <div class="chat-input-area">
+          <label class="sr-only" for="discuss-message">Your message</label>
           <textarea class="chat-input" id="discuss-message" maxlength="200" placeholder="Type your message..."></textarea>
           <button type="button" class="chat-send-btn" id="modal-send-btn" aria-label="Send message"
                   onclick="discussionFetcher('{{placeid}}','POST', this)">
@@ -1297,55 +942,56 @@
 {# ================================================================== #}
 {#  TOP NAVIGATION                                                    #}
 {# ================================================================== #}
-<header class="top-nav" aria-label="Page navigation">
-  <div class="top-nav__inner">
-    <a class="top-nav__brand" href="#top">
-      <span class="top-nav__brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 16 16" width="14" height="14"><path d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path></svg>
+<header class="top-nav sticky top-0 z-40" aria-label="Page navigation">
+  <div class="top-nav__inner mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
+    <a class="top-nav__brand inline-flex items-center gap-2.5 text-lg font-extrabold tracking-tight text-neutral-100 no-underline transition-colors duration-300 hover:text-brand-300" href="#top">
+      <span class="top-nav__brand-mark inline-flex h-9 w-9 items-center justify-center rounded-xl bg-brand-500/15 text-brand-300 ring-1 ring-brand-400/30">
+        <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M8 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm0 1a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"></path></svg>
       </span>
       Paratara
     </a>
 
-    <nav class="top-nav__links" id="placeNavMenu" aria-label="Page sections">
-      <a href="#things-to-do">Activities</a>
-      <a href="#accommodations-heading">Stays</a>
-      <a href="#events-schedule-heading">Events</a>
-      <a href="#community-bulletin">Community</a>
-      <a href="#schedules">Schedules</a>
-      <a href="#blogs">Blogs</a>
-      {% if user.is_superuser %}<a href="/est/resort/createnewresort">Add your business</a>{% endif %}
+    <nav class="top-nav__links hidden items-center gap-1 md:flex" id="placeNavMenu" aria-label="Page sections">
+      <a href="#things-to-do" class="rounded-lg px-3 py-2 text-sm font-semibold text-neutral-300 transition-all duration-300 hover:bg-white/5 hover:text-brand-300">Activities</a>
+      <a href="#accommodations-heading" class="rounded-lg px-3 py-2 text-sm font-semibold text-neutral-300 transition-all duration-300 hover:bg-white/5 hover:text-brand-300">Stays</a>
+      <a href="#events-schedule-heading" class="rounded-lg px-3 py-2 text-sm font-semibold text-neutral-300 transition-all duration-300 hover:bg-white/5 hover:text-brand-300">Events</a>
+      <a href="#community-bulletin" class="rounded-lg px-3 py-2 text-sm font-semibold text-neutral-300 transition-all duration-300 hover:bg-white/5 hover:text-brand-300">Community</a>
+      <a href="#schedules" class="rounded-lg px-3 py-2 text-sm font-semibold text-neutral-300 transition-all duration-300 hover:bg-white/5 hover:text-brand-300">Schedules</a>
+      <a href="#blogs" class="rounded-lg px-3 py-2 text-sm font-semibold text-neutral-300 transition-all duration-300 hover:bg-white/5 hover:text-brand-300">Blogs</a>
+      {% if user.is_superuser %}<a href="/est/resort/createnewresort" class="rounded-lg px-3 py-2 text-sm font-semibold text-brand-300 transition-all duration-300 hover:bg-brand-500/10">Add your business</a>{% endif %}
     </nav>
 
     {% if user.is_superuser %}
-    <button class="top-nav__toggle" id="placeNavToggle" type="button"
+    <button class="top-nav__toggle inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-neutral-300 md:hidden" id="placeNavToggle" type="button"
             aria-label="Toggle navigation" aria-controls="placeNavMenu" aria-expanded="false">
-      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1 3.5A.5.5 0 0 1 1.5 3h13a.5.5 0 0 1 0 1h-13A.5.5 0 0 1 1 3.5zm0 4A.5.5 0 0 1 1.5 7h13a.5.5 0 0 1 0 1h-13A.5.5 0 0 1 1 7.5zm.5 3.5a.5.5 0 0 0 0 1h13a.5.5 0 0 0 0-1h-13z"></path></svg>
+      <svg viewBox="0 0 16 16" aria-hidden="true" width="18" height="18" fill="currentColor"><path d="M1 3.5A.5.5 0 0 1 1.5 3h13a.5.5 0 0 1 0 1h-13A.5.5 0 0 1 1 3.5zm0 4A.5.5 0 0 1 1.5 7h13a.5.5 0 0 1 0 1h-13A.5.5 0 0 1 1 7.5zm.5 3.5a.5.5 0 0 0 0 1h13a.5.5 0 0 0 0-1h-13z"></path></svg>
     </button>
     {% endif %}
   </div>
 </header>
 
 {# ================================================================== #}
-{#  HERO (enhanced)                                                   #}
+{#  HERO                                                               #}
 {# ================================================================== #}
-<section class="hero hero--enhanced">
+<section class="hero hero--enhanced mx-auto mt-6 max-w-7xl rounded-3xl px-6 py-8 sm:px-10 sm:py-12">
   <div class="hero__intro">
-    <h1 class="hero__heading">
+    <p class="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-brand-300">Explore</p>
+    <h1 class="hero__heading font-display text-4xl font-black leading-[1.05] tracking-tight text-neutral-50 sm:text-5xl md:text-6xl">
       <span id="place-name">Loading…</span>
     </h1>
+    <p class="mt-3 max-w-2xl text-base text-neutral-400 sm:text-lg">Discover the best resorts, activities, events and local trips — all in one place.</p>
   </div>
 
-  <div class="hero__actions">
-    <div class="ask-box">
-      <input class="ask-input" id="quick-ask-input" type="text" placeholder="Ask us anything about this place">
-      <button class="ask-send-btn" id="quick-ask-send" type="button" aria-label="Send question">
-        <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z" fill="currentColor"></path></svg>
+  <div class="hero__actions mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+    <div class="ask-box relative flex flex-1 items-center overflow-hidden rounded-full">
+      <input class="ask-input w-full bg-transparent px-6 py-4 text-base text-neutral-100 outline-none placeholder:text-neutral-500" id="quick-ask-input" type="text" placeholder="Ask us anything about this place">
+      <button class="ask-send-btn absolute right-1.5 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-gradient-to-br from-brand-400 to-brand-600 text-white shadow-lg shadow-brand-900/40 transition-all duration-300 hover:scale-105" id="quick-ask-send" type="button" aria-label="Send question">
+        <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="currentColor"><path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z"></path></svg>
       </button>
-
     </div>
 
-    <button class="button button--ghost" id="openMapBtn" type="button" style="display:none">
-      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M15.817.113A.5.5 0 0 1 16 .5v14a.5.5 0 0 1-.402.49l-5 1a.502.502 0 0 1-.196 0L5.5 15.01l-4.902.98A.5.5 0 0 1 0 15.5v-14a.5.5 0 0 1 .402-.49l5-1a.5.5 0 0 1 .196 0L10.5.99l4.902-.98a.5.5 0 0 1 .415.103zM10 1.91l-4-.8v12.98l4 .8V1.91zm1 12.98 4-.8V1.11l-4 .8v12.98zm-6-.8V1.11l-4 .8v12.98l4-.8z" fill-rule="evenodd"></path></svg>
+    <button class="button button--ghost !rounded-full !border-white/10 !bg-white/5 !px-5 !py-3.5 text-sm font-semibold text-brand-200 transition-all duration-300 hover:!bg-brand-500/10" id="openMapBtn" type="button" style="display:none">
+      <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="currentColor"><path d="M15.817.113A.5.5 0 0 1 16 .5v14a.5.5 0 0 1-.402.49l-5 1a.502.502 0 0 1-.196 0L5.5 15.01l-4.902.98A.5.5 0 0 1 0 15.5v-14a.5.5 0 0 1 .402-.49l5-1a.5.5 0 0 1 .196 0L10.5.99l4.902-.98a.5.5 0 0 1 .415.103zM10 1.91l-4-.8v12.98l4 .8V1.91zm1 12.98 4-.8V1.11l-4 .8v12.98zm-6-.8V1.11l-4 .8v12.98l4-.8z" fill-rule="evenodd"></path></svg>
       <span>Find tourist spot</span>
     </button>
   </div>
@@ -1354,12 +1000,12 @@
 {# ================================================================== #}
 {#  MAIN                                                               #}
 {# ================================================================== #}
-<main class="page-container" id="top">
+<main class="mx-auto max-w-7xl px-4 pb-24 pt-10 sm:px-6" id="top">
 
-  <div class="primary-grid">
+  <div class="primary-grid grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
     <!-- Calendar -->
-    <section class="panel panel--calendar" aria-labelledby="calendar-heading">
-      <div class="panel__body">
+    <section class="panel panel--calendar p-5 sm:p-6" aria-labelledby="calendar-heading">
+      <div class="panel__body flex flex-col gap-5">
         <div id="calendar-container" data-month="{{ currentMonth }}" data-year="{{ currentYear }}">{{ calendar|safe }}</div>
         <div class="calendar-list" id="calendar-objects-list">
           <div class="loading-symbol" role="status" aria-label="Loading"></div>
@@ -1368,27 +1014,29 @@
     </section>
 
     <!-- Blogs -->
-    <section class="panel panel--blogs" aria-labelledby="blog-heading" id="blogs">
-      <div class="section-header">
-        <h2 id="blog-heading">Latest blogs</h2>
+    <section class="panel panel--blogs p-5 sm:p-6" aria-labelledby="blog-heading" id="blogs">
+      <div class="section-header mb-4 flex items-center justify-between">
+        <h2 id="blog-heading" class="font-display text-2xl font-bold tracking-tight text-neutral-50">Latest blogs</h2>
       </div>
-      <div class="blog-grid" id="blog-grid">
-        <div class="pt-skeleton-grid" aria-hidden="true">
+      <div class="blog-grid grid gap-4 sm:grid-cols-2" id="blog-grid">
+        <div class="pt-skeleton-grid col-span-full" aria-hidden="true">
           <div class="pt-skeleton-card"><div class="pt-skel pt-skel--title"></div><div class="pt-skel pt-skel--text"></div><div class="pt-skel pt-skel--text" style="width:80%"></div></div>
           <div class="pt-skeleton-card"><div class="pt-skel pt-skel--title"></div><div class="pt-skel pt-skel--text"></div><div class="pt-skel pt-skel--text" style="width:80%"></div></div>
           <div class="pt-skeleton-card"><div class="pt-skel pt-skel--title"></div><div class="pt-skel pt-skel--text"></div><div class="pt-skel pt-skel--text" style="width:80%"></div></div>
           <div class="pt-skeleton-card"><div class="pt-skel pt-skel--title"></div><div class="pt-skel pt-skel--text"></div><div class="pt-skel pt-skel--text" style="width:80%"></div></div>
         </div>
       </div>
-      <div id="blog-pagination"></div>
+      <div id="blog-pagination" class="mt-6"></div>
     </section>
   </div>
 
-  <div class="page-stack">
+  <div class="page-stack mt-10 flex flex-col gap-10">
 
     <!-- Activities & services -->
-    <section class="panel" aria-labelledby="resort-activities-heading" id="things-to-do">
-      <div class="section-header"><h2 id="resort-activities-heading">Activities &amp; services</h2></div>
+    <section class="panel p-5 sm:p-6" aria-labelledby="resort-activities-heading" id="things-to-do">
+      <div class="section-header mb-5 flex items-center justify-between">
+        <h2 id="resort-activities-heading" class="font-display text-2xl font-bold tracking-tight text-neutral-50">Activities &amp; services</h2>
+      </div>
       <div id="resort-activities-list-js"></div>
       <div class="load-more-wrap" hidden id="resort-activities-load-more"></div>
       <script>
@@ -1443,8 +1091,10 @@
     </section>
 
     <!-- Accommodations -->
-    <section class="panel panel--accommodations" aria-labelledby="accommodations-heading" id="accommodations">
-      <div class="section-header"><h2 id="accommodations-heading">Accommodations</h2></div>
+    <section class="panel panel--accommodations p-5 sm:p-6" aria-labelledby="accommodations-heading" id="accommodations">
+      <div class="section-header mb-5 flex items-center justify-between">
+        <h2 id="accommodations-heading" class="font-display text-2xl font-bold tracking-tight text-neutral-50">Accommodations</h2>
+      </div>
       <div id="accommodations-list-js"></div>
       <div class="load-more-wrap" hidden id="accommodations-load-more"></div>
       <script>
@@ -1498,16 +1148,16 @@
     </section>
 
     <!-- Community bulletin -->
-    <section class="panel" id="community-bulletin" aria-labelledby="community-bulletin-heading">
-      <div class="section-header">
-        <h2 id="community-bulletin-heading">Community bulletin</h2>
+    <section class="panel p-5 sm:p-6" id="community-bulletin" aria-labelledby="community-bulletin-heading">
+      <div class="section-header mb-5 flex items-center justify-between">
+        <h2 id="community-bulletin-heading" class="font-display text-2xl font-bold tracking-tight text-neutral-50">Community bulletin</h2>
         {% if user.is_superuser %}
-        <div class="section-header__actions">
+        <div class="section-header__actions flex items-center gap-2">
           <button class="button button--ghost" id="bulletinPostButton" type="button">Post</button>
           <form action="{% url 'home:community_bulletin_upload' placeid %}" method="post" enctype="multipart/form-data"
-                id="bulletinPostForm" class="bulletin-post-form" style="display:none">
+                id="bulletinPostForm" class="bulletin-post-form items-center gap-2" style="display:none">
             {% csrf_token %}
-            <input type="file" name="images" accept="image/*" multiple required>
+            <input type="file" name="images" accept="image/*" multiple required class="text-sm text-neutral-400">
             <button class="button button--primary" type="submit">Upload</button>
           </form>
         </div>
@@ -1520,25 +1170,25 @@
         <article class="calendar-item bulletin-card">
           {% with first_image=post.images.all.0 %}
             {% if first_image and first_image.image_url %}
-            <a class="bulletin-image-link bulletin-card__media" href="{{ first_image.image_url }}" data-image-url="{{ first_image.image_url }}">
-              <img src="{{ first_image.image_url }}" alt="{{ post.ai_title|default:'Bulletin image' }}" loading="lazy" decoding="async">
+            <a class="bulletin-image-link bulletin-card__media block" href="{{ first_image.image_url }}" data-image-url="{{ first_image.image_url }}">
+              <img src="{{ first_image.image_url }}" alt="{{ post.ai_title|default:'Bulletin image' }}" loading="lazy" decoding="async" class="aspect-video w-full object-cover">
             </a>
             {% endif %}
           {% endwith %}
-          <div class="bulletin-card__body">
+          <div class="bulletin-card__body p-4">
             {% if user.is_superuser %}
-            <form action="{% url 'home:community_bulletin_delete' placeid post.id %}" method="post" class="bulletin-card__delete">
+            <form action="{% url 'home:community_bulletin_delete' placeid post.id %}" method="post" class="bulletin-card__delete mb-2">
               {% csrf_token %}
-              <button class="button button--ghost" type="submit">Delete</button>
+              <button class="button button--ghost text-xs" type="submit">Delete</button>
             </form>
             {% endif %}
-            <p class="bulletin-card__title">{{ post.ai_title|default:"Community bulletin" }}</p>
+            <p class="bulletin-card__title font-semibold text-neutral-100">{{ post.ai_title|default:"Community bulletin" }}</p>
             {% if post.images.all|length > 1 %}
-            <div class="bulletin-card__thumbs">
+            <div class="bulletin-card__thumbs mt-3 flex gap-2 overflow-x-auto">
               {% for img in post.images.all %}
                 {% if img.image_url %}
-                <a class="bulletin-image-link" href="{{ img.image_url }}" data-image-url="{{ img.image_url }}">
-                  <img src="{{ img.image_url }}" alt="Bulletin photo" loading="lazy" decoding="async">
+                <a class="bulletin-image-link shrink-0" href="{{ img.image_url }}" data-image-url="{{ img.image_url }}">
+                  <img src="{{ img.image_url }}" alt="Bulletin photo" loading="lazy" decoding="async" class="h-16 w-16 rounded-lg object-cover ring-1 ring-white/10">
                 </a>
                 {% endif %}
               {% endfor %}
@@ -1553,42 +1203,34 @@
       {% endif %}
 
       {% if community_bulletins_has_more %}
-      <div class="load-more-wrap" id="community-bulletin-load-more">
+      <div class="load-more-wrap mt-6 flex justify-center" id="community-bulletin-load-more">
         <button class="button button--ghost place-load-more-btn" type="button" onclick="loadMoreCommunityBulletins('{{ placeid }}')">Load more</button>
       </div>
       {% else %}
-      <div class="load-more-wrap" hidden id="community-bulletin-load-more">
+      <div class="load-more-wrap mt-6 flex justify-center" hidden id="community-bulletin-load-more">
         <button class="button button--ghost place-load-more-btn" type="button" onclick="loadMoreCommunityBulletins('{{ placeid }}')">Load more</button>
       </div>
       {% endif %}
     </section>
 
     <!-- Schedules -->
-    <section class="panel" id="schedules" aria-labelledby="schedules-heading">
-      <div class="section-header"><h2 id="schedules-heading">Schedules</h2></div>
+    <section class="panel p-5 sm:p-6" id="schedules" aria-labelledby="schedules-heading">
+      <div class="section-header mb-5 flex items-center justify-between">
+        <h2 id="schedules-heading" class="font-display text-2xl font-bold tracking-tight text-neutral-50">Schedules</h2>
+      </div>
       <div class="schedules-list" id="calendar-allsched-list" role="list" aria-live="polite" aria-label="Available schedules"></div>
       <div class="load-more-wrap" hidden id="schedules-load-more"></div>
     </section>
 
-    <!-- Events
-    <section class="panel panel--events" id="events" aria-labelledby="events-schedule-heading">
-      <div class="section-header"><h2 id="events-schedule-heading">Upcoming events</h2></div>
+    <!-- Events -->
+    <section class="panel panel--events p-5 sm:p-6" id="events" aria-labelledby="events-schedule-heading">
+      <div class="section-header mb-5 flex items-end justify-between gap-3">
+        <h2 id="events-schedule-heading" class="font-display text-2xl font-bold tracking-tight text-neutral-50">Upcoming events</h2>
+        <span class="section-header__hint text-xs font-medium tracking-wide text-neutral-500">Tap a card to register</span>
+      </div>
       <div class="calendar-grid" id="event-objects-list"></div>
       <div class="load-more-wrap" hidden id="events-load-more"></div>
     </section>
- -->
-
-    <!-- Events -->
-<section class="panel panel--events" id="events" aria-labelledby="events-schedule-heading">
-  <div class="section-header">
-    <h2 id="events-schedule-heading">Upcoming events</h2>
-    <span class="section-header__hint">Tap a card to register</span>
-  </div>
-  <div class="calendar-grid" id="event-objects-list"></div>
-  <div class="load-more-wrap" hidden id="events-load-more"></div>
-</section>
-
-
 
   </div>
 </main>
@@ -1605,19 +1247,19 @@
     let title = post.ai_title || `Community bulletin`;
 
     let imageBlock = firstImage ? `
-      <a href="${window.placeEscapeHtml(firstImage)}" class="bulletin-image-link bulletin-card__media" data-image-url="${window.placeEscapeHtml(firstImage)}">
-        <img src="${window.placeEscapeHtml(firstImage)}" alt="${window.placeEscapeHtml(title)}" loading="lazy" decoding="async">
+      <a href="${window.placeEscapeHtml(firstImage)}" class="bulletin-image-link bulletin-card__media block" data-image-url="${window.placeEscapeHtml(firstImage)}">
+        <img src="${window.placeEscapeHtml(firstImage)}" alt="${window.placeEscapeHtml(title)}" loading="lazy" decoding="async" class="aspect-video w-full object-cover">
       </a>` : ``;
 
     let thumbnails = images.length > 1 ? `
-      <div class="bulletin-card__thumbs">
+      <div class="bulletin-card__thumbs mt-3 flex gap-2 overflow-x-auto">
         ${images.map(function (imageUrl) {
-          return `<a href="${window.placeEscapeHtml(imageUrl)}" class="bulletin-image-link" data-image-url="${window.placeEscapeHtml(imageUrl)}">
-            <img src="${window.placeEscapeHtml(imageUrl)}" alt="Bulletin photo" loading="lazy" decoding="async"></a>`;
+          return `<a href="${window.placeEscapeHtml(imageUrl)}" class="bulletin-image-link shrink-0" data-image-url="${window.placeEscapeHtml(imageUrl)}">
+            <img src="${window.placeEscapeHtml(imageUrl)}" alt="Bulletin photo" loading="lazy" decoding="async" class="h-16 w-16 rounded-lg object-cover ring-1 ring-white/10"></a>`;
         }).join(``)}
       </div>` : ``;
 
-    return `<article class="calendar-item bulletin-card">${imageBlock}<div class="bulletin-card__body"><p class="bulletin-card__title">${window.placeEscapeHtml(title)}</p>${thumbnails}</div></article>`;
+    return `<article class="calendar-item bulletin-card">${imageBlock}<div class="bulletin-card__body p-4"><p class="bulletin-card__title font-semibold text-neutral-100">${window.placeEscapeHtml(title)}</p>${thumbnails}</div></article>`;
   }
 
   async function loadMoreCommunityBulletins() {
@@ -1713,14 +1355,14 @@
     let endIndex = startIndex + blogsPerPage;
 
     container.innerHTML = allBlogs.slice(startIndex, endIndex).map(blog => `
-      <article class="blog-post">
+      <article class="blog-post rounded-2xl border border-white/10 bg-white/[0.03] p-5">
         <span class="blog-category category-${blog.category.toLowerCase().replace(/\s+/g, `-`)}">${blog.category}</span>
-        <span class="blog-meta-item">${formatModelDate(blog.updated_at)}</span>
-        <h3 class="blog-title"></h3>
-        <p class="blog-excerpt">${blog.summarize}</p>
-        <div class="blog-meta">
+        <span class="blog-meta-item ml-2 text-xs text-neutral-500">${formatModelDate(blog.updated_at)}</span>
+        <h3 class="blog-title mt-3 text-lg font-semibold leading-snug text-neutral-100"></h3>
+        <p class="blog-excerpt mt-1 text-sm leading-relaxed text-neutral-400">${blog.summarize}</p>
+        <div class="blog-meta mt-4 flex items-center justify-between">
           <div class="blog-meta-left"></div>
-          <a href="${blog.localurlpath}/" class="blog-card" onclick="openModalWithContent(event, this.href)">
+          <a href="${blog.localurlpath}/" class="blog-card inline-flex items-center gap-2 text-sm font-semibold text-brand-300 transition-colors duration-300 hover:text-brand-200" onclick="openModalWithContent(event, this.href)">
             <span class="blog-meta-item">⏱️ ${blog.readtime} min read</span>
             <span>Read →</span>
           </a>
@@ -1735,7 +1377,7 @@
     let paginationContainer = document.getElementById(`blog-pagination`);
     if (!paginationContainer) return;
     if (totalPages <= 1) { paginationContainer.innerHTML = ``; return; }
-    let paginationHTML = `<div class="pagination-controls">`;
+    let paginationHTML = `<div class="pagination-controls flex flex-wrap items-center justify-center gap-1.5">`;
     if (currentPage > 1) paginationHTML += `<button class="pagination-btn" onclick="changePage(${currentPage - 1})">← Previous</button>`;
     let startPage = Math.max(1, currentPage - 2);
     let endPage = Math.min(totalPages, currentPage + 2);
@@ -2210,17 +1852,17 @@
     let next = getAdjacentMonth(currentCalendarMonth, currentCalendarYear, 1);
 
     navButtons.innerHTML = `
-      <div class="calendar-header">
-        <div class="nav-buttons">
+      <div class="calendar-header flex items-center justify-between gap-3 border-b border-white/10 pb-3">
+        <div class="nav-buttons inline-flex items-center gap-2">
           <a href="${buildCalendarPageUrl(previous.month, previous.year)}" data-calendar-direction="previous" aria-label="Previous month">
-            <button class="nav-btn" type="button" aria-hidden="true" tabindex="-1">❮</button>
+            <button class="nav-btn inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-brand-200 ring-1 ring-white/10 transition-all duration-300 hover:bg-brand-500/15" type="button" aria-hidden="true" tabindex="-1">❮</button>
           </a>
-          <div class="calendar-header-left"><h2 id="month-year">December 2025</h2></div>
+          <div class="calendar-header-left flex items-center gap-3"><h2 id="month-year" class="font-display text-xl font-bold tracking-tight text-neutral-50">December 2025</h2></div>
           <a href="${buildCalendarPageUrl(next.month, next.year)}" data-calendar-direction="next" aria-label="Next month">
-            <button class="nav-btn" type="button" aria-hidden="true" tabindex="-1">❯</button>
+            <button class="nav-btn inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-brand-200 ring-1 ring-white/10 transition-all duration-300 hover:bg-brand-500/15" type="button" aria-hidden="true" tabindex="-1">❯</button>
           </a>
           {% if user.is_authenticated %}
-          <button class="add-schedule-btn" id="openAddScheduleBtn" type="button">+ Add schedule</button>
+          <button class="add-schedule-btn ml-auto rounded-xl border border-brand-400/30 bg-brand-500/10 px-3.5 py-2 text-sm font-semibold text-brand-200 transition-all duration-300 hover:bg-brand-500/20" id="openAddScheduleBtn" type="button">+ Add schedule</button>
           {% endif %}
         </div>
       </div>`;
@@ -2327,7 +1969,6 @@
       }));
     };
 
-    // Kick off plan + blogs during browser idle time instead of waiting for scroll.
     if (window.placeIdle) { window.placeIdle(loadInitialPlacePlan); }
     else { window.setTimeout(loadInitialPlacePlan, 200); }
 

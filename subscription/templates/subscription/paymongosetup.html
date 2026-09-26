@@ -185,6 +185,12 @@
             flex-wrap: wrap;
         }
 
+        .plan-details { margin-top: 6px; }
+        .plan-details summary { cursor: pointer; color: var(--text); font-weight: 600; }
+        .plan-details-content { display: grid; gap: 4px; padding: 8px 0 0 16px; }
+        .button-details-content { display: grid; gap: 10px; padding-top: 12px; }
+        .created-badge { background: #e0f2fe; color: #075985; }
+
         .badge {
             display: inline-flex;
             align-items: center;
@@ -455,8 +461,42 @@
                                     <div class="muted">
                                         {{ row.button.source_website.name }} ·
                                         {{ row.button.product.name }} ·
-                                        {{ row.button.plan.name }} ·
                                         {{ row.button.get_checkout_mode_display }}
+                                        <details class="plan-details">
+                                            <summary>
+                                                Plan: {{ row.button.plan.name }} ·
+                                                {{ row.button.plan.currency }} {{ row.button.plan.price|floatformat:2 }}
+                                                {% if row.button.plan.type == "subscription" %}
+                                                    / {{ row.button.plan.get_billingInterval_display|lower }}
+                                                {% else %}
+                                                    · One time
+                                                {% endif %}
+                                            </summary>
+                                            <div class="plan-details-content">
+                                                <span>Type: {{ row.button.plan.get_type_display }}</span>
+                                                <span>Billing: {{ row.button.plan.get_billingInterval_display }}</span>
+                                                <span>Status: {{ row.button.plan.get_status_display }}</span>
+                                                {% if row.button.plan.description %}
+                                                    <span>{{ row.button.plan.description }}</span>
+                                                {% endif %}
+                                                {% if row.button.plan.features %}
+                                                    <span>Features:</span>
+                                                    {% for feature in row.button.plan.features %}
+                                                        <span>• {{ feature }}</span>
+                                                    {% endfor %}
+                                                {% endif %}
+                                                <div class="button-details-content">
+                                                    <div>
+                                                        <label>Script embed</label>
+                                                        <textarea class="snippet" readonly>{{ row.embed_script }}</textarea>
+                                                    </div>
+                                                    <div>
+                                                        <label>Fallback form</label>
+                                                        <textarea class="snippet" readonly>{{ row.fallback_form }}</textarea>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </details>
                                         {% if row.button.checkout_mode == "paymongo_link" %}
                                             <br>Reference: <code>{{ row.button.payment_link_reference|default:"-" }}</code>
                                             {% if row.button.payment_link_url %}
@@ -469,14 +509,15 @@
                                     <span class="badge {% if row.button.active %}ok{% else %}bad{% endif %}">
                                         {% if row.button.active %}Active{% else %}Inactive{% endif %}
                                     </span>
+                                    <span class="badge {% if row.has_paid_transaction %}ok{% else %}warn{% endif %}">
+                                        {% if row.has_paid_transaction %}Paid{% else %}Not paid{% endif %}
+                                    </span>
+                                    <span class="badge created-badge" title="Button created at {{ row.button.created_at|date:'M j, Y H:i' }}">
+                                        Created {{ row.button.created_at|date:"M j, Y H:i" }}
+                                    </span>
                                     <span class="badge">{{ row.button.public_id }}</span>
                                 </div>
                             </div>
-
-                            <label>Script embed</label>
-                            <textarea class="snippet" readonly>{{ row.embed_script }}</textarea>
-                            <label>Fallback form</label>
-                            <textarea class="snippet" readonly>{{ row.fallback_form }}</textarea>
 
                             <div class="snippet-actions">
                                 <button type="button" class="button-secondary copy-snippet">Copy Script</button>

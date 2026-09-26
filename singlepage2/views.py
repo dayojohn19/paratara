@@ -16,7 +16,7 @@ import stat
 from ipaddress import ip_address
 from typing import Optional
 from urllib.parse import urlparse
-from html import unescape
+from html import escape, unescape
 from mimetypes import guess_type
 
 try:
@@ -717,6 +717,113 @@ def _insert_blog_template_section(section_title, section_body_html, *, place_slu
     return True, file_path, "", inserted_html
 
 
+def _patch_blog_template_metadata(title, summary, *, place_slug="", title_slug="", page_url="", updated_at=None):
+    file_path = _blog_template_file_path(place_slug, title_slug, page_url)
+    if not file_path or not os.path.exists(file_path):
+        return False, file_path, "Template file not found", ""
+
+    can_write, permission_error = _ensure_blog_template_write_permission(file_path)
+    if not can_write:
+        return False, file_path, permission_error, ""
+
+    try:
+        with open(file_path, "r", encoding="utf-8") as template_file:
+            html = template_file.read()
+    except OSError as exc:
+        return False, file_path, f"Could not read template file: {exc}", ""
+
+    soup = BeautifulSoup(html, "html.parser")
+    hero = soup.select_one(".blog-hero")
+    summary_tag = soup.select_one("#blog-summary")
+    if summary_tag is None:
+        summary_tag = hero.find("h1") if hero else soup.find("h1")
+    if summary_tag is None:
+        return False, file_path, "Blog hero not found", ""
+    if hero is None:
+        hero = summary_tag.find_parent("header") or summary_tag.parent
+        if hero is None:
+            return False, file_path, "Blog hero not found", ""
+        hero_classes = hero.get("class", [])
+        if isinstance(hero_classes, str):
+            hero_classes = hero_classes.split()
+        if "blog-hero" not in hero_classes:
+            hero_classes.append("blog-hero")
+        hero["class"] = hero_classes
+
+    summary_tag["id"] = "blog-summary"
+    summary_tag.clear()
+    summary_tag.append(summary)
+    title_tag = soup.select_one("#blog-title")
+    if not title_tag:
+        title_tag = soup.new_tag("p", attrs={"id": "blog-title", "class": "blog-hero-title"})
+        summary_tag.insert_after(title_tag)
+    title_tag.clear()
+    title_tag.append(title)
+
+    current_url = soup.find("link", rel="canonical")
+    old_url = current_url.get("href", "") if current_url else ""
+    new_title_slug = slugify(title)
+    if not new_title_slug:
+        return False, file_path, "Title must contain letters or numbers", ""
+    destination_path = _blog_template_file_path(place_slug, new_title_slug)
+    if not destination_path:
+        return False, file_path, "Invalid blog title", ""
+    new_url = f"/pages/blog/{slugify(place_slug)}/{new_title_slug}/"
+    if os.path.abspath(destination_path) != os.path.abspath(file_path) and os.path.exists(destination_path):
+        return False, file_path, "A blog page already exists with this title", ""
+
+    place_name = ""
+    kicker = hero.select_one(".blog-kicker")
+    if kicker:
+        place_name = kicker.get_text(" ", strip=True).split("·")[-1].strip()
+    canonical_url = new_url
+    if old_url:
+        parsed_url = urlparse(old_url)
+        canonical_url = f"{parsed_url.scheme}://{parsed_url.netloc}{new_url}" if parsed_url.scheme else new_url
+        current_url["href"] = canonical_url
+    for selector in ('meta[property="og:url"]', 'meta[property="og:title"]', 'meta[name="twitter:title"]'):
+        meta = soup.select_one(selector)
+        if not meta:
+            continue
+        meta["content"] = canonical_url if selector.endswith('og:url"]') else f"{title} — {place_name}"
+
+    page_title = soup.find("title")
+    if page_title:
+        page_title.string = f"{title} — {place_name} Travel Guide"
+    for script in soup.find_all("script", attrs={"type": "application/ld+json"}):
+        try:
+            schema = json.loads(script.string or script.get_text() or "{}")
+        except json.JSONDecodeError:
+            continue
+        if isinstance(schema, dict) and schema.get("@type") == "Article":
+            schema["headline"] = f"{title} — {place_name}"
+            schema["url"] = canonical_url
+            script.string = json.dumps(schema, indent=2)
+
+    edited_at = updated_at or timezone.now()
+    _update_last_updated_marker(soup, edited_at)
+    _update_article_schema_modified_date(soup, edited_at)
+    destination_directory = os.path.dirname(destination_path)
+    os.makedirs(destination_directory, exist_ok=True)
+    try:
+        with open(destination_path, "w", encoding="utf-8") as template_file:
+            template_file.write(str(soup))
+        if os.path.abspath(destination_path) != os.path.abspath(file_path):
+            redirect_target = escape(new_url, quote=True)
+            redirect_html = (
+                '<!doctype html><html lang="en"><head><meta charset="utf-8">'
+                f'<link rel="canonical" href="{escape(canonical_url, quote=True)}">'
+                f'<meta http-equiv="refresh" content="0;url={redirect_target}">'
+                f'<title>Page moved</title></head><body><a href="{redirect_target}">Continue to the updated blog</a></body></html>'
+            )
+            with open(file_path, "w", encoding="utf-8") as template_file:
+                template_file.write(redirect_html)
+    except OSError as exc:
+        return False, file_path, f"Could not write template file: {exc}", ""
+
+    return True, destination_path, "", new_url
+
+
 def _patch_blog_template_file(paragraph_index, edited_html, editable_tag="", editable_scope="article", place_slug="", title_slug="", page_url="", updated_at=None):
     file_path = _blog_template_file_path(place_slug, title_slug, page_url)
     if not file_path or not os.path.exists(file_path):
@@ -804,6 +911,70 @@ def save_blog_paragraph_file_edit(request):
     editable_tag = (payload.get("editable_tag") or "").strip().lower()
     editable_scope = (payload.get("editable_scope") or "article").strip().lower()
     operation = (payload.get("operation") or "update_section").strip().lower()
+
+    if operation == "update_metadata":
+        from apis.models import Blogs
+
+        title = BeautifulSoup(str(payload.get("title") or ""), "html.parser").get_text(" ", strip=True)
+        summary = BeautifulSoup(str(payload.get("summary") or ""), "html.parser").get_text(" ", strip=True)
+        if not title:
+            return JsonResponse({"ok": False, "error": "Title is required"}, status=400)
+        if len(title) > 180:
+            return JsonResponse({"ok": False, "error": "Title is too long"}, status=400)
+        if len(summary) > 400:
+            return JsonResponse({"ok": False, "error": "Summary is too long"}, status=400)
+
+        blog = _find_blog_for_edit(place_slug, title_slug, page_url)
+        if blog is None:
+            return JsonResponse({"ok": False, "error": "Blog record not found"}, status=404)
+        if Blogs.objects.filter(blogplace=blog.blogplace, title__iexact=title).exclude(pk=blog.pk).exists():
+            return JsonResponse({"ok": False, "error": "A blog with this title already exists"}, status=409)
+
+        edited_at = timezone.now()
+        edited_ip = _get_request_ip(request)
+        file_updated, file_path, file_error, new_url = _patch_blog_template_metadata(
+            title,
+            summary,
+            place_slug=place_slug,
+            title_slug=title_slug,
+            page_url=page_url,
+            updated_at=edited_at,
+        )
+        if not file_updated:
+            error_status = 500 if "permission" in (file_error or "").lower() or "write" in (file_error or "").lower() else 404
+            if "already exists" in (file_error or "").lower():
+                error_status = 409
+            elif "title must" in (file_error or "").lower() or "invalid blog title" in (file_error or "").lower():
+                error_status = 400
+            return JsonResponse({
+                "ok": False,
+                "error": file_error or "Could not update blog metadata",
+                "file_path": file_path or "",
+            }, status=error_status)
+
+        blog.title = title
+        blog.summarize = summary
+        blog.localurlpath = new_url
+        blog.updated_at = edited_at
+        blog.last_updated_ip = edited_ip
+        blog.save(update_fields=["title", "summarize", "localurlpath", "updated_at", "last_updated_ip"])
+
+        cache_cleared = _clear_blog_page_cache_after_edit()
+        updated_at_iso, updated_at_display = _format_blog_datetime(edited_at)
+        return JsonResponse({
+            "ok": True,
+            "operation": operation,
+            "blog_id": blog.id,
+            "title": title,
+            "summary": summary,
+            "new_url": new_url,
+            "updated_at": updated_at_iso,
+            "updated_at_display": updated_at_display,
+            "last_updated_ip": edited_ip,
+            "file_updated": file_updated,
+            "file_path": file_path or "",
+            "cache_cleared": cache_cleared,
+        })
 
     if operation == "insert_section":
         section_title = _strip_html_tags(payload.get("section_title") or "").strip()
@@ -1175,6 +1346,7 @@ def generate_manual_blog_page(request):
         faq_entries=faq_entries or None,
         blog_searchable_keys_description=meta_description or None,
         category=category,
+        summary=meta_description or None,
     )
 
     place_slug = slugify(place_name)

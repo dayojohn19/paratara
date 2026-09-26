@@ -1,14 +1,21 @@
-from django.test import TestCase
+import base64
+import json
+
+from django.test import RequestFactory, TestCase
 from django.urls import reverse
 from django.utils import timezone
 from django.core import mail
+from django.contrib.auth.models import AnonymousUser
 from django.test import override_settings
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from unittest.mock import patch
 
 from resorts.models import Packages, resortItem, resortPackages
+from subscription.models import PaymentButton, SourceWebsite, SubscriptionPlan, SubscriptionProduct
 from .models import CheckinDay, Checkins, ResortBookingPayment
+from .qrcodereceipt import my_page
+from .views import _booking_receipt_code, _send_booking_receipt_email
 
 
 @override_settings(
@@ -39,6 +46,93 @@ class PayMongoRoomBookingTests(TestCase):
             'checkout_date': '2026-10-12T12:00',
             'totalcost': '1.00',
         }
+
+    def test_booking_receipt_code_includes_establishment_details(self):
+        self.resort.address = '12 Shore Road'
+        self.resort.contactNumber = '+63 912 345 6789'
+        self.resort.contactEmail = 'stay@example.com'
+        self.resort.whatsappNumber = '+63 912 345 6789'
+        self.resort.open_hours = 'Daily, 8 AM to 8 PM'
+        self.resort.websiteURL = 'https://example.com'
+        self.resort.description = 'Call ahead for late arrivals.'
+        self.resort.save()
+        booking = Checkins.objects.create(
+            room=self.room,
+            resort=self.resort,
+            checkin_date=timezone.now(),
+            checkout_date=timezone.now() + timedelta(days=1),
+            guest_name='Test Guest',
+            guest_email='guest@example.com',
+            guest_phone='09170000000',
+        )
+
+        encoded_booking = _booking_receipt_code(booking)
+        receipt_data = json.loads(base64.urlsafe_b64decode(encoded_booking.encode()).decode())
+
+        self.assertEqual(receipt_data['resort_contact_number'], '+63 912 345 6789')
+        self.assertEqual(receipt_data['resort_contact_email'], 'stay@example.com')
+        self.assertEqual(receipt_data['resort_whatsapp_number'], '+63 912 345 6789')
+        self.assertEqual(receipt_data['resort_open_hours'], 'Daily, 8 AM to 8 PM')
+        self.assertEqual(receipt_data['resort_website'], 'https://example.com')
+        self.assertEqual(receipt_data['resort_description'], 'Call ahead for late arrivals.')
+
+        for field in (
+            'resort_contact_number',
+            'resort_contact_email',
+            'resort_whatsapp_number',
+            'resort_open_hours',
+            'resort_website',
+            'resort_description',
+        ):
+            receipt_data.pop(field)
+        legacy_code = base64.urlsafe_b64encode(json.dumps(receipt_data).encode()).decode()
+        request = RequestFactory().get('/resortManagement/qr/')
+        request.user = AnonymousUser()
+        request.session = {}
+        request._messages = []
+        response = my_page(request, legacy_code)
+
+        self.assertContains(response, 'Establishment Details')
+        self.assertContains(response, 'stay@example.com')
+        self.assertContains(response, 'Call ahead for late arrivals.')
+        self.assertNotContains(response, 'Please present this QR ticket')
+
+    def test_booking_receipt_email_includes_establishment_details(self):
+        self.resort.address = '12 Shore Road'
+        self.resort.contactNumber = '+63 912 345 6789'
+        self.resort.contactEmail = 'stay@example.com'
+        self.resort.whatsappNumber = '+63 912 345 6789'
+        self.resort.open_hours = 'Daily, 8 AM to 8 PM'
+        self.resort.websiteURL = 'https://example.com'
+        self.resort.save()
+        booking = Checkins.objects.create(
+            room=self.room,
+            resort=self.resort,
+            checkin_date=timezone.now(),
+            checkout_date=timezone.now() + timedelta(days=1),
+            guest_name='Test Guest',
+            guest_email='guest@example.com',
+            guest_phone='09170000000',
+        )
+        payment = ResortBookingPayment.objects.create(
+            amount_centavos=105300,
+            status='paid',
+            booking_data={},
+            checkin=booking,
+        )
+        request = RequestFactory().get('/')
+
+        self.assertTrue(_send_booking_receipt_email(payment, booking, request))
+
+        message = mail.outbox[-1]
+        self.assertIn('Address: 12 Shore Road', message.body)
+        self.assertIn('Phone: +63 912 345 6789', message.body)
+        self.assertIn('Email: stay@example.com', message.body)
+        self.assertIn('WhatsApp: +63 912 345 6789', message.body)
+        self.assertIn('Website: https://example.com', message.body)
+        html_body = message.alternatives[0][0]
+        self.assertIn('Daily, 8 AM to 8 PM', html_body)
+        self.assertIn('href="http://testserver/est/resort/%s/"' % self.resort.pk, html_body)
 
     @patch('resortManagement.views.PayMongoClient.create_checkout_session')
     def test_checkout_uses_server_calculated_room_total(self, mocked_checkout):
@@ -185,6 +279,42 @@ class PayMongoRoomBookingTests(TestCase):
 
     @patch('resortManagement.views.PayMongoClient.retrieve_checkout_session')
     def test_paid_checkout_return_creates_booking(self, mocked_retrieve):
+        source = SourceWebsite.objects.create(
+            name='Room Booking Source',
+            slug='room-booking-source',
+        )
+        product = SubscriptionProduct.objects.create(name='Ocean Room Booking')
+        plan = SubscriptionPlan.objects.create(
+            name='October Stay',
+            slug='october-stay',
+            price='2106.00',
+            currency='PHP',
+            billingInterval='one_time',
+            type='one_time',
+            subscriptionProduct=product,
+        )
+        matching_button = PaymentButton.objects.create(
+            source_website=source,
+            product=product,
+            plan=plan,
+            metadata={
+                'resort_id': str(self.resort.pk),
+                'room_id': str(self.room.pk),
+                'checkin_date': '2026-10-10T15:00:00',
+                'checkout_date': '2026-10-12T12:00:00',
+            },
+        )
+        other_dates_button = PaymentButton.objects.create(
+            source_website=source,
+            product=product,
+            plan=plan,
+            metadata={
+                'resort_id': str(self.resort.pk),
+                'room_id': str(self.room.pk),
+                'checkin_date': '2026-10-11T15:00:00',
+                'checkout_date': '2026-10-12T12:00:00',
+            },
+        )
         payment = ResortBookingPayment.objects.create(
             checkout_session_id='cs_paid_room',
             amount_centavos=210600,
@@ -222,14 +352,20 @@ class PayMongoRoomBookingTests(TestCase):
         payment.refresh_from_db()
         self.assertEqual(payment.status, 'paid')
         self.assertIsNotNone(payment.checkin_id)
+        matching_button.refresh_from_db()
+        other_dates_button.refresh_from_db()
+        self.assertTrue(matching_button.paid)
+        self.assertFalse(other_dates_button.paid)
         self.assertEqual(Checkins.objects.count(), 1)
         self.assertEqual(CheckinDay.objects.filter(checkin=self.room).count(), 3)
         payment.refresh_from_db()
         self.assertIsNotNone(payment.receipt_email_sent_at)
         self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(mail.outbox[0].to, ['guest@example.com'])
-        self.assertEqual(mail.outbox[0].attachments[0][0], 'booking-receipt-qr.png')
-        self.assertEqual(mail.outbox[0].attachments[0][2], 'image/png')
+        qr_attachment = mail.outbox[0].attachments[0]
+        self.assertEqual(qr_attachment.get_filename(), 'booking-receipt-qr.png')
+        self.assertEqual(qr_attachment.get_content_type(), 'image/png')
+        self.assertEqual(qr_attachment['Content-ID'], '<booking-receipt-qr>')
 
         duplicate_response = self.client.get(
             reverse('resort_management:paymongo_booking_return', args=[payment.pk]),
@@ -241,3 +377,36 @@ class PayMongoRoomBookingTests(TestCase):
         self.assertEqual(CheckinDay.objects.filter(checkin=self.room).count(), 3)
         self.assertEqual(len(mail.outbox), 1)
         mocked_retrieve.assert_called_once_with('cs_paid_room')
+
+    def test_concurrent_receipt_attempt_is_claimed_before_sending(self):
+        booking = Checkins.objects.create(
+            room=self.room,
+            resort=self.resort,
+            checkin_date=timezone.make_aware(datetime(2026, 10, 10, 15)),
+            checkout_date=timezone.make_aware(datetime(2026, 10, 12, 12)),
+            guest_name='Test Guest',
+            guest_email='guest@example.com',
+            guest_phone='09170000000',
+        )
+        payment = ResortBookingPayment.objects.create(
+            amount_centavos=210600,
+            status='paid',
+            booking_data={},
+            checkin=booking,
+        )
+        request = RequestFactory().get('/')
+        duplicate_attempts = []
+
+        def send_and_retry(*args, **kwargs):
+            duplicate_attempts.append(
+                _send_booking_receipt_email(payment, booking, request)
+            )
+            return 1
+
+        with patch('resortManagement.views.EmailMultiAlternatives.send', side_effect=send_and_retry) as send:
+            self.assertTrue(_send_booking_receipt_email(payment, booking, request))
+
+        self.assertEqual(send.call_count, 1)
+        self.assertEqual(duplicate_attempts, [False])
+        payment.refresh_from_db()
+        self.assertIsNotNone(payment.receipt_email_sent_at)

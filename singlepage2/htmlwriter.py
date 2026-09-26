@@ -13,7 +13,9 @@ from singlepage2.pyhtmlopt import optimize_file
 import re
 from html import escape
 from bs4 import BeautifulSoup, NavigableString
+import logging
 client = settings.GROK_CLIENT
+logger = logging.getLogger(__name__)
 BLOG_CATEGORY_VALUES = {choice[0] for choice in Blogs.category_choices}
 DEFAULT_SUMMARY_VALUES = {"", "No Summary Provided", "Discover more about this destination"}
 FAQ_QUESTIONS_BY_CATEGORY = {
@@ -223,7 +225,8 @@ def generate_blog_object(request, place_name, title, category='Guide', summary='
                 b.save(update_fields=update_fields)
                 # FIX: regenerate the static HTML so the page reflects the update
                 generate_blog_page(request, place_name, b.title, text_content,
-                                   category=b.category)
+                                   category=b.category, summary=b.summarize,
+                                   blog_obj=b)
 
             return b
 
@@ -236,19 +239,25 @@ def generate_blog_object(request, place_name, title, category='Guide', summary='
         summarize=persisted_summary,
         readtime=readtime,
     )
-    generate_blog_page(request, place_name, title, text_content, category=category)
+    generate_blog_page(request, place_name, title, text_content, category=category,
+                       summary=persisted_summary, blog_obj=blog_item)
     place.blog.add(blog_item)
     # FIX: return the created object (was returning None)
     return blog_item
 
 
-def generate_blog_page(request, place_name, title, body_text, cover_image_url=None, faq_entries=None, blog_searchable_keys_description=None, category=None):
+def generate_blog_page(request, place_name, title, body_text, cover_image_url=None, faq_entries=None, blog_searchable_keys_description=None, category=None, summary=None, blog_obj=None):
     category = normalize_blog_category(category)
 
     def _get_image_cover(place_name, title):
         from imageapp.imageuploader import getTitlePhoto
-        togen = f"Travel guide cover photo for {title} in {place_name}. Show the destination clearly with natural colors and simple composition."
-        image_url = getTitlePhoto(request, togen)
+        image_url = getTitlePhoto(request, title)
+        if image_url:
+            image_path = os.path.abspath(os.fspath(image_url))
+            media_root = os.path.abspath(settings.MEDIA_ROOT)
+            if os.path.commonpath((media_root, image_path)) == media_root:
+                relative_path = os.path.relpath(image_path, media_root)
+                return f"{settings.MEDIA_URL.rstrip('/')}/{relative_path.replace(os.sep, '/')}"
         return image_url
 
     def _strip_html_tags(html: str) -> str:
@@ -280,13 +289,37 @@ Rules:
         blog_searchable_keys_description = create_blog_searchable_keys_description(title, place_name, category)
 
     title = (title or '').strip() or f"{category} to {place_name}"
+    if blog_obj is None:
+        saved_blogs = Blogs.objects.filter(blogplace__placename__iexact=place_name).only(
+            "title", "summarize", "cover_image_url"
+        )
+        blog_obj = next(
+            (blog for blog in saved_blogs if slugify(blog.title or "") == slugify(title)),
+            None,
+        )
+    if summary is None:
+        summary = blog_obj.summarize if blog_obj else ""
+    summary = clean_blog_metadata(summary)[:400].strip()
+    if summary in DEFAULT_SUMMARY_VALUES:
+        summary = ""
+    summary = summary or title
 
-    # FIX: fall back to a generated cover image if none supplied
+    if not cover_image_url and blog_obj:
+        cover_image_url = blog_obj.cover_image_url or None
+
+    if cover_image_url and cover_image_url.rstrip("/").endswith("/static/images/default-cover.jpg"):
+        cover_image_url = None
+
     if not cover_image_url:
         try:
             cover_image_url = _get_image_cover(place_name, title)
         except Exception:
+            logger.exception("Could not generate blog cover image for %s", title)
             cover_image_url = "/static/images/default-cover.jpg"
+
+    if blog_obj and blog_obj.cover_image_url != cover_image_url:
+        blog_obj.cover_image_url = cover_image_url
+        blog_obj.save(update_fields=["cover_image_url"])
 
     # FIX: og:image / twitter:image / Article schema want absolute URLs
     cover_image_abs = cover_image_url
@@ -325,11 +358,11 @@ Rules:
     modified_iso, modified_display = format_blog_datetime(generated_at)
 
     collections_html = f'''
-                        <div id="collections-header">
-                            <h2>Local Collections &amp; Souvenirs</h2>
-                            <p id="collections-loading">Discover interactive collections nearby. Scan QR codes to save memories. Loading...</p>
+                        <details id="collections-header">
+                            <summary>Where to find postcards &amp; souvenirs</summary>
+                            <p id="collections-loading">Browse local collections and nearby places.</p>
                             <div id="dynamic-collections" class="collection-section"></div>
-                        </div>
+                        </details>
                         '''
 
     # =========================================================
@@ -875,6 +908,46 @@ img {{
     margin-bottom: 1.35rem;
     color: var(--ink);
 }}
+.blog-hero-title {{
+    margin: -0.55rem 0 1.35rem;
+    color: var(--ink-soft);
+    font-family: var(--font-display);
+    font-size: clamp(1.15rem, 2.2vw, 1.55rem);
+    line-height: 1.35;
+}}
+.blog-hero-metadata-tools {{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    margin: 0 0 1rem;
+}}
+.blog-hero-metadata-tools input,
+.blog-hero-metadata-tools textarea {{
+    width: 100%;
+    padding: 0.7rem 0.8rem;
+    color: var(--ink);
+    font: inherit;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-xs);
+    background: #ffffff;
+}}
+.blog-hero-metadata-tools textarea {{ min-height: 5rem; resize: vertical; }}
+.blog-hero-edit-button {{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    margin: 0 0 0 0.35rem;
+    color: var(--ink-muted);
+    border: 1px solid transparent;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+    vertical-align: middle;
+}}
+.blog-hero-edit-button:hover {{ color: #ffffff; background: var(--brand); }}
 
 /* ============ DATE META ============ */
 .blog-date-meta {{
@@ -984,9 +1057,17 @@ img {{
 }}
 
 /* ============ COLLECTIONS ============ */
-#collections-header {{ margin-top: 2.5rem; }}
-#collections-header h2 {{ margin-top: 0; }}
-#collections-loading {{ color: var(--ink-muted); font-size: 0.95rem; }}
+#collections-header {{ margin-top: 1.5rem; }}
+#collections-header > summary {{
+    padding: 0.75rem 0;
+    color: var(--brand-dark);
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    font-weight: 600;
+    cursor: pointer;
+}}
+#collections-header > summary::marker {{ color: var(--accent); }}
+#collections-loading {{ margin: 0.5rem 0 0; color: var(--ink-muted); font-size: 0.9rem; }}
 
 .collection-section,
 #dynamic-collections {{
@@ -1686,7 +1767,8 @@ section[aria-labelledby="faq-heading"] [data-editing="true"] {{
     <article id="body-contents">
         <header class="blog-hero">
                 <span class="blog-kicker">{category} · {place_name}</span>
-                <h1>{title}</h1>
+            <h1 id="blog-summary">{escape(summary)}</h1>
+            <p id="blog-title" class="blog-hero-title">{escape(title)}</p>
                 <a class="place-page-link" href="{place_page_url}">Explore {place_name}</a>
         </header>
     {collections_html}
@@ -2632,6 +2714,106 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg, onEmpty) {{
         lastUpdated.textContent = data.updated_at_display;
     }}
 
+    function setupBlogHeroMetadataEditor() {{
+        if (!blogCanEdit) return;
+
+        const header = document.querySelector('.blog-hero');
+        const summaryElement = document.getElementById('blog-summary');
+        const titleElement = document.getElementById('blog-title');
+        if (!header || !summaryElement || !titleElement) return;
+        const getVisibleText = element => {{
+            const clone = element.cloneNode(true);
+            clone.querySelectorAll('.blog-hero-edit-button').forEach(button => button.remove());
+            return clone.textContent.trim();
+        }};
+
+        const openEditor = () => {{
+            if (header.querySelector('.blog-hero-metadata-tools')) return;
+
+            const form = document.createElement('div');
+            form.className = 'blog-hero-metadata-tools';
+            const summaryInput = document.createElement('textarea');
+            summaryInput.maxLength = 400;
+            summaryInput.setAttribute('aria-label', 'Blog summary');
+            summaryInput.value = getVisibleText(summaryElement);
+            const titleInput = document.createElement('input');
+            titleInput.type = 'text';
+            titleInput.maxLength = 180;
+            titleInput.setAttribute('aria-label', 'Blog title');
+            titleInput.value = getVisibleText(titleElement);
+            const saveButton = document.createElement('button');
+            saveButton.type = 'button';
+            saveButton.className = 'blog-save-button';
+            saveButton.textContent = 'Save';
+            const cancelButton = document.createElement('button');
+            cancelButton.type = 'button';
+            cancelButton.className = 'blog-cancel-button';
+            cancelButton.textContent = 'Cancel';
+            const status = document.createElement('span');
+            status.className = 'blog-edit-status';
+            form.append(summaryInput, titleInput, saveButton, cancelButton, status);
+
+            cancelButton.addEventListener('click', () => form.remove());
+            saveButton.addEventListener('click', async () => {{
+                saveButton.disabled = true;
+                status.textContent = 'Saving...';
+                status.classList.remove('error');
+                try {{
+                    const response = await fetch(blogParagraphSaveUrl, {{
+                        method: 'POST',
+                        headers: {{
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRFToken': getCookie('csrftoken'),
+                        }},
+                        body: JSON.stringify({{
+                            operation: 'update_metadata',
+                            place_slug: blogPlaceSlug,
+                            title_slug: blogTitleSlug,
+                            page_url: window.location.pathname,
+                            summary: summaryInput.value,
+                            title: titleInput.value,
+                        }})
+                    }});
+                    const data = await response.json();
+                    if (!response.ok || !data.ok) throw new Error(data.error || `HTTP ${{response.status}}`);
+
+                    summaryElement.replaceChildren(
+                        document.createTextNode(data.summary),
+                        summaryElement.querySelector('.blog-hero-edit-button')
+                    );
+                    titleElement.replaceChildren(
+                        document.createTextNode(data.title),
+                        titleElement.querySelector('.blog-hero-edit-button')
+                    );
+                    updateVisibleLastUpdated(data);
+                    if (data.new_url && data.new_url !== window.location.pathname) {{
+                        window.location.replace(data.new_url);
+                        return;
+                    }}
+                    form.remove();
+                }} catch (error) {{
+                    status.textContent = `Save failed: ${{error.message || 'Please try again.'}}`;
+                    status.classList.add('error');
+                    saveButton.disabled = false;
+                }}
+            }});
+            header.appendChild(form);
+            summaryInput.focus();
+        }};
+
+        [summaryElement, titleElement].forEach((element, index) => {{
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'blog-hero-edit-button';
+            button.textContent = '\\u270e';
+            button.title = index === 0 ? 'Edit summary and title' : 'Edit title and summary';
+            button.setAttribute('aria-label', button.title);
+            button.addEventListener('click', openEditor);
+            element.appendChild(button);
+        }});
+    }}
+
     function finishParagraphEdit(paragraph, tools, replacementHTML) {{
         paragraph.contentEditable = 'false';
         delete paragraph.dataset.editing;
@@ -3227,6 +3409,7 @@ document.addEventListener("DOMContentLoaded", () => {{
     if (blogCanEdit) {{
         setupEditableParagraphs();
         setupAddSectionForm();
+        setupBlogHeroMetadataEditor();
     }}
     prepareNestedSectionImages(document);
     setupImageLightbox();

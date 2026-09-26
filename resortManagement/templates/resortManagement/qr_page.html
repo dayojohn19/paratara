@@ -200,23 +200,6 @@
         word-break:break-word;
     }
 
-    /* ---------- Reminders ---------- */
-    .t-reminders{
-        margin:0;
-        padding-left:18px;
-        font-size:13.5px;
-        line-height:1.6;
-        color:#41505f;
-    }
-
-    .t-reminders li{
-        margin-bottom:6px;
-    }
-
-    .t-reminders li:last-child{
-        margin-bottom:0;
-    }
-
     /* ---------- Footer ---------- */
     .t-foot{
         margin-top:22px;
@@ -318,9 +301,10 @@
 
         <div class="t-divider"></div>
 
-        <!-- Details -->
+        <!-- Reservation details -->
         <h2 class="t-title">Reservation Details</h2>
 
+        <h3 class="t-title">Customer Details</h3>
         <div class="t-grid">
             <div class="t-cell">
                 <span class="t-cell__k">Check-in</span>
@@ -329,10 +313,6 @@
             <div class="t-cell">
                 <span class="t-cell__k">Check-out</span>
                 <span class="t-cell__v">{{ dictdata.checkout_date_readable|default:"—" }}</span>
-            </div>
-            <div class="t-cell">
-                <span class="t-cell__k">Resort</span>
-                <span class="t-cell__v">{{ resort_name|default:"—" }}</span>
             </div>
             <div class="t-cell">
                 <span class="t-cell__k">Room / Package</span>
@@ -354,17 +334,59 @@
 
         <div class="t-divider"></div>
 
-        <!-- Reminders -->
-        <h2 class="t-title">Reminders</h2>
-        <ul class="t-reminders">
-            <li>Please present this QR ticket and a valid ID at the front desk.</li>
-            <li>Check-in begins at 3:00 PM; check-out is by 12:00 Noon.</li>
-            <li>Store valuables securely — the resort is not liable for lost items.</li>
-        </ul>
+        <h3 class="t-title">Establishment Details</h3>
+        <div class="t-grid">
+            <div class="t-cell t-cell--full">
+                <span class="t-cell__k">Establishment</span>
+                <span class="t-cell__v">{{ resort_name|default:"—" }}</span>
+            </div>
+            {% if dictdata.resort_address %}
+            <div class="t-cell t-cell--full">
+                <span class="t-cell__k">Address</span>
+                <span class="t-cell__v">{{ dictdata.resort_address }}</span>
+            </div>
+            {% endif %}
+            {% if dictdata.resort_contact_number %}
+            <div class="t-cell">
+                <span class="t-cell__k">Contact Number</span>
+                <span class="t-cell__v">{{ dictdata.resort_contact_number }}</span>
+            </div>
+            {% endif %}
+            {% if dictdata.resort_contact_email %}
+            <div class="t-cell">
+                <span class="t-cell__k">Email</span>
+                <span class="t-cell__v">{{ dictdata.resort_contact_email }}</span>
+            </div>
+            {% endif %}
+            {% if dictdata.resort_whatsapp_number %}
+            <div class="t-cell">
+                <span class="t-cell__k">WhatsApp</span>
+                <span class="t-cell__v">{{ dictdata.resort_whatsapp_number }}</span>
+            </div>
+            {% endif %}
+            {% if dictdata.resort_open_hours %}
+            <div class="t-cell">
+                <span class="t-cell__k">Hours</span>
+                <span class="t-cell__v">{{ dictdata.resort_open_hours }}</span>
+            </div>
+            {% endif %}
+            {% if dictdata.resort_website %}
+            <div class="t-cell t-cell--full">
+                <span class="t-cell__k">Website</span>
+                <span class="t-cell__v"><a href="{{ dictdata.resort_website }}" rel="noopener noreferrer">{{ dictdata.resort_website }}</a></span>
+            </div>
+            {% endif %}
+            {% if dictdata.resort_description %}
+            <div class="t-cell t-cell--full">
+                <span class="t-cell__k">Notes</span>
+                <span class="t-cell__v">{{ dictdata.resort_description }}</span>
+            </div>
+            {% endif %}
+        </div>
 
         <!-- Footer -->
         <div class="t-foot">
-            Issued {% now "F j, Y" %} &middot; Please keep this ticket for your records.<br>
+            Issued {% now "F j, Y" %}<br>
             Thank you for choosing {{ resort_name|default:"our resort" }}.
         </div>
 
