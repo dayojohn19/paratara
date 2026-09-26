@@ -1887,7 +1887,7 @@ section {
                     `
                     : `
                         <div class="iframe-loader"></div>
-                        <iframe class="calendar-frame" loading="lazy" sandbox="allow-scripts allow-forms allow-popups allow-same-origin" src="/resortManagement/calendar/${resortID}/${subpackage.package_id}/${currentMonth}/${currentYear}/upload"></iframe>
+                        <iframe class="calendar-frame" loading="lazy" sandbox="allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-same-origin" src="/resortManagement/calendar/${resortID}/${subpackage.package_id}/${currentMonth}/${currentYear}/upload"></iframe>
                     `;
 
                 cardDiv.innerHTML = `
@@ -2183,7 +2183,7 @@ section {
                 </div>
                 <div id="${dialogID}" style="display:none; padding:0; position: relative;">
                     <div class="iframe-loader"></div>
-                    <iframe class="calendar-frame" loading="lazy" sandbox="allow-scripts allow-forms allow-popups allow-same-origin" src="/resortManagement/calendar/${resortID}/${item.package_id}/${currentMonth}/${currentYear}/upload"></iframe>
+                    <iframe class="calendar-frame" loading="lazy" sandbox="allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-same-origin" src="/resortManagement/calendar/${resortID}/${item.package_id}/${currentMonth}/${currentYear}/upload"></iframe>
                 </div>
             `;
             // Hide loader when iframe loads

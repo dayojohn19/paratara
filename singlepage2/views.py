@@ -1250,13 +1250,32 @@ def blog_tour_guides(request, place_slug):
     guides = TourGuide.objects.filter(
         primary_place=place,
         is_active=True,
-    ).exclude(mobile_number='').order_by('id')
+    ).exclude(mobile_number='').select_related(
+        'user', 'user__additionalCreds'
+    ).order_by('id')
 
     return JsonResponse({
         'guides': [
             {
                 'mobile_number': guide.mobile_number,
-                'name': getattr(guide.user, 'username', '') or 'Tour guide',
+                'name': (
+                    guide.user.additionalCreds.name
+                    if guide.user.additionalCreds
+                    and guide.user.additionalCreds.name != 'Facebook not Connected'
+                    else guide.user.username
+                ) or 'Tour guide',
+                'photo_url': (
+                    guide.user.photoLink
+                    or (
+                        guide.user.additionalCreds.photo
+                        if guide.user.additionalCreds
+                        else ''
+                    )
+                ),
+                'bio': guide.bio,
+                'experience_years': guide.experience_years,
+                'certifications': guide.certifications,
+                'registered_at': guide.created_at.isoformat(),
             }
             for guide in guides
         ]

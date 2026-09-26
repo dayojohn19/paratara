@@ -1,24 +1,27 @@
-
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponseServerError, HttpResponse, JsonResponse
 from resorts.models import Packages, resortPackages,resortItem
 from userProfile.models import UserCredentials
 from userProfile.services import ensure_user_profile
 from .forms import CheckinForm
-from .models import Checkins, CheckinDay, ResortManager, ResortSubscription
+from .models import Checkins, CheckinDay, ResortBookingPayment, ResortManager, ResortSubscription
 import calendar
 from django.db.models.functions import ExtractDay
 from django.contrib.auth.decorators import login_required
+from datetime import datetime, date, timedelta
+from decimal import Decimal, ROUND_HALF_UP
+from types import SimpleNamespace
 # Create your views here.
 # resort_id room_id room_month room_year 'previous'
-from datetime import datetime, date, timedelta
 from django.utils import timezone
 import requests
 from requests.auth import HTTPBasicAuth
 from django.core.exceptions import PermissionDenied
 from django.conf import settings
 from django.contrib import messages
+from django.core.mail import EmailMessage
 from django.db.models import Q
+from django.db import transaction as db_transaction
 from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
@@ -26,9 +29,12 @@ import base64
 import json
 import os
 import re
+import qrcode
+from io import BytesIO
 from django.forms.models import model_to_dict
 from django.utils.dateparse import parse_datetime
 from django.urls import reverse
+from subscription.services.paymongo import PayMongoClient, amount_to_centavos
 
 
 PAYPAL_API_BASE = getattr(settings, 'PAYPAL_API_BASE', 'https://api-m.paypal.com')
@@ -52,6 +58,91 @@ PAYPAL_SUBSCRIPTION_BRAND = getattr(
     os.getenv('PAYPAL_SUBSCRIPTION_BRAND_NAME', 'Paratara Resort'),
 )
 
+
+def expire_stale_resort_booking_payments():
+    return ResortBookingPayment.expire_stale_pending()
+
+
+def _booking_receipt_redirect(checkin_instance):
+    encoded_booking = _booking_receipt_code(checkin_instance)
+    return redirect('resort_management:qr', qr_strings=encoded_booking)
+
+
+def _booking_receipt_code(checkin_instance):
+    checkin_data = model_to_dict(checkin_instance)
+    resort_details = checkin_instance.resort
+    room_details = checkin_instance.room
+    checkin_data.update({
+        'resort_name_display': (resort_details.RealName or resort_details.name or '') if resort_details else '',
+        'resort_address': resort_details.address if resort_details else '',
+        'resort_logo': next(
+            (
+                value
+                for value in (
+                    resort_details.headerImage,
+                    resort_details.virtualpicture,
+                    resort_details.resortQRLink,
+                )
+                if value
+            ),
+            '',
+        ) if resort_details else '',
+        'package_name_display': room_details.title if room_details else '',
+        'checkin_date_readable': checkin_instance.checkin_date.strftime('%B %d, %Y'),
+        'checkout_date_readable': checkin_instance.checkout_date.strftime('%B %d, %Y'),
+    })
+    encoded_booking = base64.urlsafe_b64encode(
+        json.dumps(checkin_data, default=datetime_converter).encode()
+    ).decode()
+    return encoded_booking
+
+
+def _send_booking_receipt_email(payment, checkin_instance, request):
+    payment.refresh_from_db(fields=['receipt_email_sent_at'])
+    if payment.receipt_email_sent_at or not checkin_instance.guest_email:
+        return False
+
+    receipt_code = _booking_receipt_code(checkin_instance)
+    receipt_url = request.build_absolute_uri(
+        reverse('resort_management:qr', args=[receipt_code])
+    )
+    qr_buffer = BytesIO()
+    qrcode.make(receipt_url).save(qr_buffer, format='PNG')
+    qr_buffer.seek(0)
+
+    resort_name = checkin_instance.resort.RealName or checkin_instance.resort.name
+    subject = f'Booking receipt: {checkin_instance.room.title}'
+    body = (
+        f"Hello {checkin_instance.guest_name},\n\n"
+        "Your payment and booking are confirmed.\n\n"
+        f"Resort: {resort_name}\n"
+        f"Room: {checkin_instance.room.title}\n"
+        f"Check-in: {checkin_instance.checkin_date:%B %d, %Y %I:%M %p}\n"
+        f"Check-out: {checkin_instance.checkout_date:%B %d, %Y %I:%M %p}\n"
+        f"Amount paid: PHP {payment.amount_centavos / 100:,.2f}\n\n"
+        f"Open your booking receipt: {receipt_url}\n\n"
+        "Your QR booking receipt is attached to this email."
+    )
+    message = EmailMessage(
+        subject=subject,
+        body=body,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=[checkin_instance.guest_email],
+    )
+    message.attach('booking-receipt-qr.png', qr_buffer.getvalue(), 'image/png')
+    try:
+        if message.send(fail_silently=False):
+            payment.receipt_email_sent_at = timezone.now()
+            payment.save(update_fields=['receipt_email_sent_at', 'updated_at'])
+            return True
+    except Exception as exc:
+        print(
+            f'[resortManagement] Booking receipt email failed for payment {payment.pk}: {exc}',
+            flush=True,
+        )
+    return False
+
+
 def has_active_subscription(resort_id):
     is_subscribed = ResortSubscription.objects.filter(
         resort=resort_id,
@@ -59,9 +150,7 @@ def has_active_subscription(resort_id):
     ).exists()
     print('Is Subscribed:', is_subscribed)
     return is_subscribed
-    
-    # if not has_active_subscription(request.user):
-    # return redirect("subscribe")
+
 
 def _parse_iso_date(value):
     if not value:
@@ -527,6 +616,7 @@ def my_view(request):
 
 
 def marked_calendar(request, resort_id=1, room_id=1, month=None, year=1, whatstep=1):
+    expire_stale_resort_booking_payments()
     checklist = []   
     isManager = False
     if month is None:
@@ -645,7 +735,7 @@ def marked_calendar(request, resort_id=1, room_id=1, month=None, year=1, whatste
         # For templates that check for a dedicated manager flag
         'managerUser': 'managerUser' if isManager else '',
         
-        "paypal_client_id": settings.PAYPAL_WEBHOOK_CLIENT,             
+        "paypal_client_id": settings.PAYPAL_CLIENT_ID,
         
          
         
@@ -768,6 +858,272 @@ def room_checkin(request):
         return HttpResponseServerError('Cant view Room Availability')
     else:
         return HttpResponseServerError('Cant view Room Availability')
+
+@require_POST
+def start_paymongo_room_booking(request):
+    expire_stale_resort_booking_payments()
+    form = CheckinForm(request.POST)
+    if not form.is_valid():
+        return JsonResponse({'error': 'Please complete the booking details and dates.'}, status=400)
+
+    booking = form.save(commit=False)
+    room = booking.room
+    resort = booking.resort
+    if not room or not resort or room.packageName.ItemOfResort_id != resort.pk:
+        return JsonResponse({'error': 'The selected room does not belong to this resort.'}, status=400)
+
+    nights = (booking.checkout_date.date() - booking.checkin_date.date()).days
+    if nights < 1:
+        return JsonResponse({'error': 'Select at least one night.'}, status=400)
+
+    booking_data = {
+        'room': room.pk,
+        'resort': resort.pk,
+        'guest_name': booking.guest_name,
+        'guest_email': booking.guest_email,
+        'guest_phone': booking.guest_phone,
+        'special_requests': booking.special_requests,
+        'checkin_date': booking.checkin_date.isoformat(),
+        'checkout_date': booking.checkout_date.isoformat(),
+    }
+
+    overlaps = Checkins.objects.filter(
+        room=room,
+        checkin_date__date__lt=booking.checkout_date.date(),
+        checkout_date__date__gt=booking.checkin_date.date(),
+    ).exists()
+    if overlaps:
+        return JsonResponse({'error': 'Those dates are no longer available.'}, status=409)
+
+    pending_cutoff = timezone.now() - timedelta(minutes=30)
+    for pending in ResortBookingPayment.objects.filter(
+        status='pending',
+        created_at__gte=pending_cutoff,
+    ).only('booking_data', 'checkout_session_id'):
+        data = pending.booking_data
+        if str(data.get('room')) != str(room.pk):
+            continue
+        pending_start = parse_datetime(data.get('checkin_date', ''))
+        pending_end = parse_datetime(data.get('checkout_date', ''))
+        if (
+            pending_start and pending_end
+            and pending_start.date() < booking.checkout_date.date()
+            and pending_end.date() > booking.checkin_date.date()
+        ):
+            if data != booking_data:
+                return JsonResponse(
+                    {'error': 'Those dates already have a pending checkout. Complete or cancel that checkout first.'},
+                    status=409,
+                )
+            if not pending.checkout_session_id:
+                pending.status = 'failed'
+                pending.failure_reason = 'Pending checkout had no PayMongo session id.'
+                pending.save(update_fields=['status', 'failure_reason', 'updated_at'])
+                continue
+            try:
+                existing_session = PayMongoClient().retrieve_checkout_session(pending.checkout_session_id)
+            except Exception:
+                return JsonResponse(
+                    {'error': 'Could not resume the existing PayMongo checkout. Please try again shortly.'},
+                    status=502,
+                )
+            existing_data = existing_session.get('data') or {}
+            existing_attributes = existing_data.get('attributes') or {}
+            existing_status = str(existing_attributes.get('status') or '').lower()
+            existing_url = existing_attributes.get('checkout_url')
+            if existing_data.get('id') == pending.checkout_session_id and existing_url and existing_status not in {
+                'expired', 'cancelled', 'canceled'
+            }:
+                return JsonResponse({'checkout_url': existing_url, 'resumed': True})
+            if existing_status in {'expired', 'cancelled', 'canceled'}:
+                pending.status = 'cancelled'
+                pending.failure_reason = f'PayMongo checkout {existing_status}.'
+                pending.save(update_fields=['status', 'failure_reason', 'updated_at'])
+                continue
+            return JsonResponse(
+                {'error': 'The existing checkout is unavailable. Please contact the resort before retrying.'},
+                status=409,
+            )
+
+    total = (Decimal(str(room.price)) * nights * Decimal('1.053')).quantize(
+        Decimal('0.01'), rounding=ROUND_HALF_UP
+    )
+    try:
+        amount_centavos = amount_to_centavos(total)
+    except ValueError as exc:
+        return JsonResponse({'error': str(exc)}, status=400)
+
+    payment = ResortBookingPayment.objects.create(
+        amount_centavos=amount_centavos,
+        currency='PHP',
+        booking_data=booking_data,
+    )
+    return_path = reverse('resort_management:paymongo_booking_return', args=[payment.pk])
+    return_url = request.build_absolute_uri(return_path)
+    checkout_transaction = SimpleNamespace(
+        internal_reference_id=f'room-{payment.pk.hex[:24]}',
+        amount_centavos=amount_centavos,
+        currency='PHP',
+        customer=None,
+    )
+
+    try:
+        _, response = PayMongoClient().create_checkout_session(
+            transaction=checkout_transaction,
+            line_item_name=f'{room.title} booking',
+            description=f'{nights} night booking at {resort.RealName or resort.name}',
+            success_url=return_url,
+            cancel_url=f'{return_url}?cancel=1',
+            metadata={
+                'resort_booking_payment_id': str(payment.pk),
+                'resort_id': str(resort.pk),
+                'room_id': str(room.pk),
+            },
+        )
+    except Exception as exc:
+        payment.status = 'failed'
+        payment.failure_reason = str(exc)[:1000]
+        payment.save(update_fields=['status', 'failure_reason', 'updated_at'])
+        return JsonResponse({'error': 'Could not start PayMongo checkout. Please try again.'}, status=502)
+
+    checkout_data = response.get('data') or {}
+    checkout_url = (checkout_data.get('attributes') or {}).get('checkout_url')
+    checkout_session_id = checkout_data.get('id')
+    if not checkout_url or not checkout_session_id:
+        payment.status = 'failed'
+        payment.failure_reason = 'PayMongo did not return a checkout URL and session id.'
+        payment.save(update_fields=['status', 'failure_reason', 'updated_at'])
+        return JsonResponse({'error': 'PayMongo did not return a valid checkout session.'}, status=502)
+
+    payment.checkout_session_id = checkout_session_id
+    payment.save(update_fields=['checkout_session_id', 'updated_at'])
+    return JsonResponse({'checkout_url': checkout_url})
+
+
+def paymongo_room_booking_return(request, payment_id):
+    payment = get_object_or_404(ResortBookingPayment, pk=payment_id)
+    booking_data = payment.booking_data
+    checkin_date = parse_datetime(booking_data['checkin_date'])
+    redirect_args = {
+        'resort_id': booking_data['resort'],
+        'room_id': booking_data['room'],
+        'month': checkin_date.month,
+        'year': checkin_date.year,
+        'whatstep': 'id_picture',
+    }
+    calendar_url = 'resort_management:movemarkedcalendarnamed'
+
+    if payment.status == 'paid' and payment.checkin_id:
+        _send_booking_receipt_email(payment, payment.checkin, request)
+        return _booking_receipt_redirect(payment.checkin)
+    if request.GET.get('cancel') == '1':
+        if payment.status == 'pending':
+            payment.status = 'cancelled'
+            payment.save(update_fields=['status', 'updated_at'])
+        messages.warning(request, 'PayMongo checkout was cancelled; no booking was created.')
+        return redirect(calendar_url, **redirect_args)
+    if not payment.checkout_session_id:
+        messages.error(request, 'The PayMongo checkout session could not be found.')
+        return redirect(calendar_url, **redirect_args)
+
+    try:
+        response = PayMongoClient().retrieve_checkout_session(payment.checkout_session_id)
+    except Exception:
+        messages.error(request, 'We could not verify payment yet. Please contact the resort before retrying.')
+        return redirect(calendar_url, **redirect_args)
+
+    checkout_data = response.get('data') or {}
+    if checkout_data.get('id') != payment.checkout_session_id:
+        messages.error(request, 'PayMongo returned a different checkout session; the booking was not finalized.')
+        return redirect(calendar_url, **redirect_args)
+    attributes = checkout_data.get('attributes') or {}
+    checkout_status = str(attributes.get('status') or '').lower()
+    paid_payment_items = []
+    for payment_item in attributes.get('payments') or []:
+        if not isinstance(payment_item, dict):
+            continue
+        payment_attributes = payment_item.get('attributes') or {}
+        payment_status = str(payment_attributes.get('status') or '').lower()
+        if payment_status in {'paid', 'succeeded'}:
+            paid_payment_items.append(payment_attributes)
+    if checkout_status not in {'paid', 'succeeded'} and not paid_payment_items:
+        messages.info(request, 'PayMongo has not confirmed this payment. Your booking is not finalized.')
+        return redirect(calendar_url, **redirect_args)
+
+    paid_amounts = []
+    payments_to_validate = paid_payment_items or (attributes.get('payments') or [])
+    for payment_item in payments_to_validate:
+        payment_attributes = payment_item if isinstance(payment_item, dict) else {}
+        if payment_attributes.get('amount') is not None:
+            paid_amounts.append(int(payment_attributes['amount']))
+        currency = str(payment_attributes.get('currency') or '').upper()
+        if currency and currency != payment.currency.upper():
+            payment.status = 'failed'
+            payment.failure_reason = f'Unexpected payment currency: {currency}.'
+            payment.save(update_fields=['status', 'failure_reason', 'updated_at'])
+            messages.error(request, 'The paid currency does not match the booking. Contact support.')
+            return redirect(calendar_url, **redirect_args)
+    if paid_amounts and sum(paid_amounts) != payment.amount_centavos:
+        payment.status = 'failed'
+        payment.failure_reason = 'PayMongo payment amount does not match the booking total.'
+        payment.save(update_fields=['status', 'failure_reason', 'updated_at'])
+        messages.error(request, 'The paid amount did not match the booking total. Contact support.')
+        return redirect(calendar_url, **redirect_args)
+
+    form = CheckinForm(booking_data)
+    if not form.is_valid():
+        payment.failure_reason = f'Paid booking details are invalid: {form.errors.as_json()}'
+        payment.save(update_fields=['failure_reason', 'updated_at'])
+        messages.error(request, 'Payment was received, but booking details need staff assistance.')
+        return redirect(calendar_url, **redirect_args)
+
+    booking = None
+    dates_conflicted = False
+    with db_transaction.atomic():
+        payment = ResortBookingPayment.objects.select_for_update().get(pk=payment_id)
+        if payment.status == 'paid' and payment.checkin_id:
+            booking = payment.checkin
+        else:
+            cleaned_booking = form.save(commit=False)
+            overlap = Checkins.objects.select_for_update().filter(
+                room_id=cleaned_booking.room_id,
+                checkin_date__date__lt=cleaned_booking.checkout_date.date(),
+                checkout_date__date__gt=cleaned_booking.checkin_date.date(),
+            ).exists()
+            if overlap:
+                payment.status = 'paid'
+                payment.failure_reason = 'Payment was confirmed after the room dates were booked by another guest.'
+                payment.save(update_fields=['status', 'failure_reason', 'updated_at'])
+                dates_conflicted = True
+            else:
+                booking = cleaned_booking
+                booking.save()
+                try:
+                    manager_profile = ensure_user_profile(request.user)
+                    manager = ResortManager.objects.get_or_create(profile=manager_profile)[0]
+                    booking.checked_in_by = manager
+                    booking.save(update_fields=['checked_in_by'])
+                    manager.checked_visitor.add(booking)
+                except Exception:
+                    pass
+                day = booking.checkin_date.date()
+                while day <= booking.checkout_date.date():
+                    CheckinDay.objects.create(
+                        checkin=booking.room,
+                        day=day,
+                        checkinday=booking.checkin_date,
+                        checkoutday=booking.checkout_date,
+                    )
+                    day += timedelta(days=1)
+                payment.status = 'paid'
+                payment.checkin = booking
+                payment.save(update_fields=['status', 'checkin', 'updated_at'])
+    if dates_conflicted:
+        messages.error(request, 'PayMongo received your payment, but the dates were booked meanwhile. Contact the resort to resolve it.')
+        return redirect(calendar_url, **redirect_args)
+    _send_booking_receipt_email(payment, booking, request)
+    return _booking_receipt_redirect(booking)
+
 
 def room_list(request, resortPackage_id=None):
     # TODO Edit it to only filter the rooms with user

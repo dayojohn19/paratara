@@ -225,7 +225,7 @@
           {% endif %}
           <div class="iframe-container" id="dialog-content-{{sub.id}}-{{resortObject.id}}">
             <div class="iframe-loader"></div>
-            <iframe class="calendar-frame" loading="lazy" sandbox="allow-scripts allow-forms allow-popups allow-same-origin" src="{% url 'resort_management:movemarkedcalendarnamed' resortObject.id sub.id currentMonth currentYear 'upload_id' %}"></iframe>
+            <iframe class="calendar-frame" loading="lazy" sandbox="allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-same-origin" src="{% url 'resort_management:movemarkedcalendarnamed' resortObject.id sub.id currentMonth currentYear 'upload_id' %}"></iframe>
           </div>
         </div>
       </article>

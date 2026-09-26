@@ -12,6 +12,8 @@ urlpatterns = [
 
     
     path("roomcheckin", views.room_checkin, name="room_checkin"),
+    path("payments/paymongo/booking/start/", views.start_paymongo_room_booking, name="paymongo_room_booking_start"),
+    path("payments/paymongo/booking/<uuid:payment_id>/", views.paymongo_room_booking_return, name="paymongo_booking_return"),
     path("calendar/<int:resort_id>/<int:room_id>/", views.marked_calendar, name='markedcalendarnamed'),
 
     

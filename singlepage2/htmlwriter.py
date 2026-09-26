@@ -1064,16 +1064,49 @@ img {{
 
 /* ============ TOUR GUIDE CARD ============ */
 .tour-guide-card {{ max-width: 640px; margin-left: auto; margin-right: auto; text-align: left; }}
-.tour-guide-card input {{
-    width: 100%;
-    margin-top: 0.75rem;
-    padding: 0.8rem 0.95rem;
-    color: #ffffff;
-    font: inherit;
-    border: 1px solid rgba(255, 255, 255, 0.35);
+.tour-guide-list {{ display: grid; gap: 0.65rem; }}
+.tour-guide-item {{
+    border: 1px solid rgba(255, 255, 255, 0.28);
     border-radius: var(--radius-sm);
-    background: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.08);
 }}
+.tour-guide-item summary {{
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.7rem 0.85rem;
+    color: #ffffff;
+    cursor: pointer;
+    list-style: none;
+}}
+.tour-guide-item summary::-webkit-details-marker {{ display: none; }}
+.tour-guide-item summary::after {{ content: "+"; margin-left: auto; font-size: 1.2rem; }}
+.tour-guide-item[open] summary::after {{ content: "−"; }}
+.tour-guide-photo {{
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: rgba(255, 255, 255, 0.18);
+}}
+.tour-guide-avatar {{
+    display: inline-flex;
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: #ffffff;
+    font-size: 0.85rem;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.2);
+}}
+.tour-guide-name {{ min-width: 0; font-weight: 700; overflow-wrap: anywhere; }}
+.tour-guide-details {{ padding: 0 0.9rem 0.9rem 4rem; color: rgba(255, 255, 255, 0.9); }}
+.tour-guide-details p {{ margin: 0.35rem 0 0; color: inherit; font-size: 0.92rem; line-height: 1.55; }}
+.tour-guide-details a {{ color: #ffffff; text-decoration: underline; }}
 
 /* ============ PROFESSIONAL FOOTER ============ */
 .site-footer {{
@@ -2004,13 +2037,70 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg, onEmpty) {{
                 return;
             }}
 
+            contacts.classList.add('tour-guide-list');
             data.guides.forEach(guide => {{
-                const input = document.createElement('input');
-                input.type = 'text';
-                input.value = guide.mobile_number || '';
-                input.readOnly = true;
-                input.setAttribute('aria-label', `${{guide.name || 'Tour guide'}} mobile number`);
-                contacts.appendChild(input);
+                const item = document.createElement('details');
+                item.className = 'tour-guide-item';
+
+                const summary = document.createElement('summary');
+                const name = document.createElement('span');
+                name.className = 'tour-guide-name';
+                name.textContent = guide.name || 'Tour guide';
+
+                const avatar = document.createElement('span');
+                avatar.className = 'tour-guide-avatar';
+                avatar.setAttribute('aria-hidden', 'true');
+                avatar.textContent = name.textContent.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase();
+
+                if (guide.photo_url) {{
+                    const photo = document.createElement('img');
+                    photo.className = 'tour-guide-photo';
+                    photo.alt = '';
+                    photo.loading = 'lazy';
+                    photo.src = guide.photo_url;
+                    photo.addEventListener('error', () => {{
+                        photo.replaceWith(avatar);
+                    }}, {{ once: true }});
+                    summary.append(photo);
+                }} else {{
+                    summary.append(avatar);
+                }}
+                summary.append(name);
+
+                const details = document.createElement('div');
+                details.className = 'tour-guide-details';
+
+                const contact = document.createElement('p');
+                contact.textContent = `Mobile: ${{guide.mobile_number || 'Not provided'}}`;
+                details.appendChild(contact);
+
+                if (guide.bio) {{
+                    const bio = document.createElement('p');
+                    bio.textContent = guide.bio;
+                    details.appendChild(bio);
+                }}
+
+                if (Number(guide.experience_years) > 0) {{
+                    const experience = document.createElement('p');
+                    experience.textContent = `${{guide.experience_years}} years of experience`;
+                    details.appendChild(experience);
+                }}
+
+                if (guide.certifications) {{
+                    const certifications = document.createElement('p');
+                    certifications.textContent = `Certifications: ${{guide.certifications}}`;
+                    details.appendChild(certifications);
+                }}
+
+                if (guide.registered_at) {{
+                    const registered = document.createElement('p');
+                    const registeredDate = new Date(guide.registered_at);
+                    registered.textContent = `Registered: ${{Number.isNaN(registeredDate.getTime()) ? guide.registered_at : registeredDate.toLocaleDateString()}}`;
+                    details.appendChild(registered);
+                }}
+
+                item.append(summary, details);
+                contacts.appendChild(item);
             }});
         }} catch (error) {{
             console.error('Error fetching tour guides:', error);
