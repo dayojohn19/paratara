@@ -980,6 +980,9 @@ align-items: center;
     border: 1px solid var(--border);
     border-radius: 10px;
     font-size: 1rem;
+    color: var(--text, #1f2a22);
+    background-color: #fff;
+    color-scheme: light;
 
     transition: border var(--transition), box-shadow var(--transition);
   }
@@ -2073,6 +2076,66 @@ align-items: center;
   line-height: 1.65;
   margin: 0;
   white-space: pre-line;
+}
+
+.pim-more {
+  align-self: flex-start;
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  padding: 2px 0;
+  color: var(--accent);
+  background: transparent;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pim-details {
+  display: grid;
+  gap: 14px;
+  padding-top: 4px;
+}
+
+.pim-details[hidden],
+.pim-map-wrap[hidden] {
+  display: none;
+}
+
+.pim-details h3 {
+  margin: 0 0 4px;
+  color: var(--text);
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.pim-details p {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.5;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.pim-map-wrap {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+  max-height: 220px;
+  overflow: hidden;
+  background: #e7e9e4;
+}
+
+.pim-map-wrap iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.pim-map-link,
+.pim-establishment-link {
+  align-self: flex-start;
+  color: var(--accent);
+  font-weight: 700;
 }
 
 .piml {

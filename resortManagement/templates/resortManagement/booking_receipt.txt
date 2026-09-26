@@ -1,0 +1,24 @@
+Hello {{ guest_name }},
+
+Your payment and booking are confirmed.
+
+Resort: {{ resort_name }}
+Room: {{ room_title }}
+Check-in: {{ checkin_display }}
+Check-out: {{ checkout_display }}
+Amount paid: {{ amount_display }}
+
+Establishment details:
+{{ resort_name }}
+{% if resort_address %}Address: {{ resort_address }}
+{% endif %}{% if resort_contact_number %}Phone: {{ resort_contact_number }}
+{% endif %}{% if resort_contact_email %}Email: {{ resort_contact_email }}
+{% endif %}{% if resort_whatsapp_number %}WhatsApp: {{ resort_whatsapp_number }}
+{% endif %}{% if resort_open_hours %}Hours: {{ resort_open_hours }}
+{% endif %}{% if resort_website %}Website: {{ resort_website }}
+{% endif %}Resort page: {{ resort_page_url }}
+
+Open your booking receipt: {{ receipt_url }}
+
+Your QR booking receipt is shown in the HTML version of this email.
+If you cannot see it, open the receipt link above.

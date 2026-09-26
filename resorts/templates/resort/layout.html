@@ -322,7 +322,7 @@
                           <!-- <a href="{% url 'resort_management:movemarkedcalendarnamed' resortObject.id sub.id currentMonth currentYear 'next' %}" class="btn btn-danger" >Check Availability</a>                           -->
                           <a href="" data-fancybox data-src="#dialog-content-{{sub.id}}-{{resortObject.id}}" class="btn btn-danger">Check Availability</a>
                           <div id="dialog-content-{{sub.id}}-{{resortObject.id}}" style="display:none;">
-                            <iframe sandbox="allow-scripts allow-forms allow-popups allow-same-origin" src="{% url 'resort_management:movemarkedcalendarnamed' resortObject.id sub.id currentMonth currentYear 'upload_id' %}"></iframe>
+                            <iframe sandbox="allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-same-origin" src="{% url 'resort_management:movemarkedcalendarnamed' resortObject.id sub.id currentMonth currentYear 'upload_id' %}"></iframe>
 
                           </div>                          
                           <button class="button-book" onclick="bookNow('Booking {{sub.title}}\n ₱{{sub.price|intcomma}}')">Join</button>

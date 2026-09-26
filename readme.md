@@ -1,3 +1,32 @@
+pip install -U diffusers transformers accelerate torch
+
+
+import torch
+from diffusers import StableDiffusionXLPipeline
+
+# For Apple Silicon (M1/M2/M3), use device="mps"
+pipe = StableDiffusionXLPipeline.from_pretrained(
+    "stabilityai/stable-diffusion-xl-base-1.0",
+    torch_dtype=torch.float16, # Use float16 for better memory efficiency
+    use_safetensors=True,
+    variant="fp16"
+).to("mps") # Change to "cuda" if you have an NVIDIA GPU
+
+# Now you can generate an image
+prompt = "Astronaut in a jungle, cold color palette, muted colors, detailed, 8k"
+image = pipe(prompt).images[0]
+image.save("astronaut.png")
+
+
+
+
+
+
+
+
+
+
+
 ## Migrations Error
 
  ## API REFRESHING 

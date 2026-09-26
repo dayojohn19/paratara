@@ -52,11 +52,21 @@ def _package_images(package):
     ]
 
 
+def _resort_details_payload(resort):
+    return {
+        'resortAddress': getattr(resort, 'address', '') or '',
+        'resortLatitude': getattr(resort, 'latitude', None),
+        'resortLongitude': getattr(resort, 'longitude', None),
+        'resortDescription': getattr(resort, 'description', '') or '',
+    }
+
+
 def _package_payload(package, resort, place):
     images = _package_images(package)
     website = getattr(package, 'website', '') or ''
     return {
         'package_id': getattr(package, 'id', None),
+        'resort_id': getattr(resort, 'id', None),
         'title': getattr(package, 'title', ''),
         'description': getattr(package, 'description', ''),
         'information': getattr(package, 'information', ''),
@@ -70,6 +80,7 @@ def _package_payload(package, resort, place):
         'website': website,
         'resortLink': _resort_detail_link(place, resort),
         'resortName': getattr(resort, 'RealName', '') or getattr(resort, 'name', ''),
+        **_resort_details_payload(resort),
     }
 
 
@@ -114,6 +125,7 @@ def _package_group_payload(package_group, resort, place, group_title, item_type)
         'resortName': getattr(resort, 'RealName', '') or getattr(resort, 'name', ''),
         'groupTitle': group_title or item_type.title(),
         'itemType': item_type,
+        **_resort_details_payload(resort),
     }
 
 
@@ -133,17 +145,6 @@ def _collect_package_items(resorts, package_attr, place, item_type):
             else:
                 items.append(_package_group_payload(package_group, resort, place, group_title, item_type))
     return items
-
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -1,3 +1,4 @@
 Django==4.2.23
 openpyxl==3.1.5
+pollinations-client==0.1.1
 requests

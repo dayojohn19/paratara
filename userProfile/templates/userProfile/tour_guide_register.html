@@ -19,47 +19,111 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: center;
-            padding: 2rem;
+            padding: 2.5rem 1.5rem;
         }
 
         .container {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.97);
             backdrop-filter: blur(20px);
             border-radius: 20px;
-            padding: 3rem;
-            max-width: 800px;
+            padding: 2.5rem 3rem 3rem;
+            max-width: 720px;
             width: 100%;
+            margin: auto;                 /* centers vertically when there's room */
+            min-height: 520px;            /* keeps the card from jumping between steps */
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         h1 {
             font-family: 'Playfair Display', serif;
-            font-size: 2.5rem;
+            font-size: 2.25rem;
             color: #2c3e50;
             text-align: center;
-            margin-bottom: 2rem;
+            margin-bottom: 0.75rem;
             background: linear-gradient(135deg, #667eea, #764ba2);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
 
-        .form-section {
+        .intro {
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.95rem;
+            line-height: 1.6;
             margin-bottom: 2rem;
         }
 
-        .section-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #34495e;
-            margin-bottom: 1rem;
-            border-bottom: 2px solid #667eea;
-            padding-bottom: 0.5rem;
+        /* ---------- Progress bar ---------- */
+        .progress-wrap {
+            margin-bottom: 2rem;
         }
 
+        .progress-track {
+            height: 8px;
+            background: #eaeef6;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 14%;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .progress-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.6rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: #94a3b8;
+        }
+
+        /* ---------- Steps ---------- */
+        .step {
+            display: none;
+        }
+
+        .step.active {
+            display: block;
+            animation: fadeSlide 0.35s ease both;
+        }
+
+        @keyframes fadeSlide {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .step-head {
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #34495e;
+            padding-bottom: 0.6rem;
+            border-bottom: 2px solid #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-hint {
+            font-size: 0.875rem;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+
+        /* ---------- Fields ---------- */
         .form-group {
             margin-bottom: 1.5rem;
         }
@@ -69,20 +133,25 @@
             margin-bottom: 0.5rem;
             color: #2c3e50;
             font-weight: 500;
+            font-size: 0.95rem;
         }
 
         input[type="text"],
         input[type="url"],
         input[type="number"],
+        input[type="email"],
+        input[type="password"],
         textarea,
         select {
             width: 100%;
-            padding: 0.75rem;
+            padding: 0.8rem 0.9rem;
             border: 2px solid #e1e8ed;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 1rem;
             font-family: 'Montserrat', sans-serif;
-            transition: all 0.3s ease;
+            color: #2c3e50;
+            background: #fff;
+            transition: all 0.25s ease;
         }
 
         input:focus,
@@ -90,24 +159,68 @@
         select:focus {
             outline: none;
             border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.12);
+        }
+
+        input.input-error,
+        textarea.input-error,
+        select.input-error {
+            border-color: #e74c3c;
+            background: #fff7f6;
         }
 
         textarea {
             resize: vertical;
-            min-height: 100px;
+            min-height: 110px;
+        }
+
+        input[type="file"] {
+            width: 100%;
+            padding: 0.7rem;
+            border: 2px dashed #cbd5e1;
+            border-radius: 10px;
+            background: #f8fafc;
+            font-family: inherit;
+            font-size: 0.92rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        input[type="file"]:hover {
+            border-color: #667eea;
+            background: #f4f6ff;
         }
 
         .help-text {
             color: #7f8c8d;
-            font-size: 0.875rem;
-            margin-top: 0.25rem;
+            font-size: 0.83rem;
+            margin-top: 0.35rem;
+            line-height: 1.45;
         }
 
+        .help-text:empty {
+            display: none;
+        }
+
+        .field-error {
+            color: #e74c3c;
+            font-size: 0.83rem;
+            font-weight: 500;
+            margin-top: 0.35rem;
+        }
+
+        .errorlist {
+            color: #e74c3c;
+            font-size: 0.85rem;
+            margin-top: 0.35rem;
+            list-style: none;
+        }
+
+        /* ---------- Checkbox pills ---------- */
         .checkbox-group {
             display: flex;
             flex-wrap: wrap;
-            gap: 1rem;
+            gap: 0.65rem;
             margin-top: 0.5rem;
         }
 
@@ -115,53 +228,93 @@
             display: flex;
             align-items: center;
             background: #f8f9fa;
-            padding: 0.5rem 1rem;
+            padding: 0.55rem 1rem;
             border-radius: 20px;
             border: 1px solid #e1e8ed;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.25s ease;
+            user-select: none;
         }
 
         .checkbox-item:hover {
             background: #667eea;
-            color: white;
+            border-color: #667eea;
+            color: #fff;
         }
 
         .checkbox-item input[type="checkbox"] {
             margin-right: 0.5rem;
-        }
-
-        .submit-btn {
-            width: 100%;
-            padding: 1rem;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.125rem;
-            font-weight: 600;
+            accent-color: #667eea;
             cursor: pointer;
-            transition: all 0.3s ease;
+        }
+
+        .checkbox-item label {
+            margin: 0;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        /* ---------- Navigation ---------- */
+        .nav-buttons {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
             margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #eef2f7;
         }
 
-        .submit-btn:hover {
+        .btn {
+            padding: 0.9rem 1.75rem;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            border: none;
+            transition: all 0.25s ease;
+        }
+
+        .btn-back {
+            background: #fff;
+            color: #64748b;
+            border: 2px solid #e1e8ed;
+        }
+
+        .btn-back:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .btn-next,
+        .btn-submit {
+            margin-left: auto;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+        }
+
+        .btn-next:hover,
+        .btn-submit:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.35);
         }
 
-        .errorlist {
-            color: #e74c3c;
-            font-size: 0.875rem;
-            margin-top: 0.25rem;
+        .btn-next:active,
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        .is-hidden {
+            display: none !important;
         }
 
         .back-link {
             display: inline-block;
-            margin-top: 1rem;
+            margin-top: 1.25rem;
             color: #667eea;
             text-decoration: none;
             font-weight: 500;
+            font-size: 0.9rem;
         }
 
         .back-link:hover {
@@ -169,16 +322,27 @@
         }
 
         @media (max-width: 768px) {
+            body {
+                padding: 1.25rem 1rem;
+            }
+
             .container {
-                padding: 2rem 1.5rem;
+                padding: 2rem 1.35rem;
+                min-height: 0;
+                border-radius: 16px;
             }
 
             h1 {
-                font-size: 2rem;
+                font-size: 1.75rem;
             }
 
             .checkbox-group {
                 flex-direction: column;
+            }
+
+            .btn {
+                padding: 0.85rem 1.25rem;
+                font-size: 0.95rem;
             }
         }
     </style>
@@ -186,76 +350,123 @@
 <body>
     <div class="container">
         <h1>Register as Tour Guide{% if selected_place %} in {{ selected_place.placename }}{% endif %}</h1>
-        <p>{% if selected_place %}Sign up to become a tour guide in <strong>{{ selected_place.placename }}</strong>.{% else %}Sign up for a tour guide account and start sharing your expertise with travelers.{% endif %} Fill out your account details and professional information below.</p>
-        
-        <form method="post" enctype="multipart/form-data">
+        <p class="intro">
+            {% if selected_place %}
+                Sign up to become a tour guide in <strong>{{ selected_place.placename }}</strong>. We'll walk you through it one short step at a time.
+            {% else %}
+                Sign up for a tour guide account and start sharing your expertise with travelers. We'll walk you through it one short step at a time.
+            {% endif %}
+        </p>
+
+        <!-- Progress -->
+        <div class="progress-wrap">
+            <div class="progress-track">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-meta">
+                <span id="stepCounter">Step 1 of 7</span>
+                <span>Tour Guide Registration</span>
+            </div>
+        </div>
+
+        <form method="post" enctype="multipart/form-data" id="wizardForm" novalidate>
             {% csrf_token %}
-            
-            <div class="form-section">
-                <h2 class="section-title">Account Information</h2>
-                
+
+            <!-- ============ STEP 1 : username + email ============ -->
+            <section class="step active" data-step="1">
+                <div class="step-head">
+                    <h2 class="section-title">Account Information</h2>
+                    <p class="step-hint">Let's start with how you'll sign in.</p>
+                </div>
+
                 <div class="form-group">
                     {{ form.username.label_tag }}
                     {{ form.username }}
                     {{ form.username.errors }}
                     <div class="help-text">Choose a unique username for your account</div>
                 </div>
-                
+
                 <div class="form-group">
                     {{ form.email.label_tag }}
                     {{ form.email }}
                     {{ form.email.errors }}
                     <div class="help-text">{{ form.email.help_text }}</div>
                 </div>
-                
+            </section>
+
+            <!-- ============ STEP 2 : mobile + password ============ -->
+            <section class="step" data-step="2">
+                <div class="step-head">
+                    <h2 class="section-title">Contact &amp; Security</h2>
+                    <p class="step-hint">How travelers and our team can reach you — and how you'll log in.</p>
+                </div>
+
                 <div class="form-group">
                     {{ form.mobile_number.label_tag }}
                     {{ form.mobile_number }}
                     {{ form.mobile_number.errors }}
                     <div class="help-text">Your mobile number for contact (e.g., +63 912 345 6789)</div>
                 </div>
-                
+
                 <div class="form-group">
                     {{ form.password.label_tag }}
                     {{ form.password }}
                     {{ form.password.errors }}
                     <div class="help-text">Choose a secure password</div>
                 </div>
-                
+            </section>
+
+            <!-- ============ STEP 3 : confirm password + display name ============ -->
+            <section class="step" data-step="3">
+                <div class="step-head">
+                    <h2 class="section-title">Confirm Your Details</h2>
+                    <p class="step-hint">Almost done with the account setup.</p>
+                </div>
+
                 <div class="form-group">
                     {{ form.password_confirm.label_tag }}
                     {{ form.password_confirm }}
                     {{ form.password_confirm.errors }}
                     <div class="help-text">Confirm your password</div>
                 </div>
-            </div>
-            
-            <div class="form-section">
-                <h2 class="section-title">Profile Information</h2>
-                
+
                 <div class="form-group">
                     <label for="id_display_name">Display Name:</label>
-                    <input type="text" name="display_name" id="id_display_name" value="{{ form.display_name.value|default:'' }}" placeholder="Your display name">
+                    <input type="text" name="display_name" id="id_display_name"
+                           value="{{ form.display_name.value|default:'' }}" placeholder="Your display name">
                     <div class="help-text">How you want to be known as a tour guide (optional)</div>
                 </div>
-                
+            </section>
+
+            <!-- ============ STEP 4 : selfie ============ -->
+            <section class="step" data-step="4">
+                <div class="step-head">
+                    <h2 class="section-title">Profile Photo</h2>
+                    <p class="step-hint">Travelers trust a friendly face. Add a clear selfie or profile photo.</p>
+                </div>
+
                 <div class="form-group">
                     <label for="id_selfie">Profile Selfie:</label>
                     <input type="file" name="selfie" id="id_selfie" accept="image/*" capture="user" required>
                     <div class="help-text">Take a selfie or upload a profile photo</div>
-                    <div id="image-preview" style="margin-top: 10px; display: none;">
-                        <img id="preview-img" src="" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 8px; border: 2px solid #667eea;">
+                    <div id="image-preview" style="margin-top: 12px; display: none;">
+                        <img id="preview-img" src="" alt="Preview"
+                             style="max-width: 180px; max-height: 180px; border-radius: 12px; border: 2px solid #667eea;">
                     </div>
                 </div>
-            </div>
-            
-            <div class="form-section">
-                <h2 class="section-title">Professional Details</h2>
-                
+            </section>
+
+            <!-- ============ STEP 5 : primary place + bio ============ -->
+            <section class="step" data-step="5">
+                <div class="step-head">
+                    <h2 class="section-title">Professional Details</h2>
+                    <p class="step-hint">Where will you be guiding, and what should visitors know about you?</p>
+                </div>
+
                 <div class="form-group">
                     {{ form.primary_place.label_tag }}
                     {% if selected_place %}
-                    <div style="padding: 0.75rem; border: 2px solid #e1e8ed; border-radius: 8px; background: #f8f9fa; color: #2c3e50; font-weight: 500;">
+                    <div style="padding: 0.8rem 0.9rem; border: 2px solid #e1e8ed; border-radius: 10px; background: #f8f9fa; color: #2c3e50; font-weight: 500;">
                         {{ selected_place.placename }} (pre-selected for this registration)
                     </div>
                     <input type="hidden" name="primary_place" value="{{ selected_place.id }}">
@@ -265,33 +476,44 @@
                     {{ form.primary_place.errors }}
                     <div class="help-text">Select the primary place where you will be guiding tours</div>
                 </div>
-                
+
                 <div class="form-group">
                     {{ form.bio.label_tag }}
                     {{ form.bio }}
                     {{ form.bio.errors }}
                     <div class="help-text">Tell visitors about yourself, your experience, and what makes you a great tour guide</div>
                 </div>
-                
+            </section>
+
+            <!-- ============ STEP 6 : experience + certifications ============ -->
+            <section class="step" data-step="6">
+                <div class="step-head">
+                    <h2 class="section-title">Experience &amp; Credentials</h2>
+                    <p class="step-hint">This helps travelers know they're in good hands.</p>
+                </div>
+
                 <div class="form-group">
                     {{ form.experience_years.label_tag }}
                     {{ form.experience_years }}
                     {{ form.experience_years.errors }}
                     <div class="help-text">Number of years you've been working as a tour guide</div>
                 </div>
-                
+
                 <div class="form-group">
                     {{ form.certifications.label_tag }}
                     {{ form.certifications }}
                     {{ form.certifications.errors }}
                     <div class="help-text">Any certifications, licenses, or qualifications you hold</div>
                 </div>
-            </div>
-            
-            <div class="form-section">
-                <h2 class="section-title">Tour Options</h2>
-                <p style="color: #7f8c8d; margin-bottom: 1rem;">Select tours and tourist spots you can guide (you can update these later):</p>
-                
+            </section>
+
+            <!-- ============ STEP 7 : tours + spots ============ -->
+            <section class="step" data-step="7">
+                <div class="step-head">
+                    <h2 class="section-title">Tour Options</h2>
+                    <p class="step-hint">Select tours and tourist spots you can guide. You can update these later.</p>
+                </div>
+
                 <div class="form-group">
                     <label>Available Tours:</label>
                     <div class="checkbox-group" id="tours-container">
@@ -303,7 +525,7 @@
                         {% endfor %}
                     </div>
                 </div>
-                
+
                 <div class="form-group">
                     <label>Specialized Tourist Spots:</label>
                     <div class="checkbox-group" id="spots-container">
@@ -315,47 +537,243 @@
                         {% endfor %}
                     </div>
                 </div>
+
+                {% if form.non_field_errors %}
+                <div class="errorlist">
+                    {{ form.non_field_errors }}
+                </div>
+                {% endif %}
+            </section>
+
+            <!-- ============ Navigation ============ -->
+            <div class="nav-buttons">
+                <button type="button" class="btn btn-back is-hidden" id="backBtn">← Back</button>
+                <button type="button" class="btn btn-next" id="nextBtn">Next →</button>
+                <button type="submit" class="btn btn-submit is-hidden" id="submitBtn">Register as Tour Guide</button>
             </div>
-            
-            {% if form.non_field_errors %}
-            <div class="errorlist">
-                {{ form.non_field_errors }}
-            </div>
-            {% endif %}
-            
-            <button type="submit" class="submit-btn">Register as Tour Guide</button>
         </form>
-        
+
         <a href="{% url 'userProfile:profile' %}" class="back-link">← Back to Profile</a>
     </div>
 
     <script>
-        // Handle checkbox selections for tours and tourist spots
-        document.addEventListener('DOMContentLoaded', function() {
-            const tourCheckboxes = document.querySelectorAll('input[name="tours"]');
-            const spotCheckboxes = document.querySelectorAll('input[name="tourist_spots"]');
-            
-            // Add click handlers to make checkboxes more user-friendly
-            document.querySelectorAll('.checkbox-item').forEach(item => {
-                item.addEventListener('click', function(e) {
-                    if (e.target.tagName !== 'INPUT') {
-                        const checkbox = this.querySelector('input[type="checkbox"]');
-                        checkbox.checked = !checkbox.checked;
-                    }
-                });
+    (function () {
+        'use strict';
+
+        var form = document.getElementById('wizardForm');
+        if (!form) { return; }
+
+        var steps       = Array.prototype.slice.call(form.querySelectorAll('.step'));
+        var totalSteps  = steps.length;
+        var backBtn     = document.getElementById('backBtn');
+        var nextBtn     = document.getElementById('nextBtn');
+        var submitBtn   = document.getElementById('submitBtn');
+        var progressFill= document.getElementById('progressFill');
+        var stepCounter = document.getElementById('stepCounter');
+
+        var current = 0;
+        var navClicking = false;
+
+        /* ------------------------------------------------ helpers */
+        function fieldsOf(step) {
+            return Array.prototype.slice
+                .call(step.querySelectorAll('input, select, textarea'))
+                .filter(function (f) { return f.type !== 'hidden' && !f.disabled; });
+        }
+
+        function fieldError(field) {
+            if (field.type === 'file') {
+                if (field.required && (!field.files || field.files.length === 0)) {
+                    return 'Please add a photo.';
+                }
+                return '';
+            }
+
+            var value = (field.value || '').trim();
+
+            if (field.required && !value) { return 'This field is required.'; }
+            if (!value) { return ''; }
+
+            if (field.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+                return 'Please enter a valid email address.';
+            }
+
+            if (field.name === 'password_confirm') {
+                var pw = form.querySelector('[name="password"]');
+                if (pw && pw.value !== field.value) { return 'Passwords do not match.'; }
+            }
+
+            return '';
+        }
+
+        function showError(field, message) {
+            var group = field.closest('.form-group') || field.parentElement;
+            if (!group) { return; }
+            var err = group.querySelector('.field-error');
+            if (!err) {
+                err = document.createElement('div');
+                err.className = 'field-error';
+                group.appendChild(err);
+            }
+            err.textContent = message;
+            field.classList.add('input-error');
+        }
+
+        function clearError(field) {
+            var group = field.closest ? field.closest('.form-group') : null;
+            if (!group) { return; }
+            var err = group.querySelector('.field-error');
+            if (err) { err.remove(); }
+            field.classList.remove('input-error');
+        }
+
+        /* Validate one step. showErrors = true paints messages on screen. */
+        function checkStep(index, showErrors) {
+            var step = steps[index];
+            var valid = true;
+
+            fieldsOf(step).forEach(function (field) {
+                var msg = fieldError(field);
+                if (showErrors) {
+                    if (msg) { showError(field, msg); } else { clearError(field); }
+                }
+                if (msg) { valid = false; }
             });
 
-            // Image preview functionality
-            const selfieInput = document.getElementById('id_selfie');
-            const previewContainer = document.getElementById('image-preview');
-            const previewImg = document.getElementById('preview-img');
+            return valid;
+        }
 
-            selfieInput.addEventListener('change', function(e) {
-                const file = e.target.files[0];
+        /* ------------------------------------------------ navigation */
+        function goTo(index, focusFirst) {
+            index = Math.max(0, Math.min(index, totalSteps - 1));
+            current = index;
+
+            steps.forEach(function (s, i) {
+                s.classList.toggle('active', i === index);
+            });
+
+            var isFirst = index === 0;
+            var isLast  = index === totalSteps - 1;
+
+            backBtn.classList.toggle('is-hidden', isFirst);
+            nextBtn.classList.toggle('is-hidden', isLast);
+            submitBtn.classList.toggle('is-hidden', !isLast);
+
+            progressFill.style.width = (((index + 1) / totalSteps) * 100) + '%';
+            stepCounter.textContent = 'Step ' + (index + 1) + ' of ' + totalSteps;
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            if (focusFirst) {
+                var target = fieldsOf(steps[index]).filter(function (f) {
+                    return f.type !== 'file';
+                })[0];
+                if (target) {
+                    try { target.focus({ preventScroll: true }); }
+                    catch (e) { target.focus(); }
+                }
+            }
+        }
+
+        /* Auto-advance only when the whole step is complete & valid */
+        function tryAutoAdvance(stepEl) {
+            if (!stepEl) { return; }
+            var idx = steps.indexOf(stepEl);
+            if (idx !== current) { return; }          // already moved on
+            if (idx >= totalSteps - 1) { return; }    // last step: never auto-skip
+            if (navClicking) { return; }              // user pressed a button
+            if (checkStep(idx, false)) { goTo(idx + 1, true); }
+        }
+
+        /* ------------------------------------------------ events */
+        backBtn.addEventListener('click', function () {
+            goTo(current - 1, true);
+        });
+
+        nextBtn.addEventListener('click', function () {
+            if (checkStep(current, true)) { goTo(current + 1, true); }
+        });
+
+        /* Remember when a nav button is pressed so the blur handler doesn't double-advance */
+        document.addEventListener('mousedown', function (e) {
+            if (e.target.closest && e.target.closest('.nav-buttons button, .back-link')) {
+                navClicking = true;
+            }
+        });
+        document.addEventListener('mouseup', function () {
+            setTimeout(function () { navClicking = false; }, 0);
+        });
+
+        /* Clear a field's error as soon as the user edits it */
+        form.addEventListener('input', function (e) {
+            if (e.target.closest && e.target.closest('.step')) { clearError(e.target); }
+        });
+
+        /* Auto-advance when the user leaves a completed step */
+        form.addEventListener('focusout', function (e) {
+            var step = e.target.closest ? e.target.closest('.step') : null;
+            if (!step || step !== steps[current]) { return; }
+            if (navClicking) { return; }
+
+            var nextField = e.relatedTarget;
+            if (nextField && step.contains(nextField)) { return; }  // still inside this step
+
+            setTimeout(function () { tryAutoAdvance(step); }, 120);
+        });
+
+        /* Selecting a dropdown option or picking a file can complete a step instantly */
+        form.addEventListener('change', function (e) {
+            var step = e.target.closest ? e.target.closest('.step') : null;
+            if (!step || step !== steps[current]) { return; }
+            if (navClicking) { return; }
+
+            if (e.target.tagName === 'SELECT' || e.target.type === 'file') {
+                setTimeout(function () { tryAutoAdvance(step); }, 250);
+            }
+        });
+
+        /* Enter = Next (except inside a textarea) */
+        form.addEventListener('keydown', function (e) {
+            if (e.key !== 'Enter') { return; }
+            if (e.target.tagName === 'TEXTAREA') { return; }
+            if (e.target.type === 'submit' || e.target.type === 'button') { return; }
+
+            var step = e.target.closest ? e.target.closest('.step') : null;
+            if (!step || step !== steps[current]) { return; }
+
+            e.preventDefault();
+
+            if (current === totalSteps - 1) {
+                form.requestSubmit ? form.requestSubmit() : form.submit();
+            } else if (checkStep(current, true)) {
+                goTo(current + 1, true);
+            }
+        });
+
+        /* Final guard: validate every step before submitting */
+        form.addEventListener('submit', function (e) {
+            for (var i = 0; i < totalSteps; i++) {
+                if (!checkStep(i, false)) {
+                    e.preventDefault();
+                    goTo(i, false);
+                    checkStep(i, true);
+                    return;
+                }
+            }
+        });
+
+        /* ------------------------------------------------ image preview */
+        var selfieInput      = document.getElementById('id_selfie');
+        var previewContainer = document.getElementById('image-preview');
+        var previewImg       = document.getElementById('preview-img');
+
+        if (selfieInput) {
+            selfieInput.addEventListener('change', function (e) {
+                var file = e.target.files && e.target.files[0];
                 if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        previewImg.src = e.target.result;
+                    var reader = new FileReader();
+                    reader.onload = function (ev) {
+                        previewImg.src = ev.target.result;
                         previewContainer.style.display = 'block';
                     };
                     reader.readAsDataURL(file);
@@ -363,50 +781,50 @@
                     previewContainer.style.display = 'none';
                 }
             });
+        }
 
-            // Filter tours and spots based on selected place
-            const placeSelect = document.getElementById('id_primary_place');
-            const toursContainer = document.getElementById('tours-container');
-            const spotsContainer = document.getElementById('spots-container');
-
-            function filterByPlace() {
-                const selectedPlaceId = placeSelect ? placeSelect.value : '{{ selected_place.id|default:"" }}';
-                
-                // Filter tours
-                const tourItems = toursContainer.querySelectorAll('.checkbox-item');
-                tourItems.forEach(item => {
-                    const itemPlaceId = item.getAttribute('data-place-id');
-                    if (selectedPlaceId === '' || itemPlaceId === selectedPlaceId) {
-                        item.style.display = 'flex';
-                    } else {
-                        item.style.display = 'none';
-                        // Uncheck hidden items
-                        const checkbox = item.querySelector('input[type="checkbox"]');
-                        checkbox.checked = false;
-                    }
-                });
-
-                // Filter spots
-                const spotItems = spotsContainer.querySelectorAll('.checkbox-item');
-                spotItems.forEach(item => {
-                    const itemPlaceId = item.getAttribute('data-place-id');
-                    if (selectedPlaceId === '' || itemPlaceId === selectedPlaceId) {
-                        item.style.display = 'flex';
-                    } else {
-                        item.style.display = 'none';
-                        // Uncheck hidden items
-                        const checkbox = item.querySelector('input[type="checkbox"]');
-                        checkbox.checked = false;
-                    }
-                });
-            }
-
-            if (placeSelect) {
-                placeSelect.addEventListener('change', filterByPlace);
-            }
-            // Initial filter (works for both selectable and pre-selected places)
-            filterByPlace();
+        /* ------------------------------------------------ checkbox pills */
+        document.querySelectorAll('.checkbox-item').forEach(function (item) {
+            item.addEventListener('click', function (e) {
+                /* let the native input / label handle their own toggling */
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'LABEL') { return; }
+                var checkbox = this.querySelector('input[type="checkbox"]');
+                if (checkbox) { checkbox.checked = !checkbox.checked; }
+            });
         });
+
+        /* ------------------------------------------------ filter by place */
+        var placeSelect   = document.getElementById('id_primary_place');
+        var toursContainer = document.getElementById('tours-container');
+        var spotsContainer = document.getElementById('spots-container');
+
+        function filterByPlace() {
+            var selectedPlaceId = placeSelect
+                ? placeSelect.value
+                : '{{ selected_place.id|default:"" }}';
+
+            [toursContainer, spotsContainer].forEach(function (container) {
+                if (!container) { return; }
+                container.querySelectorAll('.checkbox-item').forEach(function (item) {
+                    var itemPlaceId = item.getAttribute('data-place-id');
+                    var show = (selectedPlaceId === '' || itemPlaceId === selectedPlaceId);
+                    item.style.display = show ? 'flex' : 'none';
+                    if (!show) {
+                        var cb = item.querySelector('input[type="checkbox"]');
+                        if (cb) { cb.checked = false; }
+                    }
+                });
+            });
+        }
+
+        if (placeSelect) {
+            placeSelect.addEventListener('change', filterByPlace);
+        }
+        filterByPlace();
+
+        /* ------------------------------------------------ boot */
+        goTo(0, false);
+    })();
     </script>
 </body>
 </html>

@@ -4,6 +4,7 @@ from io import BytesIO
 from django.shortcuts import render
 from urllib.parse import urlencode
 from django.http import QueryDict
+from resorts.models import resortItem
 import json
 
 data = {"name": "John", "age": 30}
@@ -47,7 +48,25 @@ def my_page(request,qr_strings):
     imageStr = dict_to_url(dictdata)
     print('imageStr: ',imageStr)
     print('Dict Data: ', dictdata)
-    resort_name = dictdata.get('resort_name_display') or dictdata.get('resort_name') or ''
+    resort_details = None
+    try:
+        resort_id = int(dictdata.get('resort'))
+        resort_details = resortItem.objects.filter(pk=resort_id).first()
+    except (TypeError, ValueError):
+        pass
+    if resort_details:
+        dictdata['resort_address'] = dictdata.get('resort_address') or resort_details.address
+        dictdata['resort_contact_number'] = dictdata.get('resort_contact_number') or resort_details.contactNumber
+        dictdata['resort_contact_email'] = dictdata.get('resort_contact_email') or resort_details.contactEmail
+        dictdata['resort_whatsapp_number'] = dictdata.get('resort_whatsapp_number') or resort_details.whatsappNumber
+        dictdata['resort_open_hours'] = dictdata.get('resort_open_hours') or resort_details.open_hours
+        dictdata['resort_website'] = dictdata.get('resort_website') or resort_details.websiteURL
+        dictdata['resort_description'] = dictdata.get('resort_description') or resort_details.description
+    resort_name = (
+        dictdata.get('resort_name_display')
+        or dictdata.get('resort_name')
+        or (resort_details.RealName or resort_details.name if resort_details else '')
+    )
     resort_address = dictdata.get('resort_address') or ''
     resort_logo = dictdata.get('resort_logo') or ''
     return render(

@@ -13,7 +13,9 @@ from singlepage2.pyhtmlopt import optimize_file
 import re
 from html import escape
 from bs4 import BeautifulSoup, NavigableString
+import logging
 client = settings.GROK_CLIENT
+logger = logging.getLogger(__name__)
 BLOG_CATEGORY_VALUES = {choice[0] for choice in Blogs.category_choices}
 DEFAULT_SUMMARY_VALUES = {"", "No Summary Provided", "Discover more about this destination"}
 FAQ_QUESTIONS_BY_CATEGORY = {
@@ -223,7 +225,8 @@ def generate_blog_object(request, place_name, title, category='Guide', summary='
                 b.save(update_fields=update_fields)
                 # FIX: regenerate the static HTML so the page reflects the update
                 generate_blog_page(request, place_name, b.title, text_content,
-                                   category=b.category)
+                                   category=b.category, summary=b.summarize,
+                                   blog_obj=b)
 
             return b
 
@@ -236,19 +239,25 @@ def generate_blog_object(request, place_name, title, category='Guide', summary='
         summarize=persisted_summary,
         readtime=readtime,
     )
-    generate_blog_page(request, place_name, title, text_content, category=category)
+    generate_blog_page(request, place_name, title, text_content, category=category,
+                       summary=persisted_summary, blog_obj=blog_item)
     place.blog.add(blog_item)
     # FIX: return the created object (was returning None)
     return blog_item
 
 
-def generate_blog_page(request, place_name, title, body_text, cover_image_url=None, faq_entries=None, blog_searchable_keys_description=None, category=None):
+def generate_blog_page(request, place_name, title, body_text, cover_image_url=None, faq_entries=None, blog_searchable_keys_description=None, category=None, summary=None, blog_obj=None):
     category = normalize_blog_category(category)
 
     def _get_image_cover(place_name, title):
         from imageapp.imageuploader import getTitlePhoto
-        togen = f"Travel guide cover photo for {title} in {place_name}. Show the destination clearly with natural colors and simple composition."
-        image_url = getTitlePhoto(request, togen)
+        image_url = getTitlePhoto(request, title)
+        if image_url:
+            image_path = os.path.abspath(os.fspath(image_url))
+            media_root = os.path.abspath(settings.MEDIA_ROOT)
+            if os.path.commonpath((media_root, image_path)) == media_root:
+                relative_path = os.path.relpath(image_path, media_root)
+                return f"{settings.MEDIA_URL.rstrip('/')}/{relative_path.replace(os.sep, '/')}"
         return image_url
 
     def _strip_html_tags(html: str) -> str:
@@ -280,13 +289,37 @@ Rules:
         blog_searchable_keys_description = create_blog_searchable_keys_description(title, place_name, category)
 
     title = (title or '').strip() or f"{category} to {place_name}"
+    if blog_obj is None:
+        saved_blogs = Blogs.objects.filter(blogplace__placename__iexact=place_name).only(
+            "title", "summarize", "cover_image_url"
+        )
+        blog_obj = next(
+            (blog for blog in saved_blogs if slugify(blog.title or "") == slugify(title)),
+            None,
+        )
+    if summary is None:
+        summary = blog_obj.summarize if blog_obj else ""
+    summary = clean_blog_metadata(summary)[:400].strip()
+    if summary in DEFAULT_SUMMARY_VALUES:
+        summary = ""
+    summary = summary or title
 
-    # FIX: fall back to a generated cover image if none supplied
+    if not cover_image_url and blog_obj:
+        cover_image_url = blog_obj.cover_image_url or None
+
+    if cover_image_url and cover_image_url.rstrip("/").endswith("/static/images/default-cover.jpg"):
+        cover_image_url = None
+
     if not cover_image_url:
         try:
             cover_image_url = _get_image_cover(place_name, title)
         except Exception:
+            logger.exception("Could not generate blog cover image for %s", title)
             cover_image_url = "/static/images/default-cover.jpg"
+
+    if blog_obj and blog_obj.cover_image_url != cover_image_url:
+        blog_obj.cover_image_url = cover_image_url
+        blog_obj.save(update_fields=["cover_image_url"])
 
     # FIX: og:image / twitter:image / Article schema want absolute URLs
     cover_image_abs = cover_image_url
@@ -307,6 +340,10 @@ Rules:
 
     place_slug = slugify(place_name)
     title_slug = slugify(title)
+    tour_guides_url = reverse(
+        "singlepage2:blog_tour_guides",
+        kwargs={"place_slug": place_slug},
+    )
 
     # The canonical full URL on your live site
     canonical_url = f"https://www.paratara.com/pages/blog/{place_slug}/{title_slug}/"
@@ -321,11 +358,11 @@ Rules:
     modified_iso, modified_display = format_blog_datetime(generated_at)
 
     collections_html = f'''
-                        <div id="collections-header">
-                            <h2>Local Collections &amp; QR Experiences</h2>
-                            <p id="collections-loading">Discover interactive collections nearby. Scan QR codes to save memories. Loading...</p>
+                        <details id="collections-header">
+                            <summary>Where to find postcards &amp; souvenirs</summary>
+                            <p id="collections-loading">Browse local collections and nearby places.</p>
                             <div id="dynamic-collections" class="collection-section"></div>
-                        </div>
+                        </details>
                         '''
 
     # =========================================================
@@ -871,6 +908,46 @@ img {{
     margin-bottom: 1.35rem;
     color: var(--ink);
 }}
+.blog-hero-title {{
+    margin: -0.55rem 0 1.35rem;
+    color: var(--ink-soft);
+    font-family: var(--font-display);
+    font-size: clamp(1.15rem, 2.2vw, 1.55rem);
+    line-height: 1.35;
+}}
+.blog-hero-metadata-tools {{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    margin: 0 0 1rem;
+}}
+.blog-hero-metadata-tools input,
+.blog-hero-metadata-tools textarea {{
+    width: 100%;
+    padding: 0.7rem 0.8rem;
+    color: var(--ink);
+    font: inherit;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-xs);
+    background: #ffffff;
+}}
+.blog-hero-metadata-tools textarea {{ min-height: 5rem; resize: vertical; }}
+.blog-hero-edit-button {{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    margin: 0 0 0 0.35rem;
+    color: var(--ink-muted);
+    border: 1px solid transparent;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+    vertical-align: middle;
+}}
+.blog-hero-edit-button:hover {{ color: #ffffff; background: var(--brand); }}
 
 /* ============ DATE META ============ */
 .blog-date-meta {{
@@ -980,9 +1057,17 @@ img {{
 }}
 
 /* ============ COLLECTIONS ============ */
-#collections-header {{ margin-top: 2.5rem; }}
-#collections-header h2 {{ margin-top: 0; }}
-#collections-loading {{ color: var(--ink-muted); font-size: 0.95rem; }}
+#collections-header {{ margin-top: 1.5rem; }}
+#collections-header > summary {{
+    padding: 0.75rem 0;
+    color: var(--brand-dark);
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    font-weight: 600;
+    cursor: pointer;
+}}
+#collections-header > summary::marker {{ color: var(--accent); }}
+#collections-loading {{ margin: 0.5rem 0 0; color: var(--ink-muted); font-size: 0.9rem; }}
 
 .collection-section,
 #dynamic-collections {{
@@ -1060,16 +1145,65 @@ img {{
 
 /* ============ TOUR GUIDE CARD ============ */
 .tour-guide-card {{ max-width: 640px; margin-left: auto; margin-right: auto; text-align: left; }}
-.tour-guide-card input {{
-    width: 100%;
-    margin-top: 0.75rem;
-    padding: 0.8rem 0.95rem;
-    color: #ffffff;
-    font: inherit;
-    border: 1px solid rgba(255, 255, 255, 0.35);
+.tour-guide-list {{ display: grid; gap: 0.65rem; }}
+.tour-guide-item {{
+    border: 1px solid rgba(255, 255, 255, 0.28);
     border-radius: var(--radius-sm);
-    background: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.08);
 }}
+.tour-guide-item summary {{
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.7rem 0.85rem;
+    color: #ffffff;
+    cursor: pointer;
+    list-style: none;
+}}
+.tour-guide-item summary::-webkit-details-marker {{ display: none; }}
+.tour-guide-item summary::after {{ content: "+"; margin-left: auto; font-size: 1.2rem; }}
+.tour-guide-item[open] summary::after {{ content: "−"; }}
+.tour-guide-photo {{
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: rgba(255, 255, 255, 0.18);
+}}
+.tour-guide-avatar {{
+    display: inline-flex;
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: #ffffff;
+    font-size: 0.85rem;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.2);
+}}
+.tour-guide-name {{ min-width: 0; font-weight: 700; overflow-wrap: anywhere; }}
+.tour-guide-details {{ padding: 0 0.9rem 0.9rem 4rem; color: rgba(255, 255, 255, 0.9); }}
+.tour-guide-details p {{ margin: 0.35rem 0 0; color: inherit; font-size: 0.92rem; line-height: 1.55; }}
+.tour-guide-details a {{ color: #ffffff; text-decoration: underline; }}
+.tour-guide-actions {{ display: flex; flex-wrap: wrap; gap: 0.55rem; margin-top: 0.85rem; }}
+.tour-guide-action {{
+    display: inline-flex;
+    align-items: center;
+    padding: 0.45rem 0.75rem;
+    color: #ffffff !important;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: none !important;
+    border: 1px solid rgba(255, 255, 255, 0.32);
+    border-radius: var(--radius-xs);
+    background: rgba(255, 255, 255, 0.10);
+}}
+.tour-guide-action:hover {{ background: rgba(255, 255, 255, 0.20); }}
+.tour-guide-action.whatsapp {{ background: #159447; border-color: #159447; }}
+.tour-guide-action.whatsapp:hover {{ background: #117a3a; }}
 
 /* ============ PROFESSIONAL FOOTER ============ */
 .site-footer {{
@@ -1649,14 +1783,16 @@ section[aria-labelledby="faq-heading"] [data-editing="true"] {{
     <article id="body-contents">
         <header class="blog-hero">
                 <span class="blog-kicker">{category} · {place_name}</span>
-                <h1>{title}</h1>
+            <h1 id="blog-summary">{escape(summary)}</h1>
+            <p id="blog-title" class="blog-hero-title">{escape(title)}</p>
                 <a class="place-page-link" href="{place_page_url}">Explore {place_name}</a>
+            <p class="blog-date-meta">
+                <span>Published <time id="blog-published-at" datetime="{published_iso}">{published_display}</time></span>
+                <span>Last updated <time id="blog-last-updated" datetime="{modified_iso}">{modified_display}</time></span>
+            </p>                
         </header>
     {collections_html}
-    <p class="blog-date-meta">
-        <span>Published <time id="blog-published-at" datetime="{published_iso}">{published_display}</time></span>
-        <span>Last updated <time id="blog-last-updated" datetime="{modified_iso}">{modified_display}</time></span>
-    </p>
+
     <div id="blog-editable-body" data-place-slug="{place_slug}" data-title-slug="{title_slug}">
     {editable_body_text}
     </div>
@@ -1977,6 +2113,134 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg, onEmpty) {{
                     loading.style.display = 'none';
                 }}
             }});
+    }}
+
+    async function fetchTourGuideContacts() {{
+        const contacts = document.getElementById('tour-guide-contacts');
+        if (!contacts) return;
+
+        try {{
+            const response = await fetch('{tour_guides_url}', {{
+                headers: {{ 'X-Requested-With': 'XMLHttpRequest' }}
+            }});
+            if (!response.ok) throw new Error(`HTTP ${{response.status}}`);
+
+            const data = await response.json();
+            contacts.replaceChildren();
+
+            if (!Array.isArray(data.guides) || !data.guides.length) {{
+                const empty = document.createElement('p');
+                empty.className = 'tour-guide-status';
+                empty.textContent = 'No local tour guides are available yet.';
+                contacts.appendChild(empty);
+                return;
+            }}
+
+            contacts.classList.add('tour-guide-list');
+            data.guides.forEach(guide => {{
+                const item = document.createElement('details');
+                item.className = 'tour-guide-item';
+
+                const summary = document.createElement('summary');
+                const name = document.createElement('span');
+                name.className = 'tour-guide-name';
+                name.textContent = guide.name || 'Tour guide';
+
+                const avatar = document.createElement('span');
+                avatar.className = 'tour-guide-avatar';
+                avatar.setAttribute('aria-hidden', 'true');
+                avatar.textContent = name.textContent.trim().split(/\s+/).slice(0, 2).map(part => part[0]).join('').toUpperCase();
+
+                if (guide.photo_url) {{
+                    const photo = document.createElement('img');
+                    photo.className = 'tour-guide-photo';
+                    photo.alt = '';
+                    photo.loading = 'lazy';
+                    photo.src = guide.photo_url;
+                    photo.addEventListener('error', () => {{
+                        photo.replaceWith(avatar);
+                    }}, {{ once: true }});
+                    summary.append(photo);
+                }} else {{
+                    summary.append(avatar);
+                }}
+                summary.append(name);
+
+                const details = document.createElement('div');
+                details.className = 'tour-guide-details';
+
+                const contact = document.createElement('p');
+                const mobileNumber = String(guide.mobile_number || '').trim();
+                const whatsappNumber = mobileNumber
+                    .replace(/[^\d+]/g, '')
+                    .replace(/^\+/, '')
+                    .replace(/^0/, '63');
+                contact.appendChild(document.createTextNode('Mobile: '));
+                if (mobileNumber) {{
+                    contact.appendChild(document.createTextNode(mobileNumber));
+                }} else {{
+                    contact.appendChild(document.createTextNode('Not provided'));
+                }}
+                details.appendChild(contact);
+
+                const actions = document.createElement('div');
+                actions.className = 'tour-guide-actions';
+                if (guide.profile_url) {{
+                    const profileLink = document.createElement('a');
+                    profileLink.className = 'tour-guide-action';
+                    profileLink.href = guide.profile_url;
+                    profileLink.target = '_blank';
+                    profileLink.rel = 'noopener noreferrer';
+                    profileLink.textContent = 'View profile';
+                    actions.appendChild(profileLink);
+                }}
+                if (mobileNumber) {{
+                    const whatsappLink = document.createElement('a');
+                    whatsappLink.className = 'tour-guide-action whatsapp';
+                    whatsappLink.href = `https://wa.me/${{whatsappNumber}}`;
+                    whatsappLink.target = '_blank';
+                    whatsappLink.rel = 'noopener noreferrer';
+                    whatsappLink.textContent = 'Message on WhatsApp';
+                    actions.appendChild(whatsappLink);
+                }}
+                if (actions.childElementCount) details.appendChild(actions);
+
+                if (guide.bio) {{
+                    const bio = document.createElement('p');
+                    bio.textContent = guide.bio;
+                    details.appendChild(bio);
+                }}
+
+                if (Number(guide.experience_years) > 0) {{
+                    const experience = document.createElement('p');
+                    experience.textContent = `${{guide.experience_years}} years of experience`;
+                    details.appendChild(experience);
+                }}
+
+                if (guide.certifications) {{
+                    const certifications = document.createElement('p');
+                    certifications.textContent = `Certifications: ${{guide.certifications}}`;
+                    details.appendChild(certifications);
+                }}
+
+                if (guide.registered_at) {{
+                    const registered = document.createElement('p');
+                    const registeredDate = new Date(guide.registered_at);
+                    registered.textContent = `Registered: ${{Number.isNaN(registeredDate.getTime()) ? guide.registered_at : registeredDate.toLocaleDateString()}}`;
+                    details.appendChild(registered);
+                }}
+
+                item.append(summary, details);
+                contacts.appendChild(item);
+            }});
+        }} catch (error) {{
+            console.error('Error fetching tour guides:', error);
+            contacts.replaceChildren();
+            const status = document.createElement('p');
+            status.className = 'tour-guide-status';
+            status.textContent = 'Tour guide contacts are unavailable right now.';
+            contacts.appendChild(status);
+        }}
     }}
 
     function getParagraphCleanText(paragraph) {{
@@ -2497,6 +2761,106 @@ async function fetchData(endpoint, elementId, templateFn, errorMsg, onEmpty) {{
             lastUpdated.setAttribute('datetime', data.updated_at);
         }}
         lastUpdated.textContent = data.updated_at_display;
+    }}
+
+    function setupBlogHeroMetadataEditor() {{
+        if (!blogCanEdit) return;
+
+        const header = document.querySelector('.blog-hero');
+        const summaryElement = document.getElementById('blog-summary');
+        const titleElement = document.getElementById('blog-title');
+        if (!header || !summaryElement || !titleElement) return;
+        const getVisibleText = element => {{
+            const clone = element.cloneNode(true);
+            clone.querySelectorAll('.blog-hero-edit-button').forEach(button => button.remove());
+            return clone.textContent.trim();
+        }};
+
+        const openEditor = () => {{
+            if (header.querySelector('.blog-hero-metadata-tools')) return;
+
+            const form = document.createElement('div');
+            form.className = 'blog-hero-metadata-tools';
+            const summaryInput = document.createElement('textarea');
+            summaryInput.maxLength = 400;
+            summaryInput.setAttribute('aria-label', 'Blog summary');
+            summaryInput.value = getVisibleText(summaryElement);
+            const titleInput = document.createElement('input');
+            titleInput.type = 'text';
+            titleInput.maxLength = 180;
+            titleInput.setAttribute('aria-label', 'Blog title');
+            titleInput.value = getVisibleText(titleElement);
+            const saveButton = document.createElement('button');
+            saveButton.type = 'button';
+            saveButton.className = 'blog-save-button';
+            saveButton.textContent = 'Save';
+            const cancelButton = document.createElement('button');
+            cancelButton.type = 'button';
+            cancelButton.className = 'blog-cancel-button';
+            cancelButton.textContent = 'Cancel';
+            const status = document.createElement('span');
+            status.className = 'blog-edit-status';
+            form.append(summaryInput, titleInput, saveButton, cancelButton, status);
+
+            cancelButton.addEventListener('click', () => form.remove());
+            saveButton.addEventListener('click', async () => {{
+                saveButton.disabled = true;
+                status.textContent = 'Saving...';
+                status.classList.remove('error');
+                try {{
+                    const response = await fetch(blogParagraphSaveUrl, {{
+                        method: 'POST',
+                        headers: {{
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRFToken': getCookie('csrftoken'),
+                        }},
+                        body: JSON.stringify({{
+                            operation: 'update_metadata',
+                            place_slug: blogPlaceSlug,
+                            title_slug: blogTitleSlug,
+                            page_url: window.location.pathname,
+                            summary: summaryInput.value,
+                            title: titleInput.value,
+                        }})
+                    }});
+                    const data = await response.json();
+                    if (!response.ok || !data.ok) throw new Error(data.error || `HTTP ${{response.status}}`);
+
+                    summaryElement.replaceChildren(
+                        document.createTextNode(data.summary),
+                        summaryElement.querySelector('.blog-hero-edit-button')
+                    );
+                    titleElement.replaceChildren(
+                        document.createTextNode(data.title),
+                        titleElement.querySelector('.blog-hero-edit-button')
+                    );
+                    updateVisibleLastUpdated(data);
+                    if (data.new_url && data.new_url !== window.location.pathname) {{
+                        window.location.replace(data.new_url);
+                        return;
+                    }}
+                    form.remove();
+                }} catch (error) {{
+                    status.textContent = `Save failed: ${{error.message || 'Please try again.'}}`;
+                    status.classList.add('error');
+                    saveButton.disabled = false;
+                }}
+            }});
+            header.appendChild(form);
+            summaryInput.focus();
+        }};
+
+        [summaryElement, titleElement].forEach((element, index) => {{
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'blog-hero-edit-button';
+            button.textContent = '\\u270e';
+            button.title = index === 0 ? 'Edit summary and title' : 'Edit title and summary';
+            button.setAttribute('aria-label', button.title);
+            button.addEventListener('click', openEditor);
+            element.appendChild(button);
+        }});
     }}
 
     function finishParagraphEdit(paragraph, tools, replacementHTML) {{
@@ -3094,12 +3458,14 @@ document.addEventListener("DOMContentLoaded", () => {{
     if (blogCanEdit) {{
         setupEditableParagraphs();
         setupAddSectionForm();
+        setupBlogHeroMetadataEditor();
     }}
     prepareNestedSectionImages(document);
     setupImageLightbox();
     scheduleBlogImages();
     getBlogLists();
     fetchCollections();
+    fetchTourGuideContacts();
 
     const yearEl = document.getElementById('footerYear');
     if (yearEl) {{
@@ -3152,9 +3518,9 @@ document.addEventListener('click', (ev) => {{
     <section class="cta-section tour-guide-card">
         <h2>Tour Guide Contacts</h2>
         <p>Save a local contact before you go so it is easier to plan the day.</p>
-        {{% for tg in tourguide %}}
-        <input type="text" value="{{{{ tg.mobile_number }}}}" readonly aria-label="Tour guide mobile number">
-        {{% endfor %}}
+        <div id="tour-guide-contacts" aria-live="polite">
+            <p class="tour-guide-status">Loading local tour guides...</p>
+        </div>
         <div style="margin-top: 1.5rem;">
             <a href="/userProfile/tour-guide/register/" class="collection-link" style="display: inline-block;">Register as Tour Guide</a>
         </div>

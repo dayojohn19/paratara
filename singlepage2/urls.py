@@ -17,6 +17,7 @@ urlpatterns = [
     path("kefir/", views.kefir, name="kefir"),
     path("blog-edits/save-file/", views.save_blog_paragraph_file_edit, name="save_blog_paragraph_file_edit"),
     path("blog-edits/save/", views.save_blog_paragraph_file_edit, name="save_blog_paragraph_edit"),
+    path("api/blog/<slug:place_slug>/tour-guides/", views.blog_tour_guides, name="blog_tour_guides"),
     #   Then register here /apis/blog/
     path('blog/<slug:slug>/assets/<path:asset_name>', views.blog_asset, name='blog_asset'),
     path('blog/<slug:slug>/<slug:slugSec>/', views.blog_html, name='bloghtmlpost'),

@@ -1,6 +1,8 @@
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
+import uuid
+from datetime import timedelta
 
 # Create your models here.
 
@@ -28,6 +30,46 @@ class Checkins(models.Model):
         verbose_name = "Check-in"
         verbose_name_plural = "Check-ins"
         ordering = ['checkin_date']
+
+
+class ResortBookingPayment(models.Model):
+    PENDING_HOLD_MINUTES = 30
+
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('paid', 'Paid'),
+        ('failed', 'Failed'),
+        ('cancelled', 'Cancelled'),
+        ('expired', 'Expired'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    checkout_session_id = models.CharField(max_length=120, blank=True, null=True, unique=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', db_index=True)
+    amount_centavos = models.PositiveIntegerField()
+    currency = models.CharField(max_length=10, default='PHP')
+    booking_data = models.JSONField(default=dict)
+    checkin = models.ForeignKey(
+        Checkins,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='payment_records',
+    )
+    failure_reason = models.TextField(blank=True)
+    receipt_email_sent_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    @classmethod
+    def expire_stale_pending(cls, now=None):
+        now = now or timezone.now()
+        cutoff = now - timedelta(minutes=cls.PENDING_HOLD_MINUTES)
+        return cls.objects.filter(status='pending', created_at__lte=cutoff).update(
+            status='expired',
+            failure_reason='Checkout hold expired after 30 minutes; the checkout record is retained for payment reconciliation.',
+            updated_at=now,
+        )
         
 class CheckinDay(models.Model):
     checkin = models.ForeignKey('resorts.Packages', on_delete=models.CASCADE, related_name="checkin_days")
