@@ -794,7 +794,7 @@ def marked_calendar(request, resort_id=1, room_id=1, month=None, year=1, whatste
     }
     # messages.success(request, "✅ MovedPayment completed and booking saved successfully!")
     print('Context: ')
-    return render(request, 'resortManagement/calendar.html', context)    
+    return render(request, 'resortManagement/booking_calendar.html', context)    
 
 
  
