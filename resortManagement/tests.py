@@ -378,6 +378,69 @@ class PayMongoRoomBookingTests(TestCase):
         self.assertEqual(len(mail.outbox), 1)
         mocked_retrieve.assert_called_once_with('cs_paid_room')
 
+    @patch('resortManagement.views._capture_paypal_room_order')
+    def test_paypal_completion_creates_qr_booking_and_sends_one_receipt(self, mocked_capture):
+        mocked_capture.return_value = {
+            'status': 'COMPLETED',
+            'purchase_units': [{
+                'payments': {'captures': [{
+                    'status': 'COMPLETED',
+                    'amount': {'value': '2106.00', 'currency_code': 'PHP'},
+                }]},
+            }],
+        }
+        post_data = {**self.form_data, 'paypal_order_id': 'PAYPAL-ORDER-1'}
+
+        response = self.client.post(
+            reverse('resort_management:paypal_room_booking_complete'),
+            data=post_data,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('/resortManagement/qr/', response.json()['redirect_url'])
+        payment = ResortBookingPayment.objects.get(paypal_order_id='PAYPAL-ORDER-1')
+        self.assertEqual(payment.status, 'paid')
+        self.assertIsNotNone(payment.checkin_id)
+        self.assertEqual(Checkins.objects.count(), 1)
+        self.assertEqual(CheckinDay.objects.filter(checkin=self.room).count(), 3)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, ['guest@example.com'])
+
+        duplicate_response = self.client.post(
+            reverse('resort_management:paypal_room_booking_complete'),
+            data=post_data,
+        )
+
+        self.assertEqual(duplicate_response.status_code, 200)
+        self.assertIn('/resortManagement/qr/', duplicate_response.json()['redirect_url'])
+        self.assertEqual(Checkins.objects.count(), 1)
+        self.assertEqual(CheckinDay.objects.filter(checkin=self.room).count(), 3)
+        self.assertEqual(len(mail.outbox), 1)
+        mocked_capture.assert_called_once_with('PAYPAL-ORDER-1')
+
+    @patch('resortManagement.views._capture_paypal_room_order')
+    def test_paypal_completion_rejects_a_mismatched_capture(self, mocked_capture):
+        mocked_capture.return_value = {
+            'status': 'COMPLETED',
+            'purchase_units': [{
+                'payments': {'captures': [{
+                    'status': 'COMPLETED',
+                    'amount': {'value': '1.00', 'currency_code': 'PHP'},
+                }]},
+            }],
+        }
+
+        response = self.client.post(
+            reverse('resort_management:paypal_room_booking_complete'),
+            data={**self.form_data, 'paypal_order_id': 'PAYPAL-ORDER-WRONG-AMOUNT'},
+        )
+
+        self.assertEqual(response.status_code, 409)
+        self.assertFalse(Checkins.objects.exists())
+        payment = ResortBookingPayment.objects.get(paypal_order_id='PAYPAL-ORDER-WRONG-AMOUNT')
+        self.assertEqual(payment.status, 'paid')
+        self.assertIn('does not match', payment.failure_reason)
+
     def test_concurrent_receipt_attempt_is_claimed_before_sending(self):
         booking = Checkins.objects.create(
             room=self.room,

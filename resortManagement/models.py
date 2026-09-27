@@ -45,6 +45,7 @@ class ResortBookingPayment(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     checkout_session_id = models.CharField(max_length=120, blank=True, null=True, unique=True)
+    paypal_order_id = models.CharField(max_length=120, blank=True, null=True, unique=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', db_index=True)
     amount_centavos = models.PositiveIntegerField()
     currency = models.CharField(max_length=10, default='PHP')

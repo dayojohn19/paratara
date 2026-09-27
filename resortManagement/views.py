@@ -22,7 +22,7 @@ from django.contrib import messages
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.db.models import Q
-from django.db import transaction as db_transaction
+from django.db import IntegrityError, transaction as db_transaction
 from django.views.decorators.cache import cache_page
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
@@ -366,6 +366,42 @@ def _paypal_access_token():
     )
     response.raise_for_status()
     return response.json().get('access_token')
+
+
+def _paypal_room_booking_access_token():
+    client_id = getattr(settings, 'PAYPAL_CLIENT_ID', '')
+    client_secret = getattr(settings, 'PAYPAL_CLIENT_SECRET', '')
+    if not client_id or not client_secret:
+        raise ValueError('PayPal client credentials are not configured.')
+    response = requests.post(
+        f"{PAYPAL_API_BASE}/v1/oauth2/token",
+        auth=HTTPBasicAuth(client_id, client_secret),
+        data={'grant_type': 'client_credentials'},
+        headers={'Accept': 'application/json'},
+        timeout=10,
+    )
+    response.raise_for_status()
+    return response.json()['access_token']
+
+
+def _capture_paypal_room_order(order_id):
+    token = _paypal_room_booking_access_token()
+    headers = {
+        'Authorization': f'Bearer {token}',
+        'Content-Type': 'application/json',
+    }
+    order_url = f'{PAYPAL_API_BASE}/v2/checkout/orders/{order_id}'
+    response = requests.get(order_url, headers=headers, timeout=10)
+    response.raise_for_status()
+    order = response.json()
+    if order.get('status') == 'COMPLETED':
+        return order
+    if order.get('status') != 'APPROVED':
+        raise ValueError('PayPal has not approved this order.')
+
+    response = requests.post(f'{order_url}/capture', headers=headers, json={}, timeout=10)
+    response.raise_for_status()
+    return response.json()
 
 
 def _create_paypal_subscription(resort, user, notes='', token=None):
@@ -1050,6 +1086,148 @@ def start_paymongo_room_booking(request):
     payment.checkout_session_id = checkout_session_id
     payment.save(update_fields=['checkout_session_id', 'updated_at'])
     return JsonResponse({'checkout_url': checkout_url})
+
+@require_POST
+def paypal_room_booking_complete(request):
+    order_id = request.POST.get('paypal_order_id', '').strip()
+    if not re.fullmatch(r'[A-Za-z0-9-]{1,120}', order_id):
+        return JsonResponse({'error': 'PayPal did not return an order ID.'}, status=400)
+
+    form = CheckinForm(request.POST)
+    if not form.is_valid():
+        return JsonResponse({'error': 'Please complete the booking details and dates.'}, status=400)
+
+    booking = form.save(commit=False)
+    room = booking.room
+    resort = booking.resort
+    if not room or not resort or room.packageName.ItemOfResort_id != resort.pk:
+        return JsonResponse({'error': 'The selected room does not belong to this resort.'}, status=400)
+
+    nights = (booking.checkout_date.date() - booking.checkin_date.date()).days
+    if nights < 1:
+        return JsonResponse({'error': 'Select at least one night.'}, status=400)
+    total = (Decimal(str(room.price)) * nights * Decimal('1.053')).quantize(
+        Decimal('0.01'), rounding=ROUND_HALF_UP
+    )
+    try:
+        expected_amount = amount_to_centavos(total)
+    except ValueError as exc:
+        return JsonResponse({'error': str(exc)}, status=400)
+
+    booking_data = {
+        'room': room.pk,
+        'resort': resort.pk,
+        'guest_name': booking.guest_name,
+        'guest_email': booking.guest_email,
+        'guest_phone': booking.guest_phone,
+        'special_requests': booking.special_requests,
+        'checkin_date': booking.checkin_date.isoformat(),
+        'checkout_date': booking.checkout_date.isoformat(),
+    }
+
+    payment = ResortBookingPayment.objects.filter(paypal_order_id=order_id).first()
+    if payment:
+        if payment.amount_centavos != expected_amount or payment.booking_data != booking_data:
+            return JsonResponse({'error': 'This PayPal order does not match the submitted booking.'}, status=409)
+        if payment.status == 'paid' and payment.checkin_id:
+            _send_booking_receipt_email(payment, payment.checkin, request)
+            return JsonResponse({
+                'redirect_url': request.build_absolute_uri(
+                    reverse('resort_management:qr', args=[_booking_receipt_code(payment.checkin)])
+                ),
+            })
+    else:
+        try:
+            payment = ResortBookingPayment.objects.create(
+                paypal_order_id=order_id,
+                amount_centavos=expected_amount,
+                currency='PHP',
+                booking_data=booking_data,
+            )
+        except IntegrityError:
+            payment = ResortBookingPayment.objects.filter(paypal_order_id=order_id).first()
+            if not payment:
+                return JsonResponse({'error': 'Could not save the PayPal payment. Please contact the resort.'}, status=409)
+            if payment.amount_centavos != expected_amount or payment.booking_data != booking_data:
+                return JsonResponse({'error': 'This PayPal order does not match the submitted booking.'}, status=409)
+
+    try:
+        paypal_order = _capture_paypal_room_order(order_id)
+    except (ValueError, requests.RequestException, KeyError) as exc:
+        return JsonResponse({'error': str(exc) or 'Could not verify PayPal payment.'}, status=502)
+
+    captures = [
+        capture
+        for unit in paypal_order.get('purchase_units', [])
+        for capture in (unit.get('payments') or {}).get('captures', [])
+        if capture.get('status') == 'COMPLETED'
+    ]
+    if paypal_order.get('status') != 'COMPLETED' or not captures:
+        return JsonResponse({'error': 'PayPal has not confirmed this payment.'}, status=402)
+
+    try:
+        paid_amount = sum(Decimal(capture['amount']['value']) for capture in captures)
+        currencies = {capture['amount']['currency_code'].upper() for capture in captures}
+    except (KeyError, ValueError, TypeError):
+        paid_amount = Decimal('-1')
+        currencies = set()
+    if currencies != {'PHP'} or paid_amount != total:
+        payment.status = 'paid'
+        payment.failure_reason = 'PayPal capture amount or currency does not match the booking total.'
+        payment.save(update_fields=['status', 'failure_reason', 'updated_at'])
+        return JsonResponse({'error': 'The PayPal payment did not match the booking total. Contact support.'}, status=409)
+
+    dates_conflicted = False
+    with db_transaction.atomic():
+        payment = ResortBookingPayment.objects.select_for_update().get(pk=payment.pk)
+        if payment.status == 'paid' and payment.checkin_id:
+            booking = payment.checkin
+        else:
+            overlap = Checkins.objects.select_for_update().filter(
+                room_id=booking.room_id,
+                checkin_date__date__lt=booking.checkout_date.date(),
+                checkout_date__date__gt=booking.checkin_date.date(),
+            ).exists()
+            if overlap:
+                payment.status = 'paid'
+                payment.failure_reason = 'Payment was confirmed after the room dates were booked by another guest.'
+                payment.save(update_fields=['status', 'failure_reason', 'updated_at'])
+                dates_conflicted = True
+            else:
+                booking.save()
+                try:
+                    manager_profile = ensure_user_profile(request.user)
+                    manager = ResortManager.objects.get_or_create(profile=manager_profile)[0]
+                    booking.checked_in_by = manager
+                    booking.save(update_fields=['checked_in_by'])
+                    manager.checked_visitor.add(booking)
+                except Exception:
+                    pass
+                day = booking.checkin_date.date()
+                while day <= booking.checkout_date.date():
+                    CheckinDay.objects.create(
+                        checkin=booking.room,
+                        day=day,
+                        checkinday=booking.checkin_date,
+                        checkoutday=booking.checkout_date,
+                    )
+                    day += timedelta(days=1)
+                payment.status = 'paid'
+                payment.checkin = booking
+                payment.save(update_fields=['status', 'checkin', 'updated_at'])
+
+    if dates_conflicted:
+        return JsonResponse({
+            'error': 'PayPal received your payment, but the dates were booked meanwhile. Contact the resort to resolve it.'
+        }, status=409)
+
+    mark_room_booking_button_paid(booking_data)
+    _send_booking_receipt_email(payment, booking, request)
+    return JsonResponse({
+        'redirect_url': request.build_absolute_uri(
+            reverse('resort_management:qr', args=[_booking_receipt_code(booking)])
+        ),
+    })
 
 
 def paymongo_room_booking_return(request, payment_id):

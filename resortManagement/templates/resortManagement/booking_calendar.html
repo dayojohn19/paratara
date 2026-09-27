@@ -1162,39 +1162,35 @@ body{
         createOrder: function (data, actions) {
           return actions.order.create({
             purchase_units: [{
-              amount: { value: Number(selectedAmount).toFixed(2) }
+              amount: { value: Number(selectedAmount).toFixed(2), currency_code: 'PHP' }
             }]
           });
         },
-        onApprove: function (data, actions) {
-          return actions.order.capture().then(function (details) {
-            return fetch(window.location.origin + '/apis/payments/create/', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                event_type: 'PAYMENT.CAPTURE.COMPLETED',
-                resource: {
-                  id: data.orderID,
-                  payer: { email_address: details.payer.email_address },
-                  amount: { value: selectedAmount },
-                  resort_id: '{{ resortObject.id }}',
-                  room_id: '{{ room_item.id }}',
-                  full_details: details
-                }
-              })
-            })
-            .then(function (r) { return r.json(); })
-            .then(function () {
-              showStatus("Just a moment — we're confirming your booking.");
-              if (openBtn) openBtn.style.display = 'none';
-              $('#booking-form').submit();
-              closeModal();
-            })
-            .catch(function (error) {
-              console.error('Payment save failed:', error);
-              hideStatus();
-              toast('Payment succeeded but saving failed. Please contact the resort.', 'error', 6000);
+        onApprove: function (data) {
+          var form = $('#booking-form');
+          var formData = new FormData(form);
+          formData.append('paypal_order_id', data.orderID);
+          showStatus("Just a moment — we're confirming your booking.");
+          if (openBtn) openBtn.style.display = 'none';
+          return fetch("{% url 'resort_management:paypal_room_booking_complete' %}", {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+          })
+          .then(function (response) {
+            return response.json().then(function (result) {
+              if (!response.ok) throw new Error(result.error || 'Could not confirm PayPal payment.');
+              return result;
             });
+          })
+          .then(function (result) {
+            if (!result.redirect_url) throw new Error('The booking receipt page was not returned.');
+            window.location.assign(result.redirect_url);
+          })
+          .catch(function (error) {
+            console.error('PayPal booking completion failed:', error);
+            hideStatus();
+            toast(error.message || 'Payment succeeded but booking confirmation failed. Please contact the resort.', 'error', 6000);
           });
         },
         onError: function (err) {
