@@ -805,7 +805,7 @@
                                 <div id="paypal-button-container"></div>
                                 <small style="color: var(--gray); display: block; margin-top: 0.5rem;">Processing fees included</small>
                             {% endif %}
-                            <button type="button" id="paymongo-booking-button">Pay with PayMongo</button>
+                            <button type="button" id="paymongo-booking-button">Pay with Gcash</button>
                             <div id="paymongo-booking-error" role="status" aria-live="polite"></div>
                         </p>
                     </form>
@@ -1082,7 +1082,7 @@
             if (!checkoutWindow) {
                 errorBox.textContent = 'Allow pop-ups to open PayMongo checkout.';
                 button.disabled = false;
-                button.textContent = 'Pay with PayMongo';
+                button.textContent = 'Pay with Gcash';
                 return;
             }
             checkoutWindow.document.title = 'Opening PayMongo checkout';
@@ -1102,7 +1102,7 @@
                 if (!checkoutWindow.closed) checkoutWindow.close();
                 errorBox.textContent = error.message || 'Could not start payment. Please try again.';
                 button.disabled = false;
-                button.textContent = 'Pay with PayMongo';
+                button.textContent = 'Pay with Gcash';
             }
         });
 

@@ -64,6 +64,12 @@
       </a>
 
       <nav class="site-nav" aria-label="Primary navigation">
+        
+        {% if user.is_authenticated %}
+        <a style="background: rgb(239, 252, 243);color: rgb(8, 133, 46);" href="/est/resort/createnewresort">Add your business</a>
+        {% else %}
+        <a style="background: rgb(239, 252, 243);color: rgb(8, 133, 46);" href="{% url 'userProfile:registerUser' %}" data-auth-open="login">Add your business</a>
+        {% endif %}
         <a href="#features">Features</a>
         <a href="#popular">Places</a>
         {% if user.is_authenticated %}
