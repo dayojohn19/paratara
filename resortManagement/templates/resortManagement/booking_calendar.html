@@ -246,12 +246,9 @@ body{
 }
 
 /* Available days */
-.calendar td:not(.other-month):not(.stay):not(.checkin):not(.checkout) span{
-  background:var(--light-gray);
-}
+
 .calendar td:not(.stay):not(.checkin):not(.checkout):not(.selected):hover span{
   background:var(--primary);
-  color:#fff;
   transform:scale(1.06);
   box-shadow:0 4px 10px rgba(59,130,246,.35);
 }
@@ -429,6 +426,7 @@ body{
 #booking-form .field-row{
   display:grid;grid-template-columns:1fr 1fr;gap:1rem;
 }
+#booking-form .date-fields{display:none}
 #booking-form label{
   display:block;margin-bottom:.35rem;
   font-size:.8rem;font-weight:600;color:var(--dark);
@@ -741,6 +739,7 @@ body{
         <input type="hidden" name="totalcost" id="totalcostinput" value="100">
         <input type="hidden" name="month" value="{{ month }}">
         <input type="hidden" name="year" value="{{ year }}">
+        <input type="hidden" name="year" value="{{ year }}">
         {{ form.room }}
         {{ form.resort }}
 
@@ -761,7 +760,7 @@ body{
           </div>
         </div>
 
-        <div class="field-row">
+        <div class="field-row date-fields">
           <div class="field read-only-class">
             <label for="{{ form.checkin_date.id_for_label }}">Check-in date &amp; time</label>
             {{ form.checkin_date }}
@@ -786,7 +785,7 @@ body{
             <small class="pay-note">Processing fees included</small>
           {% endif %}
 
-          <button type="button" id="paymongo-booking-button">Pay with PayMongo</button>
+          <button type="button" id="paymongo-booking-button">Pay with Gcash</button>
           <div id="paymongo-booking-error" role="status" aria-live="polite"></div>
         </div>
       </form>
@@ -1323,7 +1322,7 @@ body{
       if (!checkoutWindow) {
         if (errorBox) errorBox.textContent = 'Please allow pop-ups to open the PayMongo checkout.';
         btn.disabled = false;
-        btn.textContent = 'Pay with PayMongo';
+        btn.textContent = 'Pay with Gcash';
         return;
       }
       try {
@@ -1351,7 +1350,7 @@ body{
         if (!checkoutWindow.closed) checkoutWindow.close();
         if (errorBox) errorBox.textContent = error.message || 'Could not start payment. Please try again.';
         btn.disabled = false;
-        btn.textContent = 'Pay with PayMongo';
+        btn.textContent = 'Pay with Gcash';
       });
     });
   }

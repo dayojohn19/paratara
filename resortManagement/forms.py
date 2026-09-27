@@ -22,6 +22,10 @@ class CheckinForm(forms.ModelForm):
             'checkin_date',
             'checkout_date'
         ]
+        widgets = {
+            'room': forms.HiddenInput(),
+            'resort': forms.HiddenInput(),
+        }
     # room = forms(max_length=100, widget=forms.HiddenInput(), label=None)
     # resort = forms.CharField(max_length=100, widget=forms.HiddenInput(), label=None)
         
