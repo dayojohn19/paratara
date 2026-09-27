@@ -122,7 +122,7 @@ class ResortForm(forms.ModelForm):
             # Amenity labels
             'has_wifi':'Free WiFi',
             'has_pool':'Swimming Pool',
-            'has_bidet':'Bidet in CR',
+            'has_bidet':'Bidet in CR / Restroom',
             'has_parking':'Parking Available',
             'has_restaurant':'Restaurant',
             'has_bar':'Bar/Lounge',
