@@ -38,7 +38,7 @@ class Migration(migrations.Migration):
             options={
                 'ordering': ['-created_at'],
                 'indexes': [models.Index(fields=['package', '-created_at'], name='pkg_review_pkg_created_idx')],
-                'constraints': [models.CheckConstraint(condition=models.Q(('rating__gte', 1), ('rating__lte', 5)), name='package_review_rating_1_to_5'), models.UniqueConstraint(fields=('package', 'user'), name='unique_package_review_per_user')],
+                'constraints': [models.CheckConstraint(check=models.Q(('rating__gte', 1), ('rating__lte', 5)), name='package_review_rating_1_to_5'), models.UniqueConstraint(fields=('package', 'user'), name='unique_package_review_per_user')],
             },
         ),
     ]
