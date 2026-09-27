@@ -690,7 +690,299 @@
   }
   .panel--events .calendar-event-card:hover { transform: none; }
 }
+
+
+
+/* Schedule Style */
+/* ============================================================
+   Schedules panel
+   ============================================================ */
+
+.panel#schedules {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px 22px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #1f2937;
+}
+
+.section-header {
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f1f3f5;
+}
+
+.section-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #111827;
+}
+
+/* ============================================================
+   List wrapper
+   ============================================================ */
+
+.schedules-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ============================================================
+   Card
+   ============================================================ */
+
+.schedule-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-left: 4px solid #3b82f6;
+  border-radius: 10px;
+  padding: 14px 16px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.18s ease, transform 0.18s ease, border-left-color 0.18s ease;
+}
+
+.schedule-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+  border-left-color: #2563eb;
+}
+
+.schedule-card-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+
+/* ============================================================
+   Summary row (route + buttons)
+   ============================================================ */
+
+.schedule-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.schedule-route {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.schedule-route-text {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #111827;
+  line-height: 1.4;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.schedule-route-text > span:not(.schedule-separator) {
+  white-space: nowrap;
+}
+
+.schedule-separator {
+  color: #9ca3af;
+  font-weight: 400;
+}
+
+/* ============================================================
+   Buttons
+   ============================================================ */
+
+.schedule-more-toggle,
+.btn-join {
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  white-space: nowrap;
+}
+
+.schedule-more-toggle {
+  background: transparent;
+  color: #4b5563;
+  border: 1px solid #d1d5db;
+}
+
+.schedule-more-toggle:hover {
+  background: #f3f4f6;
+  color: #111827;
+  border-color: #9ca3af;
+}
+
+.btn-join {
+  background: #3b82f6;
+  color: #ffffff;
+  border: 1px solid #3b82f6;
+}
+
+.btn-join:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+}
+
+.btn-join:active,
+.schedule-more-toggle:active {
+  transform: translateY(1px);
+}
+
+.btn-join:focus-visible,
+.schedule-more-toggle:focus-visible {
+  outline: 2px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+/* ============================================================
+   Expanded "Details" area
+   ============================================================ */
+
+.schedule-more {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed #e5e7eb;
+  animation: sched-fade 0.2s ease;
+}
+
+.schedule-more[hidden] {
+  display: none;
+}
+
+@keyframes sched-fade {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.schedule-detail-stack {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px 20px;
+}
+
+.schedule-detail-block {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.detail-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9ca3af;
+}
+
+.detail-value {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: #111827;
+  word-break: break-word;
+}
+
+/* ============================================================
+   Poster (host) info
+   ============================================================ */
+
+.poster-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.poster-avatar-placeholder {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #eff6ff;
+  color: #3b82f6;
+  font-size: 1rem;
+}
+
+.poster-details {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.poster-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #111827;
+  line-height: 1.2;
+}
+
+.poster-role {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+/* ============================================================
+   Load-more wrapper
+   ============================================================ */
+
+.load-more-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 14px;
+}
+
+.load-more-wrap[hidden] {
+  display: none;
+}
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+
+@media (max-width: 560px) {
+  .panel#schedules {
+    padding: 16px;
+  }
+
+  .schedule-route {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .schedule-route-text {
+    font-size: 0.85rem;
+  }
+
+  .schedule-more-toggle,
+  .btn-join {
+    flex: 1;
+    text-align: center;
+  }
+
+  .schedule-detail-stack {
+    grid-template-columns: 1fr;
+  }
+}
   </style>
+
 </head>
 <body>
 {% block body %}
@@ -1566,6 +1858,8 @@
     <!-- Schedules -->
     <section class="panel" id="schedules" aria-labelledby="schedules-heading">
       <div class="section-header"><h2 id="schedules-heading">Schedules</h2></div>
+      
+
       <div class="schedules-list" id="calendar-allsched-list" role="list" aria-live="polite" aria-label="Available schedules"></div>
       <div class="load-more-wrap" hidden id="schedules-load-more"></div>
     </section>
