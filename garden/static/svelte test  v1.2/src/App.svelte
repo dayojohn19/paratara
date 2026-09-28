@@ -1562,7 +1562,6 @@
         on:click|stopPropagation
       >
         <button class="map-modal-close" type="button" on:click={closeMapModal} aria-label="Close map">×</button>
-        <h3 id="map-modal-title">{scannedPostcardDetails.location}</h3>
         <div class="map-container">
           <iframe
             id="map-modal-iframe"
@@ -2227,7 +2226,6 @@
   .memory-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 0.5rem;
   }
 
   .image-trigger {
@@ -2238,7 +2236,7 @@
     width: 100%;
     cursor: zoom-in;
     display: block;
-    border-radius: var(--radius-sm);
+
     overflow: hidden;
   }
 
@@ -2306,7 +2304,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 1rem;
     background: rgba(13, 20, 17, 0.65);
     backdrop-filter: blur(10px);
   }
@@ -2375,7 +2372,6 @@
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
-    padding: 1.5rem;
     overflow: hidden;
     box-shadow: var(--shadow-lg);
   }

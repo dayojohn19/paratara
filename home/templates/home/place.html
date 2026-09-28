@@ -113,12 +113,6 @@
       isolation: isolate;
       overflow: hidden;
       padding: clamp(20px, 4vw, 40px);
-      background:
-        radial-gradient(120% 120% at 0% 0%, rgba(75,107,44,.18), transparent 55%),
-        radial-gradient(120% 120% at 100% 0%, rgba(102,126,234,.14), transparent 55%),
-        linear-gradient(180deg, #fbfcfb 0%, #f4f6f2 100%);
-      border: var(--pt-border);
-      box-shadow: var(--pt-shadow-sm);
     }
     .hero--enhanced .hero__heading {
       font-weight: 700;
@@ -132,7 +126,6 @@
       color: var(--pt-muted);
       letter-spacing: .08em;
       text-transform: uppercase;
-      margin-bottom: 6px;
     }
     .hero--enhanced .ask-box {
       box-shadow: var(--pt-shadow-md);
@@ -167,12 +160,10 @@
     .blog-post {
       background: #fff;
       border: var(--pt-border);
-      border-radius: var(--pt-radius-md);
       padding: 18px;
       box-shadow: var(--pt-shadow-sm);
       transition: transform .15s ease, box-shadow .15s ease;
     }
-    .blog-post:hover { transform: translateY(-2px); box-shadow: var(--pt-shadow-md); }
     .blog-title { font-size: 16px; font-weight: 600; margin: 6px 0 4px; }
     .blog-category {
       display: inline-block;
@@ -195,7 +186,6 @@
       justify-content: center;
       padding: 28px 16px;
       border: 1px dashed rgba(16,24,40,.15);
-      border-radius: var(--pt-radius-md);
       color: var(--pt-muted);
       background: var(--pt-bg-soft);
       font-size: 14px;
@@ -204,7 +194,6 @@
     .loading-symbol {
       width: 28px;
       height: 28px;
-      border-radius: 50%;
       border: 3px solid rgba(75,107,44,.2);
       border-top-color: var(--pt-accent);
       animation: pt-spin .8s linear infinite;
@@ -271,7 +260,6 @@
       padding: .65rem .85rem;
       background: var(--ed-surface);
       border: 1px solid var(--ed-border);
-      border-radius: var(--ed-radius-sm);
       font-size: .92rem;
       line-height: 1.5;
       overflow-wrap: anywhere;
@@ -300,7 +288,7 @@
       transition: border-color .15s ease, color .15s ease;
     }
 
-    #eventDetailsBody a:hover,
+
     #eventDetailsBody a:focus-visible {
       color: var(--ed-accent-hover);
       border-bottom-color: currentColor;
@@ -309,7 +297,6 @@
     #eventDetailsBody a:focus-visible {
       outline: 2px solid var(--ed-accent);
       outline-offset: 2px;
-      border-radius: 3px;
     }
 
     /* --- Description & additional details blocks --- */
@@ -320,7 +307,6 @@
       background: var(--ed-surface);
       border: 1px solid var(--ed-border);
       border-left: 3px solid var(--ed-accent);
-      border-radius: var(--ed-radius-sm);
     }
 
     #eventDescriptionContainer > p:first-child,
@@ -389,7 +375,6 @@
       color: var(--ed-text);
       background: #fff;
       border: 1px solid var(--ed-border);
-      border-radius: var(--ed-radius-sm);
       transition: border-color .15s ease, box-shadow .15s ease;
       appearance: none;
     }
@@ -398,9 +383,7 @@
       color: #98a2b3;
     }
 
-    #eventDetailsBody .event-register input:hover {
-      border-color: #cfd4dc;
-    }
+
 
     #eventDetailsBody .event-register input:focus {
       outline: none;
@@ -428,16 +411,12 @@
       color: #fff;
       background: var(--ed-accent);
       border: 0;
-      border-radius: var(--ed-radius-sm);
       cursor: pointer;
       box-shadow: 0 1px 0 rgba(0,0,0,.04);
       transition: background .15s ease, transform .06s ease, box-shadow .15s ease;
     }
 
-    #eventDetailsBody #siargaoEventRegisterSubmit:hover:not(:disabled) {
-      background: var(--ed-accent-hover);
-      box-shadow: 0 6px 16px -6px rgba(75,107,44,.55);
-    }
+
 
     #eventDetailsBody #siargaoEventRegisterSubmit:active:not(:disabled) {
       transform: translateY(1px);
@@ -460,7 +439,6 @@
       padding: .75rem .9rem;
       font-size: .85rem;
       line-height: 1.45;
-      border-radius: var(--ed-radius-sm);
       background: #eff6ff;
       border: 1px solid #bfdbfe;
       color: #1e40af;
@@ -485,7 +463,6 @@
       display: block;
       width: 100%;
       height: auto;
-      border-radius: var(--pt-radius-md);
       margin-top: 1rem;
     }
 
@@ -548,7 +525,6 @@
   isolation: isolate;
   overflow: hidden;
   min-height: var(--ev-card-min-h);
-  border-radius: var(--ev-radius);
   background-size: cover;
   background-position: center;
   background-color: var(--ev-accent); /* fallback when no image */
@@ -559,7 +535,7 @@
   cursor: pointer;
 }
 
-.panel--events .calendar-event-card:hover,
+
 .panel--events .calendar-event-card:focus-within {
   transform: translateY(-3px);
   box-shadow:
@@ -630,7 +606,6 @@
   color: #fff;
   background: rgba(255,255,255,.14);
   border: 1px solid rgba(255,255,255,.35);
-  border-radius: 999px;
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   cursor: pointer;
@@ -638,16 +613,13 @@
   transition: background .15s ease, border-color .15s ease, transform .06s ease;
 }
 
-.panel--events .calendar-event-card:hover .calendar-event-register,
+.calendar-event-register,
 .panel--events .calendar-event-card:focus-within .calendar-event-register {
   background: var(--ev-accent);
   border-color: var(--ev-accent);
 }
 
-.panel--events .calendar-event-card .calendar-event-register:hover {
-  background: var(--ev-accent-hover);
-  border-color: var(--ev-accent-hover);
-}
+
 
 .panel--events .calendar-event-card .calendar-event-register:active {
   transform: translateY(1px);
@@ -688,7 +660,7 @@
   .panel--events .calendar-event-card .calendar-event-register {
     transition: none;
   }
-  .panel--events .calendar-event-card:hover { transform: none; }
+
 }
 
 
@@ -701,7 +673,6 @@
 .panel#schedules {
   background: #ffffff;
   border: 1px solid #e5e7eb;
-  border-radius: 12px;
   padding: 20px 22px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   color: #1f2937;
@@ -739,17 +710,12 @@
   background: #ffffff;
   border: 1px solid #e5e7eb;
   border-left: 4px solid #3b82f6;
-  border-radius: 10px;
   padding: 14px 16px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   transition: box-shadow 0.18s ease, transform 0.18s ease, border-left-color 0.18s ease;
 }
 
-.schedule-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  transform: translateY(-1px);
-  border-left-color: #2563eb;
-}
+
 
 .schedule-card-title {
   font-size: 0.72rem;
@@ -821,11 +787,7 @@
   border: 1px solid #d1d5db;
 }
 
-.schedule-more-toggle:hover {
-  background: #f3f4f6;
-  color: #111827;
-  border-color: #9ca3af;
-}
+
 
 .btn-join {
   background: #3b82f6;
@@ -833,10 +795,6 @@
   border: 1px solid #3b82f6;
 }
 
-.btn-join:hover {
-  background: #2563eb;
-  border-color: #2563eb;
-}
 
 .btn-join:active,
 .schedule-more-toggle:active {
@@ -1194,9 +1152,9 @@
       const modal = document.createElement('div');
       modal.style.cssText = `position:fixed;inset:0;background:rgba(16,24,40,.55);display:flex;align-items:center;justify-content:center;z-index:10000;padding:16px;`;
       modal.innerHTML = `
-        <div style="background:#fff;padding:24px;border-radius:12px;max-width:520px;width:100%;max-height:80vh;overflow-y:auto;box-shadow:0 12px 28px rgba(16,24,40,.25);">
+        <div style="background:#fff;padding:24px;max-width:520px;width:100%;max-height:80vh;overflow-y:auto;box-shadow:0 12px 28px rgba(16,24,40,.25);">
           ${joinersHTML}
-          <button style="margin-top:16px;padding:10px 18px;background:#4b6b2c;color:#fff;border:none;border-radius:8px;cursor:pointer;">Close</button>
+          <button style="margin-top:16px;padding:10px 18px;background:#4b6b2c;color:#fff;border:none;cursor:pointer;">Close</button>
         </div>`;
       modal.querySelector('button').addEventListener('click', () => modal.remove());
       modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });

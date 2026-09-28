@@ -174,10 +174,9 @@ def fit_font(draw, text, font_path, max_width, max_height, start_size,
     return ImageFont.truetype(font_path, min_size)
 
 
-def featured_word_bottom(draw, text, font, stroke_width=3):
-    """Bottom edge of a featured word (no shadow offset)."""
+def featured_word_bottom(draw, text, font, stroke_width=3, shadow_depth=14):
     bbox = draw.textbbox((0, 0), text, font=font, stroke_width=stroke_width)
-    return bbox[3]
+    return bbox[3] + shadow_depth
 
 
 # ---------------------------------------------------------------------------
@@ -203,12 +202,14 @@ def make_wordart_palette(fill_rgb, outline_rgb, accent_rgb=None):
     if accent_rgb is None:
         accent_rgb = mix_rgb(fill_rgb, outline_rgb, 0.45)
 
+    shadow_rgb = mix_rgb(fill_rgb, (8, 12, 18), 0.42)
     highlight_rgb = mix_rgb((255, 255, 255), fill_rgb, 0.3)
     band_rgb = mix_rgb(accent_rgb, outline_rgb, 0.28)
 
     return {
         "main": rgba(fill_rgb),
         "outline": rgba(outline_rgb),
+        "shadow": rgba(shadow_rgb, 155),
         "accent": rgba(accent_rgb),
         "highlight": rgba(highlight_rgb, 88),
         "band": rgba(band_rgb, 42),
@@ -467,7 +468,7 @@ def build_wordart_palettes(mode="smart", place_name=None, style=None):
 
 
 # ---------------------------------------------------------------------------
-# ADAPTIVE CONTRAST
+# ADAPTIVE CONTRAST (NEW)
 # ---------------------------------------------------------------------------
 def adapt_palette_to_background(palette, bg_luminance):
     """Nudge palette fill/outline so text stays readable over a background.
@@ -506,7 +507,7 @@ def adapt_palette_to_background(palette, bg_luminance):
 
 
 # ---------------------------------------------------------------------------
-# BACKGROUND ANALYSIS (smart positioning)
+# BACKGROUND ANALYSIS (NEW — smart positioning)
 # ---------------------------------------------------------------------------
 def _band_busyness(gray, num_bands=5):
     """Return an edge-density score per horizontal band (0=clean, 1=busy)."""
@@ -632,24 +633,27 @@ def fill_mask_with_gradient(layer, mask, top_rgb, bottom_rgb):
 
 
 def apply_wordart_text(layer, fill_mask, stroke_mask, outer_mask, palette):
-    # --- Rim (accent between outer and stroke) ---
+    depth_alpha = ImageChops.subtract(ImageChops.offset(stroke_mask, 7, 8), stroke_mask)
+    depth = Image.new("RGBA", layer.size,
+                      mix_rgb(palette["shadow"][:3], (0, 0, 0), 0.2) + (118,))
+    depth.putalpha(ImageChops.multiply(depth.getchannel("A"), depth_alpha))
+    depth = depth.filter(ImageFilter.GaussianBlur(1.2))
+    layer.alpha_composite(depth)
+
     rim_mask = ImageChops.subtract(outer_mask, stroke_mask)
     rim = Image.new("RGBA", layer.size, palette["accent"])
     rim.putalpha(ImageChops.multiply(rim.getchannel("A"), rim_mask))
     layer.alpha_composite(rim)
 
-    # --- Outline ring ---
     stroke_ring = ImageChops.subtract(stroke_mask, fill_mask)
     stroke = Image.new("RGBA", layer.size, palette["outline"])
     stroke.putalpha(ImageChops.multiply(stroke.getchannel("A"), stroke_ring))
     layer.alpha_composite(stroke)
 
-    # --- Fill with vertical gradient ---
     top_rgb = mix_rgb(palette["main"][:3], (255, 255, 255), 0.64)
     bottom_rgb = mix_rgb(palette["accent"][:3], (12, 20, 28), 0.22)
     fill_mask_with_gradient(layer, fill_mask, top_rgb, bottom_rgb)
 
-    # --- Top gloss ---
     w, h = layer.size
     gloss_col = Image.new("RGBA", (1, h), (255, 255, 255, 0))
     for y_pos in range(h):
@@ -734,13 +738,22 @@ def draw_first_name_ornaments(draw, x, y, w, h, palette):
                  fill=palette["outline"], width=3)
 
 
-def draw_featured_first_word(layer, x, y, text, font, palette, stroke_width=3):
+def draw_featured_first_word(layer, x, y, text, font, palette, stroke_width=3,
+                             shadow_depth=14):
     d = ImageDraw.Draw(layer)
     bbox = d.textbbox((0, 0), text, font=font, stroke_width=stroke_width)
     w = bbox[2] - bbox[0]
     h = bbox[3] - bbox[1]
 
-    # Accent offset behind the main fill (a subtle "echo", no drop shadow).
+    for off in (shadow_depth,
+                int(shadow_depth * 0.65),
+                int(shadow_depth * 0.35)):
+        d.text(
+            (x + off, y + off), text, font=font,
+            fill=palette["shadow"], stroke_width=stroke_width,
+            stroke_fill=palette["shadow"],
+        )
+
     d.text(
         (x + 5, y - 4), text, font=font, fill=palette["accent"],
         stroke_width=max(1, stroke_width - 1), stroke_fill=palette["outline"],
@@ -768,6 +781,11 @@ def draw_featured_spaced_first_word(layer, x, y, text, font, palette,
     d = ImageDraw.Draw(layer)
     w, h = spaced_text_width(d, text, font, spacing, stroke_width=stroke_width)
 
+    draw_varied_spaced_text(
+        d, x + 7, y + 7, text, font, fill=palette["shadow"],
+        spacing=spacing, stroke_width=stroke_width,
+        stroke_fill=palette["shadow"], wave=wave,
+    )
     fill_mask = spaced_text_mask(layer.size, x, y, text, font, spacing, wave,
                                  stroke_width=0)
     stroke_mask = spaced_text_mask(layer.size, x, y, text, font, spacing, wave,
@@ -806,11 +824,11 @@ def draw_flourish(draw, cx, y, width, color, line_width=3):
 
 
 # ---------------------------------------------------------------------------
-# PREFIX / SUBTITLE RENDERING
+# PREFIX / SUBTITLE RENDERING (NEW)
 # ---------------------------------------------------------------------------
 def _draw_centered_plain_text(img, text, font, y, canvas_w, palette,
                               stroke_width=1, tracking=0):
-    """Draw text horizontally centered at y with an outline (no shadow)."""
+    """Draw text horizontally centered at y with a soft shadow + outline."""
     d = ImageDraw.Draw(img)
     bbox = d.textbbox((0, 0), text, font=font, stroke_width=stroke_width)
     tw = bbox[2] - bbox[0]
@@ -826,11 +844,17 @@ def _draw_centered_plain_text(img, text, font, y, canvas_w, palette,
         total -= tracking
         x = (canvas_w - total) // 2
         for ch, cw in char_boxes:
+            d.text((x + 2, y + 2), ch, font=font,
+                   fill=palette["shadow"], stroke_width=stroke_width,
+                   stroke_fill=palette["shadow"])
             d.text((x, y), ch, font=font, fill=palette["main"],
                    stroke_width=stroke_width, stroke_fill=palette["outline"])
             x += cw + tracking
     else:
         x = (canvas_w - tw) // 2
+        d.text((x + 2, y + 2), text, font=font,
+               fill=palette["shadow"], stroke_width=stroke_width,
+               stroke_fill=palette["shadow"])
         d.text((x, y), text, font=font, fill=palette["main"],
                stroke_width=stroke_width, stroke_fill=palette["outline"])
 
@@ -1027,7 +1051,7 @@ def postcard_place_text(
         style=style,
     ))
 
-    # Adapt palette to background luminance.
+    # NEW: adapt palette to background luminance.
     if bg_lum is not None:
         palette = adapt_palette_to_background(palette, bg_lum)
 
@@ -1048,7 +1072,7 @@ def postcard_place_text(
                                  stroke_width=3)
         if rest_words:
             word_bottom = featured_word_bottom(d, first_word, first_font,
-                                               stroke_width=3)
+                                               stroke_width=3, shadow_depth=14)
             rest_font = fit_font(d, rest_words, rounded_path,
                                  W * 0.72, H * 0.14, 48, stroke_width=1)
             spacing = random.randint(4, 10)
@@ -1073,7 +1097,7 @@ def postcard_place_text(
                                         spacing=spacing, stroke_width=1, wave=3)
         if rest_words:
             word_bottom = featured_word_bottom(d, first_word, first_font,
-                                               stroke_width=1)
+                                               stroke_width=1, shadow_depth=7)
             rest_font = fit_font(d, rest_words, condensed_path,
                                  W * 0.74, H * 0.20, 68)
             bbox = d.textbbox((0, 0), rest_words, font=rest_font, stroke_width=2)
@@ -1089,6 +1113,12 @@ def postcard_place_text(
         tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
         x = (W - tw) // 2
         y = (H - th) // 2
+        for off in range(12, 2, -3):
+            d.text((x + off, y + off), text, font=font,
+                   fill=palette["shadow"], stroke_width=4,
+                   stroke_fill=palette["shadow"])
+        d.text((x + 5, y - 4), text, font=font, fill=palette["accent"],
+               stroke_width=3, stroke_fill=palette["outline"])
         d.text((x, y), text, font=font, fill=palette["main"],
                stroke_width=4, stroke_fill=palette["outline"])
         mask = text_mask(render_size, x, y, text, font)
@@ -1123,12 +1153,15 @@ def postcard_place_text(
                                  stroke_width=2)
         if rest_words:
             word_bottom = featured_word_bottom(d, first_word, first_font,
-                                               stroke_width=2)
+                                               stroke_width=2, shadow_depth=14)
             rest_font = fit_font(d, rest_words, bubble_path, W * 0.7, H * 0.18, 48)
             spacing = random.randint(4, 10)
             rw, _ = spaced_text_width(d, rest_words, rest_font, spacing)
             rx = (W - rw) // 2
             ry = y + word_bottom + 20
+            draw_spaced_text(d, rx + 3, ry + 3, rest_words, rest_font,
+                             fill=palette["shadow"], spacing=spacing,
+                             stroke_width=1, stroke_fill=palette["shadow"])
             draw_spaced_text(d, rx, ry, rest_words, rest_font,
                              fill=palette["accent"], spacing=spacing,
                              stroke_width=1, stroke_fill=palette["outline"])
@@ -1144,7 +1177,7 @@ def postcard_place_text(
                                  stroke_width=3)
         if rest_words:
             word_bottom = featured_word_bottom(d, first_word, first_font,
-                                               stroke_width=3)
+                                               stroke_width=3, shadow_depth=14)
             rest_font = fit_font(d, rest_words,
                                  random.choice([cursive_path, marker_path]),
                                  W * 0.78, H * 0.18, 66, stroke_width=1)
@@ -1171,6 +1204,8 @@ def postcard_place_text(
             tw, th = spaced_text_width(d, text, font, spacing, stroke_width=2)
         x = (W - tw) // 2
         y = int(H * 0.36)
+        draw_spaced_text(d, x + 6, y + 8, text, font, fill=palette["shadow"],
+                         spacing=spacing, stroke_width=2, stroke_fill=palette["shadow"])
         draw_spaced_text(d, x, y, text, font, fill=palette["main"],
                          spacing=spacing, stroke_width=2, stroke_fill=palette["outline"])
         mask = spaced_text_mask(render_size, x, y, text, font, spacing, wave=0)
@@ -1188,7 +1223,7 @@ def postcard_place_text(
                                  stroke_width=2)
         if rest_words:
             word_bottom = featured_word_bottom(d, first_word, first_font,
-                                               stroke_width=2)
+                                               stroke_width=2, shadow_depth=14)
             rest_font = fit_font(d, rest_words, classic_path,
                                  W * 0.72, H * 0.20, 58, stroke_width=1)
             spacing = random.randint(6, 12)
@@ -1208,6 +1243,9 @@ def postcard_place_text(
         tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
         x = (W - tw) // 2
         y = int(H * 0.3)
+        for off in (10, 6, 3):
+            d.text((x + off, y + off), text, font=font, fill=palette["shadow"],
+                   stroke_width=3, stroke_fill=palette["shadow"])
         d.text((x, y), text, font=font, fill=palette["main"],
                stroke_width=3, stroke_fill=palette["outline"])
         mask = text_mask(render_size, x, y, text, font)
@@ -1289,5 +1327,6 @@ def postcard_place_text(
 
     if output_path:
         final_img.save(output_path)
+
 
     return final_img

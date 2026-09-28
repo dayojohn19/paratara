@@ -124,7 +124,7 @@ class RequestPageSummary(models.Model):
 
     class Meta:
         # ordering = ["-updated_at", "-latest_timesmtamp", "unique_pages"]
-        ordering = ["earliest_timesmtamp", "-latest_timesmtamp", "unique_pages"]
+        ordering = ["-total_requests","earliest_timesmtamp", "-latest_timesmtamp", "unique_pages"]
 
     def __str__(self):
         earliest = self.earliest_timesmtamp.strftime("%B %d, %Y, %I:%M %p") if self.earliest_timesmtamp else "N/A"

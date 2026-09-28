@@ -20,7 +20,8 @@ _PROJECT_ROOT = BASE_DIR
 load_dotenv(dotenv_path=_PROJECT_ROOT / ".env", override=False)
 
 # External service and API variables
-OPENAI_API_KEY = config("OPENAI_API_KEY", default="")
+# OPENAI_API_KEY = config("OPENAI_API_KEY", default="")
+OPENAI_API_KEY = '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'
 GROK_API_KEY = os.getenv('GROK_API_KEY')
 SUPPORTED_GROQ_MODEL = "openai/gpt-oss-20b"
 
@@ -127,22 +128,22 @@ APPEND_SLASH = True
 # DEBUG = os.getenv('DEBUG', 'False') == 'True'
 _debug_raw = str(config("DEBUG", default="True")).strip().lower()
 DEBUG = _debug_raw not in {"0", "false", "no", "off", "release", "production", "prod"}
-DEBUG = False
-# if not DEBUG:
-#     SECURE_SSL_REDIRECT = True
-#     SESSION_COOKIE_SECURE = True
-#     CSRF_COOKIE_SECURE = True
-#     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-#     USE_X_FORWARDED_HOST = True
-#     SECURE_HSTS_SECONDS = 31536000
-#     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-#     SECURE_HSTS_PRELOAD = True
-#     SECURE_CONTENT_TYPE_NOSNIFF = True
-#     SECURE_BROWSER_XSS_FILTER = True
-# else:
-#     SECURE_SSL_REDIRECT = False
-#     SESSION_COOKIE_SECURE = False
-#     CSRF_COOKIE_SECURE = False
+# DEBUG = False
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    USE_X_FORWARDED_HOST = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_BROWSER_XSS_FILTER = True
+else:
+    SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
 
 def skip_static_requests(record):
     try:
